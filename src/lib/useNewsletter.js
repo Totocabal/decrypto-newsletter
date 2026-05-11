@@ -1,0 +1,205 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// useNewsletter — hook qui gère le cycle de vie d'une newsletter ouverte
+// ─────────────────────────────────────────────────────────────────────────────
+// Responsabilités :
+//   - Charger la newsletter (state initial)
+//   - Acquérir le lock à l'ouverture, le renouveler toutes les 2 min
+//   - Le libérer à la fermeture (ou expiration auto côté serveur après 10 min)
+//   - Auto-save (debounce 2s) sur current_state
+//   - Save explicite → crée une version + met à jour current_state
+
+import { useEffect, useRef, useState, useCallback } from "react";
+import { supabase } from "../lib/supabase.js";
+import { migrateLegacyState } from "../config/schema.js";
+
+const LOCK_RENEW_INTERVAL_MS = 2 * 60 * 1000; // 2 min
+const AUTOSAVE_DEBOUNCE_MS = 2000; // 2 s
+
+export function useNewsletter(newsletterId, userId) {
+  const [newsletter, setNewsletter] = useState(null);
+  const [state, setState] = useState(null);
+  const [lockInfo, setLockInfo] = useState(null);
+  const [lockedByOther, setLockedByOther] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [lastSavedAt, setLastSavedAt] = useState(null);
+
+  const autosaveTimer = useRef(null);
+  const lockRenewTimer = useRef(null);
+  const isMounted = useRef(true);
+  // Pour éviter d'auto-save l'état initial au tout premier render
+  const skipNextAutosave = useRef(true);
+
+  // ── 1. Chargement initial + acquisition du lock ──
+  useEffect(() => {
+    if (!newsletterId || !userId) return;
+    isMounted.current = true;
+
+    (async () => {
+      setLoading(true);
+      setError(null);
+
+      // Récupère la newsletter
+      const { data: nl, error: nlError } = await supabase
+        .from("newsletters")
+        .select("*")
+        .eq("id", newsletterId)
+        .single();
+
+      if (!isMounted.current) return;
+      if (nlError || !nl) {
+        setError(nlError?.message || "Newsletter introuvable");
+        setLoading(false);
+        return;
+      }
+      setNewsletter(nl);
+      // Migration auto : si la newsletter a été créée avec l'ancien format
+      // (propriétés à plat sans `sections`), on convertit au nouveau format
+      // basé sur sections. Transparent pour l'utilisateur.
+      const migrated = migrateLegacyState(nl.current_state);
+      setState(migrated);
+
+      // Tente d'acquérir le lock
+      const { data: lock, error: lockError } = await supabase.rpc(
+        "acquire_lock",
+        { p_newsletter_id: newsletterId, p_force: false }
+      );
+
+      if (!isMounted.current) return;
+      if (lockError) {
+        setError("Lock impossible : " + lockError.message);
+      } else {
+        setLockInfo(lock);
+        setLockedByOther(lock.user_id !== userId);
+      }
+
+      setLoading(false);
+      // L'état initial est posé — autoriser l'autosave aux prochains changements
+      skipNextAutosave.current = true;
+    })();
+
+    return () => {
+      isMounted.current = false;
+    };
+  }, [newsletterId, userId]);
+
+  // ── 2. Renouvellement périodique du lock (si on l'a) ──
+  useEffect(() => {
+    if (!newsletterId || lockedByOther || !lockInfo) return;
+
+    const renew = async () => {
+      const { data, error } = await supabase.rpc("acquire_lock", {
+        p_newsletter_id: newsletterId,
+        p_force: false,
+      });
+      if (!isMounted.current) return;
+      if (!error && data) {
+        setLockInfo(data);
+        setLockedByOther(data.user_id !== userId);
+      }
+    };
+
+    lockRenewTimer.current = setInterval(renew, LOCK_RENEW_INTERVAL_MS);
+    return () => {
+      if (lockRenewTimer.current) clearInterval(lockRenewTimer.current);
+    };
+  }, [newsletterId, userId, lockedByOther, lockInfo]);
+
+  // ── 3. Libération du lock à la fermeture ──
+  useEffect(() => {
+    if (!newsletterId) return;
+
+    const release = () => {
+      // Best-effort. Pas garantie en cas de fermeture brutale d'onglet — d'où
+      // le TTL de 10 min côté serveur.
+      navigator.sendBeacon &&
+        supabase.rpc("release_lock", { p_newsletter_id: newsletterId });
+    };
+
+    window.addEventListener("beforeunload", release);
+    return () => {
+      window.removeEventListener("beforeunload", release);
+      // À la sortie React (changement de page), on libère explicitement
+      supabase.rpc("release_lock", { p_newsletter_id: newsletterId });
+    };
+  }, [newsletterId]);
+
+  // ── 4. Auto-save (debounce 2s) sur current_state ──
+  useEffect(() => {
+    if (!newsletterId || !state || lockedByOther) return;
+    if (skipNextAutosave.current) {
+      skipNextAutosave.current = false;
+      return;
+    }
+
+    if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
+    autosaveTimer.current = setTimeout(async () => {
+      setSaving(true);
+      const { error } = await supabase
+        .from("newsletters")
+        .update({ current_state: state })
+        .eq("id", newsletterId);
+      if (!isMounted.current) return;
+      setSaving(false);
+      if (!error) setLastSavedAt(new Date());
+    }, AUTOSAVE_DEBOUNCE_MS);
+
+    return () => {
+      if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
+    };
+  }, [state, newsletterId, lockedByOther]);
+
+  // ── 5. Save explicite (= snapshot de version) ──
+  const saveVersion = useCallback(
+    async (comment = null) => {
+      if (!newsletterId || !state || !userId) return { error: "Pas prêt" };
+      // 1. Force la sauvegarde de current_state
+      const { error: e1 } = await supabase
+        .from("newsletters")
+        .update({ current_state: state })
+        .eq("id", newsletterId);
+      if (e1) return { error: e1.message };
+
+      // 2. Crée la version
+      const { error: e2 } = await supabase.from("versions").insert({
+        newsletter_id: newsletterId,
+        state,
+        author_id: userId,
+        comment,
+      });
+      if (e2) return { error: e2.message };
+
+      setLastSavedAt(new Date());
+      return { error: null };
+    },
+    [newsletterId, state, userId]
+  );
+
+  // ── 6. Forcer la prise de contrôle ──
+  const takeOverLock = useCallback(async () => {
+    const { data, error } = await supabase.rpc("acquire_lock", {
+      p_newsletter_id: newsletterId,
+      p_force: true,
+    });
+    if (!error && data) {
+      setLockInfo(data);
+      setLockedByOther(false);
+    }
+    return { error: error?.message || null };
+  }, [newsletterId]);
+
+  return {
+    newsletter,
+    state,
+    setState,
+    loading,
+    error,
+    saving,
+    lastSavedAt,
+    lockInfo,
+    lockedByOther,
+    saveVersion,
+    takeOverLock,
+  };
+}

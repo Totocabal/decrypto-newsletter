@@ -1,0 +1,24 @@
+# SPA fallback — sert index.html pour toute URL inexistante
+DirectoryIndex index.html
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule . index.html [L]
+</IfModule>
+
+# Cache assets — bundle Vite versionné, safe à long-cache
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType text/css "access plus 1 year"
+  ExpiresByType application/javascript "access plus 1 year"
+  ExpiresByType image/svg+xml "access plus 1 month"
+  ExpiresByType image/png "access plus 1 month"
+</IfModule>
+
+# Protection par mot de passe (à décommenter et configurer)
+# AuthType Basic
+# AuthName "Accès restreint"
+# AuthUserFile /chemin/absolu/vers/.htpasswd
+# Require valid-user

@@ -1,0 +1,407 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// Schema — modèle de données basé sur des sections modulaires
+// ─────────────────────────────────────────────────────────────────────────────
+// Un brouillon est composé de :
+//   - propriétés racine : brand, issue_number, date, preview_text, header, footer
+//   - un tableau `sections: [...]` où chaque section a un { id, type, data }
+//
+// Les sections sont déplaçables / dupliquables / suppressibles. Le type détermine
+// le rendu (édito, graphique, jauge, etc.). Le contenu de chaque section vit
+// dans `data`.
+//
+// L'header et le footer sont FIXES (toujours présents) pour garantir les
+// mentions légales PSAN obligatoires.
+
+import { BRAND } from "./theme.js";
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Catalogue des types de sections disponibles
+// ─────────────────────────────────────────────────────────────────────────────
+// Pour chaque type :
+//   - label    : nom affiché dans la palette
+//   - icon     : nom Lucide (string)
+//   - factory  : fonction qui retourne une instance vierge de ce type
+//   - render   : (déclaré dans buildEmail.js, on s'en sert juste pour la palette)
+//
+// Pour ajouter un nouveau type : (1) ajouter une entrée ici, (2) ajouter la
+// fonction de rendu dans buildEmail.js, (3) ajouter le formulaire d'édition
+// dans SectionEditor.jsx.
+
+export const SECTION_TYPES = {
+  hero: {
+    label: "Hero",
+    icon: "Megaphone",
+    factory: () => ({
+      kicker: "━━ \u00A0 DÉCRYPTO · L'HEBDO COINHOUSE",
+      title_part1: "Le marché",
+      title_part2: "reprend son ",
+      title_highlight: "souffle.",
+      subtitle:
+        "Volatilité au plus bas, ETF en relais, FED qui tempère. On déroule la semaine en quatre temps.",
+      chips: [
+        { label: "BTC +2,93 %" },
+        { label: "ETH +1,80 %" },
+        { label: "F&G 72 · Greed" },
+      ],
+    }),
+  },
+  index: {
+    label: "Sommaire",
+    icon: "List",
+    factory: () => ({
+      label: "Au sommaire",
+      items: [
+        { number: "01", title: "Édito — La détente du marché", duration: "03 min" },
+        { number: "02", title: "Indicateur — Fear & Greed à 72", duration: "02 min" },
+        { number: "03", title: "Analyse — 4 signaux à suivre", duration: "04 min" },
+        { number: "04", title: "Macro — Que retenir de la FED", duration: "03 min" },
+      ],
+    }),
+  },
+  edito: {
+    label: "Édito + KPI",
+    icon: "Newspaper",
+    factory: () => ({
+      kicker: "ÉDITO",
+      title: "La détente du marché",
+      body:
+        "Bitcoin a refranchi les <strong>64 000 €</strong> sans accroc, dans un climat où la volatilité implicite à 30 jours s'est effondrée. Le mouvement n'a rien d'euphorique — et c'est ce qui le rend solide.",
+      kpis: [
+        { label: "BTC", value: "64 492 €", delta: "+2,93 %", tone: "positive" },
+        { label: "ETH", value: "3 407 €", delta: "+1,80 %", tone: "positive" },
+        { label: "VIX CRYPTO", value: "42", delta: "−18 %", tone: "warning" },
+        { label: "ETF FLOWS", value: "+1,2 Md$", delta: "7j", tone: "muted" },
+      ],
+    }),
+  },
+  chart: {
+    label: "Graphique",
+    icon: "TrendingUp",
+    factory: () => ({
+      label: "BTC / EUR",
+      value: "64 492,76 €",
+      delta: "▲ +2,93 %",
+      delta_tone: "positive",
+      subdelta: "+1 838 € sur 7j",
+      points: [68.9, 60, 78.9, 50, 40.6, 29.4, 6.7],
+      x_labels: ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"],
+    }),
+  },
+  fear_greed: {
+    label: "Fear & Greed",
+    icon: "Gauge",
+    factory: () => ({
+      kicker: "INDICATEUR",
+      title: "Fear & Greed Index",
+      value: "72",
+      classification: "GREED",
+      commentary:
+        "Premier passage en zone <strong>Greed</strong> depuis février. Historiquement, ces phases coïncident avec des prises de bénéfices partielles plutôt qu'avec un afflux massif d'acheteurs.",
+    }),
+  },
+  signals: {
+    label: "Signaux",
+    icon: "Activity",
+    factory: () => ({
+      kicker: "ANALYSE",
+      title: "4 signaux à suivre cette semaine",
+      signals: [
+        {
+          direction: "up",
+          title: "Flux entrants ETF spot",
+          description: "+1,2 Md$ sur 7 jours · retour des allocations institutionnelles.",
+        },
+        {
+          direction: "down",
+          title: "Concentration des wallets",
+          description: "Top 100 BTC = 14,8 % de l'offre · plus haut depuis 2023.",
+        },
+        {
+          direction: "up",
+          title: "MiCA phase 2",
+          description: "Standards techniques publiés · Coinhouse conforme.",
+        },
+        {
+          direction: "down",
+          title: "Stablecoins · pression US",
+          description: "Sénat américain en examen · impact potentiel sur USDT/USDC.",
+        },
+      ],
+    }),
+  },
+  macro: {
+    label: "Macro / Citation",
+    icon: "Quote",
+    factory: () => ({
+      kicker: "MACRO",
+      title: "Que retenir de la FED",
+      body:
+        "Powell confirme une posture <strong>« higher for longer »</strong>, tout en ouvrant la porte à une première baisse en septembre si l'inflation cœur poursuit sa décrue.",
+      quote:
+        "Nous avons besoin de plus de confiance que l'inflation se rapproche durablement de notre cible avant d'envisager un assouplissement.",
+      quote_author: "Jerome Powell · Conférence du 1<sup>er</sup> mai",
+      bars: [
+        { label: "Baisses pricées en 2026", value: "1,5", percent: "38", caption: "vs 3 il y a 1 mois" },
+        { label: "Inflation cœur (CPI)", value: "3,2", percent: "53", caption: "cible 2 %" },
+        { label: "Probabilité baisse sept.", value: "62 %", percent: "62", caption: "implicite Fed Funds" },
+      ],
+    }),
+  },
+  event: {
+    label: "Évènement",
+    icon: "Calendar",
+    factory: () => ({
+      day: "14",
+      month: "MAI",
+      year: "2026",
+      kicker: "ÉVÈNEMENT · PARIS",
+      title: "Crypto pour Tous",
+      description:
+        "Une soirée pour comprendre comment intégrer 1 à 5 % de crypto dans une allocation patrimoniale. 40 places.",
+      cta_label: "S'inscrire — gratuit →",
+      cta_url: "#",
+    }),
+  },
+  text_block: {
+    label: "Bloc texte libre",
+    icon: "Type",
+    factory: () => ({
+      kicker: "FOCUS",
+      title: "Un sujet à creuser",
+      body:
+        "Texte libre — utilise <strong>gras</strong>, <em>italique</em> ou <br /> pour structurer ton propos.",
+    }),
+  },
+  divider: {
+    label: "Séparateur",
+    icon: "Minus",
+    factory: () => ({
+      style: "thin", // thin | thick | gradient
+    }),
+  },
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// État initial — la structure type Décrypto
+// ─────────────────────────────────────────────────────────────────────────────
+
+let nextSectionId = 1;
+const sid = () => `s${Date.now()}_${nextSectionId++}`;
+
+function section(type, dataOverride = {}) {
+  const data = SECTION_TYPES[type].factory();
+  return { id: sid(), type, data: { ...data, ...dataOverride } };
+}
+
+export const INITIAL_STATE = {
+  // ── Identité de marque ────────────────────────────────────────────────
+  brand_name: BRAND.name,
+
+  // ── En-tête fixe ──────────────────────────────────────────────────────
+  issue_number: "142",
+  issue_date: "04.05.2026",
+  preview_text:
+    "Le marché reprend son souffle — F&G à 72, ETF +1,2 Md$, FED qui tempère.",
+
+  // ── Sections modulaires ───────────────────────────────────────────────
+  sections: [
+    section("hero"),
+    section("index"),
+    section("edito"),
+    section("chart"),
+    section("fear_greed"),
+    section("signals"),
+    section("macro"),
+    section("event"),
+  ],
+
+  // ── Pied de page fixe ─────────────────────────────────────────────────
+  footer: {
+    tagline: BRAND.tagline,
+    links: [
+      { label: "Application", url: "#" },
+      { label: "Premium", url: "#" },
+      { label: "Gestion privée", url: "#" },
+      { label: "Académie", url: "#" },
+    ],
+    address: BRAND.address,
+    legal: BRAND.legalNotice,
+    pref_url: "#",
+    unsub_url: "#",
+  },
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Migration : état ancien (props à plat) → nouveau (sections)
+// ─────────────────────────────────────────────────────────────────────────────
+// Détectée à l'ouverture d'une newsletter : si pas de `sections`, on convertit.
+
+export function migrateLegacyState(oldState) {
+  if (oldState && Array.isArray(oldState.sections)) {
+    // Déjà au nouveau format
+    return oldState;
+  }
+  if (!oldState) return INITIAL_STATE;
+
+  const o = oldState;
+  const sections = [];
+
+  // Hero
+  if (o.hero_title_part1 !== undefined || o.hero_kicker !== undefined) {
+    sections.push({
+      id: sid(),
+      type: "hero",
+      data: {
+        kicker: o.hero_kicker ?? "",
+        title_part1: o.hero_title_part1 ?? "",
+        title_part2: o.hero_title_part2 ?? "",
+        title_highlight: o.hero_title_highlight ?? "",
+        subtitle: o.hero_subtitle ?? "",
+        chips: o.hero_chips ?? [],
+      },
+    });
+  }
+
+  // Index
+  if (o.index_items && o.index_items.length) {
+    sections.push({
+      id: sid(),
+      type: "index",
+      data: {
+        label: o.index_label ?? "Au sommaire",
+        items: o.index_items,
+      },
+    });
+  }
+
+  // Édito + KPI
+  if (o.edito_title !== undefined || o.edito_body !== undefined) {
+    sections.push({
+      id: sid(),
+      type: "edito",
+      data: {
+        kicker: o.edito_kicker ?? "ÉDITO",
+        title: o.edito_title ?? "",
+        body: o.edito_body ?? "",
+        kpis: o.edito_kpis ?? [],
+      },
+    });
+  }
+
+  // Chart
+  if (o.chart_value !== undefined || o.chart_points) {
+    sections.push({
+      id: sid(),
+      type: "chart",
+      data: {
+        label: o.chart_label ?? "",
+        value: o.chart_value ?? "",
+        delta: o.chart_delta ?? "",
+        delta_tone: o.chart_delta_tone ?? "positive",
+        subdelta: o.chart_subdelta ?? "",
+        points: o.chart_points ?? [50, 50, 50, 50, 50, 50, 50],
+        x_labels: o.chart_x_labels ?? ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"],
+      },
+    });
+  }
+
+  // Fear & Greed
+  if (o.fg_value !== undefined) {
+    sections.push({
+      id: sid(),
+      type: "fear_greed",
+      data: {
+        kicker: o.fg_kicker ?? "INDICATEUR",
+        title: o.fg_title ?? "Fear & Greed Index",
+        value: o.fg_value ?? "50",
+        classification: o.fg_classification ?? "NEUTRAL",
+        commentary: o.fg_commentary ?? "",
+      },
+    });
+  }
+
+  // Signaux
+  if (o.signals && o.signals.length) {
+    sections.push({
+      id: sid(),
+      type: "signals",
+      data: {
+        kicker: o.signals_kicker ?? "ANALYSE",
+        title: o.signals_title ?? "",
+        signals: o.signals,
+      },
+    });
+  }
+
+  // Macro
+  if (o.macro_title !== undefined || o.macro_quote !== undefined) {
+    sections.push({
+      id: sid(),
+      type: "macro",
+      data: {
+        kicker: o.macro_kicker ?? "MACRO",
+        title: o.macro_title ?? "",
+        body: o.macro_body ?? "",
+        quote: o.macro_quote ?? "",
+        quote_author: o.macro_quote_author ?? "",
+        bars: o.macro_bars ?? [],
+      },
+    });
+  }
+
+  // Évènement
+  if (o.event_title !== undefined) {
+    sections.push({
+      id: sid(),
+      type: "event",
+      data: {
+        day: o.event_day ?? "",
+        month: o.event_month ?? "",
+        year: o.event_year ?? "",
+        kicker: o.event_kicker ?? "",
+        title: o.event_title ?? "",
+        description: o.event_description ?? "",
+        cta_label: o.event_cta_label ?? "",
+        cta_url: o.event_cta_url ?? "#",
+      },
+    });
+  }
+
+  return {
+    brand_name: o.brand_name ?? BRAND.name,
+    issue_number: o.issue_number ?? "",
+    issue_date: o.issue_date ?? "",
+    preview_text: o.preview_text ?? "",
+    sections,
+    footer: {
+      tagline: o.footer_tagline ?? BRAND.tagline,
+      links: o.footer_links ?? [],
+      address: o.footer_address ?? BRAND.address,
+      legal: o.footer_legal ?? BRAND.legalNotice,
+      pref_url: o.footer_pref_url ?? "#",
+      unsub_url: o.footer_unsub_url ?? "#",
+    },
+  };
+}
+
+// Utilitaire pour créer une nouvelle section depuis l'UI
+export function createSection(type) {
+  if (!SECTION_TYPES[type]) {
+    throw new Error(`Type de section inconnu : ${type}`);
+  }
+  return section(type);
+}
+
+// Numéro affiché d'une section (selon sa position parmi les sections numérotables)
+// Hero, sommaire et divider ne portent pas de numéro.
+const UNNUMBERED_TYPES = new Set(["hero", "index", "divider"]);
+
+export function computeSectionNumber(sections, sectionId) {
+  let counter = 0;
+  for (const s of sections) {
+    if (UNNUMBERED_TYPES.has(s.type)) continue;
+    counter++;
+    if (s.id === sectionId) return String(counter).padStart(2, "0");
+  }
+  return null;
+}
