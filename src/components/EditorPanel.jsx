@@ -417,8 +417,6 @@ function SectionCard({
 
   return (
     <div
-      draggable
-      onDragStart={onDragStart}
       onDragOver={onDragOver}
       onDrop={onDrop}
       onDragEnd={onDragEnd}
@@ -430,7 +428,16 @@ function SectionCard({
     >
       {/* Barre de titre */}
       <div className="flex items-center gap-2 px-2 py-2">
-        <GripVertical size={14} className="text-stone-400 cursor-grab active:cursor-grabbing flex-shrink-0" />
+        <button
+          type="button"
+          draggable
+          onDragStart={onDragStart}
+          onDragEnd={onDragEnd}
+          className="p-1 text-stone-400 cursor-grab active:cursor-grabbing hover:text-stone-700 rounded-sm flex-shrink-0"
+          title="Glisser pour déplacer"
+        >
+          <GripVertical size={14} />
+        </button>
         <button
           onClick={() => setOpen((v) => !v)}
           className="flex-1 flex items-center gap-2 min-w-0 text-left hover:bg-stone-50 -mx-1 px-2 py-1 rounded-sm"
