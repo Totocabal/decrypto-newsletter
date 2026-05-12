@@ -75,6 +75,7 @@ function getBrazeConfig() {
 
 function parseBrazeAssetUrl(payload) {
   const candidates = [
+    payload?.new_assets?.[0]?.url,
     payload?.url,
     payload?.asset_url,
     payload?.media_url,
@@ -105,13 +106,9 @@ async function uploadAssetToBraze(asset, braze) {
     },
     body: JSON.stringify({
       name: asset.name,
-      file_name: asset.name,
       ...(asset.assetUrl
         ? { asset_url: asset.assetUrl }
-        : {
-            content_type: asset.contentType || "image/png",
-            asset_file: asset.base64,
-          }),
+        : { asset_file: Buffer.from(asset.base64, "base64").toString("binary") }),
     }),
   });
 
