@@ -59,6 +59,7 @@ function HtmlButton({ title, onClick, children }) {
 
 export function TextArea({ showCount, onChange, value = "", ...props }) {
   const editorRef = useRef(null);
+  const lastEmittedRef = useRef("");
   const htmlValue = String(value ?? "");
   const { rows = 3, ...editorProps } = props;
 
@@ -66,16 +67,35 @@ export function TextArea({ showCount, onChange, value = "", ...props }) {
     const editor = editorRef.current;
     if (!editor || document.activeElement === editor) return;
     if (editor.innerHTML !== htmlValue) editor.innerHTML = htmlValue;
+    lastEmittedRef.current = htmlValue;
   }, [htmlValue]);
 
   const emitChange = () => {
     const nextValue = editorRef.current?.innerHTML || "";
+    lastEmittedRef.current = nextValue;
     onChange?.({ target: { value: nextValue } });
   };
 
   const runCommand = (command, commandValue = null) => {
     editorRef.current?.focus();
     document.execCommand(command, false, commandValue);
+    emitChange();
+  };
+
+  const insertList = (tagName) => {
+    const editor = editorRef.current;
+    if (!editor) return;
+    editor.focus();
+    const selection = window.getSelection();
+    const selectedText = selection?.toString().trim();
+    const items = selectedText
+      ? selectedText
+          .split(/\n+/)
+          .map((line) => line.trim())
+          .filter(Boolean)
+      : ["Élément de liste"];
+    const html = `<${tagName}>${items.map((item) => `<li>${item}</li>`).join("")}</${tagName}>`;
+    document.execCommand("insertHTML", false, html);
     emitChange();
   };
 
@@ -128,10 +148,10 @@ export function TextArea({ showCount, onChange, value = "", ...props }) {
         >
           <Link size={13} />
         </HtmlButton>
-        <HtmlButton title="Liste à puces" onClick={() => runCommand("insertUnorderedList")}>
+        <HtmlButton title="Liste à puces" onClick={() => insertList("ul")}>
           <List size={13} />
         </HtmlButton>
-        <HtmlButton title="Liste numérotée" onClick={() => runCommand("insertOrderedList")}>
+        <HtmlButton title="Liste numérotée" onClick={() => insertList("ol")}>
           <ListOrdered size={13} />
         </HtmlButton>
       </div>
@@ -141,7 +161,7 @@ export function TextArea({ showCount, onChange, value = "", ...props }) {
         suppressContentEditableWarning
         onInput={emitChange}
         onBlur={emitChange}
-        dangerouslySetInnerHTML={{ __html: htmlValue }}
+        dangerouslySetInnerHTML={{ __html: lastEmittedRef.current || htmlValue }}
         {...editorProps}
         className="w-full px-3 py-2 bg-white text-sm text-stone-800 focus:outline-none leading-relaxed overflow-auto"
         style={{ minHeight: `${Math.max(Number(rows) || 3, 2) * 1.6}rem` }}
