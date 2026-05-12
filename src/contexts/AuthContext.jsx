@@ -15,7 +15,31 @@ import { supabase } from "../lib/supabase.js";
 
 const AuthContext = createContext(null);
 
-const INIT_TIMEOUT_MS = 30000;
+const INIT_TIMEOUT_MS = 10000;
+const PROFILE_TIMEOUT_MS = 10000;
+
+function wait(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function withTimeout(promise, ms, label) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error(`${label} timeout (>${ms / 1000}s)`)), ms)
+    ),
+  ]);
+}
+
+function clearSupabaseStorage() {
+  try {
+    Object.keys(localStorage)
+      .filter((key) => key.startsWith("sb-"))
+      .forEach((key) => localStorage.removeItem(key));
+  } catch {
+    // Storage may be blocked; state reset below is still useful.
+  }
+}
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -32,11 +56,15 @@ export function AuthProvider({ children }) {
       return;
     }
     for (let attempt = 0; attempt < 3; attempt++) {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", userId)
-        .maybeSingle();
+      const { data, error } = await withTimeout(
+        supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", userId)
+          .maybeSingle(),
+        PROFILE_TIMEOUT_MS,
+        "Chargement profil"
+      );
       if (error) {
         // eslint-disable-next-line no-console
         console.error("[auth] fetchProfile error:", error);
@@ -54,7 +82,7 @@ export function AuthProvider({ children }) {
             hint: "La table 'profiles' n'existe pas. Exécute supabase/schema.sql dans le SQL Editor.",
           });
         }
-        await new Promise((r) => setTimeout(r, 600));
+        await wait(600);
         continue;
       }
       if (data) {
@@ -62,7 +90,7 @@ export function AuthProvider({ children }) {
         return;
       }
       // Pas d'erreur mais pas de profil → on attend que le trigger crée la ligne
-      await new Promise((r) => setTimeout(r, 600));
+      await wait(600);
     }
     // Toujours pas de profil après 3 essais → on continue sans (l'UI affichera
     // "Création du profil…" et l'utilisateur peut rafraîchir)
@@ -73,6 +101,18 @@ export function AuthProvider({ children }) {
     if (user?.id) await fetchProfile(user.id);
   }, [user, fetchProfile]);
 
+  const resetLocalSession = useCallback(async () => {
+    try {
+      await supabase.auth.signOut({ scope: "local" });
+    } catch {
+      clearSupabaseStorage();
+    }
+    clearSupabaseStorage();
+    setUser(null);
+    setProfile(null);
+    setLoading(false);
+  }, []);
+
   useEffect(() => {
     let mounted = true;
 
@@ -80,24 +120,39 @@ export function AuthProvider({ children }) {
       try {
         // Race entre la session et un timeout — sinon on peut rester bloqué
         // indéfiniment si Supabase est injoignable (mauvaise URL, blocage CORS…)
-        const sessionPromise = supabase.auth.getSession();
-        const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(
-            () =>
-              reject(new Error(`Supabase ne répond pas (>${INIT_TIMEOUT_MS / 1000}s)`)),
-            INIT_TIMEOUT_MS
-          )
+        const result = await withTimeout(
+          supabase.auth.getSession(),
+          INIT_TIMEOUT_MS,
+          "Session Supabase"
         );
 
-        const result = await Promise.race([sessionPromise, timeoutPromise]);
         if (!mounted) return;
+
+        if (result?.error) {
+          // Une session locale corrompue ou un refresh token expiré peut bloquer
+          // l'app après refresh. On nettoie seulement le stockage auth local.
+          // L'utilisateur pourra se reconnecter immédiatement.
+          // eslint-disable-next-line no-console
+          console.warn("[auth] getSession error:", result.error);
+          clearSupabaseStorage();
+          setUser(null);
+          setProfile(null);
+          setLoading(false);
+          return;
+        }
 
         const session = result?.data?.session;
         const u = session?.user ?? null;
         setUser(u);
 
         if (u) {
-          await fetchProfile(u.id);
+          try {
+            await fetchProfile(u.id);
+          } catch (profileErr) {
+            // eslint-disable-next-line no-console
+            console.warn("[auth] profil indisponible:", profileErr?.message || profileErr);
+            setProfile(null);
+          }
         }
         setLoading(false);
       } catch (err) {
@@ -119,12 +174,27 @@ export function AuthProvider({ children }) {
     init();
 
     // Réagit aux changements (login, logout, refresh)
-    const { data: sub } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!mounted) return;
       const u = session?.user ?? null;
       setUser(u);
-      if (u) await fetchProfile(u.id);
-      else setProfile(null);
+      setLoading(false);
+      if (!u) {
+        setProfile(null);
+        return;
+      }
+
+      // Ne jamais attendre une requête Supabase directement dans
+      // onAuthStateChange: le client auth tient un verrou interne pendant cet
+      // événement, et une requête imbriquée peut bloquer la session au refresh.
+      setTimeout(() => {
+        if (!mounted) return;
+        fetchProfile(u.id).catch((err) => {
+          // eslint-disable-next-line no-console
+          console.warn("[auth] profil indisponible après changement auth:", err);
+          if (mounted) setProfile(null);
+        });
+      }, 0);
     });
 
     return () => {
@@ -186,6 +256,7 @@ export function AuthProvider({ children }) {
         updatePassword,
         signOut,
         refreshProfile,
+        resetLocalSession,
       }}
     >
       {children}

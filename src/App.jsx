@@ -36,7 +36,7 @@ export default function App() {
 }
 
 function Router() {
-  const { user, profile, loading, initError, refreshProfile } = useAuth();
+  const { user, profile, loading, initError, refreshProfile, resetLocalSession } = useAuth();
   const [route, setRoute] = useState({ name: "list" });
   const [longWait, setLongWait] = useState(false);
 
@@ -76,6 +76,12 @@ function Router() {
                 className="text-[10px] uppercase tracking-[0.18em] text-stone-700 border border-stone-300 hover:border-stone-500 px-3 py-1.5 rounded-sm"
               >
                 Recharger
+              </button>
+              <button
+                onClick={resetLocalSession}
+                className="ml-2 text-[10px] uppercase tracking-[0.18em] text-white bg-stone-900 hover:bg-stone-700 px-3 py-1.5 rounded-sm"
+              >
+                Réinitialiser la session
               </button>
             </div>
           )}
