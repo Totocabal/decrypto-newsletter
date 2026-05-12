@@ -15,7 +15,7 @@ import { supabase } from "../lib/supabase.js";
 
 const AuthContext = createContext(null);
 
-const INIT_TIMEOUT_MS = 10000;
+const INIT_TIMEOUT_MS = 30000;
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -40,12 +40,18 @@ export function AuthProvider({ children }) {
       if (error) {
         // eslint-disable-next-line no-console
         console.error("[auth] fetchProfile error:", error);
-        // On ne setInitError ici que sur la dernière tentative
-        if (attempt === 2) {
+        // Ne déclenche initError que si l'erreur indique clairement que la
+        // table profiles n'existe pas (schéma jamais exécuté). Sinon on retry
+        // silencieusement — les erreurs RLS, timeout, réseau lent ne doivent
+        // pas afficher la page d'erreur de configuration.
+        const isSchemaError =
+          /relation .*profiles.* does not exist/i.test(error.message) ||
+          /\b42P01\b/.test(error.code || "");
+        if (attempt === 2 && isSchemaError) {
           setInitError({
             kind: "profile",
             message: error.message,
-            hint: "Impossible de lire la table 'profiles'. Vérifie que tu as bien exécuté supabase/schema.sql dans le SQL Editor.",
+            hint: "La table 'profiles' n'existe pas. Exécute supabase/schema.sql dans le SQL Editor.",
           });
         }
         await new Promise((r) => setTimeout(r, 600));
@@ -97,16 +103,16 @@ export function AuthProvider({ children }) {
       } catch (err) {
         if (!mounted) return;
         // eslint-disable-next-line no-console
-        console.error("[auth] init error:", err);
-        setInitError({
-          kind: "init",
-          message: err?.message || String(err),
-          hint:
-            "Vérifie que :\n" +
-            "  1. Le fichier .env existe à la racine du projet\n" +
-            "  2. VITE_SUPABASE_URL et VITE_SUPABASE_ANON_KEY y sont remplies\n" +
-            "  3. Tu as redémarré `npm run dev` après modification du .env",
-        });
+        console.warn(
+          "[auth] init lent ou échoué :",
+          err?.message || err,
+          "→ on continue sans session, l'utilisateur pourra se logger."
+        );
+        // On ne BLOQUE PAS l'app sur ce timeout. Si la session ne s'est pas
+        // chargée en 30s, on assume qu'il n'y en a pas et on affiche le login.
+        // Si l'utilisateur a en fait une session valide en localStorage,
+        // onAuthStateChange la rechargera dès que Supabase répondra.
+        setUser(null);
         setLoading(false);
       }
     }
