@@ -23,7 +23,10 @@ create table if not exists public.profiles (
 
 -- Trigger : à l'inscription, on crée automatiquement un profil non approuvé
 create or replace function public.handle_new_user()
-returns trigger as $$
+returns trigger
+language plpgsql
+security definer
+as $$
 begin
   insert into public.profiles (id, email, full_name, avatar_url)
   values (
@@ -34,7 +37,7 @@ begin
   );
   return new;
 end;
-$$ language plpgsql security definer;
+$$;
 
 drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
@@ -447,13 +450,15 @@ grant execute on function public.admin_create_user(text, text, text, boolean, bo
 -- Trigger : touch updated_at à chaque update sur newsletters
 -- ─────────────────────────────────────────────────────────────────────────────
 create or replace function public.touch_updated_at()
-returns trigger as $$
+returns trigger
+language plpgsql
+as $$
 begin
   new.updated_at := now();
   new.updated_by := auth.uid();
   return new;
 end;
-$$ language plpgsql;
+$$;
 
 drop trigger if exists newsletters_touch on public.newsletters;
 create trigger newsletters_touch
