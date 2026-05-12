@@ -333,7 +333,7 @@ function renderSignals(data, number) {
     const left = items[i], right = items[i + 1];
     const isLast = i + 2 >= items.length;
     const cellOf = (s, position) => {
-      if (!s) return `<td width="50%"></td>`;
+      if (!s) return `<td class="em-signal-col" width="50%"></td>`;
       const arrowUp = s.direction === "up";
       const bg = arrowUp ? "rgba(3,255,207,0.12)" : "rgba(255,75,40,0.14)";
       const fg = arrowUp ? THEME.positive : THEME.warning;
@@ -342,8 +342,8 @@ function renderSignals(data, number) {
       if (position === "tl") borders = `border-right:1px solid ${THEME.border}; border-bottom:1px solid ${THEME.border};`;
       else if (position === "tr") borders = `border-bottom:1px solid ${THEME.border};`;
       else if (position === "bl") borders = `border-right:1px solid ${THEME.border};`;
-      return `<td valign="top" width="50%" style="padding:20px 18px; ${borders}">
-        <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+      return `<td class="em-signal-col" valign="top" width="50%" style="padding:20px 18px; ${borders}">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
           <tr>
             <td valign="top" width="42">
               <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
@@ -444,7 +444,7 @@ function renderEvent(data) {
                   <p style="margin:8px 0 2px; font-family:${FONTS.heading}; font-weight:600; font-size:18px; letter-spacing:0.1em; color:${THEME.textPrimary};">${escapeHtml(data.month)}</p>
                   <p style="margin:0; font-family:${FONTS.body}; font-size:12px; color:${THEME.textMuted}; letter-spacing:0.1em;">${escapeHtml(data.year)}</p>
                 </td>
-                <td class="em-stack" valign="middle" style="padding:32px 28px;">
+                <td class="em-stack em-event-text" valign="middle" style="padding:32px 28px;">
                   <p style="margin:0 0 12px; font-family:${FONTS.body}; font-size:11px; letter-spacing:0.2em; text-transform:uppercase; font-weight:600; color:${THEME.positive};">${escapeHtml(data.kicker)}</p>
                   <h3 style="margin:0; font-family:${FONTS.heading}; font-weight:700; font-size:28px; letter-spacing:-0.025em; line-height:1.05; color:${THEME.textPrimary};">${escapeHtml(data.title)}</h3>
                   <p style="margin:12px 0 0; font-family:${FONTS.body}; font-size:13px; line-height:1.5; color:${THEME.textSecondary};">${escapeHtml(data.description)}</p>
@@ -598,9 +598,8 @@ function renderHeader(state, assetMode) {
       <td class="em-px" style="padding:22px 36px; border-bottom:1px solid ${THEME.border};">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
           <tr>
-            <td align="left" valign="middle" style="font-family:${FONTS.heading}; font-weight:700; font-size:18px; color:${THEME.textPrimary}; letter-spacing:0.04em;">
-              <span style="display:inline-block; vertical-align:middle; margin-right:10px;"><img src="https://cdn.braze.eu/appboy/communication/assets/image_assets/images/6a032aec37800e0085f8e2ac/original.png?1778592492" width="180" alt="Coinhouse" style="display:inline-block; vertical-align:middle; border:0; max-width:180px; height:auto;" /></span>
-              <span style="vertical-align:middle;">${escapeHtml(state.brand_name)}</span>
+            <td align="left" valign="middle">
+              <img src="https://cdn.braze.eu/appboy/communication/assets/image_assets/images/6a032aec37800e0085f8e2ac/original.png?1778592492" width="180" alt="Coinhouse" style="display:inline-block; vertical-align:middle; border:0; max-width:180px; height:auto;" />
             </td>
             <td align="right" valign="middle" style="font-family:${FONTS.body}; font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:${THEME.textMuted};">
               N° ${escapeHtml(state.issue_number)} &nbsp;·&nbsp; ${escapeHtml(state.issue_date)}
@@ -624,8 +623,8 @@ function renderFooter(footer, assetMode) {
         <p style="margin:0 0 22px; font-family:${FONTS.heading}; font-weight:500; font-size:14px; color:${THEME.textMuted}; letter-spacing:-0.005em;">${escapeHtml(footer.tagline)}</p>
         ${links ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:24px;" align="center"><tr>${links}</tr></table>` : ""}
         <p style="margin:0; font-family:${FONTS.body}; font-size:11px; color:${THEME.textDim}; line-height:1.6; letter-spacing:0.02em;">
-          ${escapeHtml(footer.address)}<br />
-          <span style="color:${THEME.textFaint};">${escapeHtml(footer.legal)}</span>
+          ${escapeHtml(footer.address)}<br /><br />
+          <span style="color:${THEME.textFaint};">${escapeHtml(footer.legal).replace(/\n/g, "<br />")}</span>
         </p>
         <p style="margin:18px 0 0; font-family:${FONTS.body}; font-size:11px; color:${THEME.textFaint};">
           <a href="${escapeAttr(footer.pref_url)}" style="color:${THEME.textFaint}; text-decoration:underline;">Préférences</a> ·
@@ -689,7 +688,8 @@ export function buildEmailHtml(state, options = {}) {
     .em-event-day { font-size: 60px !important; }
     .em-chart-value { font-size: 28px !important; }
     .em-kpi-grid td { display: block !important; width: 100% !important; border-right: none !important; border-bottom: 1px solid rgba(255,255,255,0.06) !important; }
-    .em-signal-grid td { display: block !important; width: 100% !important; }
+    .em-signal-col { display: block !important; width: 100% !important; }
+    .em-event-text { word-break: break-word !important; overflow-wrap: break-word !important; }
   }
 </style>
 </head>
