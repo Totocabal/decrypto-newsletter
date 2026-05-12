@@ -413,7 +413,7 @@ function renderMacroBars(data) {
 
 function renderMacro(data, number) {
   const quoteBlock = data.quote ? `
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#1a0c2e; background-image:linear-gradient(135deg, rgba(135,1,255,0.18), rgba(255,0,170,0.10)); border:1px solid ${THEME.borderSubtle}; border-radius:14px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#1a0c2e; background-image:linear-gradient(135deg, rgba(135,1,255,0.18), rgba(255,0,170,0.10)); border:0; border-radius:14px;">
       <tr><td style="padding:24px 24px;">
         <p style="margin:0; font-family:${FONTS.heading}; font-weight:500; font-size:18px; line-height:1.4; letter-spacing:-0.01em; color:${THEME.textPrimary};">«&nbsp;${escapeHtml(data.quote)}&nbsp;»</p>
         <p style="margin:14px 0 0; font-family:${FONTS.body}; font-size:12px; color:${THEME.textMuted}; letter-spacing:0.04em;">${sanitizeRichText(data.quote_author)}</p>
