@@ -78,6 +78,8 @@ export const SECTION_TYPES = {
     label: "Graphique",
     icon: "TrendingUp",
     factory: () => ({
+      chart_mode: "manual",
+      chart_crypto: "bitcoin",
       label: "BTC / EUR",
       value: "64 492,76 €",
       delta: "▲ +2,93 %",

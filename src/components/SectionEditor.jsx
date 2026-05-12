@@ -3,7 +3,8 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useRef, useState } from "react";
-import { Plus, Trash2, ChevronUp, ChevronDown, CopyPlus, Upload, Loader2, X } from "lucide-react";
+import { Plus, Trash2, ChevronUp, ChevronDown, CopyPlus, Upload, Loader2, X, RefreshCw } from "lucide-react";
+import { useCoinGecko } from "../lib/useCoinGecko.js";
 import { Field, Input, TextArea } from "./FormControls.jsx";
 import { uploadImage, deleteImage } from "../lib/imageUpload.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
@@ -350,12 +351,15 @@ function EditoEditor({ data, set }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// CHART — sliders pour les 7 points
+// CHART — sliders pour les 7 points ou import auto CoinGecko
 // ─────────────────────────────────────────────────────────────────────────────
 
 function ChartEditor({ data, set }) {
   const points = data.points || [];
   const labels = data.x_labels || [];
+  const mode = data.chart_mode ?? "manual";
+  const crypto = data.chart_crypto ?? "bitcoin";
+  const { fetch7d, loading, error } = useCoinGecko();
 
   const updatePoint = (i, value) => {
     const arr = [...points];
@@ -363,20 +367,88 @@ function ChartEditor({ data, set }) {
     set({ points: arr });
   };
 
+  const handleRefresh = async () => {
+    const result = await fetch7d(crypto);
+    if (result) set(result);
+  };
+
   return (
     <>
+      {/* Toggle mode */}
+      <div className="flex gap-2 mb-4">
+        <button
+          type="button"
+          onClick={() => set({ chart_mode: "manual" })}
+          className={`flex-1 py-2 text-xs font-medium rounded-sm border transition-colors ${
+            mode === "manual"
+              ? "bg-stone-800 text-white border-stone-800"
+              : "bg-white text-stone-500 border-stone-300 hover:border-stone-400"
+          }`}
+        >
+          Manuel
+        </button>
+        <button
+          type="button"
+          onClick={() => set({ chart_mode: "auto" })}
+          className={`flex-1 py-2 text-xs font-medium rounded-sm border transition-colors ${
+            mode === "auto"
+              ? "bg-stone-800 text-white border-stone-800"
+              : "bg-white text-stone-500 border-stone-300 hover:border-stone-400"
+          }`}
+        >
+          Auto CoinGecko
+        </button>
+      </div>
+
+      {/* Sélecteur crypto + bouton refresh (mode auto) */}
+      {mode === "auto" && (
+        <div className="flex gap-2 mb-4 items-end">
+          <Field label="Crypto" className="flex-1">
+            <select
+              value={crypto}
+              onChange={(e) => set({ chart_crypto: e.target.value })}
+              className="w-full px-3 py-2 border border-stone-300 rounded-sm text-sm bg-white"
+            >
+              <option value="bitcoin">Bitcoin (BTC)</option>
+              <option value="ethereum">Ethereum (ETH)</option>
+            </select>
+          </Field>
+          <button
+            type="button"
+            onClick={handleRefresh}
+            disabled={loading}
+            className="flex items-center gap-1.5 px-4 py-2 text-xs font-medium bg-pink-600 text-white rounded-sm hover:bg-pink-700 disabled:opacity-50 transition-colors mb-[1px]"
+          >
+            {loading ? (
+              <Loader2 size={13} className="animate-spin" />
+            ) : (
+              <RefreshCw size={13} />
+            )}
+            {loading ? "Chargement…" : "Rafraîchir"}
+          </button>
+        </div>
+      )}
+
+      {error && (
+        <div className="text-[11px] text-red-600 bg-red-50 border border-red-200 rounded-sm px-3 py-2 mb-3">
+          Erreur CoinGecko : {error}
+        </div>
+      )}
+
       <div className="grid grid-cols-2 gap-3">
         <Field label="Libellé (paire)">
           <Input
             value={data.label}
             onChange={(e) => set({ label: e.target.value })}
             placeholder="BTC / EUR"
+            readOnly={mode === "auto"}
           />
         </Field>
         <Field label="Valeur principale">
           <Input
             value={data.value}
             onChange={(e) => set({ value: e.target.value })}
+            readOnly={mode === "auto"}
           />
         </Field>
       </div>
@@ -386,13 +458,15 @@ function ChartEditor({ data, set }) {
             value={data.delta}
             onChange={(e) => set({ delta: e.target.value })}
             placeholder="▲ +2,93 %"
+            readOnly={mode === "auto"}
           />
         </Field>
         <Field label="Ton">
           <select
             value={data.delta_tone}
             onChange={(e) => set({ delta_tone: e.target.value })}
-            className="w-full px-3 py-2 border border-stone-300 rounded-sm text-sm bg-white"
+            disabled={mode === "auto"}
+            className="w-full px-3 py-2 border border-stone-300 rounded-sm text-sm bg-white disabled:bg-stone-50 disabled:text-stone-400"
           >
             <option value="positive">Positif (cyan)</option>
             <option value="negative">Négatif (rouge)</option>
@@ -406,54 +480,84 @@ function ChartEditor({ data, set }) {
           value={data.subdelta}
           onChange={(e) => set({ subdelta: e.target.value })}
           placeholder="+1 838 € sur 7j"
+          readOnly={mode === "auto"}
         />
       </Field>
 
-      <div className="text-[10px] uppercase tracking-[0.18em] font-medium text-stone-500 mb-2 mt-3">
-        Courbe — déplace les curseurs pour dessiner
-      </div>
-      <div className="text-[11px] text-stone-400 mb-3 italic">
-        100% = haut du graphique (prix élevé) · 0% = bas (prix bas)
-      </div>
-
-      <div className="bg-white border border-stone-200 rounded-sm p-4 mb-3">
-        {points.map((p, i) => (
-          <div key={i} className="flex items-center gap-3 mb-2 last:mb-0">
-            <div className="w-12 text-[11px] uppercase tracking-[0.1em] text-stone-500 font-medium flex-shrink-0">
-              {labels[i] || `P${i + 1}`}
-            </div>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              step="0.1"
-              value={p}
-              onChange={(e) => updatePoint(i, e.target.value)}
-              className="flex-1 accent-pink-600"
-            />
-            <div className="w-12 text-right text-[11px] text-stone-700 tabular-nums flex-shrink-0">
-              {Number(p).toFixed(1)}
-            </div>
+      {mode === "manual" && (
+        <>
+          <div className="text-[10px] uppercase tracking-[0.18em] font-medium text-stone-500 mb-2 mt-3">
+            Courbe — déplace les curseurs pour dessiner
           </div>
-        ))}
-      </div>
+          <div className="text-[11px] text-stone-400 mb-3 italic">
+            100% = haut du graphique (prix élevé) · 0% = bas (prix bas)
+          </div>
 
-      <Field
-        label="Étiquettes axe X"
-        hint="Séparées par virgule. Pour une newsletter hebdo : Lun,Mar,Mer,Jeu,Ven,Sam,Dim"
-      >
-        <Input
-          value={labels.join(",")}
-          onChange={(e) =>
-            set({
-              x_labels: e.target.value
-                .split(",")
-                .map((v) => v.trim())
-                .filter(Boolean),
-            })
-          }
-        />
-      </Field>
+          <div className="bg-white border border-stone-200 rounded-sm p-4 mb-3">
+            {points.map((p, i) => (
+              <div key={i} className="flex items-center gap-3 mb-2 last:mb-0">
+                <div className="w-12 text-[11px] uppercase tracking-[0.1em] text-stone-500 font-medium flex-shrink-0">
+                  {labels[i] || `P${i + 1}`}
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  step="0.1"
+                  value={p}
+                  onChange={(e) => updatePoint(i, e.target.value)}
+                  className="flex-1 accent-pink-600"
+                />
+                <div className="w-12 text-right text-[11px] text-stone-700 tabular-nums flex-shrink-0">
+                  {Number(p).toFixed(1)}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <Field
+            label="Étiquettes axe X"
+            hint="Séparées par virgule. Pour une newsletter hebdo : Lun,Mar,Mer,Jeu,Ven,Sam,Dim"
+          >
+            <Input
+              value={labels.join(",")}
+              onChange={(e) =>
+                set({
+                  x_labels: e.target.value
+                    .split(",")
+                    .map((v) => v.trim())
+                    .filter(Boolean),
+                })
+              }
+            />
+          </Field>
+        </>
+      )}
+
+      {mode === "auto" && points.length > 0 && (
+        <div className="mt-3 bg-stone-50 border border-stone-200 rounded-sm p-3">
+          <div className="text-[10px] uppercase tracking-[0.18em] font-medium text-stone-500 mb-2">
+            Courbe importée — {points.length} points
+          </div>
+          <div className="flex gap-1 items-end h-8">
+            {points.map((p, i) => (
+              <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                <div
+                  className="w-full bg-pink-500 rounded-sm"
+                  style={{ height: `${Math.max(2, (p / 100) * 28)}px` }}
+                />
+              </div>
+            ))}
+          </div>
+          <div className="flex justify-between mt-1">
+            {labels.map((l, i) => (
+              <span key={i} className="text-[9px] text-stone-400 uppercase tracking-wider">
+                {l}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
     </>
   );
 }
