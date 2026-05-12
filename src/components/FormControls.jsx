@@ -2,7 +2,7 @@
 // Contrôles de formulaire réutilisables
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Bold,
   Italic,
@@ -47,6 +47,7 @@ function HtmlButton({ title, onClick, children }) {
   return (
     <button
       type="button"
+      onMouseDown={(e) => e.preventDefault()}
       onClick={onClick}
       className="h-7 w-7 inline-flex items-center justify-center border border-stone-200 bg-white text-stone-500 hover:text-stone-900 hover:border-stone-400 rounded-sm transition-colors"
       title={title}
@@ -56,81 +57,42 @@ function HtmlButton({ title, onClick, children }) {
   );
 }
 
-function applyHtml(value, selectionStart, selectionEnd, before, after, fallback = "") {
-  const selected = value.slice(selectionStart, selectionEnd) || fallback;
-  const nextValue =
-    value.slice(0, selectionStart) +
-    before +
-    selected +
-    after +
-    value.slice(selectionEnd);
-  return {
-    value: nextValue,
-    selectionStart: selectionStart + before.length,
-    selectionEnd: selectionStart + before.length + selected.length,
-  };
-}
-
 export function TextArea({ showCount, onChange, value = "", ...props }) {
-  const textareaRef = useRef(null);
-  const textValue = String(value ?? "");
+  const editorRef = useRef(null);
+  const htmlValue = String(value ?? "");
+  const { rows = 3, ...editorProps } = props;
 
-  const emitChange = (nextValue, selectionStart, selectionEnd) => {
+  useEffect(() => {
+    const editor = editorRef.current;
+    if (!editor || document.activeElement === editor) return;
+    if (editor.innerHTML !== htmlValue) editor.innerHTML = htmlValue;
+  }, [htmlValue]);
+
+  const emitChange = () => {
+    const nextValue = editorRef.current?.innerHTML || "";
     onChange?.({ target: { value: nextValue } });
-    window.requestAnimationFrame(() => {
-      textareaRef.current?.focus();
-      textareaRef.current?.setSelectionRange(selectionStart, selectionEnd);
-    });
   };
 
-  const wrapSelection = (before, after, fallback) => {
-    const textarea = textareaRef.current;
-    if (!textarea) return;
-    const result = applyHtml(
-      textValue,
-      textarea.selectionStart,
-      textarea.selectionEnd,
-      before,
-      after,
-      fallback
-    );
-    emitChange(result.value, result.selectionStart, result.selectionEnd);
-  };
-
-  const insertList = (tagName = "ul") => {
-    const textarea = textareaRef.current;
-    if (!textarea) return;
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selected = textValue.slice(start, end);
-    const listText = selected
-      ? selected
-          .split("\n")
-          .map((line) => line.trim())
-          .filter(Boolean)
-          .map((line) => `<li>${line.replace(/^<li>|<\/li>$/g, "")}</li>`)
-          .join("\n")
-      : "<li>Élément de liste</li>";
-    const html = `<${tagName}>\n${listText}\n</${tagName}>`;
-    const nextValue = textValue.slice(0, start) + html + textValue.slice(end);
-    emitChange(nextValue, start, start + html.length);
+  const runCommand = (command, commandValue = null) => {
+    editorRef.current?.focus();
+    document.execCommand(command, false, commandValue);
+    emitChange();
   };
 
   const insertLink = () => {
-    const textarea = textareaRef.current;
-    if (!textarea) return;
+    const editor = editorRef.current;
+    if (!editor) return;
     const url = window.prompt("URL du lien", "https://");
     if (!url) return;
     const safeUrl = url.replace(/"/g, "&quot;");
-    const result = applyHtml(
-      textValue,
-      textarea.selectionStart,
-      textarea.selectionEnd,
-      `<a href="${safeUrl}">`,
-      "</a>",
-      "texte du lien"
-    );
-    emitChange(result.value, result.selectionStart, result.selectionEnd);
+    editor.focus();
+    const selection = window.getSelection();
+    if (!selection || selection.isCollapsed) {
+      document.execCommand("insertHTML", false, `<a href="${safeUrl}">texte du lien</a>`);
+    } else {
+      document.execCommand("createLink", false, safeUrl);
+    }
+    emitChange();
   };
 
   const el = (
@@ -138,25 +100,25 @@ export function TextArea({ showCount, onChange, value = "", ...props }) {
       <div className="flex items-center gap-1 px-2 py-1.5 border-b border-stone-100 bg-stone-50/70">
         <HtmlButton
           title="Gras"
-          onClick={() => wrapSelection("<strong>", "</strong>", "texte")}
+          onClick={() => runCommand("bold")}
         >
           <Bold size={13} />
         </HtmlButton>
         <HtmlButton
           title="Italique"
-          onClick={() => wrapSelection("<em>", "</em>", "texte")}
+          onClick={() => runCommand("italic")}
         >
           <Italic size={13} />
         </HtmlButton>
         <HtmlButton
           title="Souligné"
-          onClick={() => wrapSelection("<u>", "</u>", "texte")}
+          onClick={() => runCommand("underline")}
         >
           <Underline size={13} />
         </HtmlButton>
         <HtmlButton
           title="Rayé"
-          onClick={() => wrapSelection("<s>", "</s>", "texte")}
+          onClick={() => runCommand("strikeThrough")}
         >
           <Strikethrough size={13} />
         </HtmlButton>
@@ -166,24 +128,28 @@ export function TextArea({ showCount, onChange, value = "", ...props }) {
         >
           <Link size={13} />
         </HtmlButton>
-        <HtmlButton title="Liste à puces" onClick={insertList}>
+        <HtmlButton title="Liste à puces" onClick={() => runCommand("insertUnorderedList")}>
           <List size={13} />
         </HtmlButton>
-        <HtmlButton title="Liste numérotée" onClick={() => insertList("ol")}>
+        <HtmlButton title="Liste numérotée" onClick={() => runCommand("insertOrderedList")}>
           <ListOrdered size={13} />
         </HtmlButton>
       </div>
-      <textarea
-        ref={textareaRef}
-        value={textValue}
-        onChange={onChange}
-        {...props}
-        className="w-full px-3 py-2 bg-white text-sm text-stone-800 focus:outline-none leading-relaxed resize-y font-mono"
+      <div
+        ref={editorRef}
+        contentEditable
+        suppressContentEditableWarning
+        onInput={emitChange}
+        onBlur={emitChange}
+        dangerouslySetInnerHTML={{ __html: htmlValue }}
+        {...editorProps}
+        className="w-full px-3 py-2 bg-white text-sm text-stone-800 focus:outline-none leading-relaxed overflow-auto"
+        style={{ minHeight: `${Math.max(Number(rows) || 3, 2) * 1.6}rem` }}
       />
     </div>
   );
   if (!showCount) return el;
-  const count = textValue.length;
+  const count = editorRef.current?.textContent?.length ?? htmlValue.replace(/<[^>]*>/g, "").length;
   return (
     <div>
       {el}

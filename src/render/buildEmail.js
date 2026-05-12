@@ -26,8 +26,16 @@ export function sanitizeRichText(text = "") {
   let out = escapeHtml(text);
   out = out
     .replace(/&lt;br\s*\/?&gt;/gi, "<br />")
+    .replace(/&lt;div&gt;/gi, "")
+    .replace(/&lt;\/div&gt;/gi, "<br />")
+    .replace(/&lt;p&gt;/gi, "")
+    .replace(/&lt;\/p&gt;/gi, "<br />")
+    .replace(/&lt;b&gt;/gi, `<strong style="color:${THEME.textPrimary};">`)
+    .replace(/&lt;\/b&gt;/gi, "</strong>")
     .replace(/&lt;strong&gt;/gi, `<strong style="color:${THEME.textPrimary};">`)
     .replace(/&lt;\/strong&gt;/gi, "</strong>")
+    .replace(/&lt;i&gt;/gi, "<em>")
+    .replace(/&lt;\/i&gt;/gi, "</em>")
     .replace(/&lt;em&gt;/gi, "<em>")
     .replace(/&lt;\/em&gt;/gi, "</em>")
     .replace(/&lt;u&gt;/gi, "<u>")

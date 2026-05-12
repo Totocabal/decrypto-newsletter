@@ -8,7 +8,7 @@
 //   - indicateur d'auto-save dans la toolbar
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, History, Loader2, CloudOff, Cloud, Undo2 } from "lucide-react";
+import { ArrowLeft, History, Loader2, CloudOff, Cloud, Undo2, Redo2 } from "lucide-react";
 import { Toolbar } from "../components/Toolbar.jsx";
 import { PreviewPanel } from "../components/PreviewPanel.jsx";
 import { EditorPanel } from "../components/EditorPanel.jsx";
@@ -47,7 +47,10 @@ export function EditorPage({ newsletterId, onBack }) {
   const [exportingBraze, setExportingBraze] = useState(false);
   const [leaving, setLeaving] = useState(false);
   const [undoCount, setUndoCount] = useState(0);
+  const [redoCount, setRedoCount] = useState(0);
+  const [dirtySinceVersion, setDirtySinceVersion] = useState(false);
   const undoStackRef = useRef([]);
+  const redoStackRef = useRef([]);
   const lastStateRef = useRef(null);
   const skipHistoryRef = useRef(false);
 
@@ -57,16 +60,35 @@ export function EditorPage({ newsletterId, onBack }) {
   );
 
   useEffect(() => {
+    undoStackRef.current = [];
+    redoStackRef.current = [];
+    lastStateRef.current = null;
+    skipHistoryRef.current = false;
+    setUndoCount(0);
+    setRedoCount(0);
+    setDirtySinceVersion(false);
+  }, [newsletterId]);
+
+  useEffect(() => {
     if (!state) return;
 
-    if (!lastStateRef.current || skipHistoryRef.current) {
+    if (!lastStateRef.current) {
+      lastStateRef.current = state;
+      setDirtySinceVersion(false);
+      return;
+    }
+
+    if (skipHistoryRef.current) {
       lastStateRef.current = state;
       skipHistoryRef.current = false;
       return;
     }
 
     undoStackRef.current = [...undoStackRef.current, lastStateRef.current].slice(-50);
+    redoStackRef.current = [];
     setUndoCount(undoStackRef.current.length);
+    setRedoCount(0);
+    setDirtySinceVersion(true);
     lastStateRef.current = state;
   }, [state]);
 
@@ -78,9 +100,27 @@ export function EditorPage({ newsletterId, onBack }) {
   const handleUndo = () => {
     const previous = undoStackRef.current.pop();
     if (!previous) return;
+    if (lastStateRef.current) {
+      redoStackRef.current = [...redoStackRef.current, lastStateRef.current].slice(-50);
+    }
     skipHistoryRef.current = true;
     setUndoCount(undoStackRef.current.length);
+    setRedoCount(redoStackRef.current.length);
+    setDirtySinceVersion(true);
     setState(previous);
+  };
+
+  const handleRedo = () => {
+    const next = redoStackRef.current.pop();
+    if (!next) return;
+    if (lastStateRef.current) {
+      undoStackRef.current = [...undoStackRef.current, lastStateRef.current].slice(-50);
+    }
+    skipHistoryRef.current = true;
+    setUndoCount(undoStackRef.current.length);
+    setRedoCount(redoStackRef.current.length);
+    setDirtySinceVersion(true);
+    setState(next);
   };
 
   // ── Boutons ──
@@ -93,13 +133,14 @@ export function EditorPage({ newsletterId, onBack }) {
     const { error } = await saveVersion(comment.trim() || null);
     if (error) alert("Erreur : " + error);
     else {
+      setDirtySinceVersion(false);
       setSavedFlash(true);
       setTimeout(() => setSavedFlash(false), 2000);
     }
   };
 
   const handleBack = async () => {
-    if (!state || lockedByOther) {
+    if (!state || lockedByOther || !dirtySinceVersion) {
       onBack();
       return;
     }
@@ -125,11 +166,12 @@ export function EditorPage({ newsletterId, onBack }) {
       alert("Erreur : " + error);
       return;
     }
+    setDirtySinceVersion(false);
     onBack();
   };
 
   useEffect(() => {
-    if (!state || lockedByOther) return;
+    if (!state || lockedByOther || !dirtySinceVersion) return;
 
     const warnBeforeUnload = (event) => {
       event.preventDefault();
@@ -138,7 +180,7 @@ export function EditorPage({ newsletterId, onBack }) {
 
     window.addEventListener("beforeunload", warnBeforeUnload);
     return () => window.removeEventListener("beforeunload", warnBeforeUnload);
-  }, [state, lockedByOther]);
+  }, [state, lockedByOther, dirtySinceVersion]);
 
   const handleCopy = async () => {
     const ok = await copyHtmlToClipboard(html);
@@ -275,6 +317,15 @@ export function EditorPage({ newsletterId, onBack }) {
             >
               <Undo2 size={12} />
               Annuler
+            </button>
+            <button
+              onClick={handleRedo}
+              disabled={!redoCount || lockedByOther}
+              className="flex items-center gap-2 text-[10px] uppercase tracking-[0.18em] font-medium text-stone-700 hover:text-stone-900 px-3 py-1.5 border border-stone-200 hover:border-stone-500 rounded-sm disabled:opacity-40 disabled:cursor-not-allowed"
+              title="Restaurer le dernier changement annulé"
+            >
+              <Redo2 size={12} />
+              Restaurer
             </button>
           </div>
         </div>
