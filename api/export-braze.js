@@ -15,7 +15,7 @@ function getBearerToken(req) {
   return match?.[1] || "";
 }
 
-function getSupabaseServerClient() {
+function getSupabaseServerClient(accessToken) {
   const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
   const key = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
   if (!url || !key) {
@@ -23,6 +23,9 @@ function getSupabaseServerClient() {
   }
   return createClient(url, key, {
     auth: { persistSession: false, autoRefreshToken: false },
+    global: accessToken
+      ? { headers: { Authorization: `Bearer ${accessToken}` } }
+      : undefined,
   });
 }
 
@@ -34,7 +37,7 @@ async function requireAdmin(req) {
     throw err;
   }
 
-  const supabase = getSupabaseServerClient();
+  const supabase = getSupabaseServerClient(token);
   const { data: userData, error: userError } = await supabase.auth.getUser(token);
   if (userError || !userData?.user?.id) {
     const err = new Error("Session invalide");
