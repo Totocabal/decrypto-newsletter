@@ -124,6 +124,8 @@ Cette création ne dépend pas de l'envoi d'emails Supabase.
 5. **Important** : dans Supabase → **Authentication → URL Configuration**,
    ajoute ton URL Vercel (et ton domaine custom) dans **Redirect URLs**.
    Sinon les magic links renverront vers localhost.
+   - `Site URL` : `https://decrypto-newsletter.vercel.app/`
+   - `Redirect URLs` : `https://decrypto-newsletter.vercel.app/`
 
 ### Emails Supabase
 

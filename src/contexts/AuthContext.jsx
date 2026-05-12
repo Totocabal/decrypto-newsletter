@@ -17,6 +17,7 @@ const AuthContext = createContext(null);
 
 const INIT_TIMEOUT_MS = 10000;
 const PROFILE_TIMEOUT_MS = 10000;
+const DEFAULT_AUTH_REDIRECT_URL = "https://decrypto-newsletter.vercel.app/";
 
 function wait(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -44,7 +45,7 @@ function clearSupabaseStorage() {
 function getAuthRedirectUrl() {
   const configuredUrl = import.meta.env.VITE_AUTH_REDIRECT_URL?.trim();
   if (configuredUrl) return configuredUrl;
-  return window.location.origin;
+  return DEFAULT_AUTH_REDIRECT_URL;
 }
 
 export function AuthProvider({ children }) {
@@ -224,6 +225,13 @@ export function AuthProvider({ children }) {
     return { error };
   }, []);
 
+  const requestPasswordRecovery = useCallback(async (email) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: getAuthRedirectUrl(),
+    });
+    return { error };
+  }, []);
+
   // Alias rétrocompatible (utilisé par LoginPage avant refactor)
   const signIn = signInWithMagicLink;
 
@@ -261,6 +269,7 @@ export function AuthProvider({ children }) {
         initError,
         signIn, // alias rétrocompat — équivalent à signInWithMagicLink
         signInWithMagicLink,
+        requestPasswordRecovery,
         signInWithPassword,
         updatePassword,
         signOut,

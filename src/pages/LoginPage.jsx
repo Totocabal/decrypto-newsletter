@@ -25,13 +25,14 @@ function getAuthErrorMessage(error) {
 }
 
 export function LoginPage() {
-  const { signInWithPassword, signInWithMagicLink } = useAuth();
+  const { signInWithPassword, signInWithMagicLink, requestPasswordRecovery } = useAuth();
   // mode = "password" | "magic"
   const [mode, setMode] = useState("password");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [status, setStatus] = useState("idle"); // idle | loading | sent | error
   const [error, setError] = useState(null);
+  const [sentKind, setSentKind] = useState("magic"); // magic | recovery
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -72,6 +73,26 @@ export function LoginPage() {
     }
   };
 
+  const handlePasswordRecovery = async () => {
+    if (!email.trim()) {
+      setStatus("error");
+      setError("Saisis ton email avant de demander un lien de récupération.");
+      return;
+    }
+
+    setStatus("loading");
+    setError(null);
+    const { error } = await requestPasswordRecovery(email.trim());
+    if (error) {
+      setStatus("error");
+      setError(getAuthErrorMessage(error));
+      return;
+    }
+
+    setSentKind("recovery");
+    setStatus("sent");
+  };
+
   return (
     <div className="min-h-screen bg-stone-100 flex items-center justify-center p-6">
       <div className="bg-white border border-stone-200 rounded-sm w-full max-w-md p-8">
@@ -87,11 +108,16 @@ export function LoginPage() {
             <CheckCircle2 className="text-emerald-600 flex-shrink-0 mt-0.5" size={18} />
             <div>
               <div className="text-sm font-medium text-emerald-900 mb-1">
-                Lien envoyé
+                {sentKind === "recovery" ? "Lien de récupération envoyé" : "Lien envoyé"}
               </div>
               <div className="text-xs text-emerald-700 leading-relaxed">
-                Ouvre l'email envoyé à <strong>{email}</strong> et clique sur le
-                lien pour te connecter. Tu peux fermer cette page.
+                {sentKind === "recovery"
+                  ? "Ouvre l'email envoyé à "
+                  : "Ouvre l'email envoyé à "}
+                <strong>{email}</strong>
+                {sentKind === "recovery"
+                  ? " et clique sur le lien pour réinitialiser ton mot de passe."
+                  : " et clique sur le lien pour te connecter. Tu peux fermer cette page."}
               </div>
               <button
                 onClick={() => {
@@ -222,13 +248,11 @@ export function LoginPage() {
             {mode === "password" && (
               <button
                 type="button"
-                onClick={() => {
-                  setMode("magic");
-                  setError(null);
-                }}
+                onClick={handlePasswordRecovery}
+                disabled={status === "loading"}
                 className="mt-4 text-[11px] text-stone-500 hover:text-stone-900 underline w-full text-center"
               >
-                Mot de passe oublié ? Recevoir un lien magique.
+                Mot de passe oublié ? Recevoir un lien de récupération.
               </button>
             )}
 
