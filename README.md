@@ -127,6 +127,10 @@ Cette création ne dépend pas de l'envoi d'emails Supabase.
    - `Site URL` : `https://decrypto-newsletter.vercel.app/`
    - `Redirect URLs` : `https://decrypto-newsletter.vercel.app/`
 
+Le fichier `vercel.json` force aussi `index.html` en `no-store` pour éviter
+qu'un navigateur conserve une ancienne entrée HTML pointant vers de vieux
+bundles Vite.
+
 ### Emails Supabase
 
 Si le lien magique affiche `Error sending confirmation email`, le problème vient
