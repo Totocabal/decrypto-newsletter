@@ -2,15 +2,13 @@
 // Contrôles de formulaire réutilisables
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Bold,
   Italic,
   Underline,
   Strikethrough,
   Link,
-  List,
-  ListOrdered,
   ChevronUp,
   ChevronDown,
 } from "lucide-react";
@@ -58,50 +56,51 @@ function HtmlButton({ title, onClick, children }) {
 }
 
 export function TextArea({ showCount, onChange, value = "", ...props }) {
-  const textareaRef = useRef(null);
-  const textValue = String(value ?? "");
+  const editorRef = useRef(null);
+  const lastEmittedRef = useRef("");
+  const initializedRef = useRef(false);
+  const [plainTextCount, setPlainTextCount] = useState(0);
+  const htmlValue = String(value ?? "");
+  const { rows = 3, ...editorProps } = props;
 
-  const emitChange = (nextValue, selectionStart, selectionEnd) => {
+  useEffect(() => {
+    const editor = editorRef.current;
+    if (!editor || document.activeElement === editor) return;
+    if (!initializedRef.current || htmlValue !== lastEmittedRef.current) {
+      editor.innerHTML = htmlValue;
+      initializedRef.current = true;
+      setPlainTextCount(editor.textContent?.length || 0);
+    }
+    lastEmittedRef.current = htmlValue;
+  }, [htmlValue]);
+
+  const emitChange = () => {
+    const nextValue = editorRef.current?.innerHTML || "";
+    lastEmittedRef.current = nextValue;
+    setPlainTextCount(editorRef.current?.textContent?.length || 0);
     onChange?.({ target: { value: nextValue } });
-    window.requestAnimationFrame(() => {
-      textareaRef.current?.focus();
-      textareaRef.current?.setSelectionRange(selectionStart, selectionEnd);
-    });
   };
 
-  const wrapSelection = (before, after, fallback = "") => {
-    const textarea = textareaRef.current;
-    if (!textarea) return;
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selected = textValue.slice(start, end) || fallback;
-    const nextValue =
-      textValue.slice(0, start) + before + selected + after + textValue.slice(end);
-    emitChange(nextValue, start + before.length, start + before.length + selected.length);
-  };
-
-  const insertList = (tagName) => {
-    const textarea = textareaRef.current;
-    if (!textarea) return;
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selectedText = textValue.slice(start, end).trim();
-    const items = selectedText
-      ? selectedText
-          .split(/\n+/)
-          .map((line) => line.trim())
-          .filter(Boolean)
-      : ["Élément de liste"];
-    const html = `<${tagName}>\n${items.map((item) => `<li>${item}</li>`).join("\n")}\n</${tagName}>`;
-    const nextValue = textValue.slice(0, start) + html + textValue.slice(end);
-    emitChange(nextValue, start, start + html.length);
+  const runCommand = (command, commandValue = null) => {
+    editorRef.current?.focus();
+    document.execCommand(command, false, commandValue);
+    emitChange();
   };
 
   const insertLink = () => {
+    const editor = editorRef.current;
+    if (!editor) return;
     const url = window.prompt("URL du lien", "https://");
     if (!url) return;
     const safeUrl = url.replace(/"/g, "&quot;");
-    wrapSelection(`<a href="${safeUrl}">`, "</a>", "texte du lien");
+    editor.focus();
+    const selection = window.getSelection();
+    if (!selection || selection.isCollapsed) {
+      document.execCommand("insertHTML", false, `<a href="${safeUrl}">texte du lien</a>`);
+    } else {
+      document.execCommand("createLink", false, safeUrl);
+    }
+    emitChange();
   };
 
   const el = (
@@ -109,25 +108,25 @@ export function TextArea({ showCount, onChange, value = "", ...props }) {
       <div className="flex items-center gap-1 px-2 py-1.5 border-b border-stone-100 bg-stone-50/70">
         <HtmlButton
           title="Gras"
-          onClick={() => wrapSelection("<strong>", "</strong>", "texte")}
+          onClick={() => runCommand("bold")}
         >
           <Bold size={13} />
         </HtmlButton>
         <HtmlButton
           title="Italique"
-          onClick={() => wrapSelection("<em>", "</em>", "texte")}
+          onClick={() => runCommand("italic")}
         >
           <Italic size={13} />
         </HtmlButton>
         <HtmlButton
           title="Souligné"
-          onClick={() => wrapSelection("<u>", "</u>", "texte")}
+          onClick={() => runCommand("underline")}
         >
           <Underline size={13} />
         </HtmlButton>
         <HtmlButton
           title="Rayé"
-          onClick={() => wrapSelection("<s>", "</s>", "texte")}
+          onClick={() => runCommand("strikeThrough")}
         >
           <Strikethrough size={13} />
         </HtmlButton>
@@ -137,24 +136,20 @@ export function TextArea({ showCount, onChange, value = "", ...props }) {
         >
           <Link size={13} />
         </HtmlButton>
-        <HtmlButton title="Liste à puces" onClick={() => insertList("ul")}>
-          <List size={13} />
-        </HtmlButton>
-        <HtmlButton title="Liste numérotée" onClick={() => insertList("ol")}>
-          <ListOrdered size={13} />
-        </HtmlButton>
       </div>
-      <textarea
-        ref={textareaRef}
-        value={textValue}
-        onChange={onChange}
-        {...props}
-        className="w-full px-3 py-2 bg-white text-sm text-stone-800 focus:outline-none leading-relaxed resize-y font-mono"
+      <div
+        ref={editorRef}
+        contentEditable
+        suppressContentEditableWarning
+        onBlur={emitChange}
+        {...editorProps}
+        className="w-full px-3 py-2 bg-white text-sm text-stone-800 focus:outline-none leading-relaxed overflow-auto"
+        style={{ minHeight: `${Math.max(Number(rows) || 3, 2) * 1.6}rem` }}
       />
     </div>
   );
   if (!showCount) return el;
-  const count = textValue.length;
+  const count = plainTextCount || htmlValue.replace(/<[^>]*>/g, "").length;
   return (
     <div>
       {el}
