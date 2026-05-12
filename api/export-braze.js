@@ -110,7 +110,7 @@ async function uploadAssetToBraze(asset, braze) {
         ? { asset_url: asset.assetUrl }
         : {
             content_type: asset.contentType || "image/png",
-            asset_file_base64: asset.base64,
+            asset_file: asset.base64,
           }),
     }),
   });
