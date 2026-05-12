@@ -57,5 +57,5 @@ export const BRAND = {
   // Adresse pour mentions légales
   address: "SAS au capital de 210.000 € · RCS Paris 815 254 545 · 14 avenue de l'Opéra, 75001 PARIS",
   legalNotice:
-    "Coinhouse est un prestataire de services sur crypto-actifs (PSCA) agréé MiCA. Investir en crypto-actifs comporte des risques de perte en capital. Les performances passées ne préjugent pas des performances futures. ©2026 Coinhouse",
+    "Coinhouse est un prestataire de services sur crypto-actifs (PSCA) agréé MiCA enregistrée auprès de l'AMF sous le n°A2026-013.\nNous rappelons qu'un investissement dans les actifs numériques comporte des risques de liquidité, de perte partielle ou totale en capital et n'est pas couvert par les mécanismes de garantie des dépôts et des titres. Les performances passées ne préjugent pas des performances futures, les prix des actifs numériques étant particulièrement volatils. Plus d'informations sur coinhouse.com.\n©2026 Coinhouse",
 };
