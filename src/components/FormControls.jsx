@@ -61,6 +61,7 @@ export function TextArea({ showCount, onChange, value = "", ...props }) {
   const editorRef = useRef(null);
   const lastEmittedRef = useRef("");
   const initializedRef = useRef(false);
+  const [plainTextCount, setPlainTextCount] = useState(0);
   const htmlValue = String(value ?? "");
   const { rows = 3, ...editorProps } = props;
 
@@ -70,6 +71,7 @@ export function TextArea({ showCount, onChange, value = "", ...props }) {
     if (!initializedRef.current || htmlValue !== lastEmittedRef.current) {
       editor.innerHTML = htmlValue;
       initializedRef.current = true;
+      setPlainTextCount(editor.textContent?.length || 0);
     }
     lastEmittedRef.current = htmlValue;
   }, [htmlValue]);
@@ -77,6 +79,7 @@ export function TextArea({ showCount, onChange, value = "", ...props }) {
   const emitChange = () => {
     const nextValue = editorRef.current?.innerHTML || "";
     lastEmittedRef.current = nextValue;
+    setPlainTextCount(editorRef.current?.textContent?.length || 0);
     onChange?.({ target: { value: nextValue } });
   };
 
@@ -163,7 +166,6 @@ export function TextArea({ showCount, onChange, value = "", ...props }) {
         ref={editorRef}
         contentEditable
         suppressContentEditableWarning
-        onInput={emitChange}
         onBlur={emitChange}
         {...editorProps}
         className="w-full px-3 py-2 bg-white text-sm text-stone-800 focus:outline-none leading-relaxed overflow-auto"
@@ -172,7 +174,7 @@ export function TextArea({ showCount, onChange, value = "", ...props }) {
     </div>
   );
   if (!showCount) return el;
-  const count = editorRef.current?.textContent?.length ?? htmlValue.replace(/<[^>]*>/g, "").length;
+  const count = plainTextCount || htmlValue.replace(/<[^>]*>/g, "").length;
   return (
     <div>
       {el}
