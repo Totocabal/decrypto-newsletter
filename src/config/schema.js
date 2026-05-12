@@ -259,7 +259,7 @@ export const INITIAL_STATE = {
     ],
     address: BRAND.address,
     legal: BRAND.legalNotice,
-    unsub_url: "{% unsubscribe_url %}",
+    unsub_url: "{{${set_user_to_unsubscribed_url}}}",
   },
 };
 
@@ -409,7 +409,7 @@ export function migrateLegacyState(oldState) {
       links: o.footer_links ?? [],
       address: o.footer_address ?? BRAND.address,
       legal: o.footer_legal ?? BRAND.legalNotice,
-      unsub_url: o.footer_unsub_url ?? "{% unsubscribe_url %}",
+      unsub_url: o.footer_unsub_url ?? "{{${set_user_to_unsubscribed_url}}}",
     },
   };
 }

@@ -299,12 +299,16 @@ function renderChart(data, assetMode) {
 function renderFearGreed(data, number, assetMode) {
   const fgColor = fgClassificationColor(data.classification);
   const legend = [
-    { color: "#FF4B28", range: "0–24", padding: " &nbsp;&nbsp;", label: "Extreme Fear" },
-    { color: "#FF8B28", range: "25–44", padding: " &nbsp;", label: "Fear" },
-    { color: "#75808B", range: "45–54", padding: " &nbsp;", label: "Neutral" },
-    { color: "#00BB97", range: "55–74", padding: " &nbsp;", label: "Greed" },
-    { color: "#03FFCF", range: "75–100", padding: "", label: "Extreme Greed" },
-  ].map(r => `<tr><td style="padding:2px 0;"><span style="display:inline-block; width:8px; height:8px; background:${r.color}; border-radius:99px; vertical-align:middle; margin-right:10px;"></span><span style="font-family:${FONTS.body}; font-size:12px; color:${THEME.textDim}; vertical-align:middle;">${r.range}${r.padding}</span><span style="font-family:${FONTS.body}; font-size:12px; color:${THEME.textSecondary}; vertical-align:middle;">${r.label}</span></td></tr>`).join("");
+    { color: "#FF4B28", range: "0–24", label: "Extreme Fear" },
+    { color: "#FF8B28", range: "25–44", label: "Fear" },
+    { color: "#75808B", range: "45–54", label: "Neutral" },
+    { color: "#00BB97", range: "55–74", label: "Greed" },
+    { color: "#03FFCF", range: "75–100", label: "Extreme Greed" },
+  ].map(r => `<tr>
+    <td width="18" style="padding:2px 0;"><span style="display:inline-block; width:8px; height:8px; background:${r.color}; border-radius:99px; vertical-align:middle;"></span></td>
+    <td width="62" style="padding:2px 12px 2px 0; font-family:${FONTS.body}; font-size:12px; color:${THEME.textDim}; white-space:nowrap;">${r.range}</td>
+    <td style="padding:2px 0; font-family:${FONTS.body}; font-size:12px; color:${THEME.textSecondary}; white-space:nowrap;">${r.label}</td>
+  </tr>`).join("");
 
   return `
     <tr>
@@ -626,7 +630,7 @@ function renderFooter(footer, assetMode) {
           <span style="color:${THEME.textFaint};">${escapeHtml(footer.legal).replace(/\n/g, "<br />")}</span>
         </p>
         <p style="margin:18px 0 0; font-family:${FONTS.body}; font-size:11px; color:${THEME.textFaint};">
-          <a href="${escapeAttr(footer.unsub_url || "{% unsubscribe_url %}")}" style="color:${THEME.textFaint}; text-decoration:underline;">Se désinscrire</a>
+          <a href="${escapeAttr(footer.unsub_url || "{{${set_user_to_unsubscribed_url}}}")}" style="color:${THEME.textFaint}; text-decoration:underline;">Se désinscrire</a>
         </p>
       </td>
     </tr>`;
