@@ -214,6 +214,7 @@ function IndexEditor({ data, set, sections }) {
       .map((s) => {
         counter++;
         return {
+          section_id: s.id,
           number: String(counter).padStart(2, "0"),
           title: sectionTitle(s),
         };

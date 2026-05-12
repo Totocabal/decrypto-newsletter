@@ -59,6 +59,47 @@ function fgClassificationColor(cls = "") {
   return THEME.textMuted;
 }
 
+function sectionAnchorId(sectionId) {
+  return `section-${String(sectionId || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9_-]+/g, "-")}`;
+}
+
+function sectionAnchor(sectionId) {
+  const id = sectionAnchorId(sectionId);
+  return `<a id="${escapeAttr(id)}" name="${escapeAttr(id)}" style="display:block; line-height:0; font-size:0;">&nbsp;</a>`;
+}
+
+function sectionTitleForIndex(sec) {
+  const d = sec.data || {};
+  return d.title || d.label || d.kicker || sec.type;
+}
+
+function numberedSections(sections) {
+  return (sections || [])
+    .map((sec) => ({
+      id: sectionAnchorId(sec.id),
+      number: computeSectionNumber(sections, sec.id),
+      title: sectionTitleForIndex(sec),
+    }))
+    .filter((target) => target.number);
+}
+
+function indexHref(item, allSections) {
+  const targets = numberedSections(allSections);
+  const direct = item.section_id
+    ? targets.find((target) => target.id === sectionAnchorId(item.section_id))
+    : null;
+  const byNumber = item.number
+    ? targets.find((target) => target.number === item.number)
+    : null;
+  const byTitle = item.title
+    ? targets.find((target) => target.title === item.title)
+    : null;
+  const target = direct || byNumber || byTitle;
+  return target ? `#${target.id}` : "";
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Visuels SVG (avec option PNG via assetMode)
 // ─────────────────────────────────────────────────────────────────────────────
@@ -191,15 +232,24 @@ function renderHero(data) {
     </tr>`;
 }
 
-function renderIndex(data) {
+function renderIndex(data, allSections) {
   const rows = (data.items || []).map((item, i, arr) => {
     const padding = i === arr.length - 1 ? "8px 0 28px" : "8px 0";
+    const href = indexHref(item, allSections);
+    const number = escapeHtml(item.number);
+    const title = escapeHtml(item.title);
+    const numberHtml = href
+      ? `<a href="${escapeAttr(href)}" style="color:${THEME.textFaint}; text-decoration:none;">${number}</a>`
+      : number;
+    const titleHtml = href
+      ? `<a href="${escapeAttr(href)}" style="color:${THEME.textPrimary}; text-decoration:none;">${title}</a>`
+      : title;
     return `<tr>
       <td style="padding:${padding};">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
           <tr>
-            <td width="32" valign="baseline" style="font-family:${FONTS.heading}; font-weight:600; font-size:13px; color:${THEME.textFaint};">${escapeHtml(item.number)}</td>
-            <td valign="baseline" style="font-family:${FONTS.heading}; font-weight:500; font-size:17px; color:${THEME.textPrimary}; letter-spacing:-0.01em;">${escapeHtml(item.title)}</td>
+            <td width="32" valign="baseline" style="font-family:${FONTS.heading}; font-weight:600; font-size:13px; color:${THEME.textFaint};">${numberHtml}</td>
+            <td valign="baseline" style="font-family:${FONTS.heading}; font-weight:500; font-size:17px; color:${THEME.textPrimary}; letter-spacing:-0.01em;">${titleHtml}</td>
           </tr>
         </table>
       </td>
@@ -221,7 +271,7 @@ function renderIndex(data) {
     </tr>`;
 }
 
-function renderEdito(data, number) {
+function renderEdito(data, number, anchor = "") {
   const kpis = data.kpis || [];
   const cells = kpis.map((k, i) => {
     const isLast = i === kpis.length - 1;
@@ -242,6 +292,7 @@ function renderEdito(data, number) {
   return `
     <tr>
       <td class="em-px" style="padding:44px 36px; border-bottom:1px solid ${THEME.border};">
+        ${anchor}
         ${sectionHeader(number, data.kicker)}
         ${sectionTitle(data.title)}
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
@@ -296,7 +347,7 @@ function renderChart(data, assetMode) {
     </tr>`;
 }
 
-function renderFearGreed(data, number, assetMode) {
+function renderFearGreed(data, number, assetMode, anchor = "") {
   const fgColor = fgClassificationColor(data.classification);
   const legend = [
     { color: "#FF4B28", range: "0–24", label: "Extreme Fear" },
@@ -313,6 +364,7 @@ function renderFearGreed(data, number, assetMode) {
   return `
     <tr>
       <td class="em-px" style="padding:44px 36px; border-bottom:1px solid ${THEME.border};">
+        ${anchor}
         ${sectionHeader(number, data.kicker)}
         <h2 class="em-h2" style="margin:12px 0 22px; font-family:${FONTS.heading}; font-weight:600; font-size:30px; line-height:1.1; letter-spacing:-0.025em; color:${THEME.textPrimary};">${escapeHtml(data.title)}</h2>
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
@@ -330,7 +382,7 @@ function renderFearGreed(data, number, assetMode) {
     </tr>`;
 }
 
-function renderSignals(data, number) {
+function renderSignals(data, number, anchor = "") {
   const items = data.signals || [];
   const rows = [];
   for (let i = 0; i < items.length; i += 2) {
@@ -371,6 +423,7 @@ function renderSignals(data, number) {
   return `
     <tr>
       <td class="em-px" style="padding:44px 36px; border-bottom:1px solid ${THEME.border};">
+        ${anchor}
         ${sectionHeader(number, data.kicker)}
         <h2 class="em-h2" style="margin:12px 0 22px; font-family:${FONTS.heading}; font-weight:600; font-size:30px; line-height:1.1; letter-spacing:-0.025em; color:${THEME.textPrimary};">${escapeHtml(data.title)}</h2>
         ${grid}
@@ -415,7 +468,7 @@ function renderMacroBars(data) {
     </tr>`;
 }
 
-function renderMacro(data, number) {
+function renderMacro(data, number, anchor = "") {
   const quoteBlock = data.quote ? `
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#1a0c2e; background-image:linear-gradient(135deg, rgba(135,1,255,0.18), rgba(255,0,170,0.10)); border:0; border-radius:14px;">
       <tr><td style="padding:24px 24px;">
@@ -427,6 +480,7 @@ function renderMacro(data, number) {
   return `
     <tr>
       <td class="em-px" style="padding:44px 36px; border-bottom:1px solid ${THEME.border};">
+        ${anchor}
         ${sectionHeader(number, data.kicker)}
         <h2 class="em-h2" style="margin:12px 0 22px; font-family:${FONTS.heading}; font-weight:600; font-size:30px; line-height:1.1; letter-spacing:-0.025em; color:${THEME.textPrimary};">${escapeHtml(data.title)}</h2>
         <p style="margin:0 0 22px; font-family:${FONTS.body}; font-size:15px; line-height:1.65; color:${THEME.textSecondary};">${sanitizeRichText(data.body)}</p>
@@ -435,10 +489,11 @@ function renderMacro(data, number) {
     </tr>`;
 }
 
-function renderEvent(data) {
+function renderEvent(data, anchor = "") {
   return `
     <tr>
       <td class="em-px" style="padding:36px;">
+        ${anchor}
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:${THEME.bgEventCard}; background-image:radial-gradient(ellipse at 0% 100%, ${THEME.accentSecondary} 0%, transparent 60%), radial-gradient(ellipse at 100% 0%, ${THEME.accentPrimary} 0%, transparent 50%); border-radius:18px;" bgcolor="${THEME.bgEventCard}">
           <tr><td>
             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
@@ -466,7 +521,7 @@ function renderEvent(data) {
     </tr>`;
 }
 
-function renderFocus(data, number) {
+function renderFocus(data, number, anchor = "") {
   // Image : si pas d'URL renseignée, on affiche un placeholder gris
   const imgUrl =
     data.image_url ||
@@ -516,6 +571,7 @@ function renderFocus(data, number) {
   return `
     <tr>
       <td class="em-px" style="padding:44px 36px; border-bottom:1px solid ${THEME.border};">
+        ${anchor}
         ${sectionHeader(number, data.kicker)}
         <h2 class="em-h2" style="margin:12px 0 22px; font-family:${FONTS.heading}; font-weight:600; font-size:30px; line-height:1.1; letter-spacing:-0.025em; color:${THEME.textPrimary};">${escapeHtml(data.title)}</h2>
 
@@ -536,7 +592,7 @@ function renderFocus(data, number) {
     </tr>`;
 }
 
-function renderTextBlock(data, number) {
+function renderTextBlock(data, number, anchor = "") {
   const ctaBtn = data.cta_label
     ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:28px;">
         <tr>
@@ -550,6 +606,7 @@ function renderTextBlock(data, number) {
   return `
     <tr>
       <td class="em-px" style="padding:44px 36px; border-bottom:1px solid ${THEME.border};">
+        ${anchor}
         ${sectionHeader(number, data.kicker)}
         ${sectionTitle(data.title)}
         <p style="margin:22px 0 0; font-family:${FONTS.body}; font-size:15px; line-height:1.65; color:${THEME.textSecondary};">${sanitizeRichText(data.body)}</p>
@@ -572,18 +629,19 @@ function renderDivider(data) {
 
 function renderSection(sec, allSections, assetMode) {
   const number = computeSectionNumber(allSections, sec.id);
+  const anchor = number ? sectionAnchor(sec.id) : "";
   switch (sec.type) {
     case "hero":       return renderHero(sec.data);
-    case "index":      return renderIndex(sec.data);
-    case "edito":      return renderEdito(sec.data, number);
+    case "index":      return renderIndex(sec.data, allSections);
+    case "edito":      return renderEdito(sec.data, number, anchor);
     case "chart":      return renderChart(sec.data, assetMode);
-    case "fear_greed": return renderFearGreed(sec.data, number, assetMode);
-    case "signals":    return renderSignals(sec.data, number);
-    case "macro":      return renderMacro(sec.data, number);
+    case "fear_greed": return renderFearGreed(sec.data, number, assetMode, anchor);
+    case "signals":    return renderSignals(sec.data, number, anchor);
+    case "macro":      return renderMacro(sec.data, number, anchor);
     case "macro_bars": return renderMacroBars(sec.data);
-    case "event":      return renderEvent(sec.data);
-    case "focus":      return renderFocus(sec.data, number);
-    case "text_block": return renderTextBlock(sec.data, number);
+    case "event":      return renderEvent(sec.data, anchor);
+    case "focus":      return renderFocus(sec.data, number, anchor);
+    case "text_block": return renderTextBlock(sec.data, number, anchor);
     case "divider":    return renderDivider(sec.data);
     default:           return `<tr><td>Type inconnu : ${escapeHtml(sec.type)}</td></tr>`;
   }
