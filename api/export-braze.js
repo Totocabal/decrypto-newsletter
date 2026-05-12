@@ -2,6 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 
 const MAX_ASSETS = 30;
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+const STORAGE_BUCKET = "newsletter-images";
 
 function json(res, status, body) {
   res.statusCode = status;
@@ -58,7 +59,7 @@ async function requireAdmin(req) {
     throw err;
   }
 
-  return userData.user;
+  return { user: userData.user, supabase };
 }
 
 function getBrazeConfig() {
@@ -91,11 +92,8 @@ function parseBrazeAssetUrl(payload) {
 }
 
 async function uploadAssetToBraze(asset, braze) {
-  if (!asset.name || (!asset.base64 && !asset.assetUrl)) {
+  if (!asset.name || !asset.assetUrl) {
     throw new Error("Asset invalide: nom ou contenu manquant");
-  }
-  if (asset.base64 && Buffer.byteLength(asset.base64, "base64") > MAX_IMAGE_BYTES) {
-    throw new Error(`${asset.name} dépasse la limite Braze de 5 Mo`);
   }
 
   const resp = await fetch(`${braze.baseUrl}/media_library/create`, {
@@ -106,9 +104,7 @@ async function uploadAssetToBraze(asset, braze) {
     },
     body: JSON.stringify({
       name: asset.name,
-      ...(asset.assetUrl
-        ? { asset_url: asset.assetUrl }
-        : { asset_file: Buffer.from(asset.base64, "base64").toString("binary") }),
+      asset_url: asset.assetUrl,
     }),
   });
 
@@ -130,6 +126,43 @@ async function uploadAssetToBraze(asset, braze) {
   return url;
 }
 
+function safeAssetName(name) {
+  return String(name || "asset.png")
+    .toLowerCase()
+    .replace(/[^a-z0-9._-]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80);
+}
+
+async function materializeAssetUrl(asset, supabase, userId) {
+  if (asset.assetUrl) return asset.assetUrl;
+  if (!asset.name || !asset.base64) {
+    throw new Error("Asset invalide: nom ou contenu manquant");
+  }
+
+  const bytes = Buffer.from(asset.base64, "base64");
+  if (bytes.length > MAX_IMAGE_BYTES) {
+    throw new Error(`${asset.name} dépasse la limite Braze de 5 Mo`);
+  }
+
+  const path = `${userId}/braze-export/${Date.now()}-${safeAssetName(asset.name)}`;
+  const { error } = await supabase.storage.from(STORAGE_BUCKET).upload(path, bytes, {
+    cacheControl: "3600",
+    contentType: asset.contentType || "image/png",
+    upsert: false,
+  });
+
+  if (error) {
+    throw new Error(`Upload Supabase temporaire impossible pour ${asset.name}: ${error.message}`);
+  }
+
+  const { data } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(path);
+  if (!data?.publicUrl) {
+    throw new Error(`URL publique Supabase introuvable pour ${asset.name}`);
+  }
+  return data.publicUrl;
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
@@ -137,7 +170,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    await requireAdmin(req);
+    const { user, supabase } = await requireAdmin(req);
     const braze = getBrazeConfig();
     const assets = Array.isArray(req.body?.assets) ? req.body.assets : [];
 
@@ -150,7 +183,8 @@ export default async function handler(req, res) {
 
     const uploaded = {};
     for (const asset of assets) {
-      uploaded[asset.name] = await uploadAssetToBraze(asset, braze);
+      const assetUrl = await materializeAssetUrl(asset, supabase, user.id);
+      uploaded[asset.name] = await uploadAssetToBraze({ ...asset, assetUrl }, braze);
     }
 
     return json(res, 200, { assets: uploaded });
