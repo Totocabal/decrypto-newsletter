@@ -33,12 +33,20 @@ export function Input({ readOnly, ...props }) {
   );
 }
 
-export function TextArea(props) {
-  return (
+export function TextArea({ showCount, ...props }) {
+  const el = (
     <textarea
       {...props}
       className="w-full px-3 py-2 bg-white border border-stone-200 rounded-sm text-sm text-stone-800 focus:outline-none focus:border-stone-400 transition-colors leading-relaxed resize-y"
     />
+  );
+  if (!showCount) return el;
+  const count = String(props.value ?? "").length;
+  return (
+    <div>
+      {el}
+      <div className="text-right text-[10px] text-stone-400 mt-0.5 tabular-nums">{count} car.</div>
+    </div>
   );
 }
 
