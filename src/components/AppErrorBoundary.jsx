@@ -1,6 +1,7 @@
 import React from "react";
 
 const DRAFT_KEY = "decrypto-newsletter-draft-v1";
+const AUTO_RELOAD_KEY = "decrypto-auto-reload-after-crash-v1";
 
 async function clearBrowserCache() {
   try {
@@ -34,16 +35,49 @@ async function clearBrowserCache() {
 export class AppErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { error: null };
+    this.state = { error: null, autoReloading: false };
+    this.clearAutoReloadTimer = null;
   }
 
   static getDerivedStateFromError(error) {
     return { error };
   }
 
+  componentDidMount() {
+    this.clearAutoReloadTimer = setTimeout(() => {
+      try {
+        sessionStorage.removeItem(AUTO_RELOAD_KEY);
+      } catch {
+        // Session storage may be blocked.
+      }
+    }, 15000);
+  }
+
   componentDidCatch(error, info) {
     // eslint-disable-next-line no-console
     console.error("[app] crash rendu:", error, info);
+
+    let alreadyRetried = false;
+    try {
+      alreadyRetried = sessionStorage.getItem(AUTO_RELOAD_KEY) === "1";
+    } catch {
+      alreadyRetried = true;
+    }
+
+    if (!alreadyRetried) {
+      try {
+        sessionStorage.setItem(AUTO_RELOAD_KEY, "1");
+      } catch {
+        // If storage fails, fall back to the manual recovery UI.
+        return;
+      }
+      this.setState({ autoReloading: true });
+      setTimeout(() => window.location.reload(), 250);
+    }
+  }
+
+  componentWillUnmount() {
+    if (this.clearAutoReloadTimer) clearTimeout(this.clearAutoReloadTimer);
   }
 
   reload = () => {
@@ -59,6 +93,16 @@ export class AppErrorBoundary extends React.Component {
 
   render() {
     if (!this.state.error) return this.props.children;
+
+    if (this.state.autoReloading) {
+      return (
+        <div className="min-h-screen bg-stone-100 flex items-center justify-center p-6">
+          <div className="text-xs uppercase tracking-[0.18em] text-stone-500">
+            Rechargement…
+          </div>
+        </div>
+      );
+    }
 
     return (
       <div className="min-h-screen bg-stone-100 flex items-center justify-center p-6">

@@ -27,26 +27,43 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [{ data: nls }, { data: lks }] = await Promise.all([
-      supabase
-        .from("newsletters")
-        .select(
-          "id, title, issue_number, updated_at, updated_by, archived"
-        )
-        .eq("archived", false)
-        .order("updated_at", { ascending: false }),
-      supabase
-        .from("locks")
-        .select("*")
-        .gt("expires_at", new Date().toISOString()),
-    ]);
-    setNewsletters(nls || []);
-    const map = {};
-    (lks || []).forEach((l) => {
-      map[l.newsletter_id] = l;
-    });
-    setLocks(map);
-    setLoading(false);
+    try {
+      const [{ data: nls, error: nlsError }, { data: lks, error: locksError }] =
+        await Promise.all([
+          supabase
+            .from("newsletters")
+            .select(
+              "id, title, issue_number, updated_at, updated_by, archived"
+            )
+            .eq("archived", false)
+            .order("updated_at", { ascending: false }),
+          supabase
+            .from("locks")
+            .select("*")
+            .gt("expires_at", new Date().toISOString()),
+        ]);
+
+      if (nlsError) throw nlsError;
+      if (locksError) {
+        // Les locks sont secondaires: on garde la liste utilisable.
+        // eslint-disable-next-line no-console
+        console.warn("[newsletters] locks indisponibles:", locksError);
+      }
+
+      setNewsletters(Array.isArray(nls) ? nls : []);
+      const map = {};
+      (Array.isArray(lks) ? lks : []).forEach((l) => {
+        if (l?.newsletter_id) map[l.newsletter_id] = l;
+      });
+      setLocks(map);
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error("[newsletters] chargement impossible:", error);
+      setNewsletters([]);
+      setLocks({});
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -57,6 +74,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
   }, [load]);
 
   const handleCreate = async () => {
+    if (!profile?.id) return;
     setCreating(true);
     const { data, error } = await supabase
       .from("newsletters")
@@ -78,6 +96,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
   };
 
   const handleDuplicate = async (nl) => {
+    if (!profile?.id || !nl?.id) return;
     const { data: full } = await supabase
       .from("newsletters")
       .select("*")
@@ -103,11 +122,12 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
   };
 
   const handleDelete = async (nl) => {
-    if (!profile.is_admin) {
+    if (!profile?.is_admin) {
       alert("Seuls les administrateurs peuvent supprimer une newsletter.");
       return;
     }
-    if (!confirm(`Supprimer définitivement « ${nl.title} » ?`)) return;
+    if (!nl?.id) return;
+    if (!confirm(`Supprimer définitivement « ${nl.title || "cette newsletter"} » ?`)) return;
     const { error } = await supabase.from("newsletters").delete().eq("id", nl.id);
     if (error) {
       alert("Erreur : " + error.message);
@@ -118,6 +138,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
 
   const formatDate = (iso) => {
     const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return "Date inconnue";
     return d.toLocaleDateString("fr-FR", {
       day: "2-digit",
       month: "short",
@@ -140,7 +161,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
             </h1>
           </div>
           <div className="flex items-center gap-2">
-            {profile.is_admin && (
+            {profile?.is_admin && (
               <button
                 onClick={onOpenAdmin}
                 className="flex items-center gap-2 px-3 py-2 border border-stone-300 hover:border-stone-500 text-stone-700 text-[10px] uppercase tracking-[0.18em] font-medium rounded-sm transition-colors"
@@ -150,7 +171,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
               </button>
             )}
             <div className="text-xs text-stone-500 px-3">
-              {profile.full_name || profile.email}
+              {profile?.full_name || profile?.email}
             </div>
             <button
               onClick={signOut}
@@ -199,7 +220,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
           <div className="bg-white border border-stone-200 rounded-sm divide-y divide-stone-100">
             {newsletters.map((nl) => {
               const lock = locks[nl.id];
-              const lockedByOther = lock && lock.user_id !== profile.id;
+              const lockedByOther = lock && lock.user_id !== profile?.id;
               return (
                 <div
                   key={nl.id}
@@ -211,7 +232,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                         onClick={() => onOpen(nl.id)}
                         className="text-sm font-medium text-stone-900 hover:underline truncate text-left"
                       >
-                        {nl.title}
+                        {nl.title || "Newsletter sans titre"}
                       </button>
                       {lockedByOther && (
                         <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.14em] font-medium bg-amber-100 text-amber-800 px-2 py-0.5 rounded-sm">
@@ -239,7 +260,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                     >
                       <Copy size={14} />
                     </button>
-                    {profile.is_admin && (
+                    {profile?.is_admin && (
                       <button
                         onClick={() => handleDelete(nl)}
                         className="p-2 text-stone-400 hover:text-red-600 hover:bg-red-50 rounded-sm"
