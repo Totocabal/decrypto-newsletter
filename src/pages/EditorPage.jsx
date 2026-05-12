@@ -15,10 +15,11 @@ import { EditorPanel } from "../components/EditorPanel.jsx";
 import { LockBanner } from "../components/LockBanner.jsx";
 import { VersionsPanel } from "../components/VersionsPanel.jsx";
 import { buildEmailHtml } from "../render/buildEmail.js";
+import { supabase } from "../lib/supabase.js";
 import { useNewsletter } from "../lib/useNewsletter.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import { copyHtmlToClipboard } from "../utils/exportImport.js";
-import { exportAssetPack } from "../utils/exportAssetPack.js";
+import { exportAssetPack, exportBrazeHtml } from "../utils/exportAssetPack.js";
 
 export function EditorPage({ newsletterId, onBack }) {
   const { profile } = useAuth();
@@ -43,6 +44,7 @@ export function EditorPage({ newsletterId, onBack }) {
   const [copied, setCopied] = useState(false);
   const [savedFlash, setSavedFlash] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [exportingBraze, setExportingBraze] = useState(false);
 
   const html = useMemo(
     () => (state ? buildEmailHtml(state) : ""),
@@ -86,6 +88,31 @@ export function EditorPage({ newsletterId, onBack }) {
       alert("Erreur à l'export : " + (e.message || e));
     } finally {
       setExporting(false);
+    }
+  };
+
+  const handleExportBraze = async () => {
+    if (!state || !profile?.is_admin) return;
+    setExportingBraze(true);
+    try {
+      const { data, error } = await supabase.auth.getSession();
+      if (error) throw error;
+      const accessToken = data?.session?.access_token;
+      if (!accessToken) throw new Error("Session expirée. Reconnecte-toi puis réessaie.");
+
+      const safe = (newsletter?.title || "newsletter")
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-");
+      const result = await exportBrazeHtml(state, `${safe}-braze.html`, accessToken);
+      alert(
+        `Export Braze terminé : ${Object.keys(result.assets).length} image(s) uploadée(s).`
+      );
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error("[export braze] erreur :", e);
+      alert("Erreur à l'export Braze : " + (e.message || e));
+    } finally {
+      setExportingBraze(false);
     }
   };
 
@@ -176,9 +203,11 @@ export function EditorPage({ newsletterId, onBack }) {
         onSave={handleSave}
         onCopy={handleCopy}
         onExportZip={handleExportZip}
+        onExportBraze={profile?.is_admin ? handleExportBraze : null}
         copied={copied}
         saved={savedFlash}
         exporting={exporting}
+        exportingBraze={exportingBraze}
       />
 
       <div

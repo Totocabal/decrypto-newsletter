@@ -126,6 +126,62 @@ async function buildPngAssets(state) {
   return { assets, focusImages };
 }
 
+function buildExternalAssetState(state, focusImages, assets, assetUrlMap = {}) {
+  return {
+    ...state,
+    sections: (state.sections || []).map((sec) => {
+      if (sec.type === "focus" && sec.data.image_url) {
+        const fi = focusImages.find((f) => f.sectionId === sec.id);
+        if (fi && assets[fi.filename]) {
+          return {
+            ...sec,
+            data: {
+              ...sec.data,
+              image_url: assetUrlMap[fi.filename] || `assets/${fi.filename}`,
+            },
+          };
+        }
+      }
+      return sec;
+    }),
+  };
+}
+
+function replaceGeneratedAssetUrls(html, assetUrlMap) {
+  return Object.entries(assetUrlMap).reduce(
+    (nextHtml, [filename, url]) =>
+      nextHtml.replaceAll(`assets/${filename}`, url),
+    html
+  );
+}
+
+function blobToBase64(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = String(reader.result || "");
+      resolve(result.includes(",") ? result.split(",")[1] : result);
+    };
+    reader.onerror = () => reject(reader.error || new Error("Lecture du fichier impossible"));
+    reader.readAsDataURL(blob);
+  });
+}
+
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function downloadText(text, filename, type = "text/html;charset=utf-8") {
+  downloadBlob(new Blob([text], { type }), filename);
+}
+
 // Devine l'extension d'une URL image. Défaut : "jpg".
 function guessImageExtension(url) {
   const m = url.match(/\.(png|jpe?g|gif|webp|svg)(\?|$)/i);
@@ -202,21 +258,7 @@ export async function exportAssetPack(state, filename = "decrypto-export.zip") {
 
   // 2. HTML avec références externes. On clone l'état pour réécrire les URL
   // des images focus vers leur chemin local dans assets/.
-  const stateForExport = {
-    ...state,
-    sections: (state.sections || []).map((sec) => {
-      if (sec.type === "focus" && sec.data.image_url) {
-        const fi = focusImages.find((f) => f.sectionId === sec.id);
-        if (fi && assets[fi.filename]) {
-          return {
-            ...sec,
-            data: { ...sec.data, image_url: `assets/${fi.filename}` },
-          };
-        }
-      }
-      return sec;
-    }),
-  };
+  const stateForExport = buildExternalAssetState(state, focusImages, assets);
   const html = buildEmailHtml(stateForExport, { assetMode: "external" });
   zip.file("email.html", html);
 
@@ -231,12 +273,47 @@ export async function exportAssetPack(state, filename = "decrypto-export.zip") {
 
   // 5. Génère et déclenche le téléchargement
   const blob = await zip.generateAsync({ type: "blob" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  downloadBlob(blob, filename);
+}
+
+export async function exportBrazeHtml(state, filename = "decrypto-braze.html", accessToken) {
+  const { assets, focusImages } = await buildPngAssets(state);
+  const stateForExport = buildExternalAssetState(state, focusImages, assets);
+  const html = buildEmailHtml(stateForExport, { assetMode: "external" });
+
+  const serializedAssets = await Promise.all(
+    Object.entries(assets).map(async ([name, blob]) => {
+      const focusImage = focusImages.find((fi) => fi.filename === name);
+      if (focusImage?.originalUrl) {
+        return {
+          name,
+          assetUrl: focusImage.originalUrl,
+        };
+      }
+      return {
+        name,
+        contentType: blob.type || "image/png",
+        base64: await blobToBase64(blob),
+      };
+    })
+  );
+
+  const resp = await fetch("/api/export-braze", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+    },
+    body: JSON.stringify({ assets: serializedAssets }),
+  });
+
+  const payload = await resp.json().catch(() => ({}));
+  if (!resp.ok) {
+    throw new Error(payload?.error || `Export Braze impossible (HTTP ${resp.status})`);
+  }
+
+  const assetUrlMap = payload.assets || {};
+  const brazeHtml = replaceGeneratedAssetUrls(html, assetUrlMap);
+  downloadText(brazeHtml, filename);
+  return { html: brazeHtml, assets: assetUrlMap };
 }

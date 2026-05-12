@@ -33,6 +33,9 @@ backend.
   - `assets/logo-header.png`, `logo-footer.png`, `chart.png`, `gauge.png` (en
     qualité 2× pour Retina)
   - `README.md` expliquant comment héberger les assets et adapter les chemins
+- **Export Braze** (admins uniquement) : upload des images générées dans la
+  Media Library Braze, puis téléchargement d'un HTML où les chemins `assets/...`
+  sont remplacés par les URLs CDN Braze.
 
 ### Collaboration (niveau 2 — asynchrone)
 
@@ -120,6 +123,10 @@ Cette création ne dépend pas de l'envoi d'emails Supabase.
    - `VITE_SUPABASE_URL`
    - `VITE_SUPABASE_ANON_KEY`
    - `VITE_AUTH_REDIRECT_URL` avec ton URL publique exacte
+   - `BRAZE_API_KEY` avec une clé serveur Braze limitée à
+     `media_library.create`
+   - `BRAZE_BASE_URL` avec le REST endpoint Braze, par exemple
+     `https://rest.fra-01.braze.eu`
 4. Deploy.
 5. **Important** : dans Supabase → **Authentication → URL Configuration**,
    ajoute ton URL Vercel (et ton domaine custom) dans **Redirect URLs**.
@@ -130,6 +137,17 @@ Cette création ne dépend pas de l'envoi d'emails Supabase.
 Le fichier `vercel.json` force aussi `index.html` en `no-store` pour éviter
 qu'un navigateur conserve une ancienne entrée HTML pointant vers de vieux
 bundles Vite.
+
+### Export Braze sécurisé
+
+La clé Braze ne doit jamais être exposée côté navigateur. Ne la mets donc pas
+dans une variable `VITE_*`. Le bouton **Export Braze** appelle la fonction
+serveur `/api/export-braze`, qui vérifie la session Supabase et le flag
+`profiles.is_admin` avant d'utiliser `BRAZE_API_KEY`.
+
+Dans Braze, crée une clé dédiée avec le minimum de permissions nécessaires :
+**Media Library → `media_library.create`**. Garde `BRAZE_BASE_URL` alignée sur
+ton instance Braze (`https://rest.fra-01.braze.eu` pour EU-01).
 
 ### Emails Supabase
 

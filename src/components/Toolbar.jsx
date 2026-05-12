@@ -10,6 +10,7 @@ import {
   Copy,
   Check,
   Package,
+  UploadCloud,
   Loader2,
 } from "lucide-react";
 
@@ -20,9 +21,11 @@ export function Toolbar({
   onSave,
   onCopy,
   onExportZip,
+  onExportBraze,
   copied,
   saved,
   exporting,
+  exportingBraze,
 }) {
   return (
     <div className="bg-white border-b border-stone-200 sticky top-0 z-20">
@@ -99,6 +102,27 @@ export function Toolbar({
                 <>
                   <Package size={12} />
                   Export ZIP
+                </>
+              )}
+            </button>
+          )}
+
+          {onExportBraze && (
+            <button
+              onClick={onExportBraze}
+              disabled={exportingBraze}
+              className="flex items-center gap-1.5 px-3 py-2 text-[10px] uppercase tracking-[0.18em] bg-pink-600 hover:bg-pink-700 text-white rounded-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Uploader les images dans Braze et exporter le HTML avec les URLs Braze"
+            >
+              {exportingBraze ? (
+                <>
+                  <Loader2 size={12} className="animate-spin" />
+                  Export…
+                </>
+              ) : (
+                <>
+                  <UploadCloud size={12} />
+                  Export Braze
                 </>
               )}
             </button>
