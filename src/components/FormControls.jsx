@@ -19,11 +19,16 @@ export function Field({ label, children, hint }) {
   );
 }
 
-export function Input(props) {
+export function Input({ readOnly, ...props }) {
   return (
     <input
+      readOnly={readOnly}
       {...props}
-      className="w-full px-3 py-2 bg-white border border-stone-200 rounded-sm text-sm text-stone-800 focus:outline-none focus:border-stone-400 transition-colors"
+      className={`w-full px-3 py-2 border rounded-sm text-sm focus:outline-none transition-colors ${
+        readOnly
+          ? "bg-stone-50 border-stone-200 text-stone-400 cursor-default"
+          : "bg-white border-stone-200 text-stone-800 focus:border-stone-400"
+      }`}
     />
   );
 }
