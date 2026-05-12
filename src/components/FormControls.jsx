@@ -60,13 +60,17 @@ function HtmlButton({ title, onClick, children }) {
 export function TextArea({ showCount, onChange, value = "", ...props }) {
   const editorRef = useRef(null);
   const lastEmittedRef = useRef("");
+  const initializedRef = useRef(false);
   const htmlValue = String(value ?? "");
   const { rows = 3, ...editorProps } = props;
 
   useEffect(() => {
     const editor = editorRef.current;
     if (!editor || document.activeElement === editor) return;
-    if (editor.innerHTML !== htmlValue) editor.innerHTML = htmlValue;
+    if (!initializedRef.current || htmlValue !== lastEmittedRef.current) {
+      editor.innerHTML = htmlValue;
+      initializedRef.current = true;
+    }
     lastEmittedRef.current = htmlValue;
   }, [htmlValue]);
 
@@ -161,7 +165,6 @@ export function TextArea({ showCount, onChange, value = "", ...props }) {
         suppressContentEditableWarning
         onInput={emitChange}
         onBlur={emitChange}
-        dangerouslySetInnerHTML={{ __html: lastEmittedRef.current || htmlValue }}
         {...editorProps}
         className="w-full px-3 py-2 bg-white text-sm text-stone-800 focus:outline-none leading-relaxed overflow-auto"
         style={{ minHeight: `${Math.max(Number(rows) || 3, 2) * 1.6}rem` }}
