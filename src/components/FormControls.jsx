@@ -94,15 +94,32 @@ export function TextArea({ showCount, onChange, value = "", ...props }) {
     if (!editor) return;
     editor.focus();
     const selection = window.getSelection();
-    const selectedText = selection?.toString().trim();
+    if (!selection) return;
+    const selectedText = selection.toString().trim();
     const items = selectedText
       ? selectedText
           .split(/\n+/)
           .map((line) => line.trim())
           .filter(Boolean)
       : ["Élément de liste"];
-    const html = `<${tagName}>${items.map((item) => `<li>${item}</li>`).join("")}</${tagName}>`;
-    document.execCommand("insertHTML", false, html);
+    const list = document.createElement(tagName);
+    for (const item of items) {
+      const li = document.createElement("li");
+      li.textContent = item;
+      list.appendChild(li);
+    }
+
+    if (!selection.rangeCount) {
+      editor.appendChild(list);
+    } else {
+      const range = selection.getRangeAt(0);
+      range.deleteContents();
+      range.insertNode(list);
+      range.setStartAfter(list);
+      range.collapse(true);
+      selection.removeAllRanges();
+      selection.addRange(range);
+    }
     emitChange();
   };
 
