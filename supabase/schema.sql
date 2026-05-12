@@ -17,6 +17,7 @@ create table if not exists public.profiles (
   email text not null,
   approved boolean not null default false,
   is_admin boolean not null default false,
+  password_set boolean not null default false,
   created_at timestamptz not null default now()
 );
 

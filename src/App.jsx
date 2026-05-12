@@ -4,6 +4,7 @@
 // Pages :
 //   - SetupErrorPage         (config absente / invalide / init en erreur)
 //   - LoginPage              (non connecté)
+//   - SetPasswordPage        (connecté, pas encore défini de mot de passe)
 //   - PendingApprovalPage    (connecté, pas encore approuvé)
 //   - NewslettersListPage    (par défaut, connecté + approuvé)
 //   - EditorPage             (édition d'une newsletter)
@@ -13,6 +14,7 @@ import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { AuthProvider, useAuth } from "./contexts/AuthContext.jsx";
 import { LoginPage } from "./pages/LoginPage.jsx";
+import { SetPasswordPage } from "./pages/SetPasswordPage.jsx";
 import { PendingApprovalPage } from "./pages/PendingApprovalPage.jsx";
 import { NewslettersListPage } from "./pages/NewslettersListPage.jsx";
 import { EditorPage } from "./pages/EditorPage.jsx";
@@ -110,6 +112,14 @@ function Router() {
   }
 
   if (!profile.approved) return <PendingApprovalPage />;
+
+  // Approuvé mais sans mot de passe défini → on l'invite à en créer un.
+  // Ça concerne tous les nouveaux comptes (qui se sont logués en magic link)
+  // et tous les anciens (avant cette feature). L'utilisateur peut skip — dans
+  // ce cas le flag est marqué à true et la page n'apparaîtra plus.
+  if (profile.password_set === false) {
+    return <SetPasswordPage onDone={refreshProfile} />;
+  }
 
   // Approuvé → routes internes
   if (route.name === "editor") {

@@ -127,11 +127,37 @@ export function AuthProvider({ children }) {
     };
   }, [fetchProfile]);
 
-  const signIn = useCallback(async (email) => {
+  // ── Login par magic link (lien magique reçu par email) ──
+  // Utilisé pour : premier login d'un nouveau compte, récupération de mot de
+  // passe oublié, ou comme fallback si l'utilisateur ne veut pas saisir son
+  // mot de passe.
+  const signInWithMagicLink = useCallback(async (email) => {
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: { emailRedirectTo: window.location.origin },
     });
+    return { error };
+  }, []);
+
+  // Alias rétrocompatible (utilisé par LoginPage avant refactor)
+  const signIn = signInWithMagicLink;
+
+  // ── Login par email + mot de passe ──
+  // Méthode privilégiée pour les utilisateurs réguliers. Le compte doit déjà
+  // exister (créé via magic link initial) et avoir un mot de passe défini.
+  const signInWithPassword = useCallback(async (email, password) => {
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    return { error };
+  }, []);
+
+  // ── Définir ou changer le mot de passe ──
+  // Utilisé après le premier magic link (pour permettre les logins futurs en
+  // mot de passe) ou après un "mot de passe oublié".
+  const updatePassword = useCallback(async (newPassword) => {
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
     return { error };
   }, []);
 
@@ -148,7 +174,10 @@ export function AuthProvider({ children }) {
         profile,
         loading,
         initError,
-        signIn,
+        signIn, // alias rétrocompat — équivalent à signInWithMagicLink
+        signInWithMagicLink,
+        signInWithPassword,
+        updatePassword,
         signOut,
         refreshProfile,
       }}
