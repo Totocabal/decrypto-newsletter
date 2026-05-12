@@ -143,10 +143,16 @@ export const SECTION_TYPES = {
       quote:
         "Nous avons besoin de plus de confiance que l'inflation se rapproche durablement de notre cible avant d'envisager un assouplissement.",
       quote_author: "Jerome Powell · Conférence du 1<sup>er</sup> mai",
+    }),
+  },
+  macro_bars: {
+    label: "Barres Macro",
+    icon: "BarChart2",
+    factory: () => ({
       bars: [
-        { label: "Baisses pricées en 2026", value: "", percent: "0", caption: "" },
-        { label: "Inflation cœur (CPI)", value: "", percent: "0", caption: "" },
-        { label: "Probabilité baisse sept.", value: "", percent: "0", caption: "" },
+        { label: "Baisses pricées en 2026", value: "1,5", percent: "38", caption: "vs 3 il y a 1 mois" },
+        { label: "Inflation cœur (CPI)", value: "3,2", percent: "53", caption: "cible 2 %" },
+        { label: "Probabilité baisse sept.", value: "62 %", percent: "62", caption: "implicite Fed Funds" },
       ],
     }),
   },
@@ -425,7 +431,7 @@ export function createSection(type) {
 
 // Numéro affiché d'une section (selon sa position parmi les sections numérotables)
 // Hero, sommaire, graphique et divider ne portent pas de numéro.
-export const UNNUMBERED_TYPES = new Set(["hero", "index", "chart", "divider"]);
+export const UNNUMBERED_TYPES = new Set(["hero", "index", "chart", "macro_bars", "divider"]);
 
 export function computeSectionNumber(sections, sectionId) {
   let counter = 0;
