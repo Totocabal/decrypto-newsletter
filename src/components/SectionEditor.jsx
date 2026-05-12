@@ -21,6 +21,7 @@ export function SectionEditor({ type, data, onChange, sections = [] }) {
     case "fear_greed": return <FearGreedEditor data={data} set={set} />;
     case "signals":    return <SignalsEditor data={data} set={set} />;
     case "macro":      return <MacroEditor data={data} set={set} />;
+    case "macro_bars": return <MacroBarsEditor data={data} set={set} />;
     case "event":      return <EventEditor data={data} set={set} />;
     case "focus":      return <FocusEditor data={data} set={set} />;
     case "text_block": return <TextBlockEditor data={data} set={set} />;
@@ -887,7 +888,6 @@ function SignalsEditor({ data, set }) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 function MacroEditor({ data, set }) {
-  const bars = data.bars || [];
   return (
     <>
       <Field label="Kicker">
@@ -916,10 +916,18 @@ function MacroEditor({ data, set }) {
           onChange={(e) => set({ quote_author: e.target.value })}
         />
       </Field>
+    </>
+  );
+}
 
-      <div className="text-[10px] uppercase tracking-[0.18em] font-medium text-stone-500 mb-2 mt-2">
-        Barres macro
-      </div>
+// ─────────────────────────────────────────────────────────────────────────────
+// BARRES MACRO (bloc séparé, non numéroté)
+// ─────────────────────────────────────────────────────────────────────────────
+
+function MacroBarsEditor({ data, set }) {
+  const bars = data.bars || [];
+  return (
+    <>
       {bars.map((bar, i) => (
         <div
           key={i}
@@ -929,22 +937,14 @@ function MacroEditor({ data, set }) {
             <Input
               value={bar.label}
               onChange={(e) =>
-                set({
-                  bars: bars.map((x, idx) =>
-                    idx === i ? { ...x, label: e.target.value } : x
-                  ),
-                })
+                set({ bars: bars.map((x, idx) => idx === i ? { ...x, label: e.target.value } : x) })
               }
               placeholder="Libellé"
             />
             <Input
               value={bar.value}
               onChange={(e) =>
-                set({
-                  bars: bars.map((x, idx) =>
-                    idx === i ? { ...x, value: e.target.value } : x
-                  ),
-                })
+                set({ bars: bars.map((x, idx) => idx === i ? { ...x, value: e.target.value } : x) })
               }
               placeholder="Valeur"
             />
@@ -953,22 +953,14 @@ function MacroEditor({ data, set }) {
             <Input
               value={bar.percent}
               onChange={(e) =>
-                set({
-                  bars: bars.map((x, idx) =>
-                    idx === i ? { ...x, percent: e.target.value } : x
-                  ),
-                })
+                set({ bars: bars.map((x, idx) => idx === i ? { ...x, percent: e.target.value } : x) })
               }
-              placeholder="% remplissage"
+              placeholder="% remplissage (0–100)"
             />
             <Input
               value={bar.caption}
               onChange={(e) =>
-                set({
-                  bars: bars.map((x, idx) =>
-                    idx === i ? { ...x, caption: e.target.value } : x
-                  ),
-                })
+                set({ bars: bars.map((x, idx) => idx === i ? { ...x, caption: e.target.value } : x) })
               }
               placeholder="Commentaire"
             />
@@ -985,12 +977,7 @@ function MacroEditor({ data, set }) {
       <button
         type="button"
         onClick={() =>
-          set({
-            bars: [
-              ...bars,
-              { label: "Indicateur", value: "0", percent: "0", caption: "—" },
-            ],
-          })
+          set({ bars: [...bars, { label: "", value: "", percent: "0", caption: "" }] })
         }
         className="w-full mt-1 flex items-center justify-center gap-2 px-4 py-2 border border-dashed border-stone-300 text-stone-600 hover:border-stone-500 rounded-sm text-[10px] uppercase tracking-[0.18em] transition-colors"
       >

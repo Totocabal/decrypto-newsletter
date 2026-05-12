@@ -2,7 +2,7 @@
 // EditorPanel — éditeur modulaire (header fixe, sections, footer fixe)
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
   ChevronUp,
   ChevronDown,
@@ -20,6 +20,37 @@ export function EditorPanel({ state, setState }) {
   const update = (patch) => setState((s) => ({ ...s, ...patch }));
   const updateFooter = (patch) =>
     setState((s) => ({ ...s, footer: { ...s.footer, ...patch } }));
+
+  // ── Drag & drop ──
+  const draggedId = useRef(null);
+  const [dragOverId, setDragOverId] = useState(null);
+
+  const handleDragStart = (id) => { draggedId.current = id; };
+  const handleDragOver = (e, id) => {
+    e.preventDefault();
+    if (id !== draggedId.current) setDragOverId(id);
+  };
+  const handleDrop = (e, targetId) => {
+    e.preventDefault();
+    const fromId = draggedId.current;
+    if (fromId && fromId !== targetId) {
+      setState((s) => {
+        const sections = [...s.sections];
+        const fromIdx = sections.findIndex((x) => x.id === fromId);
+        const toIdx = sections.findIndex((x) => x.id === targetId);
+        if (fromIdx === -1 || toIdx === -1) return s;
+        const [removed] = sections.splice(fromIdx, 1);
+        sections.splice(toIdx, 0, removed);
+        return { ...s, sections };
+      });
+    }
+    draggedId.current = null;
+    setDragOverId(null);
+  };
+  const handleDragEnd = () => {
+    draggedId.current = null;
+    setDragOverId(null);
+  };
 
   // ── Mutations sur la liste de sections ──
   const setSection = (id, nextData) =>
@@ -132,11 +163,16 @@ export function EditorPanel({ state, setState }) {
               total={state.sections.length}
               number={computeSectionNumber(state.sections, sec.id)}
               allSections={state.sections}
+              isDragOver={dragOverId === sec.id}
               onUpdate={(data) => setSection(sec.id, data)}
               onMoveUp={() => moveSection(sec.id, -1)}
               onMoveDown={() => moveSection(sec.id, 1)}
               onDuplicate={() => duplicateSection(sec.id)}
               onDelete={() => removeSection(sec.id)}
+              onDragStart={() => handleDragStart(sec.id)}
+              onDragOver={(e) => handleDragOver(e, sec.id)}
+              onDrop={(e) => handleDrop(e, sec.id)}
+              onDragEnd={handleDragEnd}
             />
           ))}
         </div>
@@ -234,11 +270,16 @@ function SectionCard({
   total,
   number,
   allSections,
+  isDragOver,
   onUpdate,
   onMoveUp,
   onMoveDown,
   onDuplicate,
   onDelete,
+  onDragStart,
+  onDragOver,
+  onDrop,
+  onDragEnd,
 }) {
   const [open, setOpen] = useState(false);
   const type = SECTION_TYPES[section.type];
@@ -254,10 +295,21 @@ function SectionCard({
   })();
 
   return (
-    <div className="bg-white border border-stone-200 rounded-sm overflow-hidden">
+    <div
+      draggable
+      onDragStart={onDragStart}
+      onDragOver={onDragOver}
+      onDrop={onDrop}
+      onDragEnd={onDragEnd}
+      className={`bg-white border rounded-sm overflow-hidden transition-colors ${
+        isDragOver
+          ? "border-pink-400 border-t-2 shadow-sm"
+          : "border-stone-200"
+      }`}
+    >
       {/* Barre de titre */}
       <div className="flex items-center gap-2 px-2 py-2">
-        <GripVertical size={14} className="text-stone-300 flex-shrink-0" />
+        <GripVertical size={14} className="text-stone-400 cursor-grab active:cursor-grabbing flex-shrink-0" />
         <button
           onClick={() => setOpen((v) => !v)}
           className="flex-1 flex items-center gap-2 min-w-0 text-left hover:bg-stone-50 -mx-1 px-2 py-1 rounded-sm"

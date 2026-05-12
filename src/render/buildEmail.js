@@ -367,8 +367,8 @@ function renderSignals(data, number) {
     </tr>`;
 }
 
-function renderMacro(data, number) {
-  const bars = (data.bars || []).map((b, i, arr) => {
+function buildBarsHtml(bars) {
+  const rows = (bars || []).map((b, i, arr) => {
     const pct = Math.max(0, Math.min(100, parseInt(b.percent, 10) || 0));
     const isLast = i === arr.length - 1;
     return `<tr>
@@ -390,8 +390,21 @@ function renderMacro(data, number) {
       </td>
     </tr>`;
   }).join("");
+  return rows ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${rows}</table>` : "";
+}
 
-  const barsBlock = bars ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:28px;">${bars}</table>` : "";
+function renderMacroBars(data) {
+  const content = buildBarsHtml(data.bars);
+  if (!content) return "";
+  return `
+    <tr>
+      <td class="em-px" style="padding:28px 36px; background-color:${THEME.bgSection}; border-bottom:1px solid ${THEME.border};">
+        ${content}
+      </td>
+    </tr>`;
+}
+
+function renderMacro(data, number) {
   const quoteBlock = data.quote ? `
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#1a0c2e; background-image:linear-gradient(135deg, rgba(135,1,255,0.18), rgba(255,0,170,0.10)); border:1px solid ${THEME.borderSubtle}; border-radius:14px;">
       <tr><td style="padding:24px 24px;">
@@ -407,7 +420,6 @@ function renderMacro(data, number) {
         <h2 class="em-h2" style="margin:12px 0 22px; font-family:${FONTS.heading}; font-weight:600; font-size:30px; line-height:1.1; letter-spacing:-0.025em; color:${THEME.textPrimary};">${escapeHtml(data.title)}</h2>
         <p style="margin:0 0 22px; font-family:${FONTS.body}; font-size:15px; line-height:1.65; color:${THEME.textSecondary};">${sanitizeRichText(data.body)}</p>
         ${quoteBlock}
-        ${barsBlock}
       </td>
     </tr>`;
 }
@@ -546,6 +558,7 @@ function renderSection(sec, allSections, assetMode) {
     case "fear_greed": return renderFearGreed(sec.data, number, assetMode);
     case "signals":    return renderSignals(sec.data, number);
     case "macro":      return renderMacro(sec.data, number);
+    case "macro_bars": return renderMacroBars(sec.data);
     case "event":      return renderEvent(sec.data);
     case "focus":      return renderFocus(sec.data, number);
     case "text_block": return renderTextBlock(sec.data, number);
