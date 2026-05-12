@@ -47,8 +47,8 @@ export function PreviewPanel({ html, view, previewDevice, setPreviewDevice }) {
             title="Aperçu newsletter"
             srcDoc={html}
             style={{
-              width: previewDevice === "mobile" ? "390px" : "100%",
-              maxWidth: previewDevice === "mobile" ? "390px" : "none",
+              width: previewDevice === "mobile" ? "430px" : "100%",
+              maxWidth: previewDevice === "mobile" ? "100%" : "none",
               height: "100%",
               border: previewDevice === "mobile" ? `1px solid ${THEME.border}` : "none",
               background: THEME.bgPage,

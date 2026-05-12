@@ -45,6 +45,7 @@ export function EditorPage({ newsletterId, onBack }) {
   const [savedFlash, setSavedFlash] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [exportingBraze, setExportingBraze] = useState(false);
+  const [leaving, setLeaving] = useState(false);
 
   const html = useMemo(
     () => (state ? buildEmailHtml(state) : ""),
@@ -65,6 +66,48 @@ export function EditorPage({ newsletterId, onBack }) {
       setTimeout(() => setSavedFlash(false), 2000);
     }
   };
+
+  const handleBack = async () => {
+    if (!state || lockedByOther) {
+      onBack();
+      return;
+    }
+
+    const shouldSave = window.confirm(
+      "Créer une version avant de quitter cette newsletter ?"
+    );
+    if (!shouldSave) {
+      onBack();
+      return;
+    }
+
+    const comment = window.prompt(
+      "Commentaire pour cette version (optionnel) ?",
+      ""
+    );
+    if (comment === null) return;
+
+    setLeaving(true);
+    const { error } = await saveVersion(comment.trim() || null);
+    setLeaving(false);
+    if (error) {
+      alert("Erreur : " + error);
+      return;
+    }
+    onBack();
+  };
+
+  useEffect(() => {
+    if (!state || lockedByOther) return;
+
+    const warnBeforeUnload = (event) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+
+    window.addEventListener("beforeunload", warnBeforeUnload);
+    return () => window.removeEventListener("beforeunload", warnBeforeUnload);
+  }, [state, lockedByOther]);
 
   const handleCopy = async () => {
     const ok = await copyHtmlToClipboard(html);
@@ -163,11 +206,12 @@ export function EditorPage({ newsletterId, onBack }) {
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 flex-1 min-w-0">
             <button
-              onClick={onBack}
-              className="flex items-center gap-2 text-[10px] uppercase tracking-[0.18em] font-medium text-stone-600 hover:text-stone-900 px-3 py-1.5 border border-stone-200 hover:border-stone-500 rounded-sm flex-shrink-0"
+              onClick={handleBack}
+              disabled={leaving}
+              className="flex items-center gap-2 text-[10px] uppercase tracking-[0.18em] font-medium text-stone-600 hover:text-stone-900 px-3 py-1.5 border border-stone-200 hover:border-stone-500 rounded-sm flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <ArrowLeft size={12} />
-              Retour
+              {leaving ? <Loader2 size={12} className="animate-spin" /> : <ArrowLeft size={12} />}
+              {leaving ? "Sauvegarde…" : "Retour"}
             </button>
             <input
               type="text"

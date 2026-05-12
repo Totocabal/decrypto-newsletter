@@ -25,6 +25,15 @@ export function escapeAttr(str = "") {
 export function sanitizeRichText(text = "") {
   let out = escapeHtml(text);
   out = out
+    .replace(/\[([^\]\n]+)\]\((https?:\/\/[^)\s]+|mailto:[^)\s]+|#[^)\s]+)\)/gi,
+      `<a href="$2" style="color:${THEME.textMuted}; text-decoration:underline;">$1</a>`)
+    .replace(/\*\*([^*\n][\s\S]*?[^*\n])\*\*/g,
+      `<strong style="color:${THEME.textPrimary};">$1</strong>`)
+    .replace(/__([^_\n][\s\S]*?[^_\n])__/g,
+      `<strong style="color:${THEME.textPrimary};">$1</strong>`)
+    .replace(/(^|[\s>])\*([^*\n]+)\*/g, "$1<em>$2</em>")
+    .replace(/(^|[\s>])_([^_\n]+)_/g, "$1<em>$2</em>")
+    .replace(/^-\s+(.+)$/gm, "• $1")
     .replace(/&lt;br\s*\/?&gt;/gi, "<br />")
     .replace(/&lt;strong&gt;/gi, `<strong style="color:${THEME.textPrimary};">`)
     .replace(/&lt;\/strong&gt;/gi, "</strong>")
@@ -225,7 +234,7 @@ function renderHero(data) {
           ${escapeHtml(data.title_part2)}<span style="color:${THEME.accentPrimary};">${escapeHtml(data.title_highlight)}</span>
         </h1>
         <p style="margin:22px 0 0; font-family:${FONTS.body}; font-size:17px; line-height:1.5; color:${THEME.textMuted}; max-width:460px;">
-          ${escapeHtml(data.subtitle)}
+          ${sanitizeRichText(data.subtitle)}
         </p>
         ${chips ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:28px;"><tr>${chips}</tr></table>` : ""}
       </td>
@@ -408,7 +417,7 @@ function renderSignals(data, number, anchor = "") {
             </td>
             <td valign="top">
               <p style="margin:0 0 4px; font-family:${FONTS.heading}; font-weight:600; font-size:14px; color:${THEME.textPrimary};">${escapeHtml(s.title)}</p>
-              <p style="margin:0; font-family:${FONTS.body}; font-size:13px; line-height:1.5; color:${THEME.textMuted};">${escapeHtml(s.description)}</p>
+              <p style="margin:0; font-family:${FONTS.body}; font-size:13px; line-height:1.5; color:${THEME.textMuted};">${sanitizeRichText(s.description)}</p>
             </td>
           </tr>
         </table>
@@ -472,7 +481,7 @@ function renderMacro(data, number, anchor = "") {
   const quoteBlock = data.quote ? `
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#1a0c2e; background-image:linear-gradient(135deg, rgba(135,1,255,0.18), rgba(255,0,170,0.10)); border:0; border-radius:14px;">
       <tr><td style="padding:24px 24px;">
-        <p style="margin:0; font-family:${FONTS.heading}; font-weight:500; font-size:18px; line-height:1.4; letter-spacing:-0.01em; color:${THEME.textPrimary};">«&nbsp;${escapeHtml(data.quote)}&nbsp;»</p>
+        <p style="margin:0; font-family:${FONTS.heading}; font-weight:500; font-size:18px; line-height:1.4; letter-spacing:-0.01em; color:${THEME.textPrimary};">«&nbsp;${sanitizeRichText(data.quote)}&nbsp;»</p>
         <p style="margin:14px 0 0; font-family:${FONTS.body}; font-size:12px; color:${THEME.textMuted}; letter-spacing:0.04em;">${sanitizeRichText(data.quote_author)}</p>
       </td></tr>
     </table>` : "";
@@ -506,7 +515,7 @@ function renderEvent(data, anchor = "") {
                 <td class="em-stack em-event-text" valign="middle" style="padding:32px 28px;">
                   <p style="margin:0 0 12px; font-family:${FONTS.body}; font-size:11px; letter-spacing:0.2em; text-transform:uppercase; font-weight:600; color:${THEME.positive};">${escapeHtml(data.kicker)}</p>
                   <h3 style="margin:0; font-family:${FONTS.heading}; font-weight:700; font-size:28px; letter-spacing:-0.025em; line-height:1.05; color:${THEME.textPrimary};">${escapeHtml(data.title)}</h3>
-                  <p style="margin:12px 0 0; font-family:${FONTS.body}; font-size:13px; line-height:1.5; color:${THEME.textSecondary};">${escapeHtml(data.description)}</p>
+                  <p style="margin:12px 0 0; font-family:${FONTS.body}; font-size:13px; line-height:1.5; color:${THEME.textSecondary};">${sanitizeRichText(data.description)}</p>
                   <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:18px;">
                     <tr><td bgcolor="#ffffff" style="border-radius:99px;">
                       <a href="${escapeAttr(data.cta_url)}" style="display:inline-block; padding:11px 20px; font-family:${FONTS.heading}; font-weight:600; font-size:13px; color:${THEME.bgEventCard}; text-decoration:none; border-radius:99px;">${escapeHtml(data.cta_label)}</a>
@@ -664,7 +673,7 @@ function renderHeader(state, assetMode) {
               <img src="https://cdn.braze.eu/appboy/communication/assets/image_assets/images/6a032aec37800e0085f8e2ac/original.png?1778592492" width="180" alt="Coinhouse" style="display:inline-block; vertical-align:middle; border:0; max-width:180px; height:auto;" />
             </td>
             <td align="right" valign="middle" style="font-family:${FONTS.body}; font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:${THEME.textMuted};">
-              N° ${escapeHtml(state.issue_number)} &nbsp;·&nbsp; ${escapeHtml(state.issue_date)}
+              ${escapeHtml(state.issue_date)}
             </td>
           </tr>
         </table>
@@ -685,7 +694,7 @@ function renderFooter(footer, assetMode) {
         ${links ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:24px;" align="center"><tr>${links}</tr></table>` : ""}
         <p style="margin:0; font-family:${FONTS.body}; font-size:11px; color:${THEME.textDim}; line-height:1.6; letter-spacing:0.02em;">
           ${escapeHtml(footer.address)}<br /><br />
-          <span style="color:${THEME.textFaint};">${escapeHtml(footer.legal).replace(/\n/g, "<br />")}</span>
+          <span style="color:${THEME.textFaint};">${sanitizeRichText(footer.legal)}</span>
         </p>
         <p style="margin:18px 0 0; font-family:${FONTS.body}; font-size:11px; color:${THEME.textFaint};">
           <a href="${escapeAttr(footer.unsub_url || "{{${set_user_to_unsubscribed_url}}}")}" style="color:${THEME.textFaint}; text-decoration:underline;">Se désinscrire</a>
@@ -714,7 +723,7 @@ export function buildEmailHtml(state, options = {}) {
 <meta name="format-detection" content="telephone=no, date=no, address=no, email=no" />
 <meta name="color-scheme" content="dark" />
 <meta name="supported-color-schemes" content="dark" />
-<title>Décrypto — N° ${escapeHtml(state.issue_number)}</title>
+<title>Décrypto — ${escapeHtml(state.issue_date)}</title>
 <!--[if mso]>
 <noscript><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript>
 <style>

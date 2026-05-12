@@ -11,12 +11,48 @@ import {
   Plus,
   GripVertical,
   ChevronRight,
+  RefreshCw,
+  Loader2,
 } from "lucide-react";
 import { Field, Input, TextArea, Section } from "./FormControls.jsx";
-import { SECTION_TYPES, createSection, computeSectionNumber } from "../config/schema.js";
+import {
+  SECTION_TYPES,
+  UNNUMBERED_TYPES,
+  createSection,
+  computeSectionNumber,
+} from "../config/schema.js";
 import { SectionEditor } from "./SectionEditor.jsx";
+import { useCoinGecko } from "../lib/useCoinGecko.js";
+
+function sectionTitle(sec) {
+  const d = sec.data || {};
+  return d.title || d.label || d.kicker || sec.type;
+}
+
+function buildIndexItems(sections) {
+  let counter = 0;
+  return sections
+    .filter((s) => !UNNUMBERED_TYPES.has(s.type))
+    .map((s) => {
+      counter++;
+      return {
+        section_id: s.id,
+        number: String(counter).padStart(2, "0"),
+        title: sectionTitle(s),
+      };
+    });
+}
+
+function chipLabelFromCoinGecko(cryptoId, result) {
+  const symbol = cryptoId === "bitcoin" ? "BTC" : "ETH";
+  const sign = result.delta_tone === "positive" ? "▲" : "▼";
+  const pct = result.delta.replace(/^[▲▼]\s*/, "");
+  return `${symbol} ${sign} ${pct}`;
+}
 
 export function EditorPanel({ state, setState }) {
+  const { fetch7d, error: syncError } = useCoinGecko();
+  const [globalSyncing, setGlobalSyncing] = useState(false);
   const update = (patch) => setState((s) => ({ ...s, ...patch }));
   const updateFooter = (patch) =>
     setState((s) => ({ ...s, footer: { ...s.footer, ...patch } }));
@@ -94,6 +130,93 @@ export function EditorPanel({ state, setState }) {
       return { ...s, sections };
     });
 
+  const handleGlobalSync = async () => {
+    setGlobalSyncing(true);
+    try {
+      const cryptoCache = {};
+      const getCrypto = async (cryptoId) => {
+        if (!cryptoCache[cryptoId]) {
+          cryptoCache[cryptoId] = await fetch7d(cryptoId);
+        }
+        return cryptoCache[cryptoId];
+      };
+
+      const needsBitcoin = state.sections.some(
+        (sec) =>
+          (sec.type === "hero" &&
+            (sec.data.chips || []).some((chip) => chip.type === "btc")) ||
+          (sec.type === "chart" &&
+            sec.data.chart_mode === "auto" &&
+            (sec.data.chart_crypto || "bitcoin") === "bitcoin")
+      );
+      const needsEthereum = state.sections.some(
+        (sec) =>
+          (sec.type === "hero" &&
+            (sec.data.chips || []).some((chip) => chip.type === "eth")) ||
+          (sec.type === "chart" &&
+            sec.data.chart_mode === "auto" &&
+            sec.data.chart_crypto === "ethereum")
+      );
+
+      if (needsBitcoin) await getCrypto("bitcoin");
+      if (needsEthereum) await getCrypto("ethereum");
+
+      setState((s) => {
+        const fg = s.sections.find((sec) => sec.type === "fear_greed");
+        const indexItems = buildIndexItems(s.sections);
+
+        return {
+          ...s,
+          sections: s.sections.map((sec) => {
+            if (sec.type === "index") {
+              return { ...sec, data: { ...sec.data, items: indexItems } };
+            }
+
+            if (sec.type === "hero") {
+              return {
+                ...sec,
+                data: {
+                  ...sec.data,
+                  chips: (sec.data.chips || []).map((chip) => {
+                    if (chip.type === "btc" && cryptoCache.bitcoin) {
+                      return {
+                        ...chip,
+                        label: chipLabelFromCoinGecko("bitcoin", cryptoCache.bitcoin),
+                      };
+                    }
+                    if (chip.type === "eth" && cryptoCache.ethereum) {
+                      return {
+                        ...chip,
+                        label: chipLabelFromCoinGecko("ethereum", cryptoCache.ethereum),
+                      };
+                    }
+                    if (chip.type === "fear_greed" && fg) {
+                      return {
+                        ...chip,
+                        label: `F&G ${fg.data.value} · ${fg.data.classification}`,
+                      };
+                    }
+                    return chip;
+                  }),
+                },
+              };
+            }
+
+            if (sec.type === "chart" && sec.data.chart_mode === "auto") {
+              const crypto = sec.data.chart_crypto || "bitcoin";
+              const result = cryptoCache[crypto];
+              if (result) return { ...sec, data: { ...sec.data, ...result } };
+            }
+
+            return sec;
+          }),
+        };
+      });
+    } finally {
+      setGlobalSyncing(false);
+    }
+  };
+
   const links = {
     add: () =>
       updateFooter({
@@ -117,20 +240,12 @@ export function EditorPanel({ state, setState }) {
             onChange={(e) => update({ brand_name: e.target.value })}
           />
         </Field>
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Numéro">
-            <Input
-              value={state.issue_number}
-              onChange={(e) => update({ issue_number: e.target.value })}
-            />
-          </Field>
-          <Field label="Date">
-            <Input
-              value={state.issue_date}
-              onChange={(e) => update({ issue_date: e.target.value })}
-            />
-          </Field>
-        </div>
+        <Field label="Date">
+          <Input
+            value={state.issue_date}
+            onChange={(e) => update({ issue_date: e.target.value })}
+          />
+        </Field>
         <Field
           label="Texte de prévisualisation"
           hint="Affiché dans la boîte mail avant ouverture"
@@ -149,10 +264,31 @@ export function EditorPanel({ state, setState }) {
           <div className="text-[10px] uppercase tracking-[0.18em] font-medium text-stone-700">
             Sections de la newsletter
           </div>
-          <div className="text-[10px] uppercase tracking-[0.18em] text-stone-400">
-            {state.sections.length} bloc{state.sections.length > 1 ? "s" : ""}
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleGlobalSync}
+              disabled={globalSyncing}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] uppercase tracking-[0.18em] font-medium bg-pink-600 text-white rounded-sm hover:bg-pink-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              title="Synchroniser le sommaire, les pastilles auto et les graphiques auto CoinGecko"
+            >
+              {globalSyncing ? (
+                <Loader2 size={12} className="animate-spin" />
+              ) : (
+                <RefreshCw size={12} />
+              )}
+              {globalSyncing ? "Sync…" : "Synchroniser"}
+            </button>
+            <div className="text-[10px] uppercase tracking-[0.18em] text-stone-400">
+              {state.sections.length} bloc{state.sections.length > 1 ? "s" : ""}
+            </div>
           </div>
         </div>
+        {syncError && (
+          <div className="mb-3 text-[11px] text-red-600 bg-red-50 border border-red-200 rounded-sm px-3 py-2">
+            Erreur CoinGecko : {syncError}
+          </div>
+        )}
 
         <div className="space-y-2">
           {state.sections.map((sec, i) => (
