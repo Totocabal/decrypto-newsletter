@@ -25,15 +25,6 @@ export function escapeAttr(str = "") {
 export function sanitizeRichText(text = "") {
   let out = escapeHtml(text);
   out = out
-    .replace(/\[([^\]\n]+)\]\((https?:\/\/[^)\s]+|mailto:[^)\s]+|#[^)\s]+)\)/gi,
-      `<a href="$2" style="color:${THEME.textMuted}; text-decoration:underline;">$1</a>`)
-    .replace(/\*\*([^*\n][\s\S]*?[^*\n])\*\*/g,
-      `<strong style="color:${THEME.textPrimary};">$1</strong>`)
-    .replace(/__([^_\n][\s\S]*?[^_\n])__/g,
-      `<strong style="color:${THEME.textPrimary};">$1</strong>`)
-    .replace(/(^|[\s>])\*([^*\n]+)\*/g, "$1<em>$2</em>")
-    .replace(/(^|[\s>])_([^_\n]+)_/g, "$1<em>$2</em>")
-    .replace(/^-\s+(.+)$/gm, "• $1")
     .replace(/&lt;br\s*\/?&gt;/gi, "<br />")
     .replace(/&lt;strong&gt;/gi, `<strong style="color:${THEME.textPrimary};">`)
     .replace(/&lt;\/strong&gt;/gi, "</strong>")
@@ -43,7 +34,16 @@ export function sanitizeRichText(text = "") {
     .replace(/&lt;\/sup&gt;/gi, "</sup>")
     .replace(/&lt;a href=&quot;([^&]+)&quot;&gt;/gi,
       `<a href="$1" style="color:${THEME.textMuted}; text-decoration:underline;">`)
-    .replace(/&lt;\/a&gt;/gi, "</a>");
+    .replace(/&lt;\/a&gt;/gi, "</a>")
+    .replace(/\[([^\]\n]+)\]\((https?:\/\/[^)\s]+|mailto:[^)\s]+|#[^)\s]+)\)/gi,
+      `<a href="$2" style="color:${THEME.textMuted}; text-decoration:underline;">$1</a>`)
+    .replace(/\*\*([^*\n][\s\S]*?[^*\n])\*\*/g,
+      `<strong style="color:${THEME.textPrimary};">$1</strong>`)
+    .replace(/__([^_\n][\s\S]*?[^_\n])__/g,
+      `<strong style="color:${THEME.textPrimary};">$1</strong>`)
+    .replace(/(^|[\s>])\*([^*\n]+)\*/g, "$1<em>$2</em>")
+    .replace(/(^|[\s>])_([^_\n]+)_/g, "$1<em>$2</em>")
+    .replace(/^-\s+(.+)$/gm, "• $1");
   out = out.replace(/\n/g, "<br />");
   return out;
 }

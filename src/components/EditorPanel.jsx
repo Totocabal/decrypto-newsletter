@@ -61,7 +61,14 @@ export function EditorPanel({ state, setState }) {
   const draggedId = useRef(null);
   const [dragOverId, setDragOverId] = useState(null);
 
-  const handleDragStart = (id) => { draggedId.current = id; };
+  const handleDragStart = (id, event) => {
+    draggedId.current = id;
+    const card = event.currentTarget.closest("[data-section-card]");
+    if (card && event.dataTransfer?.setDragImage) {
+      const rect = card.getBoundingClientRect();
+      event.dataTransfer.setDragImage(card, 16, Math.min(32, rect.height / 2));
+    }
+  };
   const handleDragOver = (e, id) => {
     e.preventDefault();
     if (id !== draggedId.current) setDragOverId(id);
@@ -305,7 +312,7 @@ export function EditorPanel({ state, setState }) {
               onMoveDown={() => moveSection(sec.id, 1)}
               onDuplicate={() => duplicateSection(sec.id)}
               onDelete={() => removeSection(sec.id)}
-              onDragStart={() => handleDragStart(sec.id)}
+              onDragStart={(e) => handleDragStart(sec.id, e)}
               onDragOver={(e) => handleDragOver(e, sec.id)}
               onDrop={(e) => handleDrop(e, sec.id)}
               onDragEnd={handleDragEnd}
@@ -417,6 +424,7 @@ function SectionCard({
 
   return (
     <div
+      data-section-card
       onDragOver={onDragOver}
       onDrop={onDrop}
       onDragEnd={onDragEnd}
