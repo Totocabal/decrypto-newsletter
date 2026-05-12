@@ -55,7 +55,7 @@ export const BRAND = {
   tagline: "Le partenaire crypto de votre patrimoine.",
   websiteUrl: "https://www.coinhouse.com",
   // Adresse pour mentions légales
-  address: "Coinhouse · 14 av. de l'Opéra, 75001 Paris · PSAN AMF E2020-001",
+  address: "SAS au capital de 210.000 € · RCS Paris 815 254 545 · 14 avenue de l'Opéra, 75001 PARIS",
   legalNotice:
-    "Investir comporte des risques de perte. Les performances passées ne préjugent pas des performances futures.",
+    "Coinhouse est un prestataire de services sur crypto-actifs (PSCA) agréé MiCA. Investir en crypto-actifs comporte des risques de perte en capital. Les performances passées ne préjugent pas des performances futures. ©2026 Coinhouse",
 };
