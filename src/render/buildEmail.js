@@ -253,11 +253,18 @@ function renderEdito(data, number) {
 }
 
 function renderChart(data, assetMode) {
-  const labels = (data.x_labels || []).map((l, i, arr) => {
-    let align = "center";
-    if (i === 0) align = "left";
-    if (i === arr.length - 1) align = "right";
-    return `<td align="${align}" style="font-family:${FONTS.body}; font-size:11px; color:${THEME.textFaint}; letter-spacing:0.06em;">${escapeHtml(l)}</td>`;
+  // Pour N points espacés à stepX = 100%/(N-1), les labels s'alignent avec
+  // les points en donnant une demi-largeur aux cellules extrêmes.
+  const arr = data.x_labels || [];
+  const n = arr.length;
+  const stepPct = n > 1 ? (100 / (n - 1)).toFixed(4) : 100;
+  const halfPct = (parseFloat(stepPct) / 2).toFixed(4);
+  const labels = arr.map((l, i) => {
+    const isFirst = i === 0;
+    const isLast = i === n - 1;
+    const w = (isFirst || isLast) ? `${halfPct}%` : `${stepPct}%`;
+    const align = isFirst ? "left" : isLast ? "right" : "center";
+    return `<td width="${w}" align="${align}" style="font-family:${FONTS.body}; font-size:11px; color:${THEME.textFaint}; letter-spacing:0.06em;">${escapeHtml(l)}</td>`;
   }).join("");
 
   return `
