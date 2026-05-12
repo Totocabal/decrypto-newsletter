@@ -7,8 +7,8 @@
 //   - bouton "Versions" pour ouvrir l'historique
 //   - indicateur d'auto-save dans la toolbar
 
-import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, History, Loader2, CloudOff, Cloud } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ArrowLeft, History, Loader2, CloudOff, Cloud, Undo2 } from "lucide-react";
 import { Toolbar } from "../components/Toolbar.jsx";
 import { PreviewPanel } from "../components/PreviewPanel.jsx";
 import { EditorPanel } from "../components/EditorPanel.jsx";
@@ -46,11 +46,42 @@ export function EditorPage({ newsletterId, onBack }) {
   const [exporting, setExporting] = useState(false);
   const [exportingBraze, setExportingBraze] = useState(false);
   const [leaving, setLeaving] = useState(false);
+  const [undoCount, setUndoCount] = useState(0);
+  const undoStackRef = useRef([]);
+  const lastStateRef = useRef(null);
+  const skipHistoryRef = useRef(false);
 
   const html = useMemo(
     () => (state ? buildEmailHtml(state) : ""),
     [state]
   );
+
+  useEffect(() => {
+    if (!state) return;
+
+    if (!lastStateRef.current || skipHistoryRef.current) {
+      lastStateRef.current = state;
+      skipHistoryRef.current = false;
+      return;
+    }
+
+    undoStackRef.current = [...undoStackRef.current, lastStateRef.current].slice(-50);
+    setUndoCount(undoStackRef.current.length);
+    lastStateRef.current = state;
+  }, [state]);
+
+  const setStateWithHistory = useCallback(
+    (updater) => setState(updater),
+    [setState]
+  );
+
+  const handleUndo = () => {
+    const previous = undoStackRef.current.pop();
+    if (!previous) return;
+    skipHistoryRef.current = true;
+    setUndoCount(undoStackRef.current.length);
+    setState(previous);
+  };
 
   // ── Boutons ──
   const handleSave = async () => {
@@ -236,6 +267,15 @@ export function EditorPage({ newsletterId, onBack }) {
               <History size={12} />
               Versions
             </button>
+            <button
+              onClick={handleUndo}
+              disabled={!undoCount || lockedByOther}
+              className="flex items-center gap-2 text-[10px] uppercase tracking-[0.18em] font-medium text-stone-700 hover:text-stone-900 px-3 py-1.5 border border-stone-200 hover:border-stone-500 rounded-sm disabled:opacity-40 disabled:cursor-not-allowed"
+              title="Annuler le dernier changement"
+            >
+              <Undo2 size={12} />
+              Annuler
+            </button>
           </div>
         </div>
       </div>
@@ -264,7 +304,7 @@ export function EditorPage({ newsletterId, onBack }) {
           }`}
           style={{ maxHeight: "calc(100vh - 180px)" }}
         >
-          <EditorPanel state={state} setState={setState} />
+          <EditorPanel state={state} setState={setStateWithHistory} />
         </div>
 
         <PreviewPanel
@@ -278,7 +318,7 @@ export function EditorPage({ newsletterId, onBack }) {
       {showVersions && (
         <VersionsPanel
           newsletterId={newsletterId}
-          onRestore={(restoredState) => setState(restoredState)}
+          onRestore={(restoredState) => setStateWithHistory(restoredState)}
           onClose={() => setShowVersions(false)}
         />
       )}

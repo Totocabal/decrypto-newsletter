@@ -40,6 +40,8 @@ export function sanitizeRichText(text = "") {
     .replace(/&lt;\/sup&gt;/gi, "</sup>")
     .replace(/&lt;ul&gt;/gi, `<ul style="margin:0; padding-left:20px;">`)
     .replace(/&lt;\/ul&gt;/gi, "</ul>")
+    .replace(/&lt;ol&gt;/gi, `<ol style="margin:0; padding-left:20px;">`)
+    .replace(/&lt;\/ol&gt;/gi, "</ol>")
     .replace(/&lt;li&gt;/gi, `<li style="margin:0 0 6px;">`)
     .replace(/&lt;\/li&gt;/gi, "</li>")
     .replace(/&lt;a href=&quot;([^&]+)&quot;&gt;/gi,

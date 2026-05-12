@@ -10,6 +10,7 @@ import {
   Strikethrough,
   Link,
   List,
+  ListOrdered,
   ChevronUp,
   ChevronDown,
 } from "lucide-react";
@@ -96,7 +97,7 @@ export function TextArea({ showCount, onChange, value = "", ...props }) {
     emitChange(result.value, result.selectionStart, result.selectionEnd);
   };
 
-  const insertList = () => {
+  const insertList = (tagName = "ul") => {
     const textarea = textareaRef.current;
     if (!textarea) return;
     const start = textarea.selectionStart;
@@ -110,7 +111,7 @@ export function TextArea({ showCount, onChange, value = "", ...props }) {
           .map((line) => `<li>${line.replace(/^<li>|<\/li>$/g, "")}</li>`)
           .join("\n")
       : "<li>Élément de liste</li>";
-    const html = `<ul>\n${listText}\n</ul>`;
+    const html = `<${tagName}>\n${listText}\n</${tagName}>`;
     const nextValue = textValue.slice(0, start) + html + textValue.slice(end);
     emitChange(nextValue, start, start + html.length);
   };
@@ -167,6 +168,9 @@ export function TextArea({ showCount, onChange, value = "", ...props }) {
         </HtmlButton>
         <HtmlButton title="Liste à puces" onClick={insertList}>
           <List size={13} />
+        </HtmlButton>
+        <HtmlButton title="Liste numérotée" onClick={() => insertList("ol")}>
+          <ListOrdered size={13} />
         </HtmlButton>
       </div>
       <textarea
