@@ -599,7 +599,7 @@ function renderHeader(state, assetMode) {
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
           <tr>
             <td align="left" valign="middle" style="font-family:${FONTS.heading}; font-weight:700; font-size:18px; color:${THEME.textPrimary}; letter-spacing:0.04em;">
-              <span style="display:inline-block; vertical-align:middle; margin-right:10px;"><img src="https://cdn.braze.eu/appboy/communication/assets/image_assets/images/6a032aec37800e0085f8e2ac/original.png?1778592492" height="22" alt="Coinhouse" style="display:inline-block; vertical-align:middle; border:0;" /></span>
+              <span style="display:inline-block; vertical-align:middle; margin-right:10px;"><img src="https://cdn.braze.eu/appboy/communication/assets/image_assets/images/6a032aec37800e0085f8e2ac/original.png?1778592492" width="180" alt="Coinhouse" style="display:inline-block; vertical-align:middle; border:0; max-width:180px; height:auto;" /></span>
               <span style="vertical-align:middle;">${escapeHtml(state.brand_name)}</span>
             </td>
             <td align="right" valign="middle" style="font-family:${FONTS.body}; font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:${THEME.textMuted};">
@@ -620,7 +620,7 @@ function renderFooter(footer, assetMode) {
   return `
     <tr>
       <td bgcolor="${THEME.bgFooter}" style="background-color:${THEME.bgFooter}; padding:40px 36px 32px; border-top:1px solid ${THEME.borderSubtle};" align="center">
-        <div style="margin-bottom:10px;"><img src="https://cdn.braze.eu/appboy/communication/assets/image_assets/images/6a032aec37800e0085f8e2ac/original.png?1778592492" height="42" alt="Coinhouse" style="display:block; margin:0 auto; border:0;" /></div>
+        <div style="margin-bottom:10px;"><img src="https://cdn.braze.eu/appboy/communication/assets/image_assets/images/6a032aec37800e0085f8e2ac/original.png?1778592492" width="180" alt="Coinhouse" style="display:block; margin:0 auto; border:0; max-width:180px; height:auto;" /></div>
         <p style="margin:0 0 22px; font-family:${FONTS.heading}; font-weight:500; font-size:14px; color:${THEME.textMuted}; letter-spacing:-0.005em;">${escapeHtml(footer.tagline)}</p>
         ${links ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:24px;" align="center"><tr>${links}</tr></table>` : ""}
         <p style="margin:0; font-family:${FONTS.body}; font-size:11px; color:${THEME.textDim}; line-height:1.6; letter-spacing:0.02em;">
