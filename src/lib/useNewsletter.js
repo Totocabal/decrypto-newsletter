@@ -111,17 +111,20 @@ export function useNewsletter(newsletterId, userId) {
     if (!newsletterId) return;
 
     const release = () => {
-      // Best-effort. Pas garantie en cas de fermeture brutale d'onglet — d'où
-      // le TTL de 10 min côté serveur.
-      navigator.sendBeacon &&
-        supabase.rpc("release_lock", { p_newsletter_id: newsletterId });
+      // Best-effort. Au refresh, le navigateur peut couper la requête: on
+      // absorbe l'erreur pour éviter une rejection globale pendant l'unload.
+      void supabase
+        .rpc("release_lock", { p_newsletter_id: newsletterId })
+        .catch(() => {});
     };
 
     window.addEventListener("beforeunload", release);
     return () => {
       window.removeEventListener("beforeunload", release);
       // À la sortie React (changement de page), on libère explicitement
-      supabase.rpc("release_lock", { p_newsletter_id: newsletterId });
+      void supabase
+        .rpc("release_lock", { p_newsletter_id: newsletterId })
+        .catch(() => {});
     };
   }, [newsletterId]);
 
