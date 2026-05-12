@@ -182,13 +182,6 @@ export function EditorPanel({ state, setState }) {
 
       {/* ── PIED DE PAGE FIXE ───────────────────────────────────────────── */}
       <Section title="Pied de page" defaultOpen={false}>
-        <Field label="Tagline">
-          <Input
-            value={state.footer.tagline}
-            onChange={(e) => updateFooter({ tagline: e.target.value })}
-          />
-        </Field>
-
         <div className="text-[10px] uppercase tracking-[0.18em] font-medium text-stone-500 mb-2 mt-2">
           Liens du footer
         </div>
@@ -241,20 +234,12 @@ export function EditorPanel({ state, setState }) {
             onChange={(e) => updateFooter({ legal: e.target.value })}
           />
         </Field>
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Lien préférences">
-            <Input
-              value={state.footer.pref_url}
-              onChange={(e) => updateFooter({ pref_url: e.target.value })}
-            />
-          </Field>
-          <Field label="Lien désinscription">
-            <Input
-              value={state.footer.unsub_url}
-              onChange={(e) => updateFooter({ unsub_url: e.target.value })}
-            />
-          </Field>
-        </div>
+        <Field label="Lien désinscription">
+          <Input
+            value={state.footer.unsub_url}
+            onChange={(e) => updateFooter({ unsub_url: e.target.value })}
+          />
+        </Field>
       </Section>
     </>
   );

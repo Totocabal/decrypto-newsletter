@@ -620,15 +620,13 @@ function renderFooter(footer, assetMode) {
     <tr>
       <td bgcolor="${THEME.bgFooter}" style="background-color:${THEME.bgFooter}; padding:40px 36px 32px; border-top:1px solid ${THEME.borderSubtle};" align="center">
         <div style="margin-bottom:10px;"><img src="https://cdn.braze.eu/appboy/communication/assets/image_assets/images/6a032aec37800e0085f8e2ac/original.png?1778592492" width="180" alt="Coinhouse" style="display:block; margin:0 auto; border:0; max-width:180px; height:auto;" /></div>
-        <p style="margin:0 0 22px; font-family:${FONTS.heading}; font-weight:500; font-size:14px; color:${THEME.textMuted}; letter-spacing:-0.005em;">${escapeHtml(footer.tagline)}</p>
         ${links ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:24px;" align="center"><tr>${links}</tr></table>` : ""}
         <p style="margin:0; font-family:${FONTS.body}; font-size:11px; color:${THEME.textDim}; line-height:1.6; letter-spacing:0.02em;">
           ${escapeHtml(footer.address)}<br /><br />
           <span style="color:${THEME.textFaint};">${escapeHtml(footer.legal).replace(/\n/g, "<br />")}</span>
         </p>
         <p style="margin:18px 0 0; font-family:${FONTS.body}; font-size:11px; color:${THEME.textFaint};">
-          <a href="${escapeAttr(footer.pref_url)}" style="color:${THEME.textFaint}; text-decoration:underline;">Préférences</a> ·
-          <a href="${escapeAttr(footer.unsub_url)}" style="color:${THEME.textFaint}; text-decoration:underline;">Se désinscrire</a>
+          <a href="${escapeAttr(footer.unsub_url || "{% unsubscribe_url %}")}" style="color:${THEME.textFaint}; text-decoration:underline;">Se désinscrire</a>
         </p>
       </td>
     </tr>`;

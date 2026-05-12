@@ -251,17 +251,15 @@ export const INITIAL_STATE = {
 
   // ── Pied de page fixe ─────────────────────────────────────────────────
   footer: {
-    tagline: BRAND.tagline,
     links: [
-      { label: "Application", url: "#" },
-      { label: "Premium", url: "#" },
-      { label: "Gestion privée", url: "#" },
-      { label: "Académie", url: "#" },
+      { label: "Particuliers", url: "http://coinhouse.com/fr/particuliers" },
+      { label: "Clientèle Privée", url: "https://www.coinhouse.com/fr/clientele-privee" },
+      { label: "Entreprises", url: "https://www.coinhouse.com/fr/entreprises" },
+      { label: "Académie", url: "https://www.coinhouse.com/fr/academie" },
     ],
     address: BRAND.address,
     legal: BRAND.legalNotice,
-    pref_url: "#",
-    unsub_url: "#",
+    unsub_url: "{% unsubscribe_url %}",
   },
 };
 
@@ -408,12 +406,10 @@ export function migrateLegacyState(oldState) {
     preview_text: o.preview_text ?? "",
     sections,
     footer: {
-      tagline: o.footer_tagline ?? BRAND.tagline,
       links: o.footer_links ?? [],
       address: o.footer_address ?? BRAND.address,
       legal: o.footer_legal ?? BRAND.legalNotice,
-      pref_url: o.footer_pref_url ?? "#",
-      unsub_url: o.footer_unsub_url ?? "#",
+      unsub_url: o.footer_unsub_url ?? "{% unsubscribe_url %}",
     },
   };
 }
