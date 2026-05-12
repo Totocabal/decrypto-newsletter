@@ -66,12 +66,7 @@ export const SECTION_TYPES = {
       title: "La détente du marché",
       body:
         "Bitcoin a refranchi les <strong>64 000 €</strong> sans accroc, dans un climat où la volatilité implicite à 30 jours s'est effondrée. Le mouvement n'a rien d'euphorique — et c'est ce qui le rend solide.",
-      kpis: [
-        { label: "BTC", value: "64 492 €", delta: "+2,93 %", tone: "positive" },
-        { label: "ETH", value: "3 407 €", delta: "+1,80 %", tone: "positive" },
-        { label: "VIX CRYPTO", value: "42", delta: "−18 %", tone: "warning" },
-        { label: "ETF FLOWS", value: "+1,2 Md$", delta: "7j", tone: "muted" },
-      ],
+      kpis: [],
     }),
   },
   chart: {
@@ -172,13 +167,15 @@ export const SECTION_TYPES = {
     }),
   },
   text_block: {
-    label: "Bloc texte libre",
+    label: "Texte",
     icon: "Type",
     factory: () => ({
       kicker: "FOCUS",
       title: "Un sujet à creuser",
       body:
         "Texte libre — utilise <strong>gras</strong>, <em>italique</em> ou <br /> pour structurer ton propos.",
+      cta_label: "",
+      cta_url: "",
     }),
   },
   focus: {

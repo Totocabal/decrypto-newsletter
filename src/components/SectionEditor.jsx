@@ -635,27 +635,33 @@ function ChartEditor({ data, set }) {
       )}
 
       {mode === "auto" && points.length > 0 && (
-        <div className="mt-3 bg-stone-50 border border-stone-200 rounded-sm p-3">
-          <div className="text-[10px] uppercase tracking-[0.18em] font-medium text-stone-500 mb-2">
-            Courbe importée — {points.length} points
+        <div className="mt-3 bg-stone-50 border border-stone-200 rounded-sm overflow-hidden">
+          <div className="text-[10px] uppercase tracking-[0.18em] font-medium text-stone-500 px-3 pt-3 pb-2">
+            Données importées — {points.length} jours
           </div>
-          <div className="flex gap-1 items-end h-8">
-            {points.map((p, i) => (
-              <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                <div
-                  className="w-full bg-pink-500 rounded-sm"
-                  style={{ height: `${Math.max(2, (p / 100) * 28)}px` }}
-                />
-              </div>
-            ))}
-          </div>
-          <div className="flex justify-between mt-1">
-            {labels.map((l, i) => (
-              <span key={i} className="text-[9px] text-stone-400 uppercase tracking-wider">
-                {l}
-              </span>
-            ))}
-          </div>
+          <table className="w-full text-[11px]">
+            <tbody>
+              {points.map((p, i) => (
+                <tr key={i} className="border-t border-stone-100">
+                  <td className="px-3 py-1.5 text-stone-500 font-medium w-12">{labels[i] || `J${i + 1}`}</td>
+                  <td className="px-3 py-1.5 text-stone-400 tabular-nums w-24">
+                    {data.raw_prices?.[i]?.date ?? ""}
+                  </td>
+                  <td className="px-3 py-1.5 text-stone-700 tabular-nums font-medium text-right">
+                    {data.raw_prices?.[i]?.price ?? "—"}
+                  </td>
+                  <td className="pr-3 py-1.5 w-24">
+                    <div className="h-1.5 bg-stone-200 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-pink-500 rounded-full"
+                        style={{ width: `${p}%` }}
+                      />
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
     </>
@@ -1240,6 +1246,23 @@ function TextBlockEditor({ data, set }) {
           onChange={(e) => set({ body: e.target.value })}
         />
       </Field>
+      <div className="text-[10px] uppercase tracking-[0.18em] font-medium text-stone-500 mb-2 mt-2">
+        Bouton (gradient) — <span className="normal-case font-normal">laisse vide pour ne pas l'afficher</span>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Texte">
+          <Input
+            value={data.cta_label ?? ""}
+            onChange={(e) => set({ cta_label: e.target.value })}
+          />
+        </Field>
+        <Field label="Lien">
+          <Input
+            value={data.cta_url ?? ""}
+            onChange={(e) => set({ cta_url: e.target.value })}
+          />
+        </Field>
+      </div>
     </>
   );
 }

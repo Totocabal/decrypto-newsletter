@@ -526,12 +526,23 @@ function renderFocus(data, number) {
 }
 
 function renderTextBlock(data, number) {
+  const ctaBtn = data.cta_label
+    ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:28px;">
+        <tr>
+          <td bgcolor="${THEME.accentTertiary}" style="border-radius:99px; background-color:${THEME.accentTertiary}; background-image:linear-gradient(90deg, ${THEME.accentSecondary} 0%, ${THEME.accentTertiary} 50%, ${THEME.accentPrimary} 100%);">
+            <a href="${escapeAttr(data.cta_url || "#")}" style="display:inline-block; padding:13px 22px; font-family:${FONTS.heading}; font-weight:600; font-size:13px; color:#ffffff; text-decoration:none; border-radius:99px; letter-spacing:0.01em;">${escapeHtml(data.cta_label)}</a>
+          </td>
+        </tr>
+      </table>`
+    : "";
+
   return `
     <tr>
       <td class="em-px" style="padding:44px 36px; border-bottom:1px solid ${THEME.border};">
         ${sectionHeader(number, data.kicker)}
         ${sectionTitle(data.title)}
         <p style="margin:22px 0 0; font-family:${FONTS.body}; font-size:15px; line-height:1.65; color:${THEME.textSecondary};">${sanitizeRichText(data.body)}</p>
+        ${ctaBtn}
       </td>
     </tr>`;
 }

@@ -15,12 +15,23 @@ function formatPrice(price) {
   }).format(price);
 }
 
-function normalizePrices(prices) {
-  const values = prices.map((p) => p[1]);
+function normalizePrices(values) {
   const min = Math.min(...values);
   const max = Math.max(...values);
   if (max === min) return values.map(() => 50);
   return values.map((v) => +((((v - min) / (max - min)) * 100).toFixed(1)));
+}
+
+// Garde une entrée par jour calendaire (UTC), prend la dernière entrée du jour.
+// Évite les doublons quand l'API renvoie le prix courant en plus des clôtures.
+function deduplicateByDay(prices) {
+  const byDay = new Map();
+  for (const [ts, price] of prices) {
+    const d = new Date(ts);
+    const key = `${d.getUTCFullYear()}-${String(d.getUTCMonth()).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
+    byDay.set(key, [ts, price]);
+  }
+  return [...byDay.values()];
 }
 
 export function useCoinGecko() {
@@ -37,17 +48,22 @@ export function useCoinGecko() {
       if (!res.ok) throw new Error(`CoinGecko error ${res.status}`);
       const json = await res.json();
 
-      // L'API renvoie 8 entrées (j-7 à aujourd'hui), on garde les 7 dernières
-      const prices = json.prices.slice(-7);
+      // Déduplique par jour puis prend les 7 derniers jours
+      const prices = deduplicateByDay(json.prices).slice(-7);
 
-      const points = normalizePrices(prices);
-      const x_labels = prices.map(([ts]) => {
-        const d = new Date(ts);
-        return DAY_LABELS[d.getDay()];
-      });
+      const rawValues = prices.map(([, price]) => price);
+      const points = normalizePrices(rawValues);
 
-      const currentPrice = prices[prices.length - 1][1];
-      const firstPrice = prices[0][1];
+      const x_labels = prices.map(([ts]) => DAY_LABELS[new Date(ts).getDay()]);
+
+      // Prix bruts pour affichage dans l'éditeur
+      const raw_prices = prices.map(([ts, price]) => ({
+        label: new Date(ts).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" }),
+        price: formatPrice(price),
+      }));
+
+      const currentPrice = rawValues[rawValues.length - 1];
+      const firstPrice = rawValues[0];
       const diffEur = currentPrice - firstPrice;
       const diffPct = (diffEur / firstPrice) * 100;
       const isPositive = diffPct >= 0;
@@ -62,6 +78,7 @@ export function useCoinGecko() {
         subdelta: `${isPositive ? "+" : ""}${formatPrice(diffEur)} sur 7j`,
         points,
         x_labels,
+        raw_prices,
       };
     } catch (e) {
       setError(e.message);
