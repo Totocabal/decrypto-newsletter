@@ -116,16 +116,28 @@ function buildFgGauge(value, assetMode) {
     return `<img src="assets/gauge.png" width="200" height="120" alt="Fear & Greed" style="display:block; border:0;" />`;
   }
   const v = Math.max(0, Math.min(100, parseInt(value, 10) || 0));
-  const angle = -90 + (v / 100) * 180;
+  const needleAngle = -90 + (v / 100) * 180;
+
+  // Arc: center (100,100), radius 78, sweeps from left (v=0) to right (v=100) through the top.
+  // For value t: SVG angle = (180 - t*1.8)°, point = (cx + r·cos θ, cy - r·sin θ)
+  const cx = 100, cy = 100, r = 78;
+  const pt = (t) => {
+    const a = (180 - t * 1.8) * (Math.PI / 180);
+    return `${(cx + r * Math.cos(a)).toFixed(2)} ${(cy - r * Math.sin(a)).toFixed(2)}`;
+  };
+
+  // Segment boundaries: 0 | 24 | 44 | 54 | 74 | 100
+  const bounds = [0, 24, 44, 54, 74, 100];
+  const colors = ["#FF4B28", "#FF8B28", "#75808B", "#00BB97", "#03FFCF"];
+  const segments = colors.map((c, i) =>
+    `<path d="M ${pt(bounds[i])} A ${r} ${r} 0 0 1 ${pt(bounds[i + 1])}" fill="none" stroke="${c}" stroke-width="14"/>`
+  ).join("\n    ");
+
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 120" width="200" height="120">
-    <path d="M 22 100 A 78 78 0 0 1 30.18 64.36" fill="none" stroke="#FF4B28" stroke-width="14"/>
-    <path d="M 30.18 64.36 A 78 78 0 0 1 56.13 36.97" fill="none" stroke="#FF8B28" stroke-width="14"/>
-    <path d="M 56.13 36.97 A 78 78 0 0 1 75.86 28.59" fill="none" stroke="#75808B" stroke-width="14"/>
-    <path d="M 75.86 28.59 A 78 78 0 0 1 143.87 36.97" fill="none" stroke="#00BB97" stroke-width="14"/>
-    <path d="M 143.87 36.97 A 78 78 0 0 1 178 100" fill="none" stroke="#03FFCF" stroke-width="14"/>
-    <g transform="rotate(${angle.toFixed(2)} 100 100)">
-      <line x1="100" y1="100" x2="100" y2="26" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
-      <circle cx="100" cy="100" r="6" fill="#ffffff"/>
+    ${segments}
+    <g transform="rotate(${needleAngle.toFixed(2)} ${cx} ${cy})">
+      <line x1="${cx}" y1="${cy}" x2="${cx}" y2="26" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="${cx}" cy="${cy}" r="6" fill="#ffffff"/>
     </g>
   </svg>`;
 }
