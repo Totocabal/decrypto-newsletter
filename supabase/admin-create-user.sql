@@ -5,6 +5,8 @@
 -- Permet à un admin approuvé de créer un utilisateur Auth confirmé, sans
 -- envoyer d'email Supabase. L'admin transmet ensuite le mot de passe temporaire.
 
+create extension if not exists "pgcrypto" with schema extensions;
+
 create or replace function public.admin_create_user(
   p_email text,
   p_password text,
@@ -15,7 +17,7 @@ create or replace function public.admin_create_user(
 returns public.profiles
 language plpgsql
 security definer
-set search_path = public, auth
+set search_path = public, auth, extensions
 as $$
 declare
   v_email text := lower(trim(p_email));
