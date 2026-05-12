@@ -3,7 +3,16 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useRef, useState } from "react";
-import { Bold, Italic, Link, List, ChevronUp, ChevronDown } from "lucide-react";
+import {
+  Bold,
+  Italic,
+  Underline,
+  Strikethrough,
+  Link,
+  List,
+  ChevronUp,
+  ChevronDown,
+} from "lucide-react";
 
 export function Field({ label, children, hint }) {
   return (
@@ -33,7 +42,7 @@ export function Input({ readOnly, ...props }) {
   );
 }
 
-function MarkdownButton({ title, onClick, children }) {
+function HtmlButton({ title, onClick, children }) {
   return (
     <button
       type="button"
@@ -46,7 +55,7 @@ function MarkdownButton({ title, onClick, children }) {
   );
 }
 
-function applyMarkdown(value, selectionStart, selectionEnd, before, after = before, fallback = "") {
+function applyHtml(value, selectionStart, selectionEnd, before, after, fallback = "") {
   const selected = value.slice(selectionStart, selectionEnd) || fallback;
   const nextValue =
     value.slice(0, selectionStart) +
@@ -76,7 +85,7 @@ export function TextArea({ showCount, onChange, value = "", ...props }) {
   const wrapSelection = (before, after, fallback) => {
     const textarea = textareaRef.current;
     if (!textarea) return;
-    const result = applyMarkdown(
+    const result = applyHtml(
       textValue,
       textarea.selectionStart,
       textarea.selectionEnd,
@@ -96,37 +105,69 @@ export function TextArea({ showCount, onChange, value = "", ...props }) {
     const listText = selected
       ? selected
           .split("\n")
-          .map((line) => (line.startsWith("- ") ? line : `- ${line}`))
+          .map((line) => line.trim())
+          .filter(Boolean)
+          .map((line) => `<li>${line.replace(/^<li>|<\/li>$/g, "")}</li>`)
           .join("\n")
-      : "- Élément de liste";
-    const nextValue = textValue.slice(0, start) + listText + textValue.slice(end);
-    emitChange(nextValue, start, start + listText.length);
+      : "<li>Élément de liste</li>";
+    const html = `<ul>\n${listText}\n</ul>`;
+    const nextValue = textValue.slice(0, start) + html + textValue.slice(end);
+    emitChange(nextValue, start, start + html.length);
+  };
+
+  const insertLink = () => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+    const url = window.prompt("URL du lien", "https://");
+    if (!url) return;
+    const safeUrl = url.replace(/"/g, "&quot;");
+    const result = applyHtml(
+      textValue,
+      textarea.selectionStart,
+      textarea.selectionEnd,
+      `<a href="${safeUrl}">`,
+      "</a>",
+      "texte du lien"
+    );
+    emitChange(result.value, result.selectionStart, result.selectionEnd);
   };
 
   const el = (
     <div className="border border-stone-200 rounded-sm bg-white focus-within:border-stone-400 transition-colors overflow-hidden">
       <div className="flex items-center gap-1 px-2 py-1.5 border-b border-stone-100 bg-stone-50/70">
-        <MarkdownButton
-          title="Gras Markdown"
-          onClick={() => wrapSelection("**", "**", "texte")}
+        <HtmlButton
+          title="Gras"
+          onClick={() => wrapSelection("<strong>", "</strong>", "texte")}
         >
           <Bold size={13} />
-        </MarkdownButton>
-        <MarkdownButton
-          title="Italique Markdown"
-          onClick={() => wrapSelection("*", "*", "texte")}
+        </HtmlButton>
+        <HtmlButton
+          title="Italique"
+          onClick={() => wrapSelection("<em>", "</em>", "texte")}
         >
           <Italic size={13} />
-        </MarkdownButton>
-        <MarkdownButton
-          title="Lien Markdown"
-          onClick={() => wrapSelection("[", "](https://)", "texte du lien")}
+        </HtmlButton>
+        <HtmlButton
+          title="Souligné"
+          onClick={() => wrapSelection("<u>", "</u>", "texte")}
+        >
+          <Underline size={13} />
+        </HtmlButton>
+        <HtmlButton
+          title="Rayé"
+          onClick={() => wrapSelection("<s>", "</s>", "texte")}
+        >
+          <Strikethrough size={13} />
+        </HtmlButton>
+        <HtmlButton
+          title="Lien hypertexte"
+          onClick={insertLink}
         >
           <Link size={13} />
-        </MarkdownButton>
-        <MarkdownButton title="Liste Markdown" onClick={insertList}>
+        </HtmlButton>
+        <HtmlButton title="Liste à puces" onClick={insertList}>
           <List size={13} />
-        </MarkdownButton>
+        </HtmlButton>
       </div>
       <textarea
         ref={textareaRef}
