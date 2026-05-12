@@ -189,6 +189,30 @@ export function useNewsletter(newsletterId, userId) {
     return { error: error?.message || null };
   }, [newsletterId]);
 
+  // ── 7. Mise à jour du titre (colonne dédiée, pas dans current_state) ──
+  // Update optimiste en local puis envoi à Supabase. Debounce 500ms pour
+  // éviter une requête à chaque frappe.
+  const titleTimer = useRef(null);
+  const updateTitle = useCallback(
+    (newTitle) => {
+      // Update optimiste pour que l'input réagisse instantanément
+      setNewsletter((n) => (n ? { ...n, title: newTitle } : n));
+      if (titleTimer.current) clearTimeout(titleTimer.current);
+      titleTimer.current = setTimeout(async () => {
+        if (!newsletterId) return;
+        const { error } = await supabase
+          .from("newsletters")
+          .update({ title: newTitle })
+          .eq("id", newsletterId);
+        if (error) {
+          // eslint-disable-next-line no-console
+          console.error("[useNewsletter] updateTitle:", error);
+        }
+      }, 500);
+    },
+    [newsletterId]
+  );
+
   return {
     newsletter,
     state,
@@ -201,5 +225,6 @@ export function useNewsletter(newsletterId, userId) {
     lockedByOther,
     saveVersion,
     takeOverLock,
+    updateTitle,
   };
 }

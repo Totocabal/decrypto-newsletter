@@ -2,8 +2,11 @@
 // SectionEditor — formulaire d'édition spécifique à un type de section
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { Plus, Trash2, ChevronUp, ChevronDown, CopyPlus } from "lucide-react";
+import { useRef, useState } from "react";
+import { Plus, Trash2, ChevronUp, ChevronDown, CopyPlus, Upload, Loader2, X } from "lucide-react";
 import { Field, Input, TextArea } from "./FormControls.jsx";
+import { uploadImage, deleteImage } from "../lib/imageUpload.js";
+import { useAuth } from "../contexts/AuthContext.jsx";
 
 export function SectionEditor({ type, data, onChange }) {
   const set = (patch) => onChange({ ...data, ...patch });
@@ -17,6 +20,7 @@ export function SectionEditor({ type, data, onChange }) {
     case "signals":    return <SignalsEditor data={data} set={set} />;
     case "macro":      return <MacroEditor data={data} set={set} />;
     case "event":      return <EventEditor data={data} set={set} />;
+    case "focus":      return <FocusEditor data={data} set={set} />;
     case "text_block": return <TextBlockEditor data={data} set={set} />;
     case "divider":    return <DividerEditor data={data} set={set} />;
     default:
@@ -409,7 +413,7 @@ function ChartEditor({ data, set }) {
         Courbe — déplace les curseurs pour dessiner
       </div>
       <div className="text-[11px] text-stone-400 mb-3 italic">
-        0% = haut du graphique (prix élevé) · 100% = bas (prix bas)
+        100% = haut du graphique (prix élevé) · 0% = bas (prix bas)
       </div>
 
       <div className="bg-white border border-stone-200 rounded-sm p-4 mb-3">
@@ -825,6 +829,190 @@ function EventEditor({ data, set }) {
           <Input
             value={data.cta_url}
             onChange={(e) => set({ cta_url: e.target.value })}
+          />
+        </Field>
+      </div>
+    </>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// FOCUS — image uploadable + texte long + 2 CTA
+// ─────────────────────────────────────────────────────────────────────────────
+
+function FocusEditor({ data, set }) {
+  const { profile } = useAuth();
+  const fileInputRef = useRef(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState(null);
+
+  const handleFile = async (file) => {
+    if (!file) return;
+    setUploadError(null);
+    setUploading(true);
+    try {
+      // Si une image était déjà uploadée, on tente de la supprimer du bucket
+      if (data.image_path) {
+        try {
+          await deleteImage(data.image_path);
+        } catch {
+          // best-effort, on continue
+        }
+      }
+      const { url, path } = await uploadImage(file, profile.id);
+      set({ ...data, image_url: url, image_path: path });
+    } catch (e) {
+      setUploadError(e.message || String(e));
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleRemoveImage = async () => {
+    if (data.image_path) {
+      try {
+        await deleteImage(data.image_path);
+      } catch {
+        // best-effort
+      }
+    }
+    set({ ...data, image_url: "", image_path: "" });
+  };
+
+  return (
+    <>
+      <Field label="Kicker">
+        <Input value={data.kicker} onChange={(e) => set({ ...data, kicker: e.target.value })} />
+      </Field>
+      <Field label="Titre">
+        <Input value={data.title} onChange={(e) => set({ ...data, title: e.target.value })} />
+      </Field>
+
+      <div className="text-[10px] uppercase tracking-[0.18em] font-medium text-stone-500 mb-1.5">
+        Image (568×280 conseillé, max 5 Mo)
+      </div>
+      {data.image_url ? (
+        <div className="mb-4 bg-white border border-stone-200 rounded-sm p-3">
+          <div className="relative mb-2">
+            <img
+              src={data.image_url}
+              alt={data.image_alt || ""}
+              className="w-full h-auto rounded-sm border border-stone-200"
+            />
+            <button
+              type="button"
+              onClick={handleRemoveImage}
+              className="absolute top-2 right-2 p-1.5 bg-white border border-stone-300 rounded-sm hover:bg-red-50 hover:border-red-300 text-stone-600 hover:text-red-600 shadow-sm"
+              title="Supprimer l'image"
+            >
+              <X size={14} />
+            </button>
+          </div>
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading}
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 border border-stone-300 text-stone-700 rounded-sm text-[10px] uppercase tracking-[0.18em] hover:bg-stone-50 disabled:opacity-50"
+          >
+            {uploading ? (
+              <>
+                <Loader2 size={12} className="animate-spin" />
+                Upload…
+              </>
+            ) : (
+              <>
+                <Upload size={12} />
+                Remplacer
+              </>
+            )}
+          </button>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={uploading}
+          className="w-full mb-4 flex items-center justify-center gap-2 px-4 py-6 border border-dashed border-stone-300 text-stone-600 hover:border-stone-500 hover:bg-stone-50 rounded-sm text-[10px] uppercase tracking-[0.18em] transition-colors disabled:opacity-50"
+        >
+          {uploading ? (
+            <>
+              <Loader2 size={14} className="animate-spin" />
+              Upload en cours…
+            </>
+          ) : (
+            <>
+              <Upload size={14} />
+              Cliquer pour uploader une image
+            </>
+          )}
+        </button>
+      )}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/png,image/jpeg,image/jpg,image/gif,image/webp"
+        onChange={(e) => {
+          if (e.target.files?.[0]) handleFile(e.target.files[0]);
+          e.target.value = "";
+        }}
+        className="hidden"
+      />
+      {uploadError && (
+        <div className="bg-red-50 border border-red-200 rounded-sm p-2 mb-3 text-[11px] text-red-700">
+          {uploadError}
+        </div>
+      )}
+
+      <Field label="Texte alternatif (alt)" hint="Pour les lecteurs d'écran et si l'image ne charge pas">
+        <Input
+          value={data.image_alt}
+          onChange={(e) => set({ ...data, image_alt: e.target.value })}
+        />
+      </Field>
+
+      <Field
+        label="Texte du focus"
+        hint="HTML simple : <strong>, <em>, <br />"
+      >
+        <TextArea
+          rows={8}
+          value={data.body}
+          onChange={(e) => set({ ...data, body: e.target.value })}
+        />
+      </Field>
+
+      <div className="text-[10px] uppercase tracking-[0.18em] font-medium text-stone-500 mb-2 mt-2">
+        Bouton principal (gradient)
+      </div>
+      <div className="grid grid-cols-2 gap-3 mb-2">
+        <Field label="Texte">
+          <Input
+            value={data.cta_primary_label}
+            onChange={(e) => set({ ...data, cta_primary_label: e.target.value })}
+          />
+        </Field>
+        <Field label="Lien">
+          <Input
+            value={data.cta_primary_url}
+            onChange={(e) => set({ ...data, cta_primary_url: e.target.value })}
+          />
+        </Field>
+      </div>
+
+      <div className="text-[10px] uppercase tracking-[0.18em] font-medium text-stone-500 mb-2">
+        Bouton secondaire (outline) — laisse vide pour ne pas l'afficher
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Texte">
+          <Input
+            value={data.cta_secondary_label}
+            onChange={(e) => set({ ...data, cta_secondary_label: e.target.value })}
+          />
+        </Field>
+        <Field label="Lien">
+          <Input
+            value={data.cta_secondary_url}
+            onChange={(e) => set({ ...data, cta_secondary_url: e.target.value })}
           />
         </Field>
       </div>

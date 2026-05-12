@@ -81,7 +81,12 @@ function buildChartSvg(points, assetMode) {
   if (!points || points.length < 2) return "";
   const W = 560, H = 180;
   const stepX = W / (points.length - 1);
-  const xy = points.map((p, i) => [+(stepX * i).toFixed(2), +((p / 100) * H).toFixed(2)]);
+  // p ∈ [0, 100] : 0 = bas (prix bas), 100 = haut (prix élevé)
+  // SVG y croît vers le bas, donc on inverse : y = (1 - p/100) * H
+  const xy = points.map((p, i) => [
+    +(stepX * i).toFixed(2),
+    +((1 - p / 100) * H).toFixed(2),
+  ]);
   const polyline = xy.map(([x, y]) => `${x},${y}`).join(" ");
   const polygon = `0,${H} ${polyline} ${W},${H}`;
   const last = xy[xy.length - 1];
@@ -427,6 +432,76 @@ function renderEvent(data) {
     </tr>`;
 }
 
+function renderFocus(data, number) {
+  // Image : si pas d'URL renseignée, on affiche un placeholder gris
+  const imgUrl =
+    data.image_url ||
+    "https://placehold.co/568x280/1a0c2e/ffffff?text=VISUEL+%C2%B7+568+%C3%97+280";
+  const altText = data.image_alt || "Visuel d'illustration";
+
+  // CTA primaire (gradient) — version bulletproof avec fallback Outlook VML
+  const primaryBtn = data.cta_primary_label
+    ? `<td valign="middle" style="padding-right:10px;">
+        <!--[if mso]>
+        <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${escapeAttr(data.cta_primary_url || "#")}" style="height:46px; v-text-anchor:middle; width:260px;" arcsize="50%" stroke="f" fillcolor="${THEME.accentTertiary}">
+          <w:anchorlock/>
+          <center style="color:#ffffff; font-family:Arial, sans-serif; font-size:13px; font-weight:bold;">${escapeHtml(data.cta_primary_label)}</center>
+        </v:roundrect>
+        <![endif]-->
+        <!--[if !mso]><!-->
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+          <tr>
+            <td bgcolor="${THEME.accentTertiary}" style="border-radius:99px; background-color:${THEME.accentTertiary}; background-image:linear-gradient(90deg, ${THEME.accentSecondary} 0%, ${THEME.accentTertiary} 50%, ${THEME.accentPrimary} 100%);">
+              <a href="${escapeAttr(data.cta_primary_url || "#")}" style="display:inline-block; padding:13px 22px; font-family:${FONTS.heading}; font-weight:600; font-size:13px; color:#ffffff; text-decoration:none; border-radius:99px; letter-spacing:0.01em;">${escapeHtml(data.cta_primary_label)}</a>
+            </td>
+          </tr>
+        </table>
+        <!--<![endif]-->
+      </td>`
+    : "";
+
+  // CTA secondaire (outline)
+  const secondaryBtn = data.cta_secondary_label
+    ? `<td valign="middle">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+          <tr>
+            <td style="border:1px solid rgba(255,255,255,0.22); border-radius:99px;">
+              <a href="${escapeAttr(data.cta_secondary_url || "#")}" style="display:inline-block; padding:12px 20px; font-family:${FONTS.heading}; font-weight:500; font-size:13px; color:#E9EEF2; text-decoration:none; border-radius:99px; letter-spacing:0.01em;">${escapeHtml(data.cta_secondary_label)}</a>
+            </td>
+          </tr>
+        </table>
+      </td>`
+    : "";
+
+  const ctaRow = (primaryBtn || secondaryBtn)
+    ? `<table role="presentation" class="em-cta-row" cellpadding="0" cellspacing="0" border="0" style="margin-top:26px;">
+        <tr>${primaryBtn}${secondaryBtn}</tr>
+      </table>`
+    : "";
+
+  return `
+    <tr>
+      <td class="em-px" style="padding:44px 36px; border-bottom:1px solid ${THEME.border};">
+        ${sectionHeader(number, data.kicker)}
+        <h2 class="em-h2" style="margin:12px 0 22px; font-family:${FONTS.heading}; font-weight:600; font-size:30px; line-height:1.1; letter-spacing:-0.025em; color:${THEME.textPrimary};">${escapeHtml(data.title)}</h2>
+
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:26px;">
+          <tr>
+            <td>
+              <img src="${escapeAttr(imgUrl)}" width="568" height="280" alt="${escapeAttr(altText)}" style="display:block; width:100%; max-width:568px; height:auto; border-radius:14px; border:1px solid ${THEME.borderSubtle};" />
+            </td>
+          </tr>
+        </table>
+
+        <p style="margin:0; font-family:${FONTS.body}; font-size:15px; line-height:1.65; color:${THEME.textSecondary};">
+          ${sanitizeRichText(data.body)}
+        </p>
+
+        ${ctaRow}
+      </td>
+    </tr>`;
+}
+
 function renderTextBlock(data, number) {
   return `
     <tr>
@@ -461,6 +536,7 @@ function renderSection(sec, allSections, assetMode) {
     case "signals":    return renderSignals(sec.data, number);
     case "macro":      return renderMacro(sec.data, number);
     case "event":      return renderEvent(sec.data);
+    case "focus":      return renderFocus(sec.data, number);
     case "text_block": return renderTextBlock(sec.data, number);
     case "divider":    return renderDivider(sec.data);
     default:           return `<tr><td>Type inconnu : ${escapeHtml(sec.type)}</td></tr>`;

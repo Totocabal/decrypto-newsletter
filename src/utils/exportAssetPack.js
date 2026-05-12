@@ -68,14 +68,12 @@ async function buildPngAssets(state) {
   assets["logo-footer.png"] = await svgToPngBlob(footerLogo, 128, 128);
 
   // Pour chaque section "chart" et "fear_greed" présente, on génère son PNG.
-  // Note : si plusieurs sections du même type existent, elles se partagent
-  // le même asset (chart.png, gauge.png). C'est volontaire pour limiter le
-  // poids du pack — l'utilisateur peut renommer dans le HTML s'il veut
-  // différencier.
   let needChart = false;
   let chartPoints = null;
   let needGauge = false;
   let gaugeValue = null;
+  // Map { sectionId → { url, filename } } pour les images de blocs focus
+  const focusImages = [];
 
   for (const sec of state.sections || []) {
     if (sec.type === "chart" && !needChart) {
@@ -85,6 +83,16 @@ async function buildPngAssets(state) {
     if (sec.type === "fear_greed" && !needGauge) {
       needGauge = true;
       gaugeValue = sec.data.value;
+    }
+    if (sec.type === "focus" && sec.data.image_url) {
+      // On télécharge l'image et on la met dans assets/ avec un nom unique
+      const ext = guessImageExtension(sec.data.image_url);
+      const filename = `focus-${sec.id}.${ext}`;
+      focusImages.push({
+        sectionId: sec.id,
+        originalUrl: sec.data.image_url,
+        filename,
+      });
     }
   }
 
@@ -101,7 +109,28 @@ async function buildPngAssets(state) {
     assets["gauge.png"] = await svgToPngBlob(gaugeSvg, 200, 120);
   }
 
-  return assets;
+  // Télécharge chaque image de bloc focus
+  for (const fi of focusImages) {
+    try {
+      const resp = await fetch(fi.originalUrl);
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const blob = await resp.blob();
+      assets[fi.filename] = blob;
+    } catch (e) {
+      // Échec → on log, on continue, le HTML pointera vers l'URL originale
+      // eslint-disable-next-line no-console
+      console.warn(`[export] image ${fi.filename} non récupérée :`, e);
+    }
+  }
+
+  return { assets, focusImages };
+}
+
+// Devine l'extension d'une URL image. Défaut : "jpg".
+function guessImageExtension(url) {
+  const m = url.match(/\.(png|jpe?g|gif|webp|svg)(\?|$)/i);
+  if (m) return m[1].toLowerCase().replace("jpeg", "jpg");
+  return "jpg";
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -168,14 +197,30 @@ Upload les assets sur ton serveur, puis adapte les chemins comme ci-dessus.
 export async function exportAssetPack(state, filename = "decrypto-export.zip") {
   const zip = new JSZip();
 
-  // 1. Génère les PNG
-  const assets = await buildPngAssets(state);
+  // 1. Génère les PNG + télécharge les images focus
+  const { assets, focusImages } = await buildPngAssets(state);
 
-  // 2. HTML avec références externes
-  const html = buildEmailHtml(state, { assetMode: "external" });
+  // 2. HTML avec références externes. On clone l'état pour réécrire les URL
+  // des images focus vers leur chemin local dans assets/.
+  const stateForExport = {
+    ...state,
+    sections: (state.sections || []).map((sec) => {
+      if (sec.type === "focus" && sec.data.image_url) {
+        const fi = focusImages.find((f) => f.sectionId === sec.id);
+        if (fi && assets[fi.filename]) {
+          return {
+            ...sec,
+            data: { ...sec.data, image_url: `assets/${fi.filename}` },
+          };
+        }
+      }
+      return sec;
+    }),
+  };
+  const html = buildEmailHtml(stateForExport, { assetMode: "external" });
   zip.file("email.html", html);
 
-  // 3. Assets PNG
+  // 3. Assets (PNG + images focus)
   const assetsFolder = zip.folder("assets");
   for (const [name, blob] of Object.entries(assets)) {
     assetsFolder.file(name, blob);

@@ -1,17 +1,13 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // Barre d'outils en haut de l'éditeur
 // ─────────────────────────────────────────────────────────────────────────────
-// Boutons : aperçu/code, sauvegarder JSON, charger JSON, reset, copier HTML, télécharger HTML
+// Boutons : aperçu/code, sauvegarder une version, copier HTML, export ZIP.
 
-import { useRef } from "react";
 import {
   Eye,
   Settings,
   Save,
-  Upload,
-  RotateCcw,
   Copy,
-  Download,
   Check,
   Package,
   Loader2,
@@ -22,17 +18,12 @@ export function Toolbar({
   view,
   setView,
   onSave,
-  onLoad,
-  onReset,
   onCopy,
-  onDownload,
   onExportZip,
   copied,
   saved,
   exporting,
 }) {
-  const importInputRef = useRef(null);
-
   return (
     <div className="bg-white border-b border-stone-200 sticky top-0 z-20">
       <div className="px-6 py-4 flex items-center justify-between gap-4 flex-wrap">
@@ -70,43 +61,19 @@ export function Toolbar({
             </button>
           </div>
 
-          {/* Brouillon */}
+          {/* Sauvegarder une version */}
           <button
             onClick={onSave}
             className="flex items-center gap-1.5 px-3 py-2 text-[10px] uppercase tracking-[0.18em] border border-stone-300 text-stone-700 rounded-sm hover:bg-stone-50 transition-colors"
-            title="Sauvegarder le brouillon dans un fichier .json"
+            title="Créer une version (snapshot) avec un commentaire"
           >
             {saved ? <Check size={12} /> : <Save size={12} />}
             {saved ? "Sauvé" : "Sauvegarder"}
           </button>
-          <button
-            onClick={() => importInputRef.current?.click()}
-            className="flex items-center gap-1.5 px-3 py-2 text-[10px] uppercase tracking-[0.18em] border border-stone-300 text-stone-700 rounded-sm hover:bg-stone-50 transition-colors"
-            title="Charger un brouillon .json"
-          >
-            <Upload size={12} /> Charger
-          </button>
-          <input
-            ref={importInputRef}
-            type="file"
-            accept="application/json,.json"
-            onChange={(e) => {
-              if (e.target.files?.[0]) onLoad(e.target.files[0]);
-              e.target.value = "";
-            }}
-            className="hidden"
-          />
-          <button
-            onClick={onReset}
-            className="flex items-center gap-1.5 px-3 py-2 text-[10px] uppercase tracking-[0.18em] border border-stone-300 text-stone-500 hover:text-red-700 hover:border-red-200 hover:bg-red-50 rounded-sm transition-colors"
-            title="Réinitialiser aux valeurs par défaut"
-          >
-            <RotateCcw size={12} /> Reset
-          </button>
 
           <div className="w-px h-6 bg-stone-200 mx-1" />
 
-          {/* Export HTML */}
+          {/* Export HTML inline */}
           <button
             onClick={onCopy}
             className="flex items-center gap-1.5 px-3 py-2 text-[10px] uppercase tracking-[0.18em] bg-stone-800 text-white rounded-sm hover:bg-stone-700 transition-colors"
@@ -114,12 +81,8 @@ export function Toolbar({
             {copied ? <Check size={12} /> : <Copy size={12} />}
             {copied ? "Copié" : "Copier HTML"}
           </button>
-          <button
-            onClick={onDownload}
-            className="flex items-center gap-1.5 px-3 py-2 text-[10px] uppercase tracking-[0.18em] border border-stone-300 text-stone-700 rounded-sm hover:bg-stone-50 transition-colors"
-          >
-            <Download size={12} /> Télécharger HTML
-          </button>
+
+          {/* Export ZIP avec assets */}
           {onExportZip && (
             <button
               onClick={onExportZip}

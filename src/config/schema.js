@@ -83,7 +83,8 @@ export const SECTION_TYPES = {
       delta: "▲ +2,93 %",
       delta_tone: "positive",
       subdelta: "+1 838 € sur 7j",
-      points: [68.9, 60, 78.9, 50, 40.6, 29.4, 6.7],
+      // Points : 0 = bas du graphique (prix bas), 100 = haut (prix élevé)
+      points: [31.1, 40, 21.1, 50, 59.4, 70.6, 93.3],
       x_labels: ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"],
     }),
   },
@@ -170,6 +171,24 @@ export const SECTION_TYPES = {
       title: "Un sujet à creuser",
       body:
         "Texte libre — utilise <strong>gras</strong>, <em>italique</em> ou <br /> pour structurer ton propos.",
+    }),
+  },
+  focus: {
+    label: "Focus (image + CTA)",
+    icon: "ImageIcon",
+    factory: () => ({
+      kicker: "FOCUS",
+      title: "Confier ses crypto à des experts, sans renoncer au contrôle",
+      // image_url et image_path remplis quand l'utilisateur upload
+      image_url: "",
+      image_path: "", // chemin Supabase Storage (pour suppression)
+      image_alt: "Visuel d'illustration",
+      body:
+        "Sur un marché qui mûrit, beaucoup d'investisseurs nous posent la même question : <strong>comment intégrer la crypto dans une stratégie patrimoniale long terme, sans y consacrer ses week-ends ?</strong> La réponse Coinhouse tient en trois principes. <strong>D'abord la sécurité :</strong> nos actifs sont conservés en cold storage chez des dépositaires régulés en Europe, avec une assurance dédiée. <strong>Ensuite la transparence :</strong> chaque arbitrage est documenté, chaque frais explicite. <strong>Enfin l'accompagnement :</strong> un conseiller dédié, joignable, qui connaît votre allocation globale et ajuste l'exposition crypto au fil des cycles.",
+      cta_primary_label: "Découvrir la Gestion Privée →",
+      cta_primary_url: "#",
+      cta_secondary_label: "Prendre rendez-vous",
+      cta_secondary_url: "#",
     }),
   },
   divider: {
@@ -393,8 +412,8 @@ export function createSection(type) {
 }
 
 // Numéro affiché d'une section (selon sa position parmi les sections numérotables)
-// Hero, sommaire et divider ne portent pas de numéro.
-const UNNUMBERED_TYPES = new Set(["hero", "index", "divider"]);
+// Hero, sommaire, graphique et divider ne portent pas de numéro.
+const UNNUMBERED_TYPES = new Set(["hero", "index", "chart", "divider"]);
 
 export function computeSectionNumber(sections, sectionId) {
   let counter = 0;
