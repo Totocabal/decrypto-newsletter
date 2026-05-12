@@ -3,14 +3,44 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useState, useCallback } from "react";
-import { ArrowLeft, Check, ShieldCheck, X } from "lucide-react";
+import {
+  ArrowLeft,
+  Check,
+  Copy,
+  Loader2,
+  ShieldCheck,
+  UserPlus,
+  X,
+} from "lucide-react";
 import { supabase } from "../lib/supabase.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
+
+function generateTemporaryPassword() {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!#$%?";
+  const bytes = new Uint32Array(18);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes, (byte) => chars[byte % chars.length]).join("");
+}
+
+function getAdminCreateErrorMessage(error) {
+  const message = error?.message || String(error || "");
+  if (/function .*admin_create_user.* does not exist|schema cache/i.test(message)) {
+    return "La fonction Supabase admin_create_user n'est pas encore installée. Exécute supabase/admin-create-user.sql dans le SQL Editor, puis réessaie.";
+  }
+  return message;
+}
 
 export function AdminPage({ onBack }) {
   const { profile: currentProfile } = useAuth();
   const [profiles, setProfiles] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [creating, setCreating] = useState(false);
+  const [createForm, setCreateForm] = useState({
+    email: "",
+    fullName: "",
+    isAdmin: false,
+  });
+  const [createdAccount, setCreatedAccount] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -36,6 +66,52 @@ export function AdminPage({ onBack }) {
       return;
     }
     load();
+  };
+
+  const handleCreateAccount = async (e) => {
+    e.preventDefault();
+    const email = createForm.email.trim().toLowerCase();
+    if (!email) return;
+
+    const password = generateTemporaryPassword();
+    setCreating(true);
+    setCreatedAccount(null);
+
+    const { data, error } = await supabase.rpc("admin_create_user", {
+      p_email: email,
+      p_password: password,
+      p_full_name: createForm.fullName.trim() || null,
+      p_approved: true,
+      p_is_admin: createForm.isAdmin,
+    });
+
+    setCreating(false);
+
+    if (error) {
+      alert("Erreur : " + getAdminCreateErrorMessage(error));
+      return;
+    }
+
+    setCreatedAccount({
+      email: data?.email || email,
+      password,
+      fullName: data?.full_name || createForm.fullName.trim(),
+    });
+    setCreateForm({ email: "", fullName: "", isAdmin: false });
+    load();
+  };
+
+  const copyCreatedAccount = async () => {
+    if (!createdAccount) return;
+    const text = [
+      `Email : ${createdAccount.email}`,
+      `Mot de passe temporaire : ${createdAccount.password}`,
+    ].join("\n");
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      // Clipboard can be blocked; the password remains visible.
+    }
   };
 
   const formatDate = (iso) => {
@@ -77,6 +153,97 @@ export function AdminPage({ onBack }) {
             Chargement…
           </div>
         )}
+
+        {/* Création */}
+        <section>
+          <div className="flex items-center gap-2 mb-3">
+            <h2 className="text-[10px] uppercase tracking-[0.18em] text-stone-500 font-medium">
+              Créer un compte
+            </h2>
+          </div>
+          <div className="bg-white border border-stone-200 rounded-sm p-4">
+            <form
+              onSubmit={handleCreateAccount}
+              className="grid grid-cols-1 lg:grid-cols-[1fr_1fr_auto_auto] gap-3 items-end"
+            >
+              <div>
+                <label className="text-[10px] uppercase tracking-[0.18em] text-stone-500 font-medium block mb-2">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  required
+                  value={createForm.email}
+                  onChange={(e) =>
+                    setCreateForm((form) => ({ ...form, email: e.target.value }))
+                  }
+                  placeholder="prenom.nom@coinhouse.com"
+                  className="w-full px-3 py-2 border border-stone-300 rounded-sm text-sm focus:outline-none focus:border-stone-900"
+                  disabled={creating}
+                />
+              </div>
+              <div>
+                <label className="text-[10px] uppercase tracking-[0.18em] text-stone-500 font-medium block mb-2">
+                  Nom
+                </label>
+                <input
+                  type="text"
+                  value={createForm.fullName}
+                  onChange={(e) =>
+                    setCreateForm((form) => ({ ...form, fullName: e.target.value }))
+                  }
+                  placeholder="Nom affiché"
+                  className="w-full px-3 py-2 border border-stone-300 rounded-sm text-sm focus:outline-none focus:border-stone-900"
+                  disabled={creating}
+                />
+              </div>
+              <label className="flex items-center gap-2 px-2 py-2 text-xs text-stone-600 whitespace-nowrap">
+                <input
+                  type="checkbox"
+                  checked={createForm.isAdmin}
+                  onChange={(e) =>
+                    setCreateForm((form) => ({ ...form, isAdmin: e.target.checked }))
+                  }
+                  className="h-4 w-4 accent-stone-900"
+                  disabled={creating}
+                />
+                Admin
+              </label>
+              <button
+                type="submit"
+                disabled={creating || !createForm.email.trim()}
+                className="flex items-center justify-center gap-2 text-[10px] uppercase tracking-[0.18em] font-medium text-white bg-stone-900 hover:bg-stone-700 px-4 py-2.5 rounded-sm disabled:opacity-50"
+              >
+                {creating ? (
+                  <Loader2 size={12} className="animate-spin" />
+                ) : (
+                  <UserPlus size={12} />
+                )}
+                Créer
+              </button>
+            </form>
+
+            {createdAccount && (
+              <div className="mt-4 border border-emerald-200 bg-emerald-50 rounded-sm p-4">
+                <div className="text-sm font-medium text-emerald-900 mb-2">
+                  Compte créé
+                </div>
+                <div className="grid gap-1 text-xs text-emerald-800 font-mono">
+                  <div>Email : {createdAccount.email}</div>
+                  <div>Mot de passe temporaire : {createdAccount.password}</div>
+                </div>
+                <button
+                  type="button"
+                  onClick={copyCreatedAccount}
+                  className="mt-3 inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] font-medium text-emerald-900 border border-emerald-300 hover:border-emerald-600 px-3 py-1.5 rounded-sm"
+                >
+                  <Copy size={11} />
+                  Copier les identifiants
+                </button>
+              </div>
+            )}
+          </div>
+        </section>
 
         {/* En attente */}
         <section>
@@ -132,7 +299,7 @@ export function AdminPage({ onBack }) {
           </div>
           <div className="bg-white border border-stone-200 rounded-sm divide-y divide-stone-100">
             {approved.map((p) => {
-              const isSelf = p.id === currentProfile.id;
+              const isSelf = p.id === currentProfile?.id;
               return (
                 <div
                   key={p.id}

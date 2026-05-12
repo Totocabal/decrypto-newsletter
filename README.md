@@ -99,6 +99,19 @@ Quand un collègue se connecte pour la première fois, son compte apparaît dans
 **Admin → En attente d'approbation**. Clique "Approuver" et il accède à
 l'éditeur dans les secondes qui suivent.
 
+### 7. Créer un compte depuis l'admin
+
+Pour créer des comptes directement depuis l'outil, exécute aussi
+`supabase/admin-create-user.sql` dans le SQL Editor Supabase.
+
+Ensuite, dans **Admin → Créer un compte** :
+
+- saisis l'email et le nom affiché ;
+- coche **Admin** seulement si ce compte doit gérer les accès ;
+- l'outil génère un mot de passe temporaire à transmettre à l'utilisateur.
+
+Cette création ne dépend pas de l'envoi d'emails Supabase.
+
 ## Déploiement Vercel
 
 1. Push sur GitHub (voir `.gitignore` qui exclut `.env` et `node_modules`).
@@ -177,6 +190,7 @@ src/
   main.jsx
 supabase/
   schema.sql            ← migration initiale
+  admin-create-user.sql ← RPC pour créer des comptes depuis l'admin
   bootstrap-admin.sql   ← promouvoir le premier admin
 ```
 
