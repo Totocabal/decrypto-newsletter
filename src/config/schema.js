@@ -39,9 +39,9 @@ export const SECTION_TYPES = {
       subtitle:
         "Volatilité au plus bas, ETF en relais, FED qui tempère. On déroule la semaine en quatre temps.",
       chips: [
-        { label: "BTC +2,93 %" },
-        { label: "ETH +1,80 %" },
-        { label: "F&G 72 · Greed" },
+        { label: "BTC +2,93 %", type: "btc" },
+        { label: "ETH +1,80 %", type: "eth" },
+        { label: "F&G 72 · Greed", type: "fear_greed" },
       ],
     }),
   },
@@ -214,13 +214,23 @@ function section(type, dataOverride = {}) {
   return { id: sid(), type, data: { ...data, ...dataOverride } };
 }
 
+function thursdayOfCurrentWeek() {
+  const now = new Date();
+  const diff = 4 - now.getDay(); // 4 = jeudi
+  const thu = new Date(now);
+  thu.setDate(now.getDate() + diff);
+  const d = String(thu.getDate()).padStart(2, "0");
+  const m = String(thu.getMonth() + 1).padStart(2, "0");
+  return `${d}.${m}.${thu.getFullYear()}`;
+}
+
 export const INITIAL_STATE = {
   // ── Identité de marque ────────────────────────────────────────────────
   brand_name: BRAND.name,
 
   // ── En-tête fixe ──────────────────────────────────────────────────────
-  issue_number: "142",
-  issue_date: "04.05.2026",
+  issue_number: "1",
+  issue_date: thursdayOfCurrentWeek(),
   preview_text:
     "Le marché reprend son souffle — F&G à 72, ETF +1,2 Md$, FED qui tempère.",
 
@@ -415,7 +425,7 @@ export function createSection(type) {
 
 // Numéro affiché d'une section (selon sa position parmi les sections numérotables)
 // Hero, sommaire, graphique et divider ne portent pas de numéro.
-const UNNUMBERED_TYPES = new Set(["hero", "index", "chart", "divider"]);
+export const UNNUMBERED_TYPES = new Set(["hero", "index", "chart", "divider"]);
 
 export function computeSectionNumber(sections, sectionId) {
   let counter = 0;

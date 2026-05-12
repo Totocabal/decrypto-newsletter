@@ -131,6 +131,7 @@ export function EditorPanel({ state, setState }) {
               index={i}
               total={state.sections.length}
               number={computeSectionNumber(state.sections, sec.id)}
+              allSections={state.sections}
               onUpdate={(data) => setSection(sec.id, data)}
               onMoveUp={() => moveSection(sec.id, -1)}
               onMoveDown={() => moveSection(sec.id, 1)}
@@ -232,6 +233,7 @@ function SectionCard({
   index,
   total,
   number,
+  allSections,
   onUpdate,
   onMoveUp,
   onMoveDown,
@@ -324,6 +326,7 @@ function SectionCard({
             type={section.type}
             data={section.data}
             onChange={onUpdate}
+            sections={allSections}
           />
         </div>
       )}

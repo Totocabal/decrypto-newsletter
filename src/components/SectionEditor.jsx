@@ -5,16 +5,17 @@
 import { useRef, useState } from "react";
 import { Plus, Trash2, ChevronUp, ChevronDown, CopyPlus, Upload, Loader2, X, RefreshCw } from "lucide-react";
 import { useCoinGecko } from "../lib/useCoinGecko.js";
+import { UNNUMBERED_TYPES } from "../config/schema.js";
 import { Field, Input, TextArea } from "./FormControls.jsx";
 import { uploadImage, deleteImage } from "../lib/imageUpload.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
 
-export function SectionEditor({ type, data, onChange }) {
+export function SectionEditor({ type, data, onChange, sections = [] }) {
   const set = (patch) => onChange({ ...data, ...patch });
 
   switch (type) {
-    case "hero":       return <HeroEditor data={data} set={set} />;
-    case "index":      return <IndexEditor data={data} set={set} />;
+    case "hero":       return <HeroEditor data={data} set={set} sections={sections} />;
+    case "index":      return <IndexEditor data={data} set={set} sections={sections} />;
     case "edito":      return <EditoEditor data={data} set={set} />;
     case "chart":      return <ChartEditor data={data} set={set} />;
     case "fear_greed": return <FearGreedEditor data={data} set={set} />;
@@ -47,8 +48,101 @@ function listHelpers(list, set, factory) {
 // HERO
 // ─────────────────────────────────────────────────────────────────────────────
 
-function HeroEditor({ data, set }) {
+const CHIP_TYPES = [
+  { value: "manual", label: "Manuel" },
+  { value: "btc", label: "BTC auto" },
+  { value: "eth", label: "ETH auto" },
+  { value: "fear_greed", label: "F&G auto" },
+];
+
+function ChipEditor({ chip, onChange, onDelete, sections }) {
+  const { fetch7d, loading } = useCoinGecko();
+  const type = chip.type ?? "manual";
+
+  const handleRefreshCrypto = async (cryptoId) => {
+    const result = await fetch7d(cryptoId);
+    if (!result) return;
+    const symbol = cryptoId === "bitcoin" ? "BTC" : "ETH";
+    const sign = result.delta_tone === "positive" ? "▲" : "▼";
+    const pct = result.delta.replace(/^[▲▼]\s*/, "");
+    onChange({ ...chip, label: `${symbol} ${sign} ${pct}` });
+  };
+
+  const handleTypeChange = (newType) => {
+    if (newType === "btc") {
+      handleRefreshCrypto("bitcoin");
+      onChange({ ...chip, type: "btc" });
+    } else if (newType === "eth") {
+      handleRefreshCrypto("ethereum");
+      onChange({ ...chip, type: "eth" });
+    } else if (newType === "fear_greed") {
+      const fg = sections.find((s) => s.type === "fear_greed");
+      const label = fg
+        ? `F&G ${fg.data.value} · ${fg.data.classification}`
+        : chip.label;
+      onChange({ ...chip, type: "fear_greed", label });
+    } else {
+      onChange({ ...chip, type: "manual" });
+    }
+  };
+
+  const handleSync = () => {
+    if (type === "btc") handleRefreshCrypto("bitcoin");
+    else if (type === "eth") handleRefreshCrypto("ethereum");
+    else if (type === "fear_greed") {
+      const fg = sections.find((s) => s.type === "fear_greed");
+      if (fg) onChange({ ...chip, label: `F&G ${fg.data.value} · ${fg.data.classification}` });
+    }
+  };
+
+  return (
+    <div className="flex items-center gap-2 mb-2">
+      <select
+        value={type}
+        onChange={(e) => handleTypeChange(e.target.value)}
+        className="px-2 py-2 border border-stone-300 rounded-sm text-[11px] bg-white flex-shrink-0"
+      >
+        {CHIP_TYPES.map((t) => (
+          <option key={t.value} value={t.value}>{t.label}</option>
+        ))}
+      </select>
+      <div className="flex-1">
+        <Input
+          value={chip.label}
+          onChange={(e) => onChange({ ...chip, label: e.target.value })}
+          placeholder="Texte de la pastille"
+          readOnly={type !== "manual"}
+        />
+      </div>
+      {type !== "manual" && (
+        <button
+          type="button"
+          onClick={handleSync}
+          disabled={loading}
+          className="p-2 text-stone-400 hover:text-pink-600 hover:bg-pink-50 rounded-sm flex-shrink-0"
+          title="Rafraîchir"
+        >
+          {loading ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
+        </button>
+      )}
+      <button
+        type="button"
+        onClick={onDelete}
+        className="p-2 text-stone-400 hover:text-red-600 hover:bg-red-50 rounded-sm flex-shrink-0"
+        title="Supprimer"
+      >
+        <Trash2 size={14} />
+      </button>
+    </div>
+  );
+}
+
+function HeroEditor({ data, set, sections }) {
   const chips = data.chips || [];
+
+  const updateChip = (i, next) =>
+    set({ chips: chips.map((x, idx) => (idx === i ? next : x)) });
+
   return (
     <>
       <Field label="Kicker (au-dessus du titre)">
@@ -80,33 +174,17 @@ function HeroEditor({ data, set }) {
         Pastilles (chips)
       </div>
       {chips.map((c, i) => (
-        <div key={i} className="flex items-center gap-2 mb-2">
-          <div style={{ flex: 1 }}>
-            <Input
-              value={c.label}
-              onChange={(e) =>
-                set({
-                  chips: chips.map((x, idx) =>
-                    idx === i ? { label: e.target.value } : x
-                  ),
-                })
-              }
-              placeholder="Texte de la pastille"
-            />
-          </div>
-          <button
-            type="button"
-            onClick={() => set({ chips: chips.filter((_, idx) => idx !== i) })}
-            className="p-2 text-stone-400 hover:text-red-600 hover:bg-red-50 rounded-sm flex-shrink-0"
-            title="Supprimer"
-          >
-            <Trash2 size={14} />
-          </button>
-        </div>
+        <ChipEditor
+          key={i}
+          chip={c}
+          onChange={(next) => updateChip(i, next)}
+          onDelete={() => set({ chips: chips.filter((_, idx) => idx !== i) })}
+          sections={sections}
+        />
       ))}
       <button
         type="button"
-        onClick={() => set({ chips: [...chips, { label: "Nouvelle" }] })}
+        onClick={() => set({ chips: [...chips, { label: "Nouvelle", type: "manual" }] })}
         className="w-full mt-1 flex items-center justify-center gap-2 px-4 py-2 border border-dashed border-stone-300 text-stone-600 hover:border-stone-500 rounded-sm text-[10px] uppercase tracking-[0.18em] transition-colors"
       >
         <Plus size={12} /> Ajouter une pastille
@@ -119,14 +197,44 @@ function HeroEditor({ data, set }) {
 // INDEX (Sommaire)
 // ─────────────────────────────────────────────────────────────────────────────
 
-function IndexEditor({ data, set }) {
+function sectionTitle(sec) {
+  const d = sec.data || {};
+  return d.title || d.label || d.kicker || sec.type;
+}
+
+function IndexEditor({ data, set, sections }) {
   const items = data.items || [];
+
+  const syncFromSections = () => {
+    let counter = 0;
+    const generated = sections
+      .filter((s) => !UNNUMBERED_TYPES.has(s.type))
+      .map((s) => {
+        counter++;
+        return {
+          number: String(counter).padStart(2, "0"),
+          title: sectionTitle(s),
+          duration: "03 min",
+        };
+      });
+    set({ items: generated });
+  };
 
   return (
     <>
-      <Field label="Libellé du bloc">
-        <Input value={data.label} onChange={(e) => set({ label: e.target.value })} />
-      </Field>
+      <div className="flex items-center justify-between mb-4">
+        <Field label="Libellé du bloc" className="flex-1 mb-0">
+          <Input value={data.label} onChange={(e) => set({ label: e.target.value })} />
+        </Field>
+        <button
+          type="button"
+          onClick={syncFromSections}
+          className="ml-3 flex items-center gap-1.5 px-3 py-2 text-[11px] font-medium border border-stone-300 text-stone-600 rounded-sm hover:border-stone-500 hover:bg-stone-50 transition-colors flex-shrink-0"
+          title="Regénérer depuis les blocs présents"
+        >
+          <RefreshCw size={12} /> Sync blocs
+        </button>
+      </div>
       {items.map((it, i) => (
         <div
           key={i}
@@ -179,7 +287,7 @@ function IndexEditor({ data, set }) {
         type="button"
         onClick={() =>
           set({
-            items: [...items, { number: "00", title: "Nouvelle entrée", duration: "01 min" }],
+            items: [...items, { number: String(items.length + 1).padStart(2, "0"), title: "Nouvelle entrée", duration: "01 min" }],
           })
         }
         className="w-full mt-1 flex items-center justify-center gap-2 px-4 py-2 border border-dashed border-stone-300 text-stone-600 hover:border-stone-500 rounded-sm text-[10px] uppercase tracking-[0.18em] transition-colors"
@@ -402,8 +510,11 @@ function ChartEditor({ data, set }) {
 
       {/* Sélecteur crypto + bouton refresh (mode auto) */}
       {mode === "auto" && (
-        <div className="flex gap-2 mb-4 items-end">
-          <Field label="Crypto" className="flex-1">
+        <div className="flex gap-2 items-end mb-4">
+          <div className="flex-1">
+            <div className="text-[10px] uppercase tracking-[0.18em] font-medium text-stone-500 mb-1.5">
+              Crypto
+            </div>
             <select
               value={crypto}
               onChange={(e) => set({ chart_crypto: e.target.value })}
@@ -412,12 +523,12 @@ function ChartEditor({ data, set }) {
               <option value="bitcoin">Bitcoin (BTC)</option>
               <option value="ethereum">Ethereum (ETH)</option>
             </select>
-          </Field>
+          </div>
           <button
             type="button"
             onClick={handleRefresh}
             disabled={loading}
-            className="flex items-center gap-1.5 px-4 py-2 text-xs font-medium bg-pink-600 text-white rounded-sm hover:bg-pink-700 disabled:opacity-50 transition-colors mb-[1px]"
+            className="flex items-center gap-1.5 px-4 py-2 text-xs font-medium bg-pink-600 text-white rounded-sm hover:bg-pink-700 disabled:opacity-50 transition-colors"
           >
             {loading ? (
               <Loader2 size={13} className="animate-spin" />
