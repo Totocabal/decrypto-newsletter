@@ -165,6 +165,7 @@ function HeroEditor({ data, set, sections }) {
       </Field>
       <Field label="Sous-titre">
         <TextArea
+          showCount
           rows={2}
           value={data.subtitle}
           onChange={(e) => set({ subtitle: e.target.value })}
@@ -315,6 +316,7 @@ function EditoEditor({ data, set }) {
         hint="HTML simple : <strong>, <em>, <br />"
       >
         <TextArea
+          showCount
           rows={4}
           value={data.body}
           onChange={(e) => set({ body: e.target.value })}
@@ -725,6 +727,7 @@ function FearGreedEditor({ data, set }) {
       </Field>
       <Field label="Commentaire" hint="HTML simple : <strong>, <em>, <br />">
         <TextArea
+          showCount
           rows={3}
           value={data.commentary}
           onChange={(e) => set({ commentary: e.target.value })}
@@ -853,6 +856,7 @@ function SignalsEditor({ data, set }) {
             </Field>
             <Field label="Description">
               <TextArea
+                showCount
                 rows={2}
                 value={sig.description}
                 onChange={(e) =>
@@ -904,6 +908,7 @@ function MacroEditor({ data, set }) {
       </Field>
       <Field label="Corps" hint="HTML simple autorisé">
         <TextArea
+          showCount
           rows={3}
           value={data.body}
           onChange={(e) => set({ body: e.target.value })}
@@ -911,6 +916,7 @@ function MacroEditor({ data, set }) {
       </Field>
       <Field label="Citation">
         <TextArea
+          showCount
           rows={3}
           value={data.quote}
           onChange={(e) => set({ quote: e.target.value })}
@@ -1019,6 +1025,7 @@ function EventEditor({ data, set }) {
       </Field>
       <Field label="Description">
         <TextArea
+          showCount
           rows={3}
           value={data.description}
           onChange={(e) => set({ description: e.target.value })}
@@ -1181,6 +1188,7 @@ function FocusEditor({ data, set }) {
         hint="HTML simple : <strong>, <em>, <br />"
       >
         <TextArea
+          showCount
           rows={8}
           value={data.body}
           onChange={(e) => set({ ...data, body: e.target.value })}
@@ -1241,6 +1249,7 @@ function TextBlockEditor({ data, set }) {
       </Field>
       <Field label="Corps" hint="HTML simple : <strong>, <em>, <br />">
         <TextArea
+          showCount
           rows={5}
           value={data.body}
           onChange={(e) => set({ body: e.target.value })}
