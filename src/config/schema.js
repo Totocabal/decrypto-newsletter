@@ -51,10 +51,10 @@ export const SECTION_TYPES = {
     factory: () => ({
       label: "Au sommaire",
       items: [
-        { number: "01", title: "Édito — La détente du marché", duration: "03 min" },
-        { number: "02", title: "Indicateur — Fear & Greed à 72", duration: "02 min" },
-        { number: "03", title: "Analyse — 4 signaux à suivre", duration: "04 min" },
-        { number: "04", title: "Macro — Que retenir de la FED", duration: "03 min" },
+        { number: "01", title: "Édito — La détente du marché" },
+        { number: "02", title: "Indicateur — Fear & Greed à 72" },
+        { number: "03", title: "Analyse — 4 signaux à suivre" },
+        { number: "04", title: "Macro — Que retenir de la FED" },
       ],
     }),
   },
@@ -144,9 +144,9 @@ export const SECTION_TYPES = {
         "Nous avons besoin de plus de confiance que l'inflation se rapproche durablement de notre cible avant d'envisager un assouplissement.",
       quote_author: "Jerome Powell · Conférence du 1<sup>er</sup> mai",
       bars: [
-        { label: "Baisses pricées en 2026", value: "1,5", percent: "38", caption: "vs 3 il y a 1 mois" },
-        { label: "Inflation cœur (CPI)", value: "3,2", percent: "53", caption: "cible 2 %" },
-        { label: "Probabilité baisse sept.", value: "62 %", percent: "62", caption: "implicite Fed Funds" },
+        { label: "Baisses pricées en 2026", value: "", percent: "0", caption: "" },
+        { label: "Inflation cœur (CPI)", value: "", percent: "0", caption: "" },
+        { label: "Probabilité baisse sept.", value: "", percent: "0", caption: "" },
       ],
     }),
   },
@@ -187,10 +187,10 @@ export const SECTION_TYPES = {
       image_alt: "Visuel d'illustration",
       body:
         "Sur un marché qui mûrit, beaucoup d'investisseurs nous posent la même question : <strong>comment intégrer la crypto dans une stratégie patrimoniale long terme, sans y consacrer ses week-ends ?</strong> La réponse Coinhouse tient en trois principes. <strong>D'abord la sécurité :</strong> nos actifs sont conservés en cold storage chez des dépositaires régulés en Europe, avec une assurance dédiée. <strong>Ensuite la transparence :</strong> chaque arbitrage est documenté, chaque frais explicite. <strong>Enfin l'accompagnement :</strong> un conseiller dédié, joignable, qui connaît votre allocation globale et ajuste l'exposition crypto au fil des cycles.",
-      cta_primary_label: "Découvrir la Gestion Privée →",
-      cta_primary_url: "#",
-      cta_secondary_label: "Prendre rendez-vous",
-      cta_secondary_url: "#",
+      cta_primary_label: "",
+      cta_primary_url: "",
+      cta_secondary_label: "",
+      cta_secondary_url: "",
     }),
   },
   divider: {

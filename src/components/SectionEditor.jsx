@@ -214,7 +214,6 @@ function IndexEditor({ data, set, sections }) {
         return {
           number: String(counter).padStart(2, "0"),
           title: sectionTitle(s),
-          duration: "03 min",
         };
       });
     set({ items: generated });
@@ -238,7 +237,7 @@ function IndexEditor({ data, set, sections }) {
       {items.map((it, i) => (
         <div
           key={i}
-          className="grid grid-cols-[60px_1fr_70px_auto] gap-2 mb-2 items-center"
+          className="grid grid-cols-[60px_1fr_auto] gap-2 mb-2 items-center"
         >
           <Input
             value={it.number}
@@ -262,17 +261,6 @@ function IndexEditor({ data, set, sections }) {
             }
             placeholder="Titre"
           />
-          <Input
-            value={it.duration}
-            onChange={(e) =>
-              set({
-                items: items.map((x, idx) =>
-                  idx === i ? { ...x, duration: e.target.value } : x
-                ),
-              })
-            }
-            placeholder="03 min"
-          />
           <button
             type="button"
             onClick={() => set({ items: items.filter((_, idx) => idx !== i) })}
@@ -287,7 +275,7 @@ function IndexEditor({ data, set, sections }) {
         type="button"
         onClick={() =>
           set({
-            items: [...items, { number: String(items.length + 1).padStart(2, "0"), title: "Nouvelle entrée", duration: "01 min" }],
+            items: [...items, { number: String(items.length + 1).padStart(2, "0"), title: "Nouvelle entrée" }],
           })
         }
         className="w-full mt-1 flex items-center justify-center gap-2 px-4 py-2 border border-dashed border-stone-300 text-stone-600 hover:border-stone-500 rounded-sm text-[10px] uppercase tracking-[0.18em] transition-colors"
@@ -677,7 +665,28 @@ function ChartEditor({ data, set }) {
 // FEAR & GREED
 // ─────────────────────────────────────────────────────────────────────────────
 
+function fgClassification(v) {
+  const n = Math.max(0, Math.min(100, parseInt(v, 10) || 0));
+  if (n <= 24) return "EXTREME FEAR";
+  if (n <= 44) return "FEAR";
+  if (n <= 54) return "NEUTRAL";
+  if (n <= 74) return "GREED";
+  return "EXTREME GREED";
+}
+
+const FG_COLORS = {
+  "EXTREME FEAR": "text-red-600 bg-red-50 border-red-200",
+  "FEAR": "text-orange-600 bg-orange-50 border-orange-200",
+  "NEUTRAL": "text-stone-500 bg-stone-100 border-stone-300",
+  "GREED": "text-teal-600 bg-teal-50 border-teal-200",
+  "EXTREME GREED": "text-cyan-600 bg-cyan-50 border-cyan-200",
+};
+
 function FearGreedEditor({ data, set }) {
+  const classification = fgClassification(data.value);
+
+  const handleValue = (v) => set({ value: v, classification: fgClassification(v) });
+
   return (
     <>
       <Field label="Kicker">
@@ -686,38 +695,27 @@ function FearGreedEditor({ data, set }) {
       <Field label="Titre">
         <Input value={data.title} onChange={(e) => set({ title: e.target.value })} />
       </Field>
-      <div className="grid grid-cols-2 gap-3">
-        <Field label="Valeur (0–100)">
-          <div className="flex items-center gap-3">
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value={data.value}
-              onChange={(e) => set({ value: e.target.value })}
-              className="flex-1 accent-pink-600"
-            />
-            <Input
-              type="number"
-              value={data.value}
-              onChange={(e) => set({ value: e.target.value })}
-            />
-          </div>
-        </Field>
-        <Field label="Classification">
-          <select
-            value={data.classification}
-            onChange={(e) => set({ classification: e.target.value })}
-            className="w-full px-3 py-2 border border-stone-300 rounded-sm text-sm bg-white"
-          >
-            <option value="EXTREME FEAR">Extreme Fear</option>
-            <option value="FEAR">Fear</option>
-            <option value="NEUTRAL">Neutral</option>
-            <option value="GREED">Greed</option>
-            <option value="EXTREME GREED">Extreme Greed</option>
-          </select>
-        </Field>
-      </div>
+      <Field label="Valeur (0–100)">
+        <div className="flex items-center gap-3">
+          <input
+            type="range"
+            min="0"
+            max="100"
+            value={data.value}
+            onChange={(e) => handleValue(e.target.value)}
+            className="flex-1 accent-pink-600"
+          />
+          <Input
+            type="number"
+            value={data.value}
+            onChange={(e) => handleValue(e.target.value)}
+            className="w-16"
+          />
+          <span className={`px-2 py-1 text-[10px] font-semibold uppercase tracking-wider border rounded-sm flex-shrink-0 ${FG_COLORS[classification] ?? ""}`}>
+            {classification.replace("EXTREME ", "Ext. ")}
+          </span>
+        </div>
+      </Field>
       <Field label="Commentaire" hint="HTML simple : <strong>, <em>, <br />">
         <TextArea
           rows={3}
@@ -1197,7 +1195,7 @@ function FocusEditor({ data, set }) {
       </Field>
 
       <div className="text-[10px] uppercase tracking-[0.18em] font-medium text-stone-500 mb-2 mt-2">
-        Bouton principal (gradient)
+        Bouton principal (gradient) — <span className="normal-case font-normal">laisse vide pour ne pas l'afficher</span>
       </div>
       <div className="grid grid-cols-2 gap-3 mb-2">
         <Field label="Texte">
@@ -1215,7 +1213,7 @@ function FocusEditor({ data, set }) {
       </div>
 
       <div className="text-[10px] uppercase tracking-[0.18em] font-medium text-stone-500 mb-2">
-        Bouton secondaire (outline) — laisse vide pour ne pas l'afficher
+        Bouton secondaire (outline) — <span className="normal-case font-normal">laisse vide pour ne pas l'afficher</span>
       </div>
       <div className="grid grid-cols-2 gap-3">
         <Field label="Texte">

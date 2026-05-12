@@ -200,7 +200,6 @@ function renderIndex(data) {
           <tr>
             <td width="32" valign="baseline" style="font-family:${FONTS.heading}; font-weight:600; font-size:13px; color:${THEME.textFaint};">${escapeHtml(item.number)}</td>
             <td valign="baseline" style="font-family:${FONTS.heading}; font-weight:500; font-size:17px; color:${THEME.textPrimary}; letter-spacing:-0.01em;">${escapeHtml(item.title)}</td>
-            <td align="right" valign="baseline" style="font-family:${FONTS.body}; font-size:11px; color:${THEME.textDim}; letter-spacing:0.08em;">${escapeHtml(item.duration)}</td>
           </tr>
         </table>
       </td>
