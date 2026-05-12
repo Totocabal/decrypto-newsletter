@@ -30,8 +30,8 @@ backend.
 - **Télécharger HTML** : un seul fichier `.html`, prêt à coller dans Mailjet
 - **Export ZIP (asset pack)** : un ZIP contenant :
   - `email.html` avec des `<img src="assets/xxx.png">` au lieu des SVG inline
-  - `assets/logo-header.png`, `logo-footer.png`, `chart.png`, `gauge.png` (en
-    qualité 2× pour Retina)
+  - `assets/chart.png`, `gauge.png` et les images des blocs focus nécessaires
+    (en qualité 2× pour Retina)
   - `README.md` expliquant comment héberger les assets et adapter les chemins
 - **Export Braze** (admins uniquement) : upload des images générées dans la
   Media Library Braze, puis téléchargement d'un HTML où les chemins `assets/...`

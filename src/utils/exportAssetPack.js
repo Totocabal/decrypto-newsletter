@@ -12,7 +12,6 @@
 import JSZip from "jszip";
 import {
   buildEmailHtml,
-  getLogoSvg,
   getChartSvgFull,
   getGaugeSvgFull,
 } from "../render/buildEmail.js";
@@ -58,14 +57,6 @@ function svgToPngBlob(svgString, width, height) {
 
 async function buildPngAssets(state) {
   const assets = {};
-
-  // Logo header (22px → on rend en 64px pour avoir une réserve de qualité)
-  const headerLogo = getLogoSvg(64, "#ffffff");
-  assets["logo-header.png"] = await svgToPngBlob(headerLogo, 64, 64);
-
-  // Logo footer (42px → rendu en 128px)
-  const footerLogo = getLogoSvg(128, "#ffffff");
-  assets["logo-footer.png"] = await svgToPngBlob(footerLogo, 128, 128);
 
   // Pour chaque section "chart" et "fear_greed" présente, on génère son PNG.
   let needChart = false;
