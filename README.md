@@ -106,10 +106,23 @@ l'éditeur dans les secondes qui suivent.
 3. Dans **Settings → Environment Variables**, ajoute :
    - `VITE_SUPABASE_URL`
    - `VITE_SUPABASE_ANON_KEY`
+   - `VITE_AUTH_REDIRECT_URL` avec ton URL publique exacte
 4. Deploy.
 5. **Important** : dans Supabase → **Authentication → URL Configuration**,
    ajoute ton URL Vercel (et ton domaine custom) dans **Redirect URLs**.
    Sinon les magic links renverront vers localhost.
+
+### Emails Supabase
+
+Si le lien magique affiche `Error sending confirmation email`, le problème vient
+du service email Supabase/Auth :
+
+- vérifie **Authentication → URL Configuration** : `Site URL` et `Redirect URLs`
+  doivent contenir l'URL de l'app ;
+- vérifie **Authentication → SMTP Settings** si le projet n'utilise pas l'envoi
+  email par défaut ou atteint ses limites ;
+- le bouton **Lien magique** ne crée plus de compte automatiquement : l'email
+  doit déjà correspondre à un utilisateur Supabase.
 
 ## Workflow type
 

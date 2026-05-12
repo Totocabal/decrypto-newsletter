@@ -41,6 +41,12 @@ function clearSupabaseStorage() {
   }
 }
 
+function getAuthRedirectUrl() {
+  const configuredUrl = import.meta.env.VITE_AUTH_REDIRECT_URL?.trim();
+  if (configuredUrl) return configuredUrl;
+  return window.location.origin;
+}
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
@@ -210,7 +216,10 @@ export function AuthProvider({ children }) {
   const signInWithMagicLink = useCallback(async (email) => {
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: window.location.origin },
+      options: {
+        emailRedirectTo: getAuthRedirectUrl(),
+        shouldCreateUser: false,
+      },
     });
     return { error };
   }, []);

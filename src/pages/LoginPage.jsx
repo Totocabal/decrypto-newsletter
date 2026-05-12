@@ -10,6 +10,20 @@ import { useState } from "react";
 import { Mail, Lock, Loader2, CheckCircle2, ArrowRight, KeyRound } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext.jsx";
 
+function getAuthErrorMessage(error) {
+  const message = error?.message || String(error || "");
+
+  if (/user not found|signup disabled|invalid login credentials/i.test(message)) {
+    return "Aucun compte n'existe encore pour cet email. Demande à un admin de créer/inviter ce compte, puis réessaie le lien magique.";
+  }
+
+  if (/error sending confirmation email|error sending magic link|email/i.test(message)) {
+    return "Supabase n'arrive pas à envoyer l'email. Vérifie dans Supabase Authentication que l'envoi d'emails/SMTP est configuré et que l'URL de redirection est autorisée.";
+  }
+
+  return message;
+}
+
 export function LoginPage() {
   const { signInWithPassword, signInWithMagicLink } = useAuth();
   // mode = "password" | "magic"
@@ -40,7 +54,7 @@ export function LoginPage() {
             "Email ou mot de passe incorrect. Si tu n'as jamais défini de mot de passe, utilise le lien magique pour ta première connexion."
           );
         } else {
-          setError(error.message);
+          setError(getAuthErrorMessage(error));
         }
       } else {
         // L'AuthContext va capter la session et rediriger automatiquement
@@ -51,7 +65,7 @@ export function LoginPage() {
       const { error } = await signInWithMagicLink(email.trim());
       if (error) {
         setStatus("error");
-        setError(error.message);
+        setError(getAuthErrorMessage(error));
       } else {
         setStatus("sent");
       }
@@ -131,7 +145,7 @@ export function LoginPage() {
             <p className="text-xs text-stone-500 mb-5 leading-relaxed">
               {mode === "password"
                 ? "Saisis ton email et ton mot de passe."
-                : "Reçois un lien de connexion par email — utile pour ta première connexion ou si tu as oublié ton mot de passe."}
+                : "Reçois un lien de connexion par email pour un compte déjà créé."}
             </p>
 
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -219,8 +233,8 @@ export function LoginPage() {
             )}
 
             <p className="text-[11px] text-stone-400 mt-6 leading-relaxed">
-              Pas encore de compte ? Utilise le lien magique pour ta première
-              connexion — tu pourras définir un mot de passe ensuite.
+              Pas encore de compte ? Demande à un admin de t'inviter ou de
+              créer ton accès dans Supabase.
             </p>
           </>
         )}
