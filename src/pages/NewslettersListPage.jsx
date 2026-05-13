@@ -6,6 +6,7 @@ import { useEffect, useState, useCallback } from "react";
 import {
   Plus,
   FileText,
+  ImageIcon,
   Copy,
   Trash2,
   Lock,
@@ -19,6 +20,7 @@ import { supabase } from "../lib/supabase.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import { INITIAL_STATE } from "../config/schema.js";
 import { Wordmark } from "../components/Wordmark.jsx";
+import { ImageManagerModal } from "../components/ImageManagerModal.jsx";
 
 export function NewslettersListPage({ onOpen, onOpenAdmin }) {
   const { profile, signOut } = useAuth();
@@ -26,6 +28,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
   const [locks, setLocks] = useState({});
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
+  const [imageManagerOpen, setImageManagerOpen] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -179,6 +182,13 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                 Admin
               </button>
             )}
+            <button
+              onClick={() => setImageManagerOpen(true)}
+              className="flex items-center gap-2 px-3 py-1.5 border border-line2 text-d-fg2 text-[11px] uppercase tracking-[0.18em] font-medium rounded-full hover:bg-d-panel2 transition-colors"
+            >
+              <ImageIcon size={12} />
+              Images
+            </button>
             <div
               className="text-xs text-d-fg3 px-3 font-dm"
               style={{ fontFamily: "'DM Sans', sans-serif" }}
@@ -337,6 +347,12 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
           </div>
         )}
       </main>
+      {imageManagerOpen && (
+        <ImageManagerModal
+          onClose={() => setImageManagerOpen(false)}
+          userId={profile?.id}
+        />
+      )}
     </div>
   );
 }

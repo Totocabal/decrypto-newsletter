@@ -54,44 +54,47 @@ async function fileToImage(file) {
   }
 }
 
-async function canvasToBlob(canvas, type, quality) {
+async function canvasToBlob(canvas, type) {
   return new Promise((resolve, reject) => {
     canvas.toBlob(
       (blob) => {
         if (blob) resolve(blob);
         else reject(new Error("Compression impossible pour cette image."));
       },
-      type,
-      quality
+      type
     );
   });
 }
 
 async function compressImage(file, options = {}) {
-  const { maxWidth = 1600, quality = 0.82 } = options;
+  const { maxWidth = 1600 } = options;
   if (!file?.type?.startsWith("image/")) return file;
   if (file.type === "image/gif") return file;
 
   const img = await fileToImage(file);
-  const ratio = Math.min(1, maxWidth / img.naturalWidth);
-  const width = Math.max(1, Math.round(img.naturalWidth * ratio));
-  const height = Math.max(1, Math.round(img.naturalHeight * ratio));
-  const canvas = document.createElement("canvas");
-  canvas.width = width;
-  canvas.height = height;
-  const ctx = canvas.getContext("2d", { alpha: false });
-  ctx.fillStyle = "#ffffff";
-  ctx.fillRect(0, 0, width, height);
-  ctx.drawImage(img, 0, 0, width, height);
+  let ratio = Math.min(1, maxWidth / img.naturalWidth);
+  let compressed = null;
 
-  let compressed = await canvasToBlob(canvas, "image/jpeg", quality);
-  if (compressed.size > MAX_IMAGE_FILE_SIZE_BYTES) {
-    compressed = await canvasToBlob(canvas, "image/jpeg", 0.68);
+  for (let attempt = 0; attempt < 8; attempt += 1) {
+    const width = Math.max(1, Math.round(img.naturalWidth * ratio));
+    const height = Math.max(1, Math.round(img.naturalHeight * ratio));
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(img, 0, 0, width, height);
+    compressed = await canvasToBlob(canvas, "image/png");
+    if (compressed.size <= MAX_IMAGE_FILE_SIZE_BYTES) break;
+    ratio *= 0.8;
+  }
+
+  if (!compressed || (file.size <= MAX_IMAGE_FILE_SIZE_BYTES && compressed.size >= file.size)) {
+    return file;
   }
 
   const baseName = file.name.replace(/\.[^.]+$/, "") || "image";
-  return new File([compressed], `${baseName}-compresse.jpg`, {
-    type: "image/jpeg",
+  return new File([compressed], `${baseName}-compresse.png`, {
+    type: "image/png",
     lastModified: Date.now(),
   });
 }
@@ -105,6 +108,7 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId }) {
   const [error, setError] = useState(null);
   const [compressBeforeUpload, setCompressBeforeUpload] = useState(true);
   const [uploadNotice, setUploadNotice] = useState(null);
+  const canSelect = typeof onSelect === "function";
 
   const usedBytes = images.reduce((total, image) => total + (image.metadata?.size || 0), 0);
   const remainingBytes = Math.max(0, MAX_IMAGE_STORAGE_BYTES - usedBytes);
@@ -160,7 +164,7 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId }) {
         uploaded.push(await uploadImage(uploadFile, userId));
       }
       await refresh();
-      if (uploaded.length === 1) onSelect(uploaded[0]);
+      if (uploaded.length === 1 && canSelect) onSelect(uploaded[0]);
     } catch (err) {
       setError(err.message || String(err));
     } finally {
@@ -322,8 +326,10 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId }) {
 
           <div className="mt-6 text-[11px] leading-relaxed text-d-fg4">
             Les images sont stockées dans le bucket public{" "}
-            <span className="text-d-fg3">newsletter-images</span>. L'URL sélectionnée
-            est utilisée directement dans la newsletter.
+            <span className="text-d-fg3">newsletter-images</span>.{" "}
+            {canSelect
+              ? "L'URL sélectionnée est utilisée directement dans la newsletter."
+              : "Tu peux importer, contrôler l'espace utilisé et supprimer les images inutiles."}
           </div>
         </aside>
 
@@ -344,7 +350,7 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId }) {
           ) : (
             <div className="grid grid-cols-2 xl:grid-cols-3 gap-4">
               {images.map((image) => {
-                const selected = image.path === currentPath;
+                const selected = canSelect && image.path === currentPath;
                 return (
                   <article
                     key={image.path}
@@ -354,9 +360,13 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId }) {
                   >
                     <button
                       type="button"
-                      onClick={() => onSelect({ url: image.url, path: image.path })}
-                      className="relative block w-full aspect-[4/3] bg-d-panel2 overflow-hidden"
-                      title="Sélectionner cette image"
+                      onClick={() => {
+                        if (canSelect) onSelect({ url: image.url, path: image.path });
+                      }}
+                      className={`relative block w-full aspect-[4/3] bg-d-panel2 overflow-hidden ${
+                        canSelect ? "" : "cursor-default"
+                      }`}
+                      title={canSelect ? "Sélectionner cette image" : image.name}
                     >
                       <img
                         src={image.url}
@@ -379,13 +389,15 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId }) {
                         <span>{formatDate(image.updated_at || image.created_at)}</span>
                       </div>
                       <div className="mt-3 flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => onSelect({ url: image.url, path: image.path })}
-                          className="flex-1 px-3 py-2 rounded-lg border border-line text-[10px] uppercase tracking-[0.18em] text-d-fg2 hover:text-d-fg hover:border-line2 transition-colors"
-                        >
-                          Sélectionner
-                        </button>
+                        {canSelect && (
+                          <button
+                            type="button"
+                            onClick={() => onSelect({ url: image.url, path: image.path })}
+                            className="flex-1 px-3 py-2 rounded-lg border border-line text-[10px] uppercase tracking-[0.18em] text-d-fg2 hover:text-d-fg hover:border-line2 transition-colors"
+                          >
+                            Sélectionner
+                          </button>
+                        )}
                         <button
                           type="button"
                           onClick={() => handleDelete(image)}
