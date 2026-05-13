@@ -72,14 +72,28 @@ export function Toolbar({
           </div>
 
           {/* Sauvegarder une version */}
-          <button
-            onClick={onSave}
-            className="flex items-center gap-1.5 px-3 py-2 text-[11px] uppercase tracking-[0.14em] font-medium border border-line2 text-d-fg2 rounded-full hover:bg-d-panel2 transition-colors"
-            title="Créer une version numérotée automatiquement avec un commentaire optionnel"
-          >
-            {saved ? <Check size={12} /> : <Save size={12} />}
-            {saved ? "Sauvé" : "Sauvegarder"}
-          </button>
+          <div className="relative group/save">
+            <button
+              onClick={onSave}
+              aria-describedby="save-version-tooltip"
+              className="flex items-center gap-1.5 px-3 py-2 text-[11px] uppercase tracking-[0.14em] font-medium border border-line2 text-d-fg2 rounded-full hover:bg-d-panel2 focus:bg-d-panel2 focus:outline-none focus:ring-2 focus:ring-d-pink/30 transition-colors"
+            >
+              {saved ? <Check size={12} /> : <Save size={12} />}
+              {saved ? "Sauvé" : "Sauvegarder"}
+            </button>
+            <div
+              id="save-version-tooltip"
+              role="tooltip"
+              className="pointer-events-none absolute right-0 top-[calc(100%+10px)] z-30 w-72 rounded-2xl border border-line bg-d-panel px-4 py-3 text-left opacity-0 shadow-2xl transition-all duration-150 translate-y-1 group-hover/save:opacity-100 group-hover/save:translate-y-0 group-focus-within/save:opacity-100 group-focus-within/save:translate-y-0"
+            >
+              <div className="text-[10px] uppercase tracking-[0.18em] font-semibold text-d-pink mb-1">
+                Sauvegarde
+              </div>
+              <div className="text-xs leading-relaxed text-d-fg3 normal-case tracking-normal">
+                Crée une version numérotée automatiquement. Le champ proposé sert uniquement à ajouter un commentaire optionnel.
+              </div>
+            </div>
+          </div>
 
           <div className="w-px h-5 mx-1" style={{ background: "var(--d-line2)" }} />
 
