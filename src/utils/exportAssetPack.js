@@ -66,10 +66,14 @@ async function buildPngAssets(state) {
   // Map { sectionId → { url, filename } } pour les images de blocs focus/image
   const focusImages = [];
 
+  let chartPriceStart = "";
+  let chartPriceEnd = "";
   for (const sec of state.sections || []) {
     if (sec.type === "chart" && !needChart) {
       needChart = true;
       chartPoints = sec.data.points;
+      chartPriceStart = sec.data.price_start ?? "";
+      chartPriceEnd = sec.data.value ?? "";
     }
     if (sec.type === "fear_greed" && !needGauge) {
       needGauge = true;
@@ -88,7 +92,7 @@ async function buildPngAssets(state) {
   }
 
   if (needChart) {
-    const chartSvg = getChartSvgFull(chartPoints).replace(
+    const chartSvg = getChartSvgFull(chartPoints, chartPriceStart, chartPriceEnd).replace(
       /width="[^"]*"/,
       'width="1120"'
     );

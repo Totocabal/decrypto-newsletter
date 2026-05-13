@@ -154,7 +154,7 @@ function logoSvg(size, color, assetMode, name) {
   </svg>`;
 }
 
-function buildChartSvg(points, assetMode) {
+function buildChartSvg(points, assetMode, priceStart = "", priceEnd = "") {
   if (assetMode === "external") {
     return `<img src="assets/chart.png" alt="Graphique" style="display:block; width:100%; height:auto; border:0;" />`;
   }
@@ -169,7 +169,19 @@ function buildChartSvg(points, assetMode) {
   ]);
   const polyline = xy.map(([x, y]) => `${x},${y}`).join(" ");
   const polygon = `0,${H} ${polyline} ${W},${H}`;
+  const first = xy[0];
   const last = xy[xy.length - 1];
+
+  // Labels start/end : au-dessus du point si dans la moitié basse, en-dessous sinon
+  const startLabelY = first[1] > H * 0.6 ? first[1] - 8 : first[1] + 14;
+  const endLabelY   = last[1]  > H * 0.6 ? last[1]  - 8 : last[1]  + 14;
+
+  const startLabel = priceStart
+    ? `<text x="6" y="${startLabelY}" font-family="Arial,sans-serif" font-size="11" fill="#666677" text-anchor="start">${escapeHtml(priceStart)}</text>`
+    : "";
+  const endLabel = priceEnd
+    ? `<text x="${W - 6}" y="${endLabelY}" font-family="Arial,sans-serif" font-size="11" font-weight="600" fill="#00FFFF" text-anchor="end">${escapeHtml(priceEnd)}</text>`
+    : "";
 
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="100%" height="${H}" preserveAspectRatio="none" style="display:block;">
     <defs>
@@ -188,6 +200,8 @@ function buildChartSvg(points, assetMode) {
     <polygon points="${polygon}" fill="url(#g1)"/>
     <polyline points="${polyline}" fill="none" stroke="url(#g2)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
     <circle cx="${last[0]}" cy="${last[1]}" r="5" fill="#00FFFF" stroke="${THEME.bgPage}" stroke-width="2"/>
+    ${startLabel}
+    ${endLabel}
   </svg>`;
 }
 
@@ -373,7 +387,7 @@ function renderChart(data, assetMode) {
           </tr>
           <tr>
             <td colspan="2" style="padding-top:20px;">
-              ${buildChartSvg(data.points, assetMode)}
+              ${buildChartSvg(data.points, assetMode, data.price_start ?? "", data.value ?? "")}
             </td>
           </tr>
           <tr>
@@ -846,8 +860,8 @@ export function getLogoSvg(size = 64, color = "#ffffff") {
   </svg>`;
 }
 
-export function getChartSvgFull(points) {
-  return buildChartSvg(points, "inline");
+export function getChartSvgFull(points, priceStart = "", priceEnd = "") {
+  return buildChartSvg(points, "inline", priceStart, priceEnd);
 }
 
 export function getGaugeSvgFull(value) {
