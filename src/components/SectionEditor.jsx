@@ -467,6 +467,7 @@ function ChartEditor({ data, set }) {
   const labels = data.x_labels || [];
   const mode = data.chart_mode ?? "manual";
   const crypto = data.chart_crypto ?? "bitcoin";
+  const currency = data.chart_currency ?? "eur";
   const { fetch7d, loading, error } = useCoinGecko();
 
   const updatePoint = (i, value) => {
@@ -476,7 +477,7 @@ function ChartEditor({ data, set }) {
   };
 
   const handleRefresh = async () => {
-    const result = await fetch7d(crypto);
+    const result = await fetch7d(crypto, currency);
     if (result) set(result);
   };
 
@@ -508,7 +509,7 @@ function ChartEditor({ data, set }) {
         </button>
       </div>
 
-      {/* Sélecteur crypto + bouton refresh (mode auto) */}
+      {/* Sélecteur crypto + devise + bouton refresh (mode auto) */}
       {mode === "auto" && (
         <div className="flex gap-2 items-end mb-4">
           <div className="flex-1">
@@ -523,6 +524,35 @@ function ChartEditor({ data, set }) {
               <option value="bitcoin">Bitcoin (BTC)</option>
               <option value="ethereum">Ethereum (ETH)</option>
             </select>
+          </div>
+          <div>
+            <div className="text-[10px] uppercase tracking-[0.18em] font-semibold text-d-fg3 mb-1.5">
+              Devise
+            </div>
+            <div className="flex rounded-xl border border-line overflow-hidden">
+              <button
+                type="button"
+                onClick={() => set({ chart_currency: "eur" })}
+                className={`px-3 py-2 text-xs font-semibold transition-colors ${
+                  currency === "eur"
+                    ? "bg-white text-[#15151A]"
+                    : "bg-d-panel2 text-d-fg3 hover:text-d-fg"
+                }`}
+              >
+                €
+              </button>
+              <button
+                type="button"
+                onClick={() => set({ chart_currency: "usd" })}
+                className={`px-3 py-2 text-xs font-semibold transition-colors border-l border-line ${
+                  currency === "usd"
+                    ? "bg-white text-[#15151A]"
+                    : "bg-d-panel2 text-d-fg3 hover:text-d-fg"
+                }`}
+              >
+                $
+              </button>
+            </div>
           </div>
           <button
             type="button"

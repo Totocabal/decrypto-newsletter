@@ -75,6 +75,7 @@ export const SECTION_TYPES = {
     factory: () => ({
       chart_mode: "manual",
       chart_crypto: "bitcoin",
+      chart_currency: "eur",
       label: "BTC / EUR",
       value: "64 492,76 €",
       delta: "▲ +2,93 %",

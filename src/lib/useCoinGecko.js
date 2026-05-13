@@ -1,16 +1,16 @@
 import { useState, useCallback } from "react";
 
 const CRYPTO_CONFIG = {
-  bitcoin: { label: "BTC / EUR", symbol: "BTC" },
-  ethereum: { label: "ETH / EUR", symbol: "ETH" },
+  bitcoin:  { eur: "BTC / EUR", usd: "BTC / USD", symbol: "BTC" },
+  ethereum: { eur: "ETH / EUR", usd: "ETH / USD", symbol: "ETH" },
 };
 
 const DAY_LABELS = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
 
-function formatPrice(price) {
+function formatPrice(price, currency) {
   return new Intl.NumberFormat("fr-FR", {
     style: "currency",
-    currency: "EUR",
+    currency: currency.toUpperCase(),
     maximumFractionDigits: price >= 1000 ? 0 : 2,
   }).format(price);
 }
@@ -38,12 +38,12 @@ export function useCoinGecko() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const fetch7d = useCallback(async (cryptoId) => {
+  const fetch7d = useCallback(async (cryptoId, currency = "eur") => {
     setLoading(true);
     setError(null);
     try {
       const res = await fetch(
-        `https://api.coingecko.com/api/v3/coins/${cryptoId}/market_chart?vs_currency=eur&days=7&interval=daily`
+        `https://api.coingecko.com/api/v3/coins/${cryptoId}/market_chart?vs_currency=${currency}&days=7&interval=daily`
       );
       if (!res.ok) throw new Error(`CoinGecko error ${res.status}`);
       const json = await res.json();
@@ -59,23 +59,23 @@ export function useCoinGecko() {
       // Prix bruts pour affichage dans l'éditeur
       const raw_prices = prices.map(([ts, price]) => ({
         label: new Date(ts).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" }),
-        price: formatPrice(price),
+        price: formatPrice(price, currency),
       }));
 
       const currentPrice = rawValues[rawValues.length - 1];
       const firstPrice = rawValues[0];
-      const diffEur = currentPrice - firstPrice;
-      const diffPct = (diffEur / firstPrice) * 100;
+      const diff = currentPrice - firstPrice;
+      const diffPct = (diff / firstPrice) * 100;
       const isPositive = diffPct >= 0;
 
       const cfg = CRYPTO_CONFIG[cryptoId] ?? CRYPTO_CONFIG.bitcoin;
 
       return {
-        label: cfg.label,
-        value: formatPrice(currentPrice),
+        label: cfg[currency] ?? cfg.eur,
+        value: formatPrice(currentPrice, currency),
         delta: `${isPositive ? "▲" : "▼"} ${isPositive ? "+" : ""}${diffPct.toFixed(2)} %`,
         delta_tone: isPositive ? "positive" : "negative",
-        subdelta: `${isPositive ? "+" : ""}${formatPrice(diffEur)} sur 7j`,
+        subdelta: `${isPositive ? "+" : ""}${formatPrice(diff, currency)} sur 7j`,
         points,
         x_labels,
         raw_prices,
