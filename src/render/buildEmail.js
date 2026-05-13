@@ -40,13 +40,13 @@ export function sanitizeRichText(text = "") {
     .replace(/&lt;\/div&gt;/gi, "<br />")
     .replace(/&lt;p&gt;/gi, "")
     .replace(/&lt;\/p&gt;/gi, "<br />")
-    .replace(/&lt;b&gt;/gi, `<strong style="color:${THEME.textPrimary};">`)
+    .replace(/&lt;b&gt;/gi, `<strong style="font-weight:700; color:inherit; font-size:inherit;">`)
     .replace(/&lt;\/b&gt;/gi, "</strong>")
-    .replace(/&lt;strong&gt;/gi, `<strong style="color:${THEME.textPrimary};">`)
+    .replace(/&lt;strong&gt;/gi, `<strong style="font-weight:700; color:inherit; font-size:inherit;">`)
     .replace(/&lt;\/strong&gt;/gi, "</strong>")
-    .replace(/&lt;i&gt;/gi, "<em>")
+    .replace(/&lt;i&gt;/gi, `<em style="font-style:italic; color:inherit; font-size:inherit;">`)
     .replace(/&lt;\/i&gt;/gi, "</em>")
-    .replace(/&lt;em&gt;/gi, "<em>")
+    .replace(/&lt;em&gt;/gi, `<em style="font-style:italic; color:inherit; font-size:inherit;">`)
     .replace(/&lt;\/em&gt;/gi, "</em>")
     .replace(/&lt;u&gt;/gi, "<u>")
     .replace(/&lt;\/u&gt;/gi, "</u>")
@@ -68,11 +68,11 @@ export function sanitizeRichText(text = "") {
     .replace(/\[([^\]\n]+)\]\((https?:\/\/[^)\s]+|mailto:[^)\s]+|#[^)\s]+)\)/gi,
       `<a href="$2" style="color:${THEME.textMuted}; text-decoration:underline;">$1</a>`)
     .replace(/\*\*([^*\n][\s\S]*?[^*\n])\*\*/g,
-      `<strong style="color:${THEME.textPrimary};">$1</strong>`)
+      `<strong style="font-weight:700; color:inherit; font-size:inherit;">$1</strong>`)
     .replace(/__([^_\n][\s\S]*?[^_\n])__/g,
-      `<strong style="color:${THEME.textPrimary};">$1</strong>`)
-    .replace(/(^|[\s>])\*([^*\n]+)\*/g, "$1<em>$2</em>")
-    .replace(/(^|[\s>])_([^_\n]+)_/g, "$1<em>$2</em>")
+      `<strong style="font-weight:700; color:inherit; font-size:inherit;">$1</strong>`)
+    .replace(/(^|[\s>])\*([^*\n]+)\*/g, `$1<em style="font-style:italic; color:inherit; font-size:inherit;">$2</em>`)
+    .replace(/(^|[\s>])_([^_\n]+)_/g, `$1<em style="font-style:italic; color:inherit; font-size:inherit;">$2</em>`)
     .replace(/^-\s+(.+)$/gm, "• $1");
   out = out.replace(/\n/g, "<br />");
   return out;
