@@ -73,6 +73,7 @@ export function EditorPanel({ state, setState }) {
 
   // ── Drag & drop ──
   const draggedId = useRef(null);
+  const lastDragTargetId = useRef(null);
   const dragImageRef = useRef(null);
   const [dragOverId, setDragOverId] = useState(null);
   const [selectedMobileSectionId, setSelectedMobileSectionId] = useState(null);
@@ -88,6 +89,7 @@ export function EditorPanel({ state, setState }) {
     event.stopPropagation();
     clearDragImage();
     draggedId.current = id;
+    lastDragTargetId.current = null;
     event.dataTransfer.effectAllowed = "move";
     event.dataTransfer.setData("text/plain", id);
     const card = document.querySelector(`[data-section-card="${id}"]`);
@@ -111,7 +113,12 @@ export function EditorPanel({ state, setState }) {
   };
   const handleDragOver = (e, id) => {
     e.preventDefault();
-    if (id !== draggedId.current) setDragOverId(id);
+    const fromId = draggedId.current;
+    if (!fromId || id === fromId) return;
+    setDragOverId(id);
+    if (lastDragTargetId.current === id) return;
+    lastDragTargetId.current = id;
+    moveSectionToTarget(fromId, id);
   };
   const handleDrop = (e, targetId) => {
     e.preventDefault();
@@ -121,11 +128,13 @@ export function EditorPanel({ state, setState }) {
       moveSectionToTarget(fromId, targetId);
     }
     draggedId.current = null;
+    lastDragTargetId.current = null;
     setDragOverId(null);
     clearDragImage();
   };
   const handleDragEnd = () => {
     draggedId.current = null;
+    lastDragTargetId.current = null;
     setDragOverId(null);
     clearDragImage();
   };
