@@ -400,7 +400,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                     </div>
 
                     <div className="flex flex-shrink-0 items-center gap-1 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
-                      <Tooltip label="Dupliquer" side="bottom">
+                      <Tooltip label="Dupliquer" side="bottom" align="left">
                         <button
                           onClick={(event) => {
                             event.stopPropagation();
@@ -412,7 +412,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                         </button>
                       </Tooltip>
                       {profile?.is_admin && (
-                        <Tooltip label="Supprimer" side="bottom" align="right">
+                        <Tooltip label="Supprimer" side="bottom" align="left">
                           <button
                             onClick={(event) => {
                               event.stopPropagation();
