@@ -21,6 +21,7 @@ import { EditorPage } from "./pages/EditorPage.jsx";
 import { AdminPage } from "./pages/AdminPage.jsx";
 import { SetupErrorPage } from "./pages/SetupErrorPage.jsx";
 import { isSupabaseConfigured } from "./lib/supabase.js";
+import { Wordmark } from "./components/Wordmark.jsx";
 
 export default function App() {
   // Garde-fou config — affiché AVANT même de monter le provider, comme ça
@@ -59,30 +60,36 @@ function Router() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-stone-100 flex items-center justify-center p-6">
+      <div className="min-h-screen bg-d-bg flex flex-col items-center justify-center p-6 gap-8">
+        <Wordmark size={18} />
         <div className="flex flex-col items-center gap-4">
-          <div className="text-xs uppercase tracking-[0.18em] text-stone-500 flex items-center gap-2">
+          <div className="text-xs uppercase tracking-[0.18em] text-d-fg3 flex items-center gap-2">
             <Loader2 className="animate-spin" size={14} />
             Chargement…
           </div>
           {longWait && (
-            <div className="bg-white border border-amber-200 rounded-sm p-4 max-w-md text-center">
-              <div className="text-xs text-stone-600 mb-3">
+            <div
+              className="rounded-2xl p-5 max-w-md text-center border border-line"
+              style={{ background: "#1E1E22" }}
+            >
+              <div className="text-xs text-d-fg3 mb-4 leading-relaxed">
                 Ça prend plus longtemps que prévu. Possible problème de réseau
                 ou de configuration.
               </div>
-              <button
-                onClick={() => window.location.reload()}
-                className="text-[10px] uppercase tracking-[0.18em] text-stone-700 border border-stone-300 hover:border-stone-500 px-3 py-1.5 rounded-sm"
-              >
-                Recharger
-              </button>
-              <button
-                onClick={resetLocalSession}
-                className="ml-2 text-[10px] uppercase tracking-[0.18em] text-white bg-stone-900 hover:bg-stone-700 px-3 py-1.5 rounded-sm"
-              >
-                Réinitialiser la session
-              </button>
+              <div className="flex items-center justify-center gap-2">
+                <button
+                  onClick={() => window.location.reload()}
+                  className="text-[10px] uppercase tracking-[0.18em] text-d-fg3 hover:text-d-fg border border-line hover:border-line2 px-3 py-1.5 rounded-full transition-colors"
+                >
+                  Recharger
+                </button>
+                <button
+                  onClick={resetLocalSession}
+                  className="text-[10px] uppercase tracking-[0.18em] font-semibold text-[#15151A] bg-white hover:bg-d-fg2 px-3 py-1.5 rounded-full transition-colors"
+                >
+                  Réinitialiser la session
+                </button>
+              </div>
             </div>
           )}
         </div>
@@ -96,19 +103,29 @@ function Router() {
   // 1-2s). On affiche un loader avec un bouton de relance.
   if (!profile) {
     return (
-      <div className="min-h-screen bg-stone-100 flex items-center justify-center p-6">
-        <div className="bg-white border border-stone-200 rounded-sm p-6 max-w-md text-center">
-          <div className="flex items-center justify-center gap-2 text-xs uppercase tracking-[0.18em] text-stone-500 mb-3">
+      <div className="min-h-screen bg-d-bg flex flex-col items-center justify-center p-6 gap-8">
+        <Wordmark size={18} />
+        <div
+          className="rounded-2xl p-6 w-full max-w-md text-center border border-line"
+          style={{ background: "#1E1E22" }}
+        >
+          <div className="flex items-center justify-center gap-2 text-xs uppercase tracking-[0.18em] text-d-fg3 mb-3">
             <Loader2 className="animate-spin" size={14} />
             Création du profil…
           </div>
-          <div className="text-[11px] text-stone-400 mb-4">
+          <div className="text-[11px] text-d-fg4 mb-4 leading-relaxed">
             Si ça persiste, vérifie que tu as bien exécuté{" "}
-            <code className="bg-stone-100 px-1">supabase/schema.sql</code>.
+            <code
+              className="px-1 rounded"
+              style={{ background: "var(--d-line2)", color: "#03FFCF" }}
+            >
+              supabase/schema.sql
+            </code>
+            .
           </div>
           <button
             onClick={refreshProfile}
-            className="text-[10px] uppercase tracking-[0.18em] text-stone-700 border border-stone-300 hover:border-stone-500 px-3 py-1.5 rounded-sm"
+            className="text-[10px] uppercase tracking-[0.18em] text-d-fg3 hover:text-d-fg border border-line hover:border-line2 px-3 py-1.5 rounded-full transition-colors"
           >
             Réessayer
           </button>

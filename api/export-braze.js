@@ -187,6 +187,20 @@ export default async function handler(req, res) {
       uploaded[asset.name] = await uploadAssetToBraze({ ...asset, assetUrl }, braze);
     }
 
+    // Clean up temp files uploaded to Supabase during this export
+    try {
+      const { data: tempFiles } = await supabase.storage
+        .from(STORAGE_BUCKET)
+        .list(`${user.id}/braze-export`);
+      if (tempFiles?.length) {
+        const paths = tempFiles.map((f) => `${user.id}/braze-export/${f.name}`);
+        await supabase.storage.from(STORAGE_BUCKET).remove(paths);
+      }
+    } catch (cleanupErr) {
+      // eslint-disable-next-line no-console
+      console.warn("[export-braze] cleanup failed:", cleanupErr.message);
+    }
+
     return json(res, 200, { assets: uploaded });
   } catch (e) {
     // eslint-disable-next-line no-console
