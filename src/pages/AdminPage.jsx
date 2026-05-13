@@ -21,9 +21,12 @@ import {
   Type,
   ImageIcon,
   Minus,
+  Plus,
   RotateCcw,
   Save,
   ShieldCheck,
+  Users,
+  LayoutTemplate,
   UserPlus,
   X,
 } from "lucide-react";
@@ -55,6 +58,7 @@ function getAdminCreateErrorMessage(error) {
 
 export function AdminPage({ onBack }) {
   const { profile: currentProfile } = useAuth();
+  const [tab, setTab] = useState("accounts");
   const [profiles, setProfiles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
@@ -148,6 +152,11 @@ export function AdminPage({ onBack }) {
   const pending = profiles.filter((p) => !p.approved);
   const approved = profiles.filter((p) => p.approved);
 
+  const tabs = [
+    { id: "accounts", label: "Gestion des comptes", icon: Users },
+    { id: "template", label: "Template newsletter", icon: LayoutTemplate },
+  ];
+
   return (
     <div className="min-h-screen bg-d-bg">
       <header
@@ -164,236 +173,244 @@ export function AdminPage({ onBack }) {
             <ArrowLeft size={12} />
             Retour
           </button>
-          <div>
-            <div className="text-[10px] uppercase tracking-[0.18em] text-d-fg4 font-medium">
-              Administration
-            </div>
-            <div className="text-sm font-semibold text-d-fg" style={{ fontFamily: "'Sora', sans-serif" }}>
-              Comptes utilisateurs
-            </div>
+          <div className="text-[10px] uppercase tracking-[0.18em] text-d-fg4 font-medium">
+            Administration
+          </div>
+
+          {/* Onglets */}
+          <div className="flex items-center bg-d-panel2 rounded-full p-1 border border-line ml-auto">
+            {tabs.map(({ id, label, icon: Icon }) => (
+              <button
+                key={id}
+                type="button"
+                onClick={() => setTab(id)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-[11px] uppercase tracking-[0.14em] rounded-full font-semibold transition-colors ${
+                  tab === id
+                    ? "bg-white text-[#15151A]"
+                    : "text-d-fg3 hover:text-d-fg2"
+                }`}
+              >
+                <Icon size={12} />
+                {label}
+              </button>
+            ))}
           </div>
         </div>
       </header>
 
       <main className="max-w-4xl mx-auto p-6 space-y-6">
-        {loading && (
-          <div className="text-xs text-d-fg4 text-center p-8 flex items-center justify-center gap-2">
-            <Loader2 size={14} className="animate-spin" />
-            Chargement…
-          </div>
-        )}
-
-        {/* Création */}
-        <section>
-          <div className="flex items-center gap-2 mb-3">
-            <h2 className="text-[10px] uppercase tracking-[0.18em] text-d-fg3 font-medium">
-              Créer un compte
-            </h2>
-          </div>
-          <div className="bg-d-panel border border-line rounded-2xl p-4">
-            <form
-              onSubmit={handleCreateAccount}
-              className="grid grid-cols-1 lg:grid-cols-[1fr_1fr_auto_auto] gap-3 items-end"
-            >
-              <div>
-                <label className="text-[10px] uppercase tracking-[0.18em] text-d-fg3 font-medium block mb-2">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  required
-                  value={createForm.email}
-                  onChange={(e) =>
-                    setCreateForm((form) => ({ ...form, email: e.target.value }))
-                  }
-                  placeholder="prenom.nom@coinhouse.com"
-                  className="w-full px-3 py-2.5 border border-line rounded-xl text-sm focus:outline-none focus:border-line2 bg-d-panel2 text-d-fg placeholder:text-d-fg4 transition-colors"
-                  disabled={creating}
-                />
-              </div>
-              <div>
-                <label className="text-[10px] uppercase tracking-[0.18em] text-d-fg3 font-medium block mb-2">
-                  Nom
-                </label>
-                <input
-                  type="text"
-                  value={createForm.fullName}
-                  onChange={(e) =>
-                    setCreateForm((form) => ({ ...form, fullName: e.target.value }))
-                  }
-                  placeholder="Nom affiché"
-                  className="w-full px-3 py-2.5 border border-line rounded-xl text-sm focus:outline-none focus:border-line2 bg-d-panel2 text-d-fg placeholder:text-d-fg4 transition-colors"
-                  disabled={creating}
-                />
-              </div>
-              <label className="flex items-center gap-2 px-2 py-2.5 text-xs text-d-fg2 whitespace-nowrap">
-                <input
-                  type="checkbox"
-                  checked={createForm.isAdmin}
-                  onChange={(e) =>
-                    setCreateForm((form) => ({ ...form, isAdmin: e.target.checked }))
-                  }
-                  className="h-4 w-4"
-                  style={{ accentColor: "#03FFCF" }}
-                  disabled={creating}
-                />
-                Admin
-              </label>
-              <button
-                type="submit"
-                disabled={creating || !createForm.email.trim()}
-                className="flex items-center justify-center gap-2 text-[10px] uppercase tracking-[0.18em] font-semibold text-[#15151A] bg-white hover:bg-d-fg2 px-4 py-2.5 rounded-full disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                {creating ? (
-                  <Loader2 size={12} className="animate-spin" />
-                ) : (
-                  <UserPlus size={12} />
-                )}
-                Créer
-              </button>
-            </form>
-
-            {createdAccount && (
-              <div
-                className="mt-4 rounded-xl p-4"
-                style={{ background: "rgba(3,255,207,0.08)", border: "1px solid rgba(3,255,207,0.20)" }}
-              >
-                <div className="text-sm font-semibold mb-2" style={{ color: "#03FFCF" }}>
-                  Compte créé
-                </div>
-                <div className="grid gap-1 text-xs text-d-fg2 font-mono">
-                  <div>Email : {createdAccount.email}</div>
-                  <div>Mot de passe temporaire : {createdAccount.password}</div>
-                </div>
-                <button
-                  type="button"
-                  onClick={copyCreatedAccount}
-                  className="mt-3 inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] font-medium text-d-fg3 hover:text-d-fg border border-line hover:border-line2 px-3 py-1.5 rounded-full transition-colors"
-                >
-                  <Copy size={11} />
-                  Copier les identifiants
-                </button>
+        {/* ── Onglet Gestion des comptes ── */}
+        {tab === "accounts" && (
+          <>
+            {loading && (
+              <div className="text-xs text-d-fg4 text-center p-8 flex items-center justify-center gap-2">
+                <Loader2 size={14} className="animate-spin" />
+                Chargement…
               </div>
             )}
-          </div>
-        </section>
 
-        {/* En attente */}
-        <section>
-          <div className="flex items-center gap-2 mb-3">
-            <h2 className="text-[10px] uppercase tracking-[0.18em] text-d-fg3 font-medium">
-              En attente d'approbation
-            </h2>
-            <span
-              className="text-[10px] px-2 py-0.5 rounded-full font-medium"
-              style={{ background: "rgba(255,165,0,0.15)", color: "#FFAD33" }}
-            >
-              {pending.length}
-            </span>
-          </div>
-          {pending.length === 0 ? (
-            <div className="bg-d-panel border border-line rounded-2xl p-6 text-xs text-d-fg4 text-center">
-              Aucun compte en attente.
-            </div>
-          ) : (
-            <div className="bg-d-panel border border-line rounded-2xl divide-y" style={{ borderColor: "var(--d-line)" }}>
-              {pending.map((p) => (
-                <div
-                  key={p.id}
-                  className="flex items-center gap-4 px-4 py-3"
+            {/* Création */}
+            <section>
+              <div className="flex items-center gap-2 mb-3">
+                <h2 className="text-[10px] uppercase tracking-[0.18em] text-d-fg3 font-medium">
+                  Créer un compte
+                </h2>
+              </div>
+              <div className="bg-d-panel border border-line rounded-2xl p-4">
+                <form
+                  onSubmit={handleCreateAccount}
+                  className="grid grid-cols-1 lg:grid-cols-[1fr_1fr_auto_auto] gap-3 items-end"
                 >
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm text-d-fg">
-                      {p.full_name || p.email}
-                    </div>
-                    <div className="text-[11px] text-d-fg4">
-                      {p.email} · inscrit le {formatDate(p.created_at)}
-                    </div>
+                  <div>
+                    <label className="text-[10px] uppercase tracking-[0.18em] text-d-fg3 font-medium block mb-2">
+                      Email
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      value={createForm.email}
+                      onChange={(e) =>
+                        setCreateForm((form) => ({ ...form, email: e.target.value }))
+                      }
+                      placeholder="prenom.nom@coinhouse.com"
+                      className="w-full px-3 py-2.5 border border-line rounded-xl text-sm focus:outline-none focus:border-line2 bg-d-panel2 text-d-fg placeholder:text-d-fg4 transition-colors"
+                      disabled={creating}
+                    />
                   </div>
+                  <div>
+                    <label className="text-[10px] uppercase tracking-[0.18em] text-d-fg3 font-medium block mb-2">
+                      Nom
+                    </label>
+                    <input
+                      type="text"
+                      value={createForm.fullName}
+                      onChange={(e) =>
+                        setCreateForm((form) => ({ ...form, fullName: e.target.value }))
+                      }
+                      placeholder="Nom affiché"
+                      className="w-full px-3 py-2.5 border border-line rounded-xl text-sm focus:outline-none focus:border-line2 bg-d-panel2 text-d-fg placeholder:text-d-fg4 transition-colors"
+                      disabled={creating}
+                    />
+                  </div>
+                  <label className="flex items-center gap-2 px-2 py-2.5 text-xs text-d-fg2 whitespace-nowrap">
+                    <input
+                      type="checkbox"
+                      checked={createForm.isAdmin}
+                      onChange={(e) =>
+                        setCreateForm((form) => ({ ...form, isAdmin: e.target.checked }))
+                      }
+                      className="h-4 w-4"
+                      style={{ accentColor: "#03FFCF" }}
+                      disabled={creating}
+                    />
+                    Admin
+                  </label>
                   <button
-                    onClick={() => updateProfile(p.id, { approved: true })}
-                    className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] font-semibold text-[#15151A] px-3 py-1.5 rounded-full transition-colors"
-                    style={{ background: "#03FFCF" }}
+                    type="submit"
+                    disabled={creating || !createForm.email.trim()}
+                    className="flex items-center justify-center gap-2 text-[10px] uppercase tracking-[0.18em] font-semibold text-[#15151A] bg-white hover:bg-d-fg2 px-4 py-2.5 rounded-full disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
-                    <Check size={11} />
-                    Approuver
+                    {creating ? (
+                      <Loader2 size={12} className="animate-spin" />
+                    ) : (
+                      <UserPlus size={12} />
+                    )}
+                    Créer
                   </button>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
+                </form>
 
-        {/* Approuvés */}
-        <section>
-          <div className="flex items-center gap-2 mb-3">
-            <h2 className="text-[10px] uppercase tracking-[0.18em] text-d-fg3 font-medium">
-              Comptes approuvés
-            </h2>
-            <span className="text-[10px] bg-d-panel2 text-d-fg3 px-2 py-0.5 rounded-full font-medium border border-line">
-              {approved.length}
-            </span>
-          </div>
-          <div className="bg-d-panel border border-line rounded-2xl divide-y" style={{ borderColor: "var(--d-line)" }}>
-            {approved.map((p) => {
-              const isSelf = p.id === currentProfile?.id;
-              return (
-                <div
-                  key={p.id}
-                  className="flex items-center gap-4 px-4 py-3"
-                >
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-d-fg">
-                        {p.full_name || p.email}
-                      </span>
-                      {p.is_admin && (
-                        <span
-                          className="inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.14em] font-semibold px-2 py-0.5 rounded-full"
-                          style={{ background: "rgba(65,65,255,0.18)", color: "#8888FF" }}
-                        >
-                          <ShieldCheck size={10} />
-                          Admin
-                        </span>
-                      )}
-                      {isSelf && (
-                        <span className="text-[10px] uppercase tracking-[0.14em] font-medium text-d-fg4">
-                          (toi)
-                        </span>
-                      )}
+                {createdAccount && (
+                  <div
+                    className="mt-4 rounded-xl p-4"
+                    style={{ background: "rgba(3,255,207,0.08)", border: "1px solid rgba(3,255,207,0.20)" }}
+                  >
+                    <div className="text-sm font-semibold mb-2" style={{ color: "#03FFCF" }}>
+                      Compte créé
                     </div>
-                    <div className="text-[11px] text-d-fg4">{p.email}</div>
+                    <div className="grid gap-1 text-xs text-d-fg2 font-mono">
+                      <div>Email : {createdAccount.email}</div>
+                      <div>Mot de passe temporaire : {createdAccount.password}</div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={copyCreatedAccount}
+                      className="mt-3 inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] font-medium text-d-fg3 hover:text-d-fg border border-line hover:border-line2 px-3 py-1.5 rounded-full transition-colors"
+                    >
+                      <Copy size={11} />
+                      Copier les identifiants
+                    </button>
                   </div>
-                  {!isSelf && (
-                    <div className="flex items-center gap-1">
+                )}
+              </div>
+            </section>
+
+            {/* En attente */}
+            <section>
+              <div className="flex items-center gap-2 mb-3">
+                <h2 className="text-[10px] uppercase tracking-[0.18em] text-d-fg3 font-medium">
+                  En attente d'approbation
+                </h2>
+                <span
+                  className="text-[10px] px-2 py-0.5 rounded-full font-medium"
+                  style={{ background: "rgba(255,165,0,0.15)", color: "#FFAD33" }}
+                >
+                  {pending.length}
+                </span>
+              </div>
+              {pending.length === 0 ? (
+                <div className="bg-d-panel border border-line rounded-2xl p-6 text-xs text-d-fg4 text-center">
+                  Aucun compte en attente.
+                </div>
+              ) : (
+                <div className="bg-d-panel border border-line rounded-2xl divide-y" style={{ borderColor: "var(--d-line)" }}>
+                  {pending.map((p) => (
+                    <div key={p.id} className="flex items-center gap-4 px-4 py-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm text-d-fg">{p.full_name || p.email}</div>
+                        <div className="text-[11px] text-d-fg4">
+                          {p.email} · inscrit le {formatDate(p.created_at)}
+                        </div>
+                      </div>
                       <button
-                        onClick={() =>
-                          updateProfile(p.id, { is_admin: !p.is_admin })
-                        }
-                        className="text-[10px] uppercase tracking-[0.18em] font-medium text-d-fg3 hover:text-d-fg px-3 py-1.5 border border-line hover:border-line2 rounded-full transition-colors"
+                        onClick={() => updateProfile(p.id, { approved: true })}
+                        className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] font-semibold text-[#15151A] px-3 py-1.5 rounded-full transition-colors"
+                        style={{ background: "#03FFCF" }}
                       >
-                        {p.is_admin ? "Retirer admin" : "Promouvoir admin"}
-                      </button>
-                      <button
-                        onClick={() =>
-                          confirm(`Révoquer l'accès de ${p.email} ?`) &&
-                          updateProfile(p.id, { approved: false, is_admin: false })
-                        }
-                        className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] font-medium px-3 py-1.5 border rounded-full transition-colors"
-                        style={{ color: "#FF8466", borderColor: "rgba(255,75,40,0.25)" }}
-                      >
-                        <X size={11} />
-                        Révoquer
+                        <Check size={11} />
+                        Approuver
                       </button>
                     </div>
-                  )}
+                  ))}
                 </div>
-              );
-            })}
-          </div>
-        </section>
-        {/* Template de nouvelle newsletter */}
-        <DefaultSectionsEditor />
+              )}
+            </section>
+
+            {/* Approuvés */}
+            <section>
+              <div className="flex items-center gap-2 mb-3">
+                <h2 className="text-[10px] uppercase tracking-[0.18em] text-d-fg3 font-medium">
+                  Comptes approuvés
+                </h2>
+                <span className="text-[10px] bg-d-panel2 text-d-fg3 px-2 py-0.5 rounded-full font-medium border border-line">
+                  {approved.length}
+                </span>
+              </div>
+              <div className="bg-d-panel border border-line rounded-2xl divide-y" style={{ borderColor: "var(--d-line)" }}>
+                {approved.map((p) => {
+                  const isSelf = p.id === currentProfile?.id;
+                  return (
+                    <div key={p.id} className="flex items-center gap-4 px-4 py-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-d-fg">{p.full_name || p.email}</span>
+                          {p.is_admin && (
+                            <span
+                              className="inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.14em] font-semibold px-2 py-0.5 rounded-full"
+                              style={{ background: "rgba(65,65,255,0.18)", color: "#8888FF" }}
+                            >
+                              <ShieldCheck size={10} />
+                              Admin
+                            </span>
+                          )}
+                          {isSelf && (
+                            <span className="text-[10px] uppercase tracking-[0.14em] font-medium text-d-fg4">
+                              (toi)
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-[11px] text-d-fg4">{p.email}</div>
+                      </div>
+                      {!isSelf && (
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => updateProfile(p.id, { is_admin: !p.is_admin })}
+                            className="text-[10px] uppercase tracking-[0.18em] font-medium text-d-fg3 hover:text-d-fg px-3 py-1.5 border border-line hover:border-line2 rounded-full transition-colors"
+                          >
+                            {p.is_admin ? "Retirer admin" : "Promouvoir admin"}
+                          </button>
+                          <button
+                            onClick={() =>
+                              confirm(`Révoquer l'accès de ${p.email} ?`) &&
+                              updateProfile(p.id, { approved: false, is_admin: false })
+                            }
+                            className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] font-medium px-3 py-1.5 border rounded-full transition-colors"
+                            style={{ color: "#FF8466", borderColor: "rgba(255,75,40,0.25)" }}
+                          >
+                            <X size={11} />
+                            Révoquer
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          </>
+        )}
+
+        {/* ── Onglet Template newsletter ── */}
+        {tab === "template" && <DefaultSectionsEditor />}
       </main>
     </div>
   );
@@ -470,16 +487,16 @@ function DefaultSectionsEditor() {
 
   return (
     <section>
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-start justify-between mb-5">
         <div>
-          <h2 className="text-[10px] uppercase tracking-[0.18em] text-d-fg3 font-medium">
+          <h2 className="text-sm font-semibold text-d-fg mb-1" style={{ fontFamily: "'Sora', sans-serif" }}>
             Template nouvelle newsletter
           </h2>
-          <p className="text-[11px] text-d-fg4 mt-0.5">
-            Blocs inclus par défaut à la création. Glisse pour réordonner.
+          <p className="text-xs text-d-fg4 leading-relaxed">
+            Choisis les blocs inclus par défaut à la création. Glisse les blocs actifs pour les réordonner.
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-shrink-0">
           <button
             onClick={handleReset}
             className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] font-medium text-d-fg3 hover:text-d-fg border border-line hover:border-line2 px-3 py-1.5 rounded-full transition-colors"
@@ -490,7 +507,9 @@ function DefaultSectionsEditor() {
           <button
             onClick={handleSave}
             className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] font-semibold px-3 py-1.5 rounded-full transition-colors"
-            style={saved ? { background: "rgba(3,255,207,0.15)", color: "#03FFCF", border: "1px solid rgba(3,255,207,0.25)" } : { background: "#FFFFFF", color: "#15151A" }}
+            style={saved
+              ? { background: "rgba(3,255,207,0.15)", color: "#03FFCF", border: "1px solid rgba(3,255,207,0.25)" }
+              : { background: "#FFFFFF", color: "#15151A" }}
           >
             {saved ? <Check size={11} /> : <Save size={11} />}
             {saved ? "Sauvegardé" : "Sauvegarder"}
@@ -498,18 +517,21 @@ function DefaultSectionsEditor() {
         </div>
       </div>
 
-      <div className="bg-d-panel border border-line rounded-2xl overflow-hidden">
-        {/* Blocs actifs */}
-        <div className="px-4 pt-4 pb-2">
-          <div className="text-[10px] uppercase tracking-[0.18em] text-d-fg4 font-medium mb-2 px-1">
-            Inclus ({active.length})
+      <div className="grid grid-cols-2 gap-4">
+        {/* Colonne gauche — blocs actifs */}
+        <div>
+          <div className="text-[10px] uppercase tracking-[0.18em] text-d-fg3 font-medium mb-3 flex items-center gap-2">
+            Inclus
+            <span className="bg-d-panel2 border border-line px-1.5 py-0.5 rounded-full text-d-fg4">
+              {active.length}
+            </span>
           </div>
-          {active.length === 0 && (
-            <div className="text-[11px] text-d-fg4 px-1 pb-2 italic">Aucun bloc actif</div>
-          )}
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-col gap-1.5 min-h-16">
+            {active.length === 0 && (
+              <div className="text-[11px] text-d-fg4 italic py-3 px-1">Aucun bloc actif</div>
+            )}
             {active.map((type) => {
-              const Icon = SECTION_ICON_MAP[type] ?? FileTextIcon;
+              const Icon = SECTION_ICON_MAP[type] ?? Newspaper;
               const isDragOver = dragOverId === type;
               return (
                 <div
@@ -520,24 +542,24 @@ function DefaultSectionsEditor() {
                   onDragLeave={handleDragLeave}
                   onDrop={(e) => handleDrop(e, type)}
                   onDragEnd={handleDragEnd}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl border transition-colors cursor-grab active:cursor-grabbing ${
+                  className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl border transition-all cursor-grab active:cursor-grabbing ${
                     isDragOver
-                      ? "border-line2 bg-d-panel3"
+                      ? "border-line2 bg-d-panel3 scale-[1.01]"
                       : "border-line bg-d-panel2 hover:border-line2"
                   }`}
                 >
-                  <GripVertical size={14} className="text-d-fg4 flex-shrink-0" />
-                  <Icon size={14} className="text-d-fg3 flex-shrink-0" />
-                  <span className="text-xs font-medium text-d-fg flex-1">
+                  <GripVertical size={13} className="text-d-fg4 flex-shrink-0" />
+                  <Icon size={13} className="text-d-fg3 flex-shrink-0" />
+                  <span className="text-xs font-medium text-d-fg flex-1 leading-none">
                     {SECTION_TYPES[type].label}
                   </span>
                   <button
                     type="button"
                     onClick={() => toggle(type)}
-                    className="text-d-fg4 hover:text-d-fg2 transition-colors p-0.5 rounded"
+                    className="text-d-fg4 hover:text-d-fg2 transition-colors p-0.5 rounded flex-shrink-0"
                     title="Retirer"
                   >
-                    <X size={13} />
+                    <X size={12} />
                   </button>
                 </div>
               );
@@ -545,49 +567,38 @@ function DefaultSectionsEditor() {
           </div>
         </div>
 
-        {/* Séparateur */}
-        {inactive.length > 0 && (
-          <div className="h-px mx-4 my-2" style={{ background: "var(--d-line)" }} />
-        )}
-
-        {/* Blocs inactifs */}
-        {inactive.length > 0 && (
-          <div className="px-4 pb-4">
-            <div className="text-[10px] uppercase tracking-[0.18em] text-d-fg4 font-medium mb-2 px-1">
-              Non inclus
-            </div>
-            <div className="flex flex-col gap-1">
-              {inactive.map((type) => {
-                const Icon = SECTION_ICON_MAP[type] ?? FileTextIcon;
-                return (
-                  <div
-                    key={type}
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl border border-line bg-d-panel opacity-50 hover:opacity-75 transition-opacity cursor-default"
-                  >
-                    <GripVertical size={14} className="text-d-fg4 flex-shrink-0 opacity-30" />
-                    <Icon size={14} className="text-d-fg4 flex-shrink-0" />
-                    <span className="text-xs text-d-fg3 flex-1">
-                      {SECTION_TYPES[type].label}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => toggle(type)}
-                      className="text-d-fg4 hover:text-d-fg2 transition-colors p-0.5 rounded"
-                      title="Ajouter"
-                    >
-                      <Check size={13} />
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
+        {/* Colonne droite — blocs inactifs */}
+        <div>
+          <div className="text-[10px] uppercase tracking-[0.18em] text-d-fg3 font-medium mb-3 flex items-center gap-2">
+            Non inclus
+            <span className="bg-d-panel2 border border-line px-1.5 py-0.5 rounded-full text-d-fg4">
+              {inactive.length}
+            </span>
           </div>
-        )}
+          <div className="flex flex-col gap-1.5">
+            {inactive.length === 0 && (
+              <div className="text-[11px] text-d-fg4 italic py-3 px-1">Tous les blocs sont inclus</div>
+            )}
+            {inactive.map((type) => {
+              const Icon = SECTION_ICON_MAP[type] ?? Newspaper;
+              return (
+                <button
+                  key={type}
+                  type="button"
+                  onClick={() => toggle(type)}
+                  className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl border border-line bg-d-panel hover:bg-d-panel2 hover:border-line2 transition-all cursor-pointer text-left group"
+                >
+                  <Icon size={13} className="text-d-fg4 flex-shrink-0 group-hover:text-d-fg3 transition-colors" />
+                  <span className="text-xs text-d-fg3 flex-1 leading-none group-hover:text-d-fg transition-colors">
+                    {SECTION_TYPES[type].label}
+                  </span>
+                  <Plus size={12} className="text-d-fg4 flex-shrink-0 group-hover:text-d-fg2 transition-colors" />
+                </button>
+              );
+            })}
+          </div>
+        </div>
       </div>
     </section>
   );
-}
-
-function FileTextIcon(props) {
-  return <Newspaper {...props} />;
 }
