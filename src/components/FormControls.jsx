@@ -299,13 +299,12 @@ function withInlines(editor) {
   return editor;
 }
 
-function HtmlButton({ title, onClick, active = false, children }) {
+function HtmlButton({ title, onMouseDown, active = false, children }) {
   return (
     <Tooltip label={title}>
     <button
       type="button"
-      onMouseDown={(e) => e.preventDefault()}
-      onClick={onClick}
+      onMouseDown={onMouseDown}
       className={`h-7 w-7 inline-flex items-center justify-center border rounded-lg transition-colors ${
         active
           ? "border-d-fg3 bg-d-panel3 text-d-fg"
@@ -324,7 +323,10 @@ function MarkButton({ format, title, children }) {
     <HtmlButton
       title={title}
       active={isMarkActive(editor, format)}
-      onClick={() => toggleMark(editor, format)}
+      onMouseDown={(event) => {
+        event.preventDefault();
+        toggleMark(editor, format);
+      }}
     >
       {children}
     </HtmlButton>
@@ -337,7 +339,10 @@ function BlockButton({ format, title, children }) {
     <HtmlButton
       title={title}
       active={isBlockActive(editor, format)}
-      onClick={() => toggleBlock(editor, format)}
+      onMouseDown={(event) => {
+        event.preventDefault();
+        toggleBlock(editor, format);
+      }}
     >
       {children}
     </HtmlButton>
@@ -347,7 +352,13 @@ function BlockButton({ format, title, children }) {
 function LinkButton() {
   const editor = useSlate();
   return (
-    <HtmlButton title="Lien hypertexte" onClick={() => insertLink(editor)}>
+    <HtmlButton
+      title="Lien hypertexte"
+      onMouseDown={(event) => {
+        event.preventDefault();
+        insertLink(editor);
+      }}
+    >
       <Link size={13} />
     </HtmlButton>
   );
@@ -379,11 +390,27 @@ function RichTextElement({ attributes, children, element }) {
 
 function RichTextLeaf({ attributes, children, leaf }) {
   let content = children;
-  if (leaf.bold) content = <strong>{content}</strong>;
+  if (leaf.bold) content = <strong style={{ fontWeight: 700 }}>{content}</strong>;
   if (leaf.italic) content = <em>{content}</em>;
   if (leaf.underline) content = <u>{content}</u>;
   if (leaf.strikethrough) content = <s>{content}</s>;
   return <span {...attributes}>{content}</span>;
+}
+
+function handleRichTextHotkeys(event, editor) {
+  if (!(event.metaKey || event.ctrlKey)) return;
+
+  const key = event.key.toLowerCase();
+  const shortcutMarks = {
+    b: "bold",
+    i: "italic",
+    u: "underline",
+  };
+  const mark = shortcutMarks[key];
+  if (!mark) return;
+
+  event.preventDefault();
+  toggleMark(editor, mark);
 }
 
 function PlainTextFallback({ showCount, onChange, value = "", rows = 3, onRetry, ...props }) {
@@ -530,6 +557,10 @@ function RichTextEditor({ showCount, onChange, value = "", ...props }) {
           {...editorProps}
           renderElement={renderElement}
           renderLeaf={renderLeaf}
+          onKeyDown={(event) => {
+            handleRichTextHotkeys(event, editor);
+            editorProps.onKeyDown?.(event);
+          }}
           spellCheck
           className="w-full px-3 py-2 bg-d-panel2 text-sm text-d-fg focus:outline-none leading-relaxed overflow-auto"
           style={{ minHeight: `${Math.max(Number(rows) || 3, 2) * 1.6}rem`, fontFamily: "'DM Sans', sans-serif" }}
