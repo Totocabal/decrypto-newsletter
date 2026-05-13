@@ -3,7 +3,6 @@ import React from "react";
 const DRAFT_KEY = "decrypto-newsletter-draft-v1";
 const DRAFT_RECOVERY_KEY = "decrypto-newsletter-draft-recovery-v1";
 const ERROR_DIAGNOSTIC_KEY = "decrypto-last-render-error-v1";
-const AUTO_RELOAD_STABLE_RESET_MS = 15000;
 
 function storeDiagnostic(payload) {
   try {
@@ -54,7 +53,6 @@ export class AppErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
     this.state = { error: null };
-    this.clearAutoReloadTimer = null;
   }
 
   static getDerivedStateFromError(error) {
@@ -62,14 +60,6 @@ export class AppErrorBoundary extends React.Component {
   }
 
   componentDidMount() {
-    this.clearAutoReloadTimer = setTimeout(() => {
-      try {
-        sessionStorage.removeItem(ERROR_DIAGNOSTIC_KEY);
-      } catch {
-        // Session storage may be blocked.
-      }
-    }, AUTO_RELOAD_STABLE_RESET_MS);
-
     this.handleWindowError = (event) => {
       storeDiagnostic({
         source: "window.error",
@@ -106,7 +96,6 @@ export class AppErrorBoundary extends React.Component {
   }
 
   componentWillUnmount() {
-    if (this.clearAutoReloadTimer) clearTimeout(this.clearAutoReloadTimer);
     window.removeEventListener("error", this.handleWindowError);
     window.removeEventListener("unhandledrejection", this.handleUnhandledRejection);
   }
@@ -157,8 +146,9 @@ export class AppErrorBoundary extends React.Component {
               L'application a rencontré une erreur
             </h1>
             <p className="text-sm sm:text-base leading-relaxed text-stone-300 max-w-xl mb-7">
-              Le rechargement automatique est désactivé pour afficher le
-              diagnostic. Envoie le bloc ci-dessous pour identifier la cause.
+              Aucun rechargement automatique n'est déclenché par l'application.
+              Cette page reste affichée pour lire le diagnostic et corriger la
+              cause du crash.
             </p>
             {diagnostic?.message && (
               <div className="mb-7 rounded-sm border border-white/10 bg-black/25 p-4">
