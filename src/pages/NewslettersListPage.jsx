@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import { supabase } from "../lib/supabase.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
-import { INITIAL_STATE, getDefaultSectionTypes, buildInitialStateFromTypes } from "../config/schema.js";
+import { INITIAL_STATE, getDefaultNewsletterTemplate, buildInitialStateFromTypes } from "../config/schema.js";
 import { Wordmark } from "../components/Wordmark.jsx";
 import { ImageManagerModal } from "../components/ImageManagerModal.jsx";
 import { Tooltip } from "../components/Tooltip.jsx";
@@ -85,7 +85,10 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
   const handleCreate = async () => {
     if (!profile?.id) return;
     setCreating(true);
-    const initialState = buildInitialStateFromTypes(getDefaultSectionTypes());
+    const template = getDefaultNewsletterTemplate();
+    const initialState = buildInitialStateFromTypes(template.sections, {
+      includeDefaultContent: template.includeDefaultContent,
+    });
     const { data, error } = await supabase
       .from("newsletters")
       .insert({

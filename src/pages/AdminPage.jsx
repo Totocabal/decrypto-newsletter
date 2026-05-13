@@ -36,8 +36,9 @@ import { useAuth } from "../contexts/AuthContext.jsx";
 import { Wordmark } from "../components/Wordmark.jsx";
 import {
   SECTION_TYPES,
-  INITIAL_SECTION_TYPES,
-  getDefaultSectionTypes,
+  INITIAL_SECTION_TEMPLATE,
+  createDefaultSectionTemplateEntry,
+  getDefaultNewsletterTemplate,
   saveDefaultSectionTypes,
 } from "../config/schema.js";
 
@@ -438,34 +439,38 @@ const SECTION_ICON_MAP = {
 
 function DefaultSectionsEditor() {
   const allTypes = Object.keys(SECTION_TYPES);
-  const [active, setActive] = useState(() => getDefaultSectionTypes());
+  const [active, setActive] = useState(() => getDefaultNewsletterTemplate().sections);
+  const [includeDefaultContent, setIncludeDefaultContent] = useState(
+    () => getDefaultNewsletterTemplate().includeDefaultContent
+  );
   const [saved, setSaved] = useState(false);
   const draggedRef = useRef(null);
   const [dragOverId, setDragOverId] = useState(null);
 
-  const inactive = allTypes.filter((t) => !active.includes(t));
-
-  const toggle = (type) => {
-    setActive((prev) =>
-      prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]
-    );
+  const addBlock = (type) => {
+    setActive((prev) => [...prev, createDefaultSectionTemplateEntry(type)]);
     setSaved(false);
   };
 
-  const handleDragStart = (type) => { draggedRef.current = type; };
-  const handleDragOver = (e, type) => { e.preventDefault(); setDragOverId(type); };
+  const removeBlock = (id) => {
+    setActive((prev) => prev.filter((entry) => entry.id !== id));
+    setSaved(false);
+  };
+
+  const handleDragStart = (id) => { draggedRef.current = id; };
+  const handleDragOver = (e, id) => { e.preventDefault(); setDragOverId(id); };
   const handleDragLeave = () => setDragOverId(null);
-  const handleDrop = (e, targetType) => {
+  const handleDrop = (e, targetId) => {
     e.preventDefault();
     const from = draggedRef.current;
-    if (!from || from === targetType) { setDragOverId(null); return; }
+    if (!from || from === targetId) { setDragOverId(null); return; }
     setActive((prev) => {
       const arr = [...prev];
-      const fi = arr.indexOf(from);
-      const ti = arr.indexOf(targetType);
+      const fi = arr.findIndex((entry) => entry.id === from);
+      const ti = arr.findIndex((entry) => entry.id === targetId);
       if (fi === -1 || ti === -1) return prev;
-      arr.splice(fi, 1);
-      arr.splice(ti, 0, from);
+      const [removed] = arr.splice(fi, 1);
+      arr.splice(ti, 0, removed);
       return arr;
     });
     draggedRef.current = null;
@@ -475,13 +480,14 @@ function DefaultSectionsEditor() {
   const handleDragEnd = () => { draggedRef.current = null; setDragOverId(null); };
 
   const handleSave = () => {
-    saveDefaultSectionTypes(active);
+    saveDefaultSectionTypes(active, includeDefaultContent);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
 
   const handleReset = () => {
-    setActive([...INITIAL_SECTION_TYPES]);
+    setActive(INITIAL_SECTION_TEMPLATE.map((entry) => ({ ...entry })));
+    setIncludeDefaultContent(true);
     setSaved(false);
   };
 
@@ -493,7 +499,7 @@ function DefaultSectionsEditor() {
             Template nouvelle newsletter
           </h2>
           <p className="text-xs text-d-fg4 leading-relaxed">
-            Choisis les blocs inclus par défaut à la création. Glisse les blocs actifs pour les réordonner.
+            Choisis les blocs inclus par défaut à la création. Tu peux ajouter plusieurs fois le même bloc et réordonner les blocs actifs.
           </p>
         </div>
         <div className="flex gap-2 flex-shrink-0">
@@ -517,6 +523,32 @@ function DefaultSectionsEditor() {
         </div>
       </div>
 
+      <label className="mb-4 flex items-center justify-between gap-4 rounded-2xl border border-line bg-d-panel p-4 cursor-pointer">
+        <span>
+          <span className="block text-xs font-semibold text-d-fg mb-1" style={{ fontFamily: "'Sora', sans-serif" }}>
+            Contenu par défaut
+          </span>
+          <span className="block text-[11px] leading-relaxed text-d-fg4">
+            {includeDefaultContent
+              ? "Les blocs créés reprennent le contenu d'exemple existant."
+              : "Les blocs créés sont ajoutés sans contenu prérempli."}
+          </span>
+        </span>
+        <span className="relative inline-flex h-6 w-11 flex-shrink-0 items-center">
+          <input
+            type="checkbox"
+            checked={includeDefaultContent}
+            onChange={(event) => {
+              setIncludeDefaultContent(event.target.checked);
+              setSaved(false);
+            }}
+            className="peer sr-only"
+          />
+          <span className="absolute inset-0 rounded-full border border-line bg-d-panel2 transition-colors peer-checked:border-d-pink peer-checked:bg-d-pink/25" />
+          <span className="relative ml-1 h-4 w-4 rounded-full bg-d-fg4 transition-transform peer-checked:translate-x-5 peer-checked:bg-d-pink" />
+        </span>
+      </label>
+
       <div className="grid grid-cols-2 gap-4">
         {/* Colonne gauche — blocs actifs */}
         <div>
@@ -530,17 +562,18 @@ function DefaultSectionsEditor() {
             {active.length === 0 && (
               <div className="text-[11px] text-d-fg4 italic py-3 px-1">Aucun bloc actif</div>
             )}
-            {active.map((type) => {
+            {active.map((entry, index) => {
+              const type = entry.type;
               const Icon = SECTION_ICON_MAP[type] ?? Newspaper;
-              const isDragOver = dragOverId === type;
+              const isDragOver = dragOverId === entry.id;
               return (
                 <div
-                  key={type}
+                  key={entry.id}
                   draggable
-                  onDragStart={() => handleDragStart(type)}
-                  onDragOver={(e) => handleDragOver(e, type)}
+                  onDragStart={() => handleDragStart(entry.id)}
+                  onDragOver={(e) => handleDragOver(e, entry.id)}
                   onDragLeave={handleDragLeave}
-                  onDrop={(e) => handleDrop(e, type)}
+                  onDrop={(e) => handleDrop(e, entry.id)}
                   onDragEnd={handleDragEnd}
                   className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl border transition-all cursor-grab active:cursor-grabbing ${
                     isDragOver
@@ -553,9 +586,12 @@ function DefaultSectionsEditor() {
                   <span className="text-xs font-medium text-d-fg flex-1 leading-none">
                     {SECTION_TYPES[type].label}
                   </span>
+                  <span className="text-[10px] text-d-fg5 tabular-nums">
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
                   <button
                     type="button"
-                    onClick={() => toggle(type)}
+                    onClick={() => removeBlock(entry.id)}
                     className="text-d-fg4 hover:text-d-fg2 transition-colors p-0.5 rounded flex-shrink-0"
                     title="Retirer"
                   >
@@ -567,25 +603,22 @@ function DefaultSectionsEditor() {
           </div>
         </div>
 
-        {/* Colonne droite — blocs inactifs */}
+        {/* Colonne droite — catalogue de blocs */}
         <div>
           <div className="text-[10px] uppercase tracking-[0.18em] text-d-fg3 font-medium mb-3 flex items-center gap-2">
-            Non inclus
+            Ajouter un bloc
             <span className="bg-d-panel2 border border-line px-1.5 py-0.5 rounded-full text-d-fg4">
-              {inactive.length}
+              {allTypes.length}
             </span>
           </div>
           <div className="flex flex-col gap-1.5">
-            {inactive.length === 0 && (
-              <div className="text-[11px] text-d-fg4 italic py-3 px-1">Tous les blocs sont inclus</div>
-            )}
-            {inactive.map((type) => {
+            {allTypes.map((type) => {
               const Icon = SECTION_ICON_MAP[type] ?? Newspaper;
               return (
                 <button
                   key={type}
                   type="button"
-                  onClick={() => toggle(type)}
+                  onClick={() => addBlock(type)}
                   className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl border border-line bg-d-panel hover:bg-d-panel2 hover:border-line2 transition-all cursor-pointer text-left group"
                 >
                   <Icon size={13} className="text-d-fg4 flex-shrink-0 group-hover:text-d-fg3 transition-colors" />

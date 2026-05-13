@@ -441,34 +441,115 @@ export function createSection(type) {
 const STORAGE_KEY = "decrypto:default_sections";
 
 export const INITIAL_SECTION_TYPES = INITIAL_STATE.sections.map((s) => s.type);
+export const DEFAULT_TEMPLATE_USES_CONTENT = true;
 
-export function getDefaultSectionTypes() {
+function templateEntry(type) {
+  return {
+    id: `tpl_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+    type,
+  };
+}
+
+export function createDefaultSectionTemplateEntry(type) {
+  if (!SECTION_TYPES[type]) {
+    throw new Error(`Type de section inconnu : ${type}`);
+  }
+  return templateEntry(type);
+}
+
+export const INITIAL_SECTION_TEMPLATE = INITIAL_SECTION_TYPES.map((type) =>
+  templateEntry(type)
+);
+
+function normalizeTemplateSections(value) {
+  const rawSections = Array.isArray(value)
+    ? value
+    : Array.isArray(value?.sections)
+      ? value.sections
+      : null;
+
+  if (!rawSections) return INITIAL_SECTION_TEMPLATE.map((entry) => ({ ...entry }));
+
+  const sections = rawSections
+    .map((entry) => {
+      const type = typeof entry === "string" ? entry : entry?.type;
+      if (!SECTION_TYPES[type]) return null;
+      return {
+        id: typeof entry === "object" && entry?.id ? entry.id : templateEntry(type).id,
+        type,
+      };
+    })
+    .filter(Boolean);
+
+  return sections.length
+    ? sections
+    : INITIAL_SECTION_TEMPLATE.map((entry) => ({ ...entry }));
+}
+
+function emptySectionValue(value) {
+  if (Array.isArray(value)) return [];
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, child]) => [key, emptySectionValue(child)])
+    );
+  }
+  if (typeof value === "boolean") return false;
+  if (typeof value === "number") return 0;
+  return "";
+}
+
+function emptySectionData(type) {
+  return emptySectionValue(SECTION_TYPES[type].factory());
+}
+
+export function getDefaultNewsletterTemplate() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.every((t) => SECTION_TYPES[t])) {
-        return parsed;
-      }
+      return {
+        sections: normalizeTemplateSections(parsed),
+        includeDefaultContent:
+          typeof parsed?.includeDefaultContent === "boolean"
+            ? parsed.includeDefaultContent
+            : DEFAULT_TEMPLATE_USES_CONTENT,
+      };
     }
   } catch {
     // Ignore parse errors
   }
-  return INITIAL_SECTION_TYPES;
+  return {
+    sections: INITIAL_SECTION_TEMPLATE.map((entry) => ({ ...entry })),
+    includeDefaultContent: DEFAULT_TEMPLATE_USES_CONTENT,
+  };
 }
 
-export function saveDefaultSectionTypes(types) {
+export function getDefaultSectionTypes() {
+  return getDefaultNewsletterTemplate().sections;
+}
+
+export function saveDefaultSectionTypes(sections, includeDefaultContent = DEFAULT_TEMPLATE_USES_CONTENT) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(types));
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        sections: normalizeTemplateSections(sections),
+        includeDefaultContent,
+      })
+    );
   } catch {
     // Storage may be unavailable
   }
 }
 
-export function buildInitialStateFromTypes(types) {
+export function buildInitialStateFromTypes(types, options = {}) {
+  const includeDefaultContent = options.includeDefaultContent !== false;
+  const sections = normalizeTemplateSections(types);
   return {
     ...INITIAL_STATE,
-    sections: types.map((type) => section(type)),
+    sections: sections.map(({ type }) =>
+      section(type, includeDefaultContent ? {} : emptySectionData(type))
+    ),
   };
 }
 
