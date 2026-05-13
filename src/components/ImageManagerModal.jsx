@@ -579,7 +579,7 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId }) {
                   const Icon = mode.icon;
                   const active = viewMode === mode.id;
                   return (
-                    <Tooltip key={mode.id} label={mode.title}>
+                    <Tooltip key={mode.id} label={mode.title} side="bottom">
                       <button
                         type="button"
                         onClick={() => setViewMode(mode.id)}
