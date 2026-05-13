@@ -91,6 +91,8 @@ export function useCoinGecko() {
         label: cfg[currency] ?? cfg.eur,
         value: formatPrice(currentPrice, currency),
         price_start: formatPrice(firstPrice, currency),
+        price_high: formatPrice(maxPrice, currency),
+        price_low: formatPrice(minPrice, currency),
         delta: `${isPositive ? "▲" : "▼"} ${isPositive ? "+" : ""}${diffPct.toFixed(2)} %`,
         delta_tone: isPositive ? "positive" : "negative",
         subdelta: `${isPositive ? "+" : ""}${formatPrice(diff, currency)} sur ${days}j`,

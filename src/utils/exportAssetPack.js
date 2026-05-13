@@ -71,7 +71,13 @@ async function buildPngAssets(state) {
     if (sec.type === "chart" && !needChart) {
       needChart = true;
       chartPoints = sec.data.points;
-      chartYAxisLabels = sec.data.y_axis_labels ?? [];
+      chartYAxisLabels = {
+        yAxisLabels: sec.data.y_axis_labels ?? [],
+        priceStart:  sec.data.price_start   ?? "",
+        priceEnd:    sec.data.value         ?? "",
+        priceHigh:   sec.data.price_high    ?? "",
+        priceLow:    sec.data.price_low     ?? "",
+      };
     }
     if (sec.type === "fear_greed" && !needGauge) {
       needGauge = true;
@@ -90,7 +96,7 @@ async function buildPngAssets(state) {
   }
 
   if (needChart) {
-    const chartSvg = getChartSvgFull(chartPoints, chartYAxisLabels).replace(
+    const chartSvg = getChartSvgFull(chartPoints, chartYAxisLabels ?? {}).replace(
       /width="[^"]*"/,
       'width="1120"'
     );
