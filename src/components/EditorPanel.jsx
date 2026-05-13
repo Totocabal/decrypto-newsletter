@@ -391,8 +391,8 @@ export function EditorPanel({ state, setState }) {
           Liens du footer
         </div>
         {(state.footer.links || []).map((l, i) => (
-          <div key={i} className="flex items-center gap-2 mb-2">
-            <div style={{ flex: "0 0 35%" }}>
+          <div key={i} className="mb-2 grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,35%)_1fr_auto] sm:items-center">
+            <div className="min-w-0">
               <Input
                 value={l.label}
                 onChange={(e) =>
@@ -401,7 +401,7 @@ export function EditorPanel({ state, setState }) {
                 placeholder="Libellé"
               />
             </div>
-            <div style={{ flex: 1 }}>
+            <div className="min-w-0">
               <Input
                 value={l.url}
                 onChange={(e) => links.set(i, { ...l, url: e.target.value })}
@@ -412,7 +412,7 @@ export function EditorPanel({ state, setState }) {
               <button
                 type="button"
                 onClick={() => links.remove(i)}
-                className="p-2 text-d-fg4 hover:text-red-400 hover:bg-red-900/20 rounded-lg transition-colors"
+                className="justify-self-start rounded-lg p-2 text-d-fg4 transition-colors hover:bg-red-900/20 hover:text-red-400 sm:justify-self-auto"
               >
                 <Trash2 size={14} />
               </button>

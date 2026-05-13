@@ -275,14 +275,14 @@ export function EditorPage({ newsletterId, onBack }) {
 
       {/* Topbar : logo + titre + statut + actions */}
       <div
-        className="border-b border-line px-6 py-2.5"
-        style={{ background: "#1E1E22", height: 64, display: "flex", alignItems: "center" }}
+        className="border-b border-line px-4 py-3 sm:px-6"
+        style={{ background: "#1E1E22" }}
       >
-        <div className="flex items-center justify-between gap-4 w-full">
-          <div className="flex items-center gap-4 flex-1 min-w-0">
+        <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+          <div className="flex min-w-0 flex-wrap items-center gap-3 sm:gap-4 xl:flex-1 xl:flex-nowrap">
             <Wordmark size={17} />
             <div
-              className="w-px h-6"
+              className="hidden h-6 w-px sm:block"
               style={{ background: "var(--d-line2)", flexShrink: 0 }}
             />
             <button
@@ -293,7 +293,7 @@ export function EditorPage({ newsletterId, onBack }) {
               {leaving ? <Loader2 size={12} className="animate-spin" /> : <ArrowLeft size={12} />}
               {leaving ? "Sauvegarde…" : "Retour"}
             </button>
-            <Tooltip label="Cliquer pour renommer cette newsletter" side="bottom" className="flex-1 min-w-0 max-w-md">
+            <Tooltip label="Cliquer pour renommer cette newsletter" side="bottom" className="order-last w-full min-w-0 sm:order-none sm:flex-1 xl:max-w-md">
               <input
                 type="text"
                 value={newsletter?.title || ""}
@@ -304,7 +304,7 @@ export function EditorPage({ newsletterId, onBack }) {
               />
             </Tooltip>
           </div>
-          <div className="flex items-center gap-3 flex-shrink-0">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3 xl:flex-shrink-0 xl:justify-end">
             <SaveIndicator
               saving={saving}
               lastSavedAt={lastSavedAt}
@@ -356,14 +356,12 @@ export function EditorPage({ newsletterId, onBack }) {
       />
 
       <div
-        className="p-6 grid gap-6"
-        style={{ gridTemplateColumns: "minmax(380px, 480px) 1fr" }}
+        className="grid grid-cols-1 gap-5 p-4 sm:p-6 xl:grid-cols-[minmax(380px,480px)_1fr] xl:gap-6"
       >
         <div
-          className={`overflow-y-auto pr-1 ${
+          className={`min-w-0 xl:max-h-[calc(100vh-180px)] xl:overflow-y-auto xl:pr-1 ${
             lockedByOther ? "pointer-events-none opacity-60" : ""
           }`}
-          style={{ maxHeight: "calc(100vh - 180px)" }}
         >
           <EditorPanel state={state} setState={setStateWithHistory} />
         </div>

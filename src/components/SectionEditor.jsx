@@ -154,7 +154,7 @@ function HeroEditor({ data, set, sections }) {
       <Field label="Kicker (au-dessus du titre)">
         <Input value={data.kicker} onChange={(e) => set({ kicker: e.target.value })} />
       </Field>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <Field label="Titre — ligne 1">
           <Input value={data.title_part1} onChange={(e) => set({ title_part1: e.target.value })} />
         </Field>
@@ -385,7 +385,7 @@ function EditoEditor({ data, set }) {
               </button>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-2 mb-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
             <Input
               value={k.label}
               onChange={(e) =>
@@ -409,7 +409,7 @@ function EditoEditor({ data, set }) {
               placeholder="Valeur"
             />
           </div>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <Input
               value={k.delta}
               onChange={(e) =>
@@ -608,7 +608,7 @@ function ChartEditor({ data, set }) {
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <Field label="Libellé (paire)">
           <Input
             value={data.label}
@@ -625,7 +625,7 @@ function ChartEditor({ data, set }) {
           />
         </Field>
       </div>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <Field label="Variation (avec flèche)">
           <Input
             value={data.delta}
@@ -1016,7 +1016,7 @@ function MacroBarsEditor({ data, set }) {
           key={i}
           className="bg-d-panel2 border border-line rounded-xl p-3 mb-2"
         >
-          <div className="grid grid-cols-2 gap-2 mb-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
             <Input
               value={bar.label}
               onChange={(e) =>
@@ -1032,7 +1032,7 @@ function MacroBarsEditor({ data, set }) {
               placeholder="Valeur"
             />
           </div>
-          <div className="grid grid-cols-2 gap-2 mb-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
             <Input
               value={bar.percent}
               onChange={(e) =>
@@ -1077,7 +1077,7 @@ function MacroBarsEditor({ data, set }) {
 function EventEditor({ data, set }) {
   return (
     <>
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <Field label="Jour">
           <Input value={data.day} onChange={(e) => set({ day: e.target.value })} />
         </Field>
@@ -1102,7 +1102,7 @@ function EventEditor({ data, set }) {
           onChange={(e) => set({ description: e.target.value })}
         />
       </Field>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <Field label="Texte du bouton">
           <Input
             value={data.cta_label}
@@ -1176,7 +1176,7 @@ function FocusEditor({ data, set }) {
               </button>
             </Tooltip>
           </div>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <button
               type="button"
               onClick={() => setImageManagerOpen(true)}
@@ -1233,7 +1233,7 @@ function FocusEditor({ data, set }) {
       <div className="text-[10px] uppercase tracking-[0.18em] font-semibold text-d-fg3 mb-2 mt-2">
         Bouton principal (gradient) — <span className="normal-case font-normal text-d-fg4">laisse vide pour ne pas l'afficher</span>
       </div>
-      <div className="grid grid-cols-2 gap-3 mb-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-2">
         <Field label="Texte">
           <Input
             value={data.cta_primary_label}
@@ -1251,7 +1251,7 @@ function FocusEditor({ data, set }) {
       <div className="text-[10px] uppercase tracking-[0.18em] font-semibold text-d-fg3 mb-2">
         Bouton secondaire (outline) — <span className="normal-case font-normal text-d-fg4">laisse vide pour ne pas l'afficher</span>
       </div>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <Field label="Texte">
           <Input
             value={data.cta_secondary_label}
@@ -1322,7 +1322,7 @@ function ImageBlockEditor({ data, set }) {
               </button>
             </Tooltip>
           </div>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <button
               type="button"
               onClick={() => setImageManagerOpen(true)}
@@ -1407,7 +1407,7 @@ function TextBlockEditor({ data, set }) {
       <div className="text-[10px] uppercase tracking-[0.18em] font-semibold text-d-fg3 mb-2 mt-2">
         Bouton (gradient) — <span className="normal-case font-normal text-d-fg4">laisse vide pour ne pas l'afficher</span>
       </div>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <Field label="Texte">
           <Input
             value={data.cta_label ?? ""}

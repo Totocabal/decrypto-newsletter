@@ -532,7 +532,7 @@ function RichTextEditor({ showCount, onChange, value = "", ...props }) {
         initialValue={initialValueRef.current}
         onChange={handleChange}
       >
-        <div className="flex items-center gap-1 px-2 py-1.5 border-b border-line bg-d-panel2">
+        <div className="flex items-center gap-1 overflow-x-auto border-b border-line bg-d-panel2 px-2 py-1.5">
           <MarkButton format="bold" title="Gras">
             <Bold size={13} />
           </MarkButton>
@@ -582,15 +582,15 @@ function RichTextEditor({ showCount, onChange, value = "", ...props }) {
 export function Section({ title, children, defaultOpen = true, action }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <div className="mb-5 border border-line rounded-2xl overflow-hidden bg-d-panel">
-      <div className="w-full flex items-center justify-between border-b border-line">
+    <div className="mb-5 overflow-hidden rounded-2xl border border-line bg-d-panel">
+      <div className="flex w-full items-center justify-between border-b border-line">
         <button
           type="button"
           onClick={() => setOpen(!open)}
-          className="flex-1 flex items-center justify-between px-4 py-3 hover:bg-d-panel2 transition-colors"
+          className="flex min-w-0 flex-1 items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-d-panel2"
         >
           <span
-            className="text-xs uppercase tracking-[0.22em] font-semibold text-d-fg2"
+            className="min-w-0 text-left text-xs font-semibold uppercase tracking-[0.22em] text-d-fg2"
             style={{ fontFamily: "'Sora', sans-serif" }}
           >
             {title}

@@ -63,16 +63,16 @@ export function VersionsPanel({ newsletterId, onRestore, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-6">
-      <div className="bg-d-panel border border-line rounded-2xl w-full max-w-2xl max-h-[82vh] flex flex-col overflow-hidden shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm sm:p-6">
+      <div className="flex max-h-[88vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-line bg-d-panel shadow-2xl sm:max-h-[82vh]">
         <div className="h-1 bg-gradient-to-r from-d-blue via-d-pink to-d-green" />
-        <div className="flex items-center justify-between px-6 py-5 border-b border-line">
-          <div>
+        <div className="flex items-start justify-between gap-4 border-b border-line px-4 py-4 sm:px-6 sm:py-5">
+          <div className="min-w-0">
             <div className="text-[10px] uppercase tracking-[0.22em] text-d-pink font-semibold mb-1">
               Historique
             </div>
             <h2
-              className="text-xl font-semibold text-d-fg tracking-tight"
+              className="text-lg font-semibold tracking-tight text-d-fg sm:text-xl"
               style={{ fontFamily: "'Sora', sans-serif" }}
             >
               Versions sauvegardées
@@ -111,9 +111,9 @@ export function VersionsPanel({ newsletterId, onRestore, onClose }) {
                 return (
                 <li
                   key={v.id}
-                  className="px-6 py-4 hover:bg-d-panel2 transition-colors"
+                  className="px-4 py-4 transition-colors hover:bg-d-panel2 sm:px-6"
                 >
-                  <div className="flex items-start gap-4">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:gap-4">
                     <div className="flex-1 min-w-0">
                       <div
                         className="text-sm font-semibold text-d-fg mb-2"
@@ -144,7 +144,7 @@ export function VersionsPanel({ newsletterId, onRestore, onClose }) {
                     <button
                       type="button"
                       onClick={() => handleRestore(v.id)}
-                      className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] font-semibold text-d-fg2 hover:text-d-fg px-3 py-2 border border-line hover:border-line2 rounded-lg flex-shrink-0 transition-colors"
+                      className="flex flex-shrink-0 items-center justify-center gap-1.5 rounded-lg border border-line px-3 py-2 text-[10px] uppercase tracking-[0.18em] text-d-fg2 font-semibold transition-colors hover:border-line2 hover:text-d-fg sm:justify-start"
                     >
                       <RotateCcw size={11} />
                       Restaurer

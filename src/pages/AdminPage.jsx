@@ -152,12 +152,12 @@ export function AdminPage({ onBack }) {
   return (
     <div className="min-h-screen bg-d-bg">
       <header
-        className="border-b border-line px-6"
-        style={{ background: "#1E1E22", height: 64, display: "flex", alignItems: "center" }}
+        className="border-b border-line px-4 py-3 sm:px-6"
+        style={{ background: "#1E1E22" }}
       >
-        <div className="max-w-4xl mx-auto w-full flex items-center gap-4">
+        <div className="mx-auto flex w-full max-w-4xl flex-wrap items-center gap-3 sm:gap-4">
           <Wordmark size={17} />
-          <div className="w-px h-6" style={{ background: "var(--d-line2)", flexShrink: 0 }} />
+          <div className="hidden h-6 w-px sm:block" style={{ background: "var(--d-line2)", flexShrink: 0 }} />
           <button
             onClick={onBack}
             className="flex items-center gap-2 text-[10px] uppercase tracking-[0.18em] font-medium text-d-fg3 hover:text-d-fg px-3 py-1.5 border border-line hover:border-line2 rounded-full transition-colors"
@@ -165,18 +165,18 @@ export function AdminPage({ onBack }) {
             <ArrowLeft size={12} />
             Retour
           </button>
-          <div className="text-[10px] uppercase tracking-[0.18em] text-d-fg4 font-medium">
+          <div className="hidden text-[10px] uppercase tracking-[0.18em] text-d-fg4 font-medium sm:block">
             Administration
           </div>
 
           {/* Onglets */}
-          <div className="flex items-center bg-d-panel2 rounded-full p-1 border border-line ml-auto">
+          <div className="order-last flex max-w-full items-center overflow-x-auto rounded-full border border-line bg-d-panel2 p-1 sm:order-none sm:ml-auto">
             {tabs.map(({ id, label, icon: Icon }) => (
               <button
                 key={id}
                 type="button"
                 onClick={() => setTab(id)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 text-[11px] uppercase tracking-[0.14em] rounded-full font-semibold transition-colors ${
+                className={`flex flex-shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] uppercase tracking-[0.14em] font-semibold transition-colors ${
                   tab === id
                     ? "bg-white text-[#15151A]"
                     : "text-d-fg3 hover:text-d-fg2"
@@ -190,7 +190,7 @@ export function AdminPage({ onBack }) {
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto p-6">
+      <main className="mx-auto max-w-4xl p-4 sm:p-6">
         {/* ── Onglet Gestion des comptes ── */}
         <div className={`space-y-6 ${tab !== "accounts" ? "hidden" : ""}`}>
             {loading && (
@@ -309,9 +309,9 @@ export function AdminPage({ onBack }) {
                 {approved.map((p) => {
                   const isSelf = p.id === currentProfile?.id;
                   return (
-                    <div key={p.id} className="flex items-center gap-4 px-4 py-3">
+                    <div key={p.id} className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:gap-4">
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
+                        <div className="flex min-w-0 flex-wrap items-center gap-2">
                           <span className="text-sm text-d-fg">{p.full_name || p.email}</span>
                           {p.is_admin && (
                             <span
@@ -331,7 +331,7 @@ export function AdminPage({ onBack }) {
                         <div className="text-[11px] text-d-fg4">{p.email}</div>
                       </div>
                       {!isSelf && (
-                        <div className="flex items-center gap-1">
+                        <div className="flex flex-wrap items-center gap-1 sm:justify-end">
                           <button
                             onClick={() => updateProfile(p.id, { is_admin: !p.is_admin })}
                             className="text-[10px] uppercase tracking-[0.18em] font-medium text-d-fg3 hover:text-d-fg px-3 py-1.5 border border-line hover:border-line2 rounded-full transition-colors"
@@ -443,7 +443,7 @@ function DefaultSectionsEditor() {
 
   return (
     <section>
-      <div className="flex items-start justify-between mb-5">
+      <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h2 className="text-sm font-semibold text-d-fg mb-1" style={{ fontFamily: "'Sora', sans-serif" }}>
             Template nouvelle newsletter
@@ -452,7 +452,7 @@ function DefaultSectionsEditor() {
             Choisis les blocs inclus par défaut à la création. Tu peux ajouter plusieurs fois le même bloc et réordonner les blocs actifs.
           </p>
         </div>
-        <div className="flex gap-2 flex-shrink-0">
+        <div className="flex flex-wrap gap-2 sm:flex-shrink-0">
           <button
             onClick={handleReset}
             className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] font-medium text-d-fg3 hover:text-d-fg border border-line hover:border-line2 px-3 py-1.5 rounded-full transition-colors"
@@ -499,7 +499,7 @@ function DefaultSectionsEditor() {
         </span>
       </label>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {/* Colonne gauche — blocs actifs */}
         <div>
           <div className="text-[10px] uppercase tracking-[0.18em] text-d-fg3 font-medium mb-3 flex items-center gap-2">

@@ -9,16 +9,15 @@ import { Tooltip } from "./Tooltip.jsx";
 export function PreviewPanel({ html, view, previewDevice, setPreviewDevice }) {
   return (
     <div
-      className="bg-d-panel border border-line rounded-2xl overflow-hidden flex flex-col"
-      style={{ height: "calc(100vh - 180px)" }}
+      className="flex h-[70vh] min-h-[420px] min-w-0 flex-col overflow-hidden rounded-2xl border border-line bg-d-panel xl:h-[calc(100vh-180px)]"
     >
       {view === "preview" && (
-        <div className="flex items-center justify-center gap-1 px-3 py-2 border-b border-line">
-          <div className="flex items-center bg-d-panel2 rounded-full p-1 border border-line">
+        <div className="flex items-center justify-center gap-1 border-b border-line px-3 py-2">
+          <div className="flex max-w-full items-center overflow-x-auto rounded-full border border-line bg-d-panel2 p-1">
             <Tooltip label="Aperçu desktop">
               <button
                 onClick={() => setPreviewDevice("desktop")}
-                className={`flex items-center gap-1.5 px-3 py-1.5 text-[11px] uppercase tracking-[0.14em] rounded-full font-semibold transition-colors ${
+                className={`flex flex-shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] uppercase tracking-[0.14em] font-semibold transition-colors ${
                   previewDevice === "desktop"
                     ? "bg-white text-[#15151A]"
                     : "text-d-fg3 hover:text-d-fg2"
@@ -30,7 +29,7 @@ export function PreviewPanel({ html, view, previewDevice, setPreviewDevice }) {
             <Tooltip label="Aperçu mobile">
               <button
                 onClick={() => setPreviewDevice("mobile")}
-                className={`flex items-center gap-1.5 px-3 py-1.5 text-[11px] uppercase tracking-[0.14em] rounded-full font-semibold transition-colors ${
+                className={`flex flex-shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] uppercase tracking-[0.14em] font-semibold transition-colors ${
                   previewDevice === "mobile"
                     ? "bg-white text-[#15151A]"
                     : "text-d-fg3 hover:text-d-fg2"

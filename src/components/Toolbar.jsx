@@ -29,30 +29,30 @@ export function Toolbar({
 }) {
   return (
     <div className="bg-d-panel border-b border-line sticky top-0 z-20">
-      <div className="px-6 py-4 flex items-center justify-between gap-4 flex-wrap">
-        <div>
+      <div className="flex flex-col gap-4 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
+        <div className="min-w-0">
           <div
-            className="text-[10px] uppercase tracking-[0.22em] text-d-fg3 font-semibold"
+            className="truncate text-[10px] uppercase tracking-[0.22em] text-d-fg3 font-semibold"
             style={{ fontFamily: "'DM Sans', sans-serif" }}
           >
             {brandName}
           </div>
           <div
-            className="text-xl font-bold text-d-fg mt-0.5"
+            className="mt-0.5 text-lg font-bold text-d-fg sm:text-xl"
             style={{ fontFamily: "'Sora', sans-serif", letterSpacing: "-0.01em" }}
           >
             Éditeur de newsletter
           </div>
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 lg:flex-wrap lg:justify-end lg:overflow-visible lg:pb-0">
           {/* Switch Aperçu / Code */}
           <div
-            className="flex items-center bg-d-panel2 rounded-full p-1 mr-2 border border-line"
+            className="mr-1 flex flex-shrink-0 items-center rounded-full border border-line bg-d-panel2 p-1 sm:mr-2"
           >
             <button
               onClick={() => setView("preview")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-[11px] uppercase tracking-[0.14em] rounded-full transition-colors font-semibold ${
+              className={`flex flex-shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] uppercase tracking-[0.14em] transition-colors font-semibold ${
                 view === "preview"
                   ? "bg-white text-[#15151A]"
                   : "text-d-fg3 hover:text-d-fg2"
@@ -62,7 +62,7 @@ export function Toolbar({
             </button>
             <button
               onClick={() => setView("code")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-[11px] uppercase tracking-[0.14em] rounded-full transition-colors font-semibold ${
+              className={`flex flex-shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] uppercase tracking-[0.14em] transition-colors font-semibold ${
                 view === "code"
                   ? "bg-white text-[#15151A]"
                   : "text-d-fg3 hover:text-d-fg2"
@@ -80,19 +80,19 @@ export function Toolbar({
           >
             <button
               onClick={onSave}
-              className="flex items-center gap-1.5 px-3 py-2 text-[11px] uppercase tracking-[0.14em] font-medium border border-line2 text-d-fg2 rounded-full hover:bg-d-panel2 focus:bg-d-panel2 focus:outline-none focus:ring-2 focus:ring-d-pink/30 transition-colors"
+              className="flex flex-shrink-0 items-center gap-1.5 rounded-full border border-line2 px-3 py-2 text-[11px] uppercase tracking-[0.14em] font-medium text-d-fg2 transition-colors hover:bg-d-panel2 focus:bg-d-panel2 focus:outline-none focus:ring-2 focus:ring-d-pink/30"
             >
               {saved ? <Check size={12} /> : <Save size={12} />}
               {saved ? "Sauvé" : "Sauvegarder"}
             </button>
           </Tooltip>
 
-          <div className="w-px h-5 mx-1" style={{ background: "var(--d-line2)" }} />
+          <div className="hidden h-5 w-px sm:block" style={{ background: "var(--d-line2)" }} />
 
           {/* Copier HTML */}
           <button
             onClick={onCopy}
-            className="flex items-center gap-1.5 px-3 py-2 text-[11px] uppercase tracking-[0.14em] font-medium border border-line2 text-d-fg2 rounded-full hover:bg-d-panel2 transition-colors"
+            className="flex flex-shrink-0 items-center gap-1.5 rounded-full border border-line2 px-3 py-2 text-[11px] uppercase tracking-[0.14em] font-medium text-d-fg2 transition-colors hover:bg-d-panel2"
           >
             {copied ? <Check size={12} /> : <Copy size={12} />}
             {copied ? "Copié" : "Copier HTML"}
@@ -108,7 +108,7 @@ export function Toolbar({
             <button
               onClick={onExportZip}
               disabled={exporting}
-              className="flex items-center gap-1.5 px-3 py-2 text-[11px] uppercase tracking-[0.14em] font-semibold rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-white"
+              className="flex flex-shrink-0 items-center gap-1.5 rounded-full px-3 py-2 text-[11px] uppercase tracking-[0.14em] font-semibold text-white transition-colors disabled:cursor-not-allowed disabled:opacity-50"
               style={{
                 background: "linear-gradient(90deg, #4141FF 0%, #FF00AA 60%, #FF4B28 100%)",
               }}
@@ -138,7 +138,7 @@ export function Toolbar({
             <button
               onClick={onExportBraze}
               disabled={exportingBraze}
-              className="flex items-center gap-1.5 px-3 py-2 text-[11px] uppercase tracking-[0.14em] font-semibold rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-white"
+              className="flex flex-shrink-0 items-center gap-1.5 rounded-full px-3 py-2 text-[11px] uppercase tracking-[0.14em] font-semibold text-white transition-colors disabled:cursor-not-allowed disabled:opacity-50"
               style={{ background: "#FF00AA" }}
             >
               {exportingBraze ? (

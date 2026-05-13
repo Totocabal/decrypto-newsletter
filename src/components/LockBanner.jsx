@@ -26,13 +26,13 @@ export function LockBanner({ lockInfo, onTakeOver, onBack }) {
 
   return (
     <div
-      className="px-6 py-3 border-b"
+      className="border-b px-4 py-3 sm:px-6"
       style={{
         background: "rgba(255,75,40,0.08)",
         borderColor: "rgba(255,75,40,0.20)",
       }}
     >
-      <div className="max-w-6xl mx-auto flex items-center gap-3">
+      <div className="mx-auto flex max-w-6xl flex-col gap-3 sm:flex-row sm:items-center">
         <Lock size={16} style={{ color: "#FF8466", flexShrink: 0 }} />
         <div className="flex-1 text-sm" style={{ color: "#FFB8A0" }}>
           <strong style={{ color: "#FFCFBD" }}>
@@ -53,7 +53,7 @@ export function LockBanner({ lockInfo, onTakeOver, onBack }) {
         </button>
         <button
           onClick={handleTakeOver}
-          className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] font-semibold text-white px-3 py-1.5 rounded-full transition-colors"
+          className="flex items-center justify-center gap-1.5 rounded-full px-3 py-1.5 text-[10px] uppercase tracking-[0.18em] font-semibold text-white transition-colors"
           style={{ background: "#FF4B28" }}
         >
           <AlertTriangle size={11} />

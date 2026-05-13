@@ -431,19 +431,19 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId }) {
 
   return (
     <div className="fixed inset-0 z-50 bg-d-bg text-d-fg flex flex-col">
-      <header className="h-16 border-b border-line bg-d-panel flex items-center px-6">
-        <div className="flex-1">
+      <header className="flex items-center gap-3 border-b border-line bg-d-panel px-4 py-3 sm:px-6">
+        <div className="min-w-0 flex-1">
           <div className="text-[10px] uppercase tracking-[0.22em] text-d-pink font-semibold">
             Gestionnaire d'images
           </div>
           <div
-            className="text-lg font-semibold tracking-tight"
+            className="truncate text-base font-semibold tracking-tight sm:text-lg"
             style={{ fontFamily: "'Sora', sans-serif" }}
           >
             Sélection et import Supabase
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-shrink-0 items-center gap-2">
           <Tooltip label="Rafraîchir">
             <button
               type="button"
@@ -466,11 +466,11 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId }) {
         </div>
       </header>
 
-      <main className="flex-1 overflow-hidden grid grid-cols-[minmax(280px,360px)_1fr]">
-        <aside className="border-r border-line bg-d-panel p-5 overflow-y-auto">
+      <main className="grid flex-1 grid-cols-1 overflow-y-auto lg:grid-cols-[minmax(280px,360px)_1fr] lg:overflow-hidden">
+        <aside className="border-b border-line bg-d-panel p-4 sm:p-5 lg:overflow-y-auto lg:border-b-0 lg:border-r">
           <div
             {...dropHandlers}
-            className={`border border-dashed rounded-2xl p-6 min-h-[260px] flex flex-col items-center justify-center text-center transition-colors ${
+            className={`flex min-h-[220px] flex-col items-center justify-center rounded-2xl border border-dashed p-5 text-center transition-colors sm:min-h-[260px] sm:p-6 ${
               dragging
                 ? "border-d-pink bg-d-pink/10"
                 : "border-line bg-d-panel2 hover:border-line2"
@@ -560,8 +560,8 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId }) {
           </div>
         </aside>
 
-        <section className="overflow-y-auto p-6">
-          <div className="mb-5 flex items-center justify-between gap-4">
+        <section className="min-w-0 p-4 sm:p-6 lg:overflow-y-auto">
+          <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <div className="text-[10px] uppercase tracking-[0.18em] text-d-fg4">
                 Bibliothèque
@@ -573,8 +573,8 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId }) {
                 )}
               </div>
             </div>
-            <div className="flex flex-wrap items-center justify-end gap-2">
-              <div className="flex items-center gap-1 rounded-xl border border-line bg-d-panel p-1">
+            <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:justify-end sm:overflow-visible sm:pb-0">
+              <div className="flex flex-shrink-0 items-center gap-1 rounded-xl border border-line bg-d-panel p-1">
                 {viewModes.map((mode) => {
                   const Icon = mode.icon;
                   const active = viewMode === mode.id;
@@ -583,7 +583,7 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId }) {
                       <button
                         type="button"
                         onClick={() => setViewMode(mode.id)}
-                        className={`h-8 px-2.5 rounded-lg inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.14em] transition-colors ${
+                        className={`inline-flex h-8 flex-shrink-0 items-center gap-1.5 rounded-lg px-2.5 text-[10px] uppercase tracking-[0.14em] transition-colors ${
                           active
                             ? "bg-d-panel3 text-d-fg"
                             : "text-d-fg4 hover:text-d-fg2"
@@ -602,7 +602,7 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId }) {
                   setMultiSelect((active) => !active);
                   if (multiSelect) setSelectedPaths([]);
                 }}
-                className={`h-10 px-3 rounded-xl border text-[10px] uppercase tracking-[0.16em] transition-colors ${
+                className={`h-10 flex-shrink-0 rounded-xl border px-3 text-[10px] uppercase tracking-[0.16em] transition-colors ${
                   multiSelect
                     ? "border-d-pink bg-d-pink/10 text-d-pink"
                     : "border-line text-d-fg3 hover:text-d-fg2 hover:border-line2"
@@ -616,7 +616,7 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId }) {
                     type="button"
                     onClick={toggleSelectAll}
                     disabled={images.length === 0}
-                    className="h-10 px-3 rounded-xl border border-line text-[10px] uppercase tracking-[0.16em] text-d-fg3 hover:text-d-fg2 hover:border-line2 disabled:opacity-40 transition-colors"
+                    className="h-10 flex-shrink-0 rounded-xl border border-line px-3 text-[10px] uppercase tracking-[0.16em] text-d-fg3 transition-colors hover:border-line2 hover:text-d-fg2 disabled:opacity-40"
                   >
                     {selectedCount === images.length && images.length > 0 ? "Tout retirer" : "Tout sélectionner"}
                   </button>
@@ -624,7 +624,7 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId }) {
                     type="button"
                     onClick={handleDeleteSelected}
                     disabled={selectedCount === 0}
-                    className="h-10 px-3 rounded-xl border border-red-500/30 text-[10px] uppercase tracking-[0.16em] text-red-300 hover:bg-red-950/20 disabled:opacity-40 transition-colors"
+                    className="h-10 flex-shrink-0 rounded-xl border border-red-500/30 px-3 text-[10px] uppercase tracking-[0.16em] text-red-300 transition-colors hover:bg-red-950/20 disabled:opacity-40"
                   >
                     Supprimer ({selectedCount})
                   </button>
@@ -648,17 +648,17 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId }) {
           ) : (
             <>
               {viewMode === "grid4" && (
-                <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
                   {images.map((image) => renderImageCard(image))}
                 </div>
               )}
               {viewMode === "grid8" && (
-                <div className="grid grid-cols-4 xl:grid-cols-8 gap-3">
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 xl:grid-cols-8">
                   {images.map((image) => renderImageCard(image, "compact"))}
                 </div>
               )}
               {viewMode === "grid16" && (
-                <div className="grid grid-cols-8 2xl:grid-cols-[repeat(16,minmax(0,1fr))] gap-2">
+                <div className="grid grid-cols-4 gap-2 sm:grid-cols-8 2xl:grid-cols-[repeat(16,minmax(0,1fr))]">
                   {images.map((image) => renderImageCard(image, "micro"))}
                 </div>
               )}

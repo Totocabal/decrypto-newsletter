@@ -205,17 +205,16 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
     <div className="min-h-screen bg-d-bg">
       {/* Header */}
       <header
-        className="bg-d-panel border-b px-6 py-0 border-line"
-        style={{ height: 64, display: "flex", alignItems: "center" }}
+        className="border-b border-line bg-d-panel px-4 py-3 sm:px-6"
       >
-        <div className="max-w-5xl mx-auto w-full flex items-center justify-between">
+        <div className="mx-auto flex w-full max-w-5xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <Wordmark size={18} />
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:justify-end sm:overflow-visible sm:pb-0">
             {profile?.is_admin && (
               <button
                 onClick={onOpenAdmin}
-                className="flex items-center gap-2 px-3 py-1.5 border border-line2 text-d-fg2 text-[11px] uppercase tracking-[0.18em] font-medium rounded-full hover:bg-d-panel2 transition-colors"
+                className="flex flex-shrink-0 items-center gap-2 rounded-full border border-line2 px-3 py-1.5 text-[11px] uppercase tracking-[0.18em] text-d-fg2 font-medium transition-colors hover:bg-d-panel2"
               >
                 <Settings size={12} />
                 Admin
@@ -223,20 +222,20 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
             )}
             <button
               onClick={() => setImageManagerOpen(true)}
-              className="flex items-center gap-2 px-3 py-1.5 border border-line2 text-d-fg2 text-[11px] uppercase tracking-[0.18em] font-medium rounded-full hover:bg-d-panel2 transition-colors"
+              className="flex flex-shrink-0 items-center gap-2 rounded-full border border-line2 px-3 py-1.5 text-[11px] uppercase tracking-[0.18em] text-d-fg2 font-medium transition-colors hover:bg-d-panel2"
             >
               <ImageIcon size={12} />
               Images
             </button>
             <div
-              className="text-xs text-d-fg3 px-3 font-dm"
+              className="hidden max-w-[180px] truncate px-2 text-xs text-d-fg3 font-dm md:block"
               style={{ fontFamily: "'DM Sans', sans-serif" }}
             >
               {profile?.full_name || profile?.email}
             </div>
             <button
               onClick={signOut}
-              className="flex items-center gap-2 px-3 py-1.5 border border-line2 text-d-fg2 text-[11px] uppercase tracking-[0.18em] font-medium rounded-full hover:bg-d-panel2 transition-colors"
+              className="flex flex-shrink-0 items-center gap-2 rounded-full border border-line2 px-3 py-1.5 text-[11px] uppercase tracking-[0.18em] text-d-fg2 font-medium transition-colors hover:bg-d-panel2"
             >
               <LogOut size={12} />
               Déconnexion
@@ -246,8 +245,8 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
       </header>
 
       {/* Body */}
-      <main className="max-w-5xl mx-auto px-6 py-10">
-        <div className="flex items-end justify-between mb-6">
+      <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10">
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h1
               className="text-d-fg font-bold text-3xl tracking-tight mb-1"
@@ -266,7 +265,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
           <button
             onClick={() => setCreateChoiceOpen(true)}
             disabled={creating}
-            className="flex items-center gap-2 px-5 py-2.5 text-[12px] uppercase tracking-[0.18em] font-semibold rounded-full transition-colors disabled:opacity-50"
+            className="flex w-full items-center justify-center gap-2 rounded-full px-5 py-2.5 text-[12px] uppercase tracking-[0.18em] font-semibold transition-colors disabled:opacity-50 sm:w-auto"
             style={{ background: "#FFFFFF", color: "#15151A" }}
           >
             <Plus size={14} />
@@ -276,7 +275,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
 
         {/* Barre recherche + tri */}
         {newsletters.length > 0 && (
-          <div className="flex gap-3 mb-5">
+          <div className="mb-5 flex flex-col gap-3 sm:flex-row">
             <div className="relative flex-1">
               <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-d-fg4 pointer-events-none" />
               <input
@@ -358,7 +357,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                         onOpen(nl.id);
                       }
                     }}
-                    className="flex items-center gap-4 px-5 py-4 hover:bg-d-panel2 transition-colors group cursor-pointer focus:outline-none focus:bg-d-panel2"
+                    className="group flex cursor-pointer items-start gap-3 px-4 py-4 transition-colors hover:bg-d-panel2 focus:bg-d-panel2 focus:outline-none sm:items-center sm:gap-4 sm:px-5"
                   >
                     {/* Icon */}
                     <div
@@ -368,7 +367,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                     </div>
 
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="mb-1 flex min-w-0 flex-wrap items-center gap-2">
                         <div
                           className="text-sm font-semibold text-d-fg truncate text-left"
                           style={{ fontFamily: "'Sora', sans-serif" }}
@@ -385,7 +384,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                           </span>
                         )}
                       </div>
-                      <div className="flex items-center gap-3 text-[11px] text-d-fg3 min-w-0">
+                      <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-d-fg3">
                         <span className="flex items-center gap-1">
                           <Clock size={11} />
                           {formatDate(nl.updated_at)}
@@ -400,7 +399,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex flex-shrink-0 items-center gap-1 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
                       <Tooltip label="Dupliquer">
                         <button
                           onClick={(event) => {
@@ -427,7 +426,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                       )}
                     </div>
 
-                    <div className="p-2 text-d-fg4 group-hover:text-d-fg2 transition-colors">
+                    <div className="hidden p-2 text-d-fg4 transition-colors group-hover:text-d-fg2 sm:block">
                       <ChevronRight size={16} />
                     </div>
                   </div>
