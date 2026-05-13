@@ -10,6 +10,7 @@ import {
   Trash2,
   Lock,
   Clock,
+  User,
   LogOut,
   Settings,
   ChevronRight,
@@ -34,7 +35,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
           supabase
             .from("newsletters")
             .select(
-              "id, title, issue_number, updated_at, updated_by, archived"
+              "id, title, current_state, updated_at, updated_by, archived, created_by, creator:profiles!newsletters_created_by_fkey(full_name, email)"
             )
             .eq("archived", false)
             .order("updated_at", { ascending: false }),
@@ -146,6 +147,18 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
     });
   };
 
+  const getPreviewText = (nl) => {
+    const text = nl?.current_state?.preview_text || "";
+    const normalized = String(text)
+      .replace(/<[^>]*>/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+    return normalized || "Aucun texte de prévisualisation";
+  };
+
+  const getCreatorName = (nl) =>
+    nl?.creator?.full_name || nl?.creator?.email || "Créateur inconnu";
+
   return (
     <div className="min-h-screen bg-d-bg">
       {/* Header */}
@@ -234,7 +247,18 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
               const lockedByOther = lock && lock.user_id !== profile?.id;
               return (
                 <div key={nl.id}>
-                  <div className="flex items-center gap-4 px-5 py-4 hover:bg-d-panel2 transition-colors group">
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => onOpen(nl.id)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        onOpen(nl.id);
+                      }
+                    }}
+                    className="flex items-center gap-4 px-5 py-4 hover:bg-d-panel2 transition-colors group cursor-pointer focus:outline-none focus:bg-d-panel2"
+                  >
                     {/* Icon */}
                     <div
                       className="flex-shrink-0 w-11 h-11 rounded-xl bg-d-panel2 border border-line flex items-center justify-center"
@@ -244,13 +268,12 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <button
-                          onClick={() => onOpen(nl.id)}
-                          className="text-sm font-semibold text-d-fg hover:text-white truncate text-left transition-colors"
+                        <div
+                          className="text-sm font-semibold text-d-fg truncate text-left"
                           style={{ fontFamily: "'Sora', sans-serif" }}
                         >
                           {nl.title || "Newsletter sans titre"}
-                        </button>
+                        </div>
                         {lockedByOther && (
                           <span
                             className="inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.14em] font-semibold px-2 py-0.5 rounded-full"
@@ -261,20 +284,27 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                           </span>
                         )}
                       </div>
-                      <div className="flex items-center gap-3 text-[11px] text-d-fg3">
+                      <div className="flex items-center gap-3 text-[11px] text-d-fg3 min-w-0">
                         <span className="flex items-center gap-1">
                           <Clock size={11} />
                           {formatDate(nl.updated_at)}
                         </span>
-                        {nl.issue_number && (
-                          <span className="text-d-fg4">N° {nl.issue_number}</span>
-                        )}
+                        <span className="flex items-center gap-1 min-w-0">
+                          <User size={11} />
+                          <span className="truncate">{getCreatorName(nl)}</span>
+                        </span>
+                        <span className="text-d-fg4 truncate">
+                          {getPreviewText(nl)}
+                        </span>
                       </div>
                     </div>
 
                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
-                        onClick={() => handleDuplicate(nl)}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          handleDuplicate(nl);
+                        }}
                         className="p-2 text-d-fg4 hover:text-d-fg2 hover:bg-d-panel3 rounded-lg transition-colors"
                         title="Dupliquer"
                       >
@@ -282,7 +312,10 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                       </button>
                       {profile?.is_admin && (
                         <button
-                          onClick={() => handleDelete(nl)}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            handleDelete(nl);
+                          }}
                           className="p-2 text-d-fg4 hover:text-red-400 hover:bg-red-900/20 rounded-lg transition-colors"
                           title="Supprimer"
                         >
@@ -291,13 +324,9 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                       )}
                     </div>
 
-                    <button
-                      onClick={() => onOpen(nl.id)}
-                      className="p-2 text-d-fg4 hover:text-d-fg2 transition-colors"
-                      title="Ouvrir"
-                    >
+                    <div className="p-2 text-d-fg4 group-hover:text-d-fg2 transition-colors">
                       <ChevronRight size={16} />
-                    </button>
+                    </div>
                   </div>
                   {i < arr.length - 1 && (
                     <div className="h-px mx-5 border-line" style={{ background: "var(--d-line)" }} />
