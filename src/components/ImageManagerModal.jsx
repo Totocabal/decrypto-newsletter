@@ -117,6 +117,7 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId }) {
   const [viewMode, setViewMode] = useState("grid4");
   const [multiSelect, setMultiSelect] = useState(false);
   const [selectedPaths, setSelectedPaths] = useState([]);
+  const [detailImage, setDetailImage] = useState(null);
   const canSelect = typeof onSelect === "function";
 
   const usedBytes = images.reduce((total, image) => total + (image.metadata?.size || 0), 0);
@@ -191,6 +192,7 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId }) {
       await deleteImage(image.path);
       setImages((items) => items.filter((item) => item.path !== image.path));
       setSelectedPaths((paths) => paths.filter((path) => path !== image.path));
+      setDetailImage((current) => current?.path === image.path ? null : current);
     } catch (err) {
       setError(err.message || String(err));
     }
@@ -203,6 +205,9 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId }) {
     try {
       await Promise.all(selectedPaths.map((path) => deleteImage(path)));
       setImages((items) => items.filter((item) => !selectedPaths.includes(item.path)));
+      setDetailImage((current) =>
+        current && selectedPaths.includes(current.path) ? null : current
+      );
       setSelectedPaths([]);
     } catch (err) {
       setError(err.message || String(err));
@@ -241,6 +246,14 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId }) {
       return;
     }
     if (canSelect) onSelect({ url: image.url, path: image.path });
+  };
+
+  const openImageDetails = (image) => {
+    if (multiSelect) {
+      toggleImageSelection(image.path);
+      return;
+    }
+    setDetailImage(image);
   };
 
   const toggleImageSelection = (path) => {
@@ -292,12 +305,12 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId }) {
         }`}
       >
         <div className="relative">
-          <Tooltip label={canSelect ? "Sélectionner cette image" : image.name} className="w-full">
+          <Tooltip label="Voir le détail" className="w-full">
             <button
               type="button"
-              onClick={() => selectImage(image)}
+              onClick={() => openImageDetails(image)}
               className={`block w-full aspect-[4/3] bg-d-panel2 overflow-hidden ${
-                canSelect || multiSelect ? "" : "cursor-default"
+                multiSelect ? "" : "cursor-zoom-in"
               }`}
             >
               <img
@@ -380,12 +393,12 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId }) {
           selected ? "border-d-pink" : "border-line hover:border-line2"
         }`}
       >
-        <Tooltip label={canSelect ? "Sélectionner cette image" : image.name}>
+        <Tooltip label="Voir le détail">
           <button
             type="button"
-            onClick={() => selectImage(image)}
+            onClick={() => openImageDetails(image)}
             className={`relative h-20 w-28 rounded-xl overflow-hidden bg-d-panel2 flex-shrink-0 ${
-              canSelect ? "" : "cursor-default"
+              multiSelect ? "" : "cursor-zoom-in"
             }`}
           >
             <img src={image.url} alt={image.name} className="h-full w-full object-cover" loading="lazy" />
@@ -671,6 +684,119 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId }) {
           )}
         </section>
       </main>
+      {detailImage && (
+        <ImageDetailsModal
+          image={detailImage}
+          canSelect={canSelect}
+          selected={detailImage.path === currentPath}
+          onClose={() => setDetailImage(null)}
+          onSelect={() => onSelect?.({ url: detailImage.url, path: detailImage.path })}
+          onDelete={() => handleDelete(detailImage)}
+        />
+      )}
+    </div>
+  );
+}
+
+function ImageDetailsModal({ image, canSelect, selected, onClose, onSelect, onDelete }) {
+  const metadata = image.metadata || {};
+  const createdAt = image.created_at || image.createdAt;
+  const updatedAt = image.updated_at || image.updatedAt || createdAt;
+  const properties = [
+    ["Nom", image.name],
+    ["Taille", formatBytes(metadata.size)],
+    ["Type", metadata.mimetype || metadata.mimeType || metadata.contentType || "Type inconnu"],
+    ["Créée", createdAt ? formatDate(createdAt) : "Date inconnue"],
+    ["Modifiée", updatedAt ? formatDate(updatedAt) : "Date inconnue"],
+    ["Chemin", image.path],
+  ];
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm sm:p-6">
+      <div className="flex max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-line bg-d-panel shadow-2xl">
+        <div className="flex items-start justify-between gap-4 border-b border-line px-4 py-4 sm:px-5">
+          <div className="min-w-0">
+            <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-d-pink">
+              Détail image
+            </div>
+            <h2
+              className="mt-1 truncate text-lg font-semibold tracking-tight text-d-fg"
+              style={{ fontFamily: "'Sora', sans-serif" }}
+            >
+              {image.name}
+            </h2>
+          </div>
+          <Tooltip label="Fermer" align="right">
+            <button
+              type="button"
+              onClick={onClose}
+              className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg border border-line text-d-fg3 transition-colors hover:border-line2 hover:text-d-fg"
+            >
+              <X size={16} />
+            </button>
+          </Tooltip>
+        </div>
+
+        <div className="grid min-h-0 flex-1 grid-cols-1 overflow-y-auto lg:grid-cols-[minmax(0,1fr)_320px] lg:overflow-hidden">
+          <div className="flex min-h-[320px] items-center justify-center bg-d-bg p-4 sm:p-6 lg:min-h-0 lg:overflow-auto">
+            <img
+              src={image.url}
+              alt={image.name}
+              className="max-h-[64vh] max-w-full rounded-xl object-contain shadow-2xl"
+            />
+          </div>
+
+          <aside className="border-t border-line bg-d-panel p-4 sm:p-5 lg:overflow-y-auto lg:border-l lg:border-t-0">
+            <div className="space-y-3">
+              {properties.map(([label, value]) => (
+                <div key={label}>
+                  <div className="mb-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-d-fg4">
+                    {label}
+                  </div>
+                  <div className="break-words rounded-xl border border-line bg-d-panel2 px-3 py-2 text-xs leading-relaxed text-d-fg2">
+                    {value || "Non renseigné"}
+                  </div>
+                </div>
+              ))}
+
+              <div>
+                <div className="mb-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-d-fg4">
+                  URL publique
+                </div>
+                <a
+                  href={image.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="block break-all rounded-xl border border-line bg-d-panel2 px-3 py-2 text-xs leading-relaxed text-d-cyan underline decoration-d-cyan/40 underline-offset-2"
+                >
+                  {image.url}
+                </a>
+              </div>
+            </div>
+
+            <div className="mt-5 flex flex-col gap-2">
+              {canSelect && (
+                <button
+                  type="button"
+                  onClick={onSelect}
+                  className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-d-bg transition-colors hover:bg-d-fg2"
+                >
+                  {selected ? <Check size={13} /> : <ImageIcon size={13} />}
+                  {selected ? "Image sélectionnée" : "Sélectionner"}
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={onDelete}
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-red-500/30 px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-red-300 transition-colors hover:bg-red-950/20"
+              >
+                <Trash2 size={13} />
+                Supprimer
+              </button>
+            </div>
+          </aside>
+        </div>
+      </div>
     </div>
   );
 }
