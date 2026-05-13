@@ -96,7 +96,7 @@ export function EditorPanel({ state, setState }) {
     e.preventDefault();
     const fromId = draggedId.current;
     if (!fromId || id === fromId) return;
-    setDragOverId(id);
+    setDragOverId(null);
     if (lastDragTargetId.current === id) return;
     lastDragTargetId.current = id;
     moveSectionToTarget(fromId, id);
