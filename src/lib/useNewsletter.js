@@ -14,6 +14,55 @@ import { migrateLegacyState } from "../config/schema.js";
 
 const LOCK_RENEW_INTERVAL_MS = 2 * 60 * 1000; // 2 min
 const AUTOSAVE_DEBOUNCE_MS = 2000; // 2 s
+const LOCAL_DRAFT_PREFIX = "decrypto-newsletter-draft";
+
+function getLocalDraftKey(newsletterId) {
+  return `${LOCAL_DRAFT_PREFIX}:${newsletterId}`;
+}
+
+function loadLocalDraft(newsletterId) {
+  try {
+    const raw = localStorage.getItem(getLocalDraftKey(newsletterId));
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed?.state || !parsed?.saved_at) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function saveLocalDraft(newsletterId, state) {
+  const savedAt = new Date().toISOString();
+  try {
+    localStorage.setItem(
+      getLocalDraftKey(newsletterId),
+      JSON.stringify({ state, saved_at: savedAt })
+    );
+    return savedAt;
+  } catch {
+    // Storage may be full or unavailable; autosave remains the fallback.
+    return null;
+  }
+}
+
+function clearLocalDraft(newsletterId, savedAt = null) {
+  try {
+    if (savedAt) {
+      const current = loadLocalDraft(newsletterId);
+      if (current?.saved_at && current.saved_at !== savedAt) return;
+    }
+    localStorage.removeItem(getLocalDraftKey(newsletterId));
+  } catch {
+    // Best effort.
+  }
+}
+
+function isDraftNewerThanNewsletter(draft, newsletter) {
+  if (!draft?.saved_at) return false;
+  if (!newsletter?.updated_at) return true;
+  return new Date(draft.saved_at).getTime() > new Date(newsletter.updated_at).getTime();
+}
 
 export function useNewsletter(newsletterId, userId) {
   const [newsletter, setNewsletter] = useState(null);
@@ -60,6 +109,10 @@ export function useNewsletter(newsletterId, userId) {
       let migrated = null;
       try {
         migrated = migrateLegacyState(nl.current_state);
+        const localDraft = loadLocalDraft(newsletterId);
+        if (isDraftNewerThanNewsletter(localDraft, nl)) {
+          migrated = migrateLegacyState(localDraft.state);
+        }
       } catch (migrationError) {
         console.error("[useNewsletter] migration état impossible:", migrationError);
         setError("Le contenu de cette newsletter est illisible. Restaure une version précédente ou contacte un administrateur.");
@@ -144,6 +197,8 @@ export function useNewsletter(newsletterId, userId) {
       return;
     }
 
+    const localDraftSavedAt = saveLocalDraft(newsletterId, state);
+
     if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
     autosaveTimer.current = setTimeout(async () => {
       setSaving(true);
@@ -153,7 +208,10 @@ export function useNewsletter(newsletterId, userId) {
         .eq("id", newsletterId);
       if (!isMounted.current) return;
       setSaving(false);
-      if (!error) setLastSavedAt(new Date());
+      if (!error) {
+        clearLocalDraft(newsletterId, localDraftSavedAt);
+        setLastSavedAt(new Date());
+      }
     }, AUTOSAVE_DEBOUNCE_MS);
 
     return () => {
@@ -181,6 +239,7 @@ export function useNewsletter(newsletterId, userId) {
       });
       if (e2) return { error: e2.message };
 
+      clearLocalDraft(newsletterId);
       setLastSavedAt(new Date());
       return { error: null };
     },
