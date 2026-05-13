@@ -45,7 +45,7 @@ export function Toolbar({
           </div>
         </div>
 
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 lg:flex-wrap lg:justify-end lg:overflow-visible lg:pb-0">
+        <div className="flex items-center gap-2 overflow-x-auto overflow-y-hidden pb-1 lg:flex-wrap lg:justify-end lg:overflow-visible lg:pb-0">
           {/* Switch Aperçu / Code */}
           <div
             className="mr-1 flex flex-shrink-0 items-center rounded-full border border-line bg-d-panel2 p-1 sm:mr-2"
@@ -74,6 +74,7 @@ export function Toolbar({
 
           {/* Sauvegarder une version */}
           <Tooltip
+            className="flex-shrink-0"
             side="bottom"
             align="right"
             label="Crée une version numérotée automatiquement. Le champ proposé sert uniquement à ajouter un commentaire optionnel."
@@ -101,6 +102,7 @@ export function Toolbar({
           {/* Export ZIP */}
           {onExportZip && (
             <Tooltip
+              className="flex-shrink-0"
               side="bottom"
               align="right"
               label="Exporter le HTML et le dossier assets avec les PNG dans un fichier ZIP."
@@ -108,7 +110,7 @@ export function Toolbar({
             <button
               onClick={onExportZip}
               disabled={exporting}
-              className="flex flex-shrink-0 items-center gap-1.5 rounded-full px-3 py-2 text-[11px] uppercase tracking-[0.14em] font-semibold text-white transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex flex-shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-2 text-[11px] uppercase tracking-[0.14em] font-semibold text-white transition-colors disabled:cursor-not-allowed disabled:opacity-50"
               style={{
                 background: "linear-gradient(90deg, #4141FF 0%, #FF00AA 60%, #FF4B28 100%)",
               }}
@@ -131,6 +133,7 @@ export function Toolbar({
           {/* Export Braze */}
           {onExportBraze && (
             <Tooltip
+              className="flex-shrink-0"
               side="bottom"
               align="right"
               label="Uploader les images dans Braze et exporter le HTML avec les URLs Braze."
@@ -138,7 +141,7 @@ export function Toolbar({
             <button
               onClick={onExportBraze}
               disabled={exportingBraze}
-              className="flex flex-shrink-0 items-center gap-1.5 rounded-full px-3 py-2 text-[11px] uppercase tracking-[0.14em] font-semibold text-white transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex flex-shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-2 text-[11px] uppercase tracking-[0.14em] font-semibold text-white transition-colors disabled:cursor-not-allowed disabled:opacity-50"
               style={{ background: "#FF00AA" }}
             >
               {exportingBraze ? (
