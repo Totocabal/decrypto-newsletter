@@ -38,25 +38,35 @@ export function useCoinGecko() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const fetch7d = useCallback(async (cryptoId, currency = "eur") => {
+  const fetch7d = useCallback(async (cryptoId, currency = "eur", days = 7) => {
     setLoading(true);
     setError(null);
     try {
       const res = await fetch(
-        `https://api.coingecko.com/api/v3/coins/${cryptoId}/market_chart?vs_currency=${currency}&days=7&interval=daily`
+        `https://api.coingecko.com/api/v3/coins/${cryptoId}/market_chart?vs_currency=${currency}&days=${days}&interval=daily`
       );
       if (!res.ok) throw new Error(`CoinGecko error ${res.status}`);
       const json = await res.json();
 
-      // Déduplique par jour puis prend les 7 derniers jours
-      const prices = deduplicateByDay(json.prices).slice(-7);
+      const prices = deduplicateByDay(json.prices).slice(-days);
 
       const rawValues = prices.map(([, price]) => price);
       const points = normalizePrices(rawValues);
+      const n = prices.length;
 
-      const x_labels = prices.map(([ts]) => DAY_LABELS[new Date(ts).getDay()]);
+      // Pour 7j : noms de jours. Pour 30j : dates DD/MM aux positions clés uniquement.
+      let x_labels;
+      if (days <= 7) {
+        x_labels = prices.map(([ts]) => DAY_LABELS[new Date(ts).getDay()]);
+      } else {
+        const keyPositions = new Set([0, Math.floor(n / 4), Math.floor(n / 2), Math.floor((3 * n) / 4), n - 1]);
+        x_labels = prices.map(([ts], i) =>
+          keyPositions.has(i)
+            ? new Date(ts).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" })
+            : ""
+        );
+      }
 
-      // Prix bruts pour affichage dans l'éditeur
       const raw_prices = prices.map(([ts, price]) => ({
         label: new Date(ts).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" }),
         price: formatPrice(price, currency),
@@ -75,7 +85,7 @@ export function useCoinGecko() {
         value: formatPrice(currentPrice, currency),
         delta: `${isPositive ? "▲" : "▼"} ${isPositive ? "+" : ""}${diffPct.toFixed(2)} %`,
         delta_tone: isPositive ? "positive" : "negative",
-        subdelta: `${isPositive ? "+" : ""}${formatPrice(diff, currency)} sur 7j`,
+        subdelta: `${isPositive ? "+" : ""}${formatPrice(diff, currency)} sur ${days}j`,
         points,
         x_labels,
         raw_prices,

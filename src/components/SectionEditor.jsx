@@ -468,6 +468,7 @@ function ChartEditor({ data, set }) {
   const mode = data.chart_mode ?? "manual";
   const crypto = data.chart_crypto ?? "bitcoin";
   const currency = data.chart_currency ?? "eur";
+  const days = data.chart_days ?? 7;
   const { fetch7d, loading, error } = useCoinGecko();
 
   const updatePoint = (i, value) => {
@@ -477,7 +478,7 @@ function ChartEditor({ data, set }) {
   };
 
   const handleRefresh = async () => {
-    const result = await fetch7d(crypto, currency);
+    const result = await fetch7d(crypto, currency, days);
     if (result) set(result);
   };
 
@@ -551,6 +552,35 @@ function ChartEditor({ data, set }) {
                 }`}
               >
                 $
+              </button>
+            </div>
+          </div>
+          <div>
+            <div className="text-[10px] uppercase tracking-[0.18em] font-semibold text-d-fg3 mb-1.5">
+              Période
+            </div>
+            <div className="flex rounded-xl border border-line overflow-hidden">
+              <button
+                type="button"
+                onClick={() => set({ chart_days: 7 })}
+                className={`px-3 py-2 text-xs font-semibold transition-colors ${
+                  days === 7
+                    ? "bg-white text-[#15151A]"
+                    : "bg-d-panel2 text-d-fg3 hover:text-d-fg"
+                }`}
+              >
+                7j
+              </button>
+              <button
+                type="button"
+                onClick={() => set({ chart_days: 30 })}
+                className={`px-3 py-2 text-xs font-semibold transition-colors border-l border-line ${
+                  days === 30
+                    ? "bg-white text-[#15151A]"
+                    : "bg-d-panel2 text-d-fg3 hover:text-d-fg"
+                }`}
+              >
+                30j
               </button>
             </div>
           </div>
