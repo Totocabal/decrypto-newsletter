@@ -22,8 +22,16 @@ export function escapeAttr(str = "") {
   return String(str).replace(/"/g, "&quot;");
 }
 
+function decodeStoredTextEntities(str = "") {
+  return String(str)
+    .replace(/&#39;|&#x27;|&apos;/gi, "'")
+    .replace(/&quot;/gi, '"')
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&");
+}
+
 export function sanitizeRichText(text = "") {
-  let out = escapeHtml(text);
+  let out = escapeHtml(decodeStoredTextEntities(text));
   out = out
     .replace(/&lt;br\s*\/?&gt;/gi, "<br />")
     .replace(/&lt;div&gt;/gi, "")

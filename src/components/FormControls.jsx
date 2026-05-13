@@ -65,6 +65,12 @@ function escapeAttr(str = "") {
   return escapeHtml(str).replace(/"/g, "&quot;");
 }
 
+function escapeTextForStoredHtml(str = "") {
+  return String(str)
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
 function normalizeSlateChildren(children) {
   return children.length ? children : [{ text: "" }];
 }
@@ -170,7 +176,7 @@ function serializeSlate(nodes = []) {
 
 function serializeNode(node) {
   if (Text.isText(node)) {
-    let text = escapeHtml(node.text).replace(/\n/g, "<br />");
+    let text = escapeTextForStoredHtml(node.text).replace(/\n/g, "<br />");
     if (node.bold) text = `<strong>${text}</strong>`;
     if (node.italic) text = `<em>${text}</em>`;
     if (node.underline) text = `<u>${text}</u>`;
