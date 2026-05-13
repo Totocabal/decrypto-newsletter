@@ -74,41 +74,22 @@ export function EditorPanel({ state, setState }) {
   // ── Drag & drop ──
   const draggedId = useRef(null);
   const lastDragTargetId = useRef(null);
-  const dragImageRef = useRef(null);
   const [dragOverId, setDragOverId] = useState(null);
+  const [desktopDraggingId, setDesktopDraggingId] = useState(null);
   const [selectedMobileSectionId, setSelectedMobileSectionId] = useState(null);
-
-  const clearDragImage = () => {
-    if (dragImageRef.current) {
-      dragImageRef.current.remove();
-      dragImageRef.current = null;
-    }
-  };
 
   const handleDragStart = (id, event) => {
     event.stopPropagation();
-    clearDragImage();
     draggedId.current = id;
     lastDragTargetId.current = null;
+    setDesktopDraggingId(id);
     event.dataTransfer.effectAllowed = "move";
     event.dataTransfer.setData("text/plain", id);
-    const card = document.querySelector(`[data-section-card="${id}"]`);
-    if (card && event.dataTransfer?.setDragImage) {
-      const rect = card.getBoundingClientRect();
-      const clone = card.cloneNode(true);
-      clone.style.position = "fixed";
-      clone.style.top = "-10000px";
-      clone.style.left = "-10000px";
-      clone.style.width = `${rect.width}px`;
-      clone.style.maxHeight = `${rect.height}px`;
-      clone.style.overflow = "hidden";
-      clone.style.pointerEvents = "none";
-      clone.style.opacity = "0.9";
-      clone.style.transform = "none";
-      clone.style.boxSizing = "border-box";
-      document.body.appendChild(clone);
-      dragImageRef.current = clone;
-      event.dataTransfer.setDragImage(clone, 16, Math.min(32, rect.height / 2));
+    if (event.dataTransfer?.setDragImage) {
+      const transparentPixel = new Image();
+      transparentPixel.src =
+        "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==";
+      event.dataTransfer.setDragImage(transparentPixel, 0, 0);
     }
   };
   const handleDragOver = (e, id) => {
@@ -129,14 +110,14 @@ export function EditorPanel({ state, setState }) {
     }
     draggedId.current = null;
     lastDragTargetId.current = null;
+    setDesktopDraggingId(null);
     setDragOverId(null);
-    clearDragImage();
   };
   const handleDragEnd = () => {
     draggedId.current = null;
     lastDragTargetId.current = null;
+    setDesktopDraggingId(null);
     setDragOverId(null);
-    clearDragImage();
   };
 
   const moveSectionToTarget = (fromId, targetId) => {
@@ -392,6 +373,7 @@ export function EditorPanel({ state, setState }) {
               onDragOver={(e) => handleDragOver(e, sec.id)}
               onDrop={(e) => handleDrop(e, sec.id)}
               onDragEnd={handleDragEnd}
+              desktopDragging={desktopDraggingId === sec.id}
               selectedMobile={selectedMobileSectionId === sec.id}
               onSelectMobile={() => setSelectedMobileSectionId(sec.id)}
             />
@@ -487,6 +469,7 @@ function SectionCard({
   onDragOver,
   onDrop,
   onDragEnd,
+  desktopDragging,
   selectedMobile,
   onSelectMobile,
 }) {
@@ -514,10 +497,10 @@ function SectionCard({
       }`}
       style={{
         background: "#1E1E22",
-        border: isDragOver
+        border: desktopDragging || isDragOver
           ? "1px solid #FF00AA"
           : "1px solid var(--d-line2)",
-        boxShadow: isDragOver ? "0 0 0 2px rgba(255,0,170,0.15)" : "none",
+        boxShadow: desktopDragging || isDragOver ? "0 0 0 2px rgba(255,0,170,0.15)" : "none",
       }}
     >
       {/* Barre de titre */}
@@ -570,7 +553,7 @@ function SectionCard({
                 onMoveUp();
               }}
               disabled={index === 0}
-              className="rounded-lg bg-d-pink/10 p-1.5 text-d-pink transition-colors hover:bg-d-pink/15 hover:text-d-pink disabled:cursor-not-allowed disabled:opacity-20 sm:bg-transparent sm:text-d-fg4 sm:hover:bg-d-panel2 sm:hover:text-d-fg2"
+              className="rounded-lg bg-d-pink/10 p-1.5 text-d-pink transition-colors hover:bg-d-pink/15 hover:text-d-pink disabled:cursor-not-allowed disabled:opacity-20"
             >
               <ChevronUp size={14} />
             </button>
@@ -583,7 +566,7 @@ function SectionCard({
                 onMoveDown();
               }}
               disabled={index === total - 1}
-              className="rounded-lg bg-d-pink/10 p-1.5 text-d-pink transition-colors hover:bg-d-pink/15 hover:text-d-pink disabled:cursor-not-allowed disabled:opacity-20 sm:bg-transparent sm:text-d-fg4 sm:hover:bg-d-panel2 sm:hover:text-d-fg2"
+              className="rounded-lg bg-d-pink/10 p-1.5 text-d-pink transition-colors hover:bg-d-pink/15 hover:text-d-pink disabled:cursor-not-allowed disabled:opacity-20"
             >
               <ChevronDown size={14} />
             </button>
