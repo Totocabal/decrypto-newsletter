@@ -76,8 +76,11 @@ export function EditorPanel({ state, setState }) {
   const [dragOverId, setDragOverId] = useState(null);
 
   const handleDragStart = (id, event) => {
+    event.stopPropagation();
     draggedId.current = id;
-    const card = event.currentTarget.closest("[data-section-card]");
+    event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.setData("text/plain", id);
+    const card = document.querySelector(`[data-section-card="${id}"]`);
     if (card && event.dataTransfer?.setDragImage) {
       const rect = card.getBoundingClientRect();
       event.dataTransfer.setDragImage(card, 16, Math.min(32, rect.height / 2));
@@ -89,6 +92,7 @@ export function EditorPanel({ state, setState }) {
   };
   const handleDrop = (e, targetId) => {
     e.preventDefault();
+    e.stopPropagation();
     const fromId = draggedId.current;
     if (fromId && fromId !== targetId) {
       setState((s) => {
@@ -458,7 +462,7 @@ function SectionCard({
 
   return (
     <div
-      data-section-card
+      data-section-card={section.id}
       onDragOver={onDragOver}
       onDrop={onDrop}
       onDragEnd={onDragEnd}
