@@ -75,7 +75,7 @@ export function Toolbar({
           <button
             onClick={onSave}
             className="flex items-center gap-1.5 px-3 py-2 text-[11px] uppercase tracking-[0.14em] font-medium border border-line2 text-d-fg2 rounded-full hover:bg-d-panel2 transition-colors"
-            title="Créer une version (snapshot) avec un commentaire"
+            title="Créer une version numérotée automatiquement avec un commentaire optionnel"
           >
             {saved ? <Check size={12} /> : <Save size={12} />}
             {saved ? "Sauvé" : "Sauvegarder"}

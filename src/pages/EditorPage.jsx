@@ -121,7 +121,7 @@ export function EditorPage({ newsletterId, onBack }) {
 
   const handleSave = async () => {
     const comment = window.prompt(
-      "Commentaire pour cette version (optionnel) ?",
+      "La version sera numérotée automatiquement. Commentaire optionnel :",
       ""
     );
     if (comment === null) return;
@@ -149,7 +149,7 @@ export function EditorPage({ newsletterId, onBack }) {
     }
 
     const comment = window.prompt(
-      "Commentaire pour cette version (optionnel) ?",
+      "La version sera numérotée automatiquement. Commentaire optionnel :",
       ""
     );
     if (comment === null) return;

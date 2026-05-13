@@ -8,21 +8,24 @@ import { supabase } from "../lib/supabase.js";
 
 export function VersionsPanel({ newsletterId, onRestore, onClose }) {
   const [versions, setVersions] = useState([]);
+  const [totalVersions, setTotalVersions] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let mounted = true;
     (async () => {
-      const { data } = await supabase
+      const { data, count } = await supabase
         .from("versions")
         .select(
-          "id, created_at, comment, author_id, profiles:profiles!versions_author_id_fkey(full_name, email)"
+          "id, created_at, comment, author_id, profiles:profiles!versions_author_id_fkey(full_name, email)",
+          { count: "exact" }
         )
         .eq("newsletter_id", newsletterId)
         .order("created_at", { ascending: false })
         .limit(50);
       if (mounted) {
         setVersions(data || []);
+        setTotalVersions(count ?? data?.length ?? 0);
         setLoading(false);
       }
     })();
@@ -101,13 +104,21 @@ export function VersionsPanel({ newsletterId, onRestore, onClose }) {
             </div>
           ) : (
             <ul className="divide-y divide-line">
-              {versions.map((v) => (
+              {versions.map((v, index) => {
+                const versionNumber = Math.max(totalVersions - index, 1);
+                return (
                 <li
                   key={v.id}
                   className="px-6 py-4 hover:bg-d-panel2 transition-colors"
                 >
                   <div className="flex items-start gap-4">
                     <div className="flex-1 min-w-0">
+                      <div
+                        className="text-sm font-semibold text-d-fg mb-2"
+                        style={{ fontFamily: "'Sora', sans-serif" }}
+                      >
+                        Version {versionNumber}
+                      </div>
                       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-d-fg3 mb-2">
                         <span className="flex items-center gap-1.5">
                           <Clock size={10} />
@@ -138,7 +149,8 @@ export function VersionsPanel({ newsletterId, onRestore, onClose }) {
                     </button>
                   </div>
                 </li>
-              ))}
+                );
+              })}
             </ul>
           )}
         </div>
