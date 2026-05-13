@@ -22,6 +22,7 @@ import {
 import { supabase } from "../lib/supabase.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import { INITIAL_STATE, getDefaultNewsletterTemplate, buildInitialStateFromTypes } from "../config/schema.js";
+import { listTemplatePresets } from "../lib/templatePresets.js";
 import { Wordmark } from "../components/Wordmark.jsx";
 import { ImageManagerModal } from "../components/ImageManagerModal.jsx";
 import { Tooltip } from "../components/Tooltip.jsx";
@@ -33,6 +34,9 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [createChoiceOpen, setCreateChoiceOpen] = useState(false);
+  const [templatePresets, setTemplatePresets] = useState([]);
+  const [templatePresetsLoading, setTemplatePresetsLoading] = useState(false);
+  const [templatePresetsError, setTemplatePresetsError] = useState(null);
   const [imageManagerOpen, setImageManagerOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("updated_desc");
@@ -83,12 +87,33 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
     return () => clearInterval(t);
   }, [load]);
 
-  const handleCreate = async (mode = "template") => {
+  const loadTemplatePresets = useCallback(async () => {
+    setTemplatePresetsLoading(true);
+    setTemplatePresetsError(null);
+    try {
+      setTemplatePresets(await listTemplatePresets());
+    } catch (error) {
+      setTemplatePresets([]);
+      setTemplatePresetsError(error.message || String(error));
+    } finally {
+      setTemplatePresetsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (createChoiceOpen) loadTemplatePresets();
+  }, [createChoiceOpen, loadTemplatePresets]);
+
+  const handleCreate = async (mode = "template", preset = null) => {
     if (!profile?.id) return;
     setCreating(true);
     const initialState =
       mode === "blank"
         ? { ...INITIAL_STATE, sections: [] }
+        : mode === "preset" && preset
+          ? buildInitialStateFromTypes(preset.sections, {
+              includeDefaultContent: preset.includeDefaultContent,
+            })
         : (() => {
             const template = getDefaultNewsletterTemplate();
             return buildInitialStateFromTypes(template.sections, {
@@ -269,7 +294,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
             style={{ background: "#FFFFFF", color: "#15151A" }}
           >
             <Plus size={14} />
-            Nouvelle newsletter
+            Nouveau Template
           </button>
         </div>
 
@@ -320,7 +345,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
               Aucune newsletter pour l'instant
             </div>
             <div className="text-xs text-d-fg3">
-              Clique sur « Nouvelle newsletter » pour démarrer.
+              Clique sur « Nouveau Template » pour démarrer.
             </div>
           </div>
         )}
@@ -441,12 +466,12 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
       </main>
       {createChoiceOpen && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-6">
-          <div className="w-full max-w-2xl rounded-2xl border border-line bg-d-panel shadow-2xl overflow-hidden">
+          <div className="flex max-h-[calc(100vh-48px)] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-line bg-d-panel shadow-2xl">
             <div className="h-1 bg-gradient-to-r from-d-blue via-d-pink to-d-green" />
             <div className="p-6 border-b border-line flex items-start justify-between gap-4">
               <div>
                 <div className="text-[10px] uppercase tracking-[0.22em] text-d-pink font-semibold mb-2">
-                  Nouvelle newsletter
+                  Nouveau Template
                 </div>
                 <h2
                   className="text-xl font-semibold text-d-fg tracking-tight"
@@ -464,35 +489,82 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                 <X size={16} />
               </button>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-6">
-              <button
-                type="button"
-                onClick={() => handleCreate("template")}
-                disabled={creating}
-                className="text-left rounded-2xl border border-line bg-d-panel2 p-5 hover:border-line2 hover:bg-d-panel3 transition-colors disabled:opacity-50"
-              >
-                <FileText size={18} className="text-d-pink mb-4" />
-                <div className="text-sm font-semibold text-d-fg mb-2" style={{ fontFamily: "'Sora', sans-serif" }}>
-                  Version par défaut
+            <div className="overflow-y-auto">
+              <div className="grid grid-cols-1 gap-3 p-6 sm:grid-cols-2">
+                <button
+                  type="button"
+                  onClick={() => handleCreate("template")}
+                  disabled={creating}
+                  className="text-left rounded-2xl border border-line bg-d-panel2 p-5 hover:border-line2 hover:bg-d-panel3 transition-colors disabled:opacity-50"
+                >
+                  <FileText size={18} className="text-d-pink mb-4" />
+                  <div className="text-sm font-semibold text-d-fg mb-2" style={{ fontFamily: "'Sora', sans-serif" }}>
+                    Version par défaut
+                  </div>
+                  <div className="text-xs leading-relaxed text-d-fg4">
+                    Crée la newsletter avec les blocs du template admin, selon le réglage de contenu par défaut.
+                  </div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleCreate("blank")}
+                  disabled={creating}
+                  className="text-left rounded-2xl border border-line bg-d-panel2 p-5 hover:border-line2 hover:bg-d-panel3 transition-colors disabled:opacity-50"
+                >
+                  <Plus size={18} className="text-d-green mb-4" />
+                  <div className="text-sm font-semibold text-d-fg mb-2" style={{ fontFamily: "'Sora', sans-serif" }}>
+                    Version vide
+                  </div>
+                  <div className="text-xs leading-relaxed text-d-fg4">
+                    Crée une newsletter sans blocs placés. Tu pourras composer la structure depuis l'éditeur.
+                  </div>
+                </button>
+              </div>
+              <div className="border-t border-line px-6 pb-6 pt-5">
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <div>
+                    <div className="text-sm font-semibold text-d-fg" style={{ fontFamily: "'Sora', sans-serif" }}>
+                      Preset
+                    </div>
+                    <div className="text-[11px] text-d-fg4">
+                      Dispositions créées depuis l'admin et disponibles à toute l'équipe.
+                    </div>
+                  </div>
+                  {templatePresetsLoading && (
+                    <Clock size={14} className="flex-shrink-0 animate-spin text-d-fg4" />
+                  )}
                 </div>
-                <div className="text-xs leading-relaxed text-d-fg4">
-                  Crée la newsletter avec les blocs du template admin, selon le réglage de contenu par défaut.
-                </div>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleCreate("blank")}
-                disabled={creating}
-                className="text-left rounded-2xl border border-line bg-d-panel2 p-5 hover:border-line2 hover:bg-d-panel3 transition-colors disabled:opacity-50"
-              >
-                <Plus size={18} className="text-d-green mb-4" />
-                <div className="text-sm font-semibold text-d-fg mb-2" style={{ fontFamily: "'Sora', sans-serif" }}>
-                  Version vide
-                </div>
-                <div className="text-xs leading-relaxed text-d-fg4">
-                  Crée une newsletter sans blocs placés. Tu pourras composer la structure depuis l'éditeur.
-                </div>
-              </button>
+                {templatePresetsError && (
+                  <div className="mb-3 rounded-xl border border-red-400/20 bg-red-500/10 px-3 py-2 text-xs text-red-200">
+                    Presets indisponibles : {templatePresetsError}
+                  </div>
+                )}
+                {!templatePresetsLoading && !templatePresetsError && templatePresets.length === 0 && (
+                  <div className="rounded-xl border border-dashed border-line px-4 py-4 text-xs text-d-fg4">
+                    Aucun preset partagé pour le moment.
+                  </div>
+                )}
+                {templatePresets.length > 0 && (
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    {templatePresets.map((preset) => (
+                      <button
+                        key={preset.id}
+                        type="button"
+                        onClick={() => handleCreate("preset", preset)}
+                        disabled={creating}
+                        className="text-left rounded-xl border border-line bg-d-panel2 px-4 py-3 transition-colors hover:border-d-pink/70 hover:bg-d-panel3 disabled:opacity-50"
+                      >
+                        <div className="mb-1 text-sm font-semibold text-d-fg" style={{ fontFamily: "'Sora', sans-serif" }}>
+                          {preset.name}
+                        </div>
+                        <div className="text-[11px] text-d-fg4">
+                          {preset.sections.length} bloc{preset.sections.length > 1 ? "s" : ""} · {preset.includeDefaultContent ? "avec contenu" : "sans contenu"}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
             {creating && (
               <div className="px-6 pb-6 text-xs uppercase tracking-[0.18em] text-d-fg3 flex items-center gap-2">

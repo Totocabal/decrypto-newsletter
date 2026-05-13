@@ -24,6 +24,7 @@ import {
   ImageIcon,
   Minus,
   Plus,
+  RefreshCw,
   RotateCcw,
   Save,
   ShieldCheck,
@@ -35,6 +36,11 @@ import {
 import { useRef } from "react";
 import { supabase } from "../lib/supabase.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
+import {
+  createTemplatePreset,
+  deleteTemplatePreset,
+  listTemplatePresets,
+} from "../lib/templatePresets.js";
 import { Wordmark } from "../components/Wordmark.jsx";
 import {
   SECTION_TYPES,
@@ -396,8 +402,29 @@ function DefaultSectionsEditor() {
     () => getDefaultNewsletterTemplate().includeDefaultContent
   );
   const [saved, setSaved] = useState(false);
+  const [presets, setPresets] = useState([]);
+  const [presetsLoading, setPresetsLoading] = useState(true);
+  const [presetsError, setPresetsError] = useState(null);
+  const [presetSaving, setPresetSaving] = useState(false);
   const draggedRef = useRef(null);
   const [dragOverId, setDragOverId] = useState(null);
+
+  const loadPresets = useCallback(async () => {
+    setPresetsLoading(true);
+    setPresetsError(null);
+    try {
+      setPresets(await listTemplatePresets());
+    } catch (error) {
+      setPresets([]);
+      setPresetsError(error.message || String(error));
+    } finally {
+      setPresetsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadPresets();
+  }, [loadPresets]);
 
   const addBlock = (type) => {
     setActive((prev) => [...prev, createDefaultSectionTemplateEntry(type)]);
@@ -449,6 +476,46 @@ function DefaultSectionsEditor() {
     setTimeout(() => setSaved(false), 2000);
   };
 
+  const handleCreatePreset = async () => {
+    const name = window.prompt("Nom du preset de template :", "");
+    if (name === null) return;
+    const cleanName = name.trim();
+    if (!cleanName) return;
+    setPresetSaving(true);
+    setPresetsError(null);
+    try {
+      const preset = await createTemplatePreset({
+        name: cleanName,
+        sections: active,
+        includeDefaultContent,
+      });
+      setPresets((items) =>
+        [...items, preset].sort((a, b) => a.name.localeCompare(b.name))
+      );
+    } catch (error) {
+      setPresetsError(error.message || String(error));
+    } finally {
+      setPresetSaving(false);
+    }
+  };
+
+  const handleLoadPreset = (preset) => {
+    setActive(preset.sections);
+    setIncludeDefaultContent(preset.includeDefaultContent);
+    setSaved(false);
+  };
+
+  const handleDeletePreset = async (preset) => {
+    if (!confirm(`Supprimer le preset « ${preset.name} » ?`)) return;
+    setPresetsError(null);
+    try {
+      await deleteTemplatePreset(preset.id);
+      setPresets((items) => items.filter((item) => item.id !== preset.id));
+    } catch (error) {
+      setPresetsError(error.message || String(error));
+    }
+  };
+
   const handleReset = () => {
     setActive(INITIAL_SECTION_TEMPLATE.map((entry) => ({ ...entry })));
     setIncludeDefaultContent(true);
@@ -483,6 +550,15 @@ function DefaultSectionsEditor() {
           >
             {saved ? <Check size={11} /> : <Save size={11} />}
             {saved ? "Sauvegardé" : "Sauvegarder"}
+          </button>
+          <button
+            onClick={handleCreatePreset}
+            disabled={presetSaving}
+            className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] font-semibold px-3 py-1.5 rounded-full transition-colors disabled:opacity-50"
+            style={{ background: "#FF00AA", color: "#FFFFFF" }}
+          >
+            {presetSaving ? <Loader2 size={11} className="animate-spin" /> : <Plus size={11} />}
+            Créer un preset
           </button>
         </div>
       </div>
@@ -613,6 +689,79 @@ function DefaultSectionsEditor() {
             })}
           </div>
         </div>
+      </div>
+
+      <div className="mt-6 rounded-2xl border border-line bg-d-panel p-4">
+        <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h3 className="text-xs font-semibold text-d-fg" style={{ fontFamily: "'Sora', sans-serif" }}>
+              Presets partagés
+            </h3>
+            <p className="mt-1 text-[11px] leading-relaxed text-d-fg4">
+              Ces dispositions seront proposées aux utilisateurs dans “Nouveau Template”.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={loadPresets}
+            disabled={presetsLoading}
+            className="inline-flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5 text-[10px] uppercase tracking-[0.18em] text-d-fg3 transition-colors hover:border-line2 hover:text-d-fg disabled:opacity-50"
+          >
+            <RefreshCw size={11} className={presetsLoading ? "animate-spin" : ""} />
+            Rafraîchir
+          </button>
+        </div>
+
+        {presetsError && (
+          <div className="mb-3 rounded-xl border border-red-500/20 bg-red-950/20 p-3 text-[11px] leading-relaxed text-red-300">
+            Presets indisponibles : {presetsError}. Exécute `supabase/template-presets.sql` si la table n'existe pas encore.
+          </div>
+        )}
+
+        {presetsLoading ? (
+          <div className="flex items-center justify-center gap-2 py-6 text-xs uppercase tracking-[0.18em] text-d-fg3">
+            <Loader2 size={14} className="animate-spin" />
+            Chargement…
+          </div>
+        ) : presets.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-line p-5 text-center text-xs text-d-fg4">
+            Aucun preset partagé pour le moment.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-2">
+            {presets.map((preset) => (
+              <div
+                key={preset.id}
+                className="flex flex-col gap-3 rounded-xl border border-line bg-d-panel2 p-3 sm:flex-row sm:items-center"
+              >
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-sm font-semibold text-d-fg2">
+                    {preset.name}
+                  </div>
+                  <div className="mt-1 text-[11px] text-d-fg4">
+                    {preset.sections.length} bloc{preset.sections.length > 1 ? "s" : ""} · {preset.includeDefaultContent ? "avec contenu d'exemple" : "structure vide"}
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleLoadPreset(preset)}
+                    className="rounded-full border border-line px-3 py-1.5 text-[10px] uppercase tracking-[0.18em] text-d-fg3 transition-colors hover:border-line2 hover:text-d-fg"
+                  >
+                    Charger
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDeletePreset(preset)}
+                    className="rounded-full border border-red-500/30 px-3 py-1.5 text-[10px] uppercase tracking-[0.18em] text-red-300 transition-colors hover:bg-red-950/20"
+                  >
+                    Supprimer
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

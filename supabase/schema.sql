@@ -81,6 +81,23 @@ create index if not exists versions_newsletter_idx
   on public.versions (newsletter_id, created_at desc);
 
 -- ─────────────────────────────────────────────────────────────────────────────
+-- template_presets : dispositions de blocs partagées pour créer une newsletter
+-- ─────────────────────────────────────────────────────────────────────────────
+create table if not exists public.template_presets (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  sections jsonb not null default '[]'::jsonb,
+  include_default_content boolean not null default true,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  created_by uuid references public.profiles(id) on delete set null,
+  updated_by uuid references public.profiles(id) on delete set null
+);
+
+create index if not exists template_presets_name_idx
+  on public.template_presets (lower(name));
+
+-- ─────────────────────────────────────────────────────────────────────────────
 -- locks : verrou d'édition par newsletter (au plus un éditeur à la fois)
 -- ─────────────────────────────────────────────────────────────────────────────
 create table if not exists public.locks (
@@ -135,6 +152,7 @@ grant execute on function public.current_user_is_approved() to authenticated;
 alter table public.profiles enable row level security;
 alter table public.newsletters enable row level security;
 alter table public.versions enable row level security;
+alter table public.template_presets enable row level security;
 alter table public.locks enable row level security;
 
 -- ── profiles ──
@@ -223,6 +241,32 @@ create policy "versions_insert_approved"
     public.current_user_is_approved()
     and author_id = auth.uid()
   );
+
+-- ── template_presets ── lecture pour les approuvés, écriture admin uniquement
+drop policy if exists "template_presets_select_approved" on public.template_presets;
+create policy "template_presets_select_approved"
+  on public.template_presets for select
+  to authenticated
+  using (public.current_user_is_approved());
+
+drop policy if exists "template_presets_insert_admin" on public.template_presets;
+create policy "template_presets_insert_admin"
+  on public.template_presets for insert
+  to authenticated
+  with check (public.current_user_is_admin());
+
+drop policy if exists "template_presets_update_admin" on public.template_presets;
+create policy "template_presets_update_admin"
+  on public.template_presets for update
+  to authenticated
+  using (public.current_user_is_admin())
+  with check (public.current_user_is_admin());
+
+drop policy if exists "template_presets_delete_admin" on public.template_presets;
+create policy "template_presets_delete_admin"
+  on public.template_presets for delete
+  to authenticated
+  using (public.current_user_is_admin());
 
 -- ── locks ── tout user approuvé lit, chacun ne pose/MAJ que son propre lock
 drop policy if exists "locks_select_approved" on public.locks;
@@ -463,4 +507,9 @@ $$;
 drop trigger if exists newsletters_touch on public.newsletters;
 create trigger newsletters_touch
   before update on public.newsletters
+  for each row execute function public.touch_updated_at();
+
+drop trigger if exists template_presets_touch on public.template_presets;
+create trigger template_presets_touch
+  before update on public.template_presets
   for each row execute function public.touch_updated_at();
