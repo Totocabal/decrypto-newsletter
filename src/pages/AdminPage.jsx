@@ -142,15 +142,6 @@ export function AdminPage({ onBack }) {
     }
   };
 
-  const formatDate = (iso) => {
-    return new Date(iso).toLocaleDateString("fr-FR", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    });
-  };
-
-  const pending = profiles.filter((p) => !p.approved);
   const approved = profiles.filter((p) => p.approved);
 
   const tabs = [
@@ -302,47 +293,6 @@ export function AdminPage({ onBack }) {
                   </div>
                 )}
               </div>
-            </section>
-
-            {/* En attente */}
-            <section>
-              <div className="flex items-center gap-2 mb-3">
-                <h2 className="text-[10px] uppercase tracking-[0.18em] text-d-fg3 font-medium">
-                  En attente d'approbation
-                </h2>
-                <span
-                  className="text-[10px] px-2 py-0.5 rounded-full font-medium"
-                  style={{ background: "rgba(255,165,0,0.15)", color: "#FFAD33" }}
-                >
-                  {pending.length}
-                </span>
-              </div>
-              {pending.length === 0 ? (
-                <div className="bg-d-panel border border-line rounded-2xl p-6 text-xs text-d-fg4 text-center">
-                  Aucun compte en attente.
-                </div>
-              ) : (
-                <div className="bg-d-panel border border-line rounded-2xl divide-y" style={{ borderColor: "var(--d-line)" }}>
-                  {pending.map((p) => (
-                    <div key={p.id} className="flex items-center gap-4 px-4 py-3">
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm text-d-fg">{p.full_name || p.email}</div>
-                        <div className="text-[11px] text-d-fg4">
-                          {p.email} · inscrit le {formatDate(p.created_at)}
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => updateProfile(p.id, { approved: true })}
-                        className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] font-semibold text-[#15151A] px-3 py-1.5 rounded-full transition-colors"
-                        style={{ background: "#03FFCF" }}
-                      >
-                        <Check size={11} />
-                        Approuver
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
             </section>
 
             {/* Approuvés */}
