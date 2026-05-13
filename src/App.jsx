@@ -23,6 +23,31 @@ import { SetupErrorPage } from "./pages/SetupErrorPage.jsx";
 import { isSupabaseConfigured } from "./lib/supabase.js";
 import { Wordmark } from "./components/Wordmark.jsx";
 
+function readRouteFromHash() {
+  if (typeof window === "undefined") return { name: "list" };
+  const hash = window.location.hash.replace(/^#\/?/, "");
+  const [name, id] = hash.split("/");
+  if (name === "editor" && id) {
+    return { name: "editor", id: decodeURIComponent(id) };
+  }
+  if (name === "admin") return { name: "admin" };
+  return { name: "list" };
+}
+
+function writeRouteToHash(route) {
+  if (typeof window === "undefined") return;
+  const nextHash =
+    route.name === "editor" && route.id
+      ? `#/editor/${encodeURIComponent(route.id)}`
+      : route.name === "admin"
+        ? "#/admin"
+        : "#/list";
+
+  if (window.location.hash !== nextHash) {
+    window.history.replaceState(null, "", nextHash);
+  }
+}
+
 export default function App() {
   // Garde-fou config — affiché AVANT même de monter le provider, comme ça
   // pas de tentative de connexion silencieuse vers une URL bidon.
@@ -38,8 +63,18 @@ export default function App() {
 
 function Router() {
   const { user, profile, loading, profileLoading, initError, refreshProfile, resetLocalSession } = useAuth();
-  const [route, setRoute] = useState({ name: "list" });
+  const [route, setRoute] = useState(readRouteFromHash);
   const [longWait, setLongWait] = useState(false);
+
+  useEffect(() => {
+    writeRouteToHash(route);
+  }, [route]);
+
+  useEffect(() => {
+    const syncRouteFromHash = () => setRoute(readRouteFromHash());
+    window.addEventListener("hashchange", syncRouteFromHash);
+    return () => window.removeEventListener("hashchange", syncRouteFromHash);
+  }, []);
 
   // Si `loading` persiste plus de 6s, on affiche un message rassurant et
   // un bouton "voir le diagnostic". Évite l'angoisse du "Chargement…" qui
