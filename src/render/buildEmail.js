@@ -159,28 +159,32 @@ function buildChartSvg(points, assetMode, priceStart = "", priceEnd = "") {
     return `<img src="assets/chart.png" alt="Graphique" style="display:block; width:100%; height:auto; border:0;" />`;
   }
   if (!points || points.length < 2) return "";
-  const W = 560, H = 180;
+
+  // Zone graphique : PAD_TOP pixels réservés pour les labels, chart en dessous
+  const W = 560, PAD_TOP = 28, CHART_H = 160, H = PAD_TOP + CHART_H;
   const stepX = W / (points.length - 1);
-  // p ∈ [0, 100] : 0 = bas (prix bas), 100 = haut (prix élevé)
-  // SVG y croît vers le bas, donc on inverse : y = (1 - p/100) * H
+  // p ∈ [0, 100] : 0 = bas, 100 = haut. y = PAD_TOP + (1 - p/100) * CHART_H
   const xy = points.map((p, i) => [
     +(stepX * i).toFixed(2),
-    +((1 - p / 100) * H).toFixed(2),
+    +(PAD_TOP + (1 - p / 100) * CHART_H).toFixed(2),
   ]);
   const polyline = xy.map(([x, y]) => `${x},${y}`).join(" ");
   const polygon = `0,${H} ${polyline} ${W},${H}`;
   const first = xy[0];
   const last = xy[xy.length - 1];
 
-  // Labels start/end : au-dessus du point si dans la moitié basse, en-dessous sinon
-  const startLabelY = first[1] > H * 0.6 ? first[1] - 8 : first[1] + 14;
-  const endLabelY   = last[1]  > H * 0.6 ? last[1]  - 8 : last[1]  + 14;
+  // Labels : toujours dans la zone PAD_TOP, alignés verticalement sur le point
+  // mais plafonnés dans la bande [6, PAD_TOP - 4] pour ne jamais chevaucher le tracé.
+  const FONT = "Sora,Arial,sans-serif";
+  const clampLabelY = (pointY) => Math.min(PAD_TOP - 4, Math.max(14, pointY - 14));
+  const startLabelY = clampLabelY(first[1]);
+  const endLabelY   = clampLabelY(last[1]);
 
   const startLabel = priceStart
-    ? `<text x="6" y="${startLabelY}" font-family="Arial,sans-serif" font-size="11" fill="#666677" text-anchor="start">${escapeHtml(priceStart)}</text>`
+    ? `<text x="4" y="${startLabelY}" font-family="${FONT}" font-size="11" fill="#888899" text-anchor="start">${escapeHtml(priceStart)}</text>`
     : "";
   const endLabel = priceEnd
-    ? `<text x="${W - 6}" y="${endLabelY}" font-family="Arial,sans-serif" font-size="11" font-weight="600" fill="#00FFFF" text-anchor="end">${escapeHtml(priceEnd)}</text>`
+    ? `<text x="${W - 4}" y="${endLabelY}" font-family="${FONT}" font-size="11" font-weight="600" fill="#00FFFF" text-anchor="end">${escapeHtml(priceEnd)}</text>`
     : "";
 
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="100%" height="${H}" preserveAspectRatio="none" style="display:block;">
@@ -194,9 +198,9 @@ function buildChartSvg(points, assetMode, priceStart = "", priceEnd = "") {
         <stop offset="100%" stop-color="#00FFFF"/>
       </linearGradient>
     </defs>
-    <line x1="0" x2="${W}" y1="${H * 0.25}" y2="${H * 0.25}" stroke="#222229" stroke-dasharray="2 4"/>
-    <line x1="0" x2="${W}" y1="${H * 0.5}" y2="${H * 0.5}" stroke="#222229" stroke-dasharray="2 4"/>
-    <line x1="0" x2="${W}" y1="${H * 0.75}" y2="${H * 0.75}" stroke="#222229" stroke-dasharray="2 4"/>
+    <line x1="0" x2="${W}" y1="${PAD_TOP + CHART_H * 0.25}" y2="${PAD_TOP + CHART_H * 0.25}" stroke="#222229" stroke-dasharray="2 4"/>
+    <line x1="0" x2="${W}" y1="${PAD_TOP + CHART_H * 0.5}"  y2="${PAD_TOP + CHART_H * 0.5}"  stroke="#222229" stroke-dasharray="2 4"/>
+    <line x1="0" x2="${W}" y1="${PAD_TOP + CHART_H * 0.75}" y2="${PAD_TOP + CHART_H * 0.75}" stroke="#222229" stroke-dasharray="2 4"/>
     <polygon points="${polygon}" fill="url(#g1)"/>
     <polyline points="${polyline}" fill="none" stroke="url(#g2)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
     <circle cx="${last[0]}" cy="${last[1]}" r="5" fill="#00FFFF" stroke="${THEME.bgPage}" stroke-width="2"/>
