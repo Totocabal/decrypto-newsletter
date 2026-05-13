@@ -82,7 +82,7 @@ export const SECTION_TYPES = {
       price_start: "62 654 €",
       price_high: "",
       price_low: "",
-      y_axis_labels: [],
+      y_axis_ticks: [],
       delta: "▲ +2,93 %",
       delta_tone: "positive",
       subdelta: "+1 838 € sur 7j",

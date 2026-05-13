@@ -71,7 +71,7 @@ async function buildPngAssets(state) {
     if (sec.type === "chart" && !needChart) {
       needChart = true;
       chartPoints = sec.data.points;
-      chartYAxisLabels = sec.data.y_axis_labels ?? [];
+      chartYAxisLabels = sec.data.y_axis_ticks ?? [];
     }
     if (sec.type === "fear_greed" && !needGauge) {
       needGauge = true;

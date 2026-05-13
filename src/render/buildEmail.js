@@ -154,7 +154,7 @@ function logoSvg(size, color, assetMode, name) {
   </svg>`;
 }
 
-function buildChartSvg(points, assetMode, { yAxisLabels = [] } = {}) {
+function buildChartSvg(points, assetMode, { yAxisTicks = [] } = {}) {
   if (assetMode === "external") {
     return `<img src="assets/chart.png" alt="Graphique" style="display:block; width:100%; height:auto; border:0;" />`;
   }
@@ -172,12 +172,11 @@ function buildChartSvg(points, assetMode, { yAxisLabels = [] } = {}) {
   const polygon  = `0,${H} ${polyline} ${W},${H}`;
   const last = xy[xy.length - 1];
 
-  // Labels Y à gauche, aux 3 lignes de grille — rendus AVANT le tracé (background)
-  const gridFracs = [0.25, 0.5, 0.75];
-  const yAxisSvg = gridFracs.map((frac, i) => {
-    const label = yAxisLabels[i];
+  // Labels Y à gauche — rendus AVANT le tracé (background)
+  // pos=0 → bas du chart (y=H), pos=100 → haut (y=0)
+  const yAxisSvg = (yAxisTicks || []).map(({ label, pos }) => {
     if (!label) return "";
-    const y = +(H * frac).toFixed(2);
+    const y = +((1 - pos / 100) * H).toFixed(2);
     return `<text x="6" y="${y - 5}" font-family="${FONT}" font-size="11" font-weight="600" fill="#9999BB" text-anchor="start">${escapeHtml(label)}</text>`;
   }).join("\n    ");
 
@@ -384,7 +383,7 @@ function renderChart(data, assetMode) {
           </tr>
           <tr>
             <td colspan="2" style="padding-top:20px;">
-              ${buildChartSvg(data.points, assetMode, { yAxisLabels: data.y_axis_labels ?? [] })}
+              ${buildChartSvg(data.points, assetMode, { yAxisTicks: data.y_axis_ticks ?? [] })}
             </td>
           </tr>
           <tr>
@@ -857,8 +856,8 @@ export function getLogoSvg(size = 64, color = "#ffffff") {
   </svg>`;
 }
 
-export function getChartSvgFull(points, yAxisLabels = []) {
-  return buildChartSvg(points, "inline", { yAxisLabels });
+export function getChartSvgFull(points, yAxisTicks = []) {
+  return buildChartSvg(points, "inline", { yAxisTicks });
 }
 
 export function getGaugeSvgFull(value) {

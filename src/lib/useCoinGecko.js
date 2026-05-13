@@ -82,10 +82,31 @@ export function useCoinGecko() {
 
       const minPrice = Math.min(...rawValues);
       const maxPrice = Math.max(...rawValues);
-      // 3 labels Y aux niveaux 75 %, 50 %, 25 % de la plage (haut → bas dans le SVG)
-      const y_axis_labels = [0.75, 0.5, 0.25].map(
-        (frac) => formatPrice(minPrice + frac * (maxPrice - minPrice), currency)
-      );
+
+      // Step "agréable" multiple de 100 donnant 3–6 ticks dans la plage
+      const range = maxPrice - minPrice;
+      const rawStep = range / 4;
+      const mag = Math.pow(10, Math.floor(Math.log10(rawStep)));
+      let step = rawStep >= 5 * mag ? 5 * mag : rawStep >= 2 * mag ? 2 * mag : mag;
+      step = Math.max(100, Math.ceil(step / 100) * 100);
+
+      const tickMin = Math.ceil(minPrice / step) * step;
+      const tickMax = Math.floor(maxPrice / step) * step;
+      let rawTicks = [];
+      for (let t = tickMin; t <= tickMax + 0.01; t += step) rawTicks.push(Math.round(t));
+
+      // Supprimer le tick le plus bas/haut s'il correspond au start ou au end
+      rawTicks = rawTicks.filter((t, i) => {
+        const isExtreme = i === 0 || i === rawTicks.length - 1;
+        if (!isExtreme) return true;
+        return Math.abs(t - firstPrice) > 0.5 && Math.abs(t - currentPrice) > 0.5;
+      });
+
+      // Stocker label formaté + position normalisée (0=min, 100=max → SVG y inversé)
+      const y_axis_ticks = rawTicks.map((t) => ({
+        label: formatPrice(t, currency),
+        pos: ((t - minPrice) / (maxPrice - minPrice)) * 100,
+      }));
 
       return {
         label: cfg[currency] ?? cfg.eur,
@@ -99,7 +120,7 @@ export function useCoinGecko() {
         points,
         x_labels,
         raw_prices,
-        y_axis_labels,
+        y_axis_ticks,
       };
     } catch (e) {
       setError(e.message);
