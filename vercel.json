@@ -1,4 +1,10 @@
 {
+  "crons": [
+    {
+      "path": "/api/supabase-keepalive",
+      "schedule": "17 8 * * 1,4"
+    }
+  ],
   "headers": [
     {
       "source": "/",

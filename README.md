@@ -149,6 +149,25 @@ Dans Braze, crée une clé dédiée avec le minimum de permissions nécessaires 
 **Media Library → `media_library.create`**. Garde `BRAZE_BASE_URL` alignée sur
 ton instance Braze (`https://rest.fra-01.braze.eu` pour EU-01).
 
+### Keepalive Supabase Free
+
+Les projets Supabase Free peuvent être mis en pause après 1 semaine
+d'inactivité. Le repo contient un Cron Vercel qui appelle une RPC très légère
+deux fois par semaine pour générer une activité minimale.
+
+1. Dans Supabase → **SQL Editor**, exécute `supabase/keepalive.sql`.
+2. Dans Vercel → **Settings → Environment Variables**, vérifie que ces variables
+   existent côté serveur :
+   - `SUPABASE_URL` : l'URL du projet Supabase
+   - `SUPABASE_ANON_KEY` : la clé `anon public`
+3. Optionnel : ajoute `CRON_SECRET` pour protéger l'endpoint. Vercel l'enverra
+   dans le header `Authorization` des Cron Jobs.
+4. Après déploiement, teste `GET /api/supabase-keepalive` pour vérifier que la
+   RPC répond bien.
+
+Le Cron ne lit ni n'écrit de données métier : il appelle seulement
+`public.keepalive()` via l'API REST Supabase.
+
 ### Emails Supabase
 
 Si le lien magique affiche `Error sending confirmation email`, le problème vient
