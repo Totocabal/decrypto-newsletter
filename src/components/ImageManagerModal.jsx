@@ -22,6 +22,7 @@ import {
   MAX_IMAGE_STORAGE_LABEL,
   uploadImage,
 } from "../lib/imageUpload.js";
+import { Tooltip } from "./Tooltip.jsx";
 
 function formatBytes(bytes = 0) {
   if (!bytes) return "Taille inconnue";
@@ -260,6 +261,7 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId }) {
     const checked = selectedPaths.includes(image.path);
     const Icon = checked ? CheckSquare : Square;
     return (
+      <Tooltip label={checked ? "Désélectionner" : "Sélectionner pour suppression"}>
       <button
         type="button"
         onClick={(event) => {
@@ -271,10 +273,10 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId }) {
             ? "border-d-pink bg-d-pink text-white"
             : "border-line bg-d-panel/90 text-d-fg3 hover:text-d-fg hover:border-line2"
         } ${className}`}
-        title={checked ? "Désélectionner" : "Sélectionner pour suppression"}
       >
         <Icon size={14} />
       </button>
+      </Tooltip>
     );
   };
 
@@ -290,26 +292,27 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId }) {
         }`}
       >
         <div className="relative">
-          <button
-            type="button"
-            onClick={() => selectImage(image)}
-            className={`block w-full aspect-[4/3] bg-d-panel2 overflow-hidden ${
-              canSelect || multiSelect ? "" : "cursor-default"
-            }`}
-            title={canSelect ? "Sélectionner cette image" : image.name}
-          >
-            <img
-              src={image.url}
-              alt={image.name}
-              className="h-full w-full object-cover transition-transform group-hover:scale-[1.02]"
-              loading="lazy"
-            />
-            {selected && (
-              <span className="absolute top-3 left-3 h-7 w-7 rounded-full bg-d-pink text-white inline-flex items-center justify-center">
-                <Check size={15} />
-              </span>
-            )}
-          </button>
+          <Tooltip label={canSelect ? "Sélectionner cette image" : image.name} className="w-full">
+            <button
+              type="button"
+              onClick={() => selectImage(image)}
+              className={`block w-full aspect-[4/3] bg-d-panel2 overflow-hidden ${
+                canSelect || multiSelect ? "" : "cursor-default"
+              }`}
+            >
+              <img
+                src={image.url}
+                alt={image.name}
+                className="h-full w-full object-cover transition-transform group-hover:scale-[1.02]"
+                loading="lazy"
+              />
+              {selected && (
+                <span className="absolute top-3 left-3 h-7 w-7 rounded-full bg-d-pink text-white inline-flex items-center justify-center">
+                  <Check size={15} />
+                </span>
+              )}
+            </button>
+          </Tooltip>
           {(multiSelect || selectedPaths.includes(image.path)) &&
             renderSelectionButton(image, "absolute top-2 right-2 h-7 w-7")}
         </div>
@@ -334,14 +337,15 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId }) {
                   Sélectionner
                 </button>
               )}
-              <button
-                type="button"
-                onClick={() => handleDelete(image)}
-                className="h-8 w-8 inline-flex items-center justify-center rounded-lg border border-line text-d-fg4 hover:text-red-400 hover:border-red-500/30 hover:bg-red-950/20 transition-colors"
-                title="Supprimer"
-              >
-                <Trash2 size={13} />
-              </button>
+              <Tooltip label="Supprimer">
+                <button
+                  type="button"
+                  onClick={() => handleDelete(image)}
+                  className="h-8 w-8 inline-flex items-center justify-center rounded-lg border border-line text-d-fg4 hover:text-red-400 hover:border-red-500/30 hover:bg-red-950/20 transition-colors"
+                >
+                  <Trash2 size={13} />
+                </button>
+              </Tooltip>
             </div>
           </div>
         )}
@@ -351,14 +355,15 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId }) {
             {(multiSelect || selectedPaths.includes(image.path)) ? (
               renderSelectionButton(image, "h-7 w-7 flex-shrink-0")
             ) : (
-              <button
-                type="button"
-                onClick={() => handleDelete(image)}
-                className="h-7 w-7 inline-flex items-center justify-center rounded-lg border border-line text-d-fg4 hover:text-red-400 hover:border-red-500/30 hover:bg-red-950/20 transition-colors flex-shrink-0"
-                title="Supprimer"
-              >
-                <Trash2 size={12} />
-              </button>
+              <Tooltip label="Supprimer">
+                <button
+                  type="button"
+                  onClick={() => handleDelete(image)}
+                  className="h-7 w-7 inline-flex items-center justify-center rounded-lg border border-line text-d-fg4 hover:text-red-400 hover:border-red-500/30 hover:bg-red-950/20 transition-colors flex-shrink-0"
+                >
+                  <Trash2 size={12} />
+                </button>
+              </Tooltip>
             )}
           </div>
         )}
@@ -375,21 +380,22 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId }) {
           selected ? "border-d-pink" : "border-line hover:border-line2"
         }`}
       >
-        <button
-          type="button"
-          onClick={() => selectImage(image)}
-          className={`relative h-20 w-28 rounded-xl overflow-hidden bg-d-panel2 flex-shrink-0 ${
-            canSelect ? "" : "cursor-default"
-          }`}
-          title={canSelect ? "Sélectionner cette image" : image.name}
-        >
-          <img src={image.url} alt={image.name} className="h-full w-full object-cover" loading="lazy" />
-          {selected && (
-            <span className="absolute top-2 left-2 h-6 w-6 rounded-full bg-d-pink text-white inline-flex items-center justify-center">
-              <Check size={13} />
-            </span>
-          )}
-        </button>
+        <Tooltip label={canSelect ? "Sélectionner cette image" : image.name}>
+          <button
+            type="button"
+            onClick={() => selectImage(image)}
+            className={`relative h-20 w-28 rounded-xl overflow-hidden bg-d-panel2 flex-shrink-0 ${
+              canSelect ? "" : "cursor-default"
+            }`}
+          >
+            <img src={image.url} alt={image.name} className="h-full w-full object-cover" loading="lazy" />
+            {selected && (
+              <span className="absolute top-2 left-2 h-6 w-6 rounded-full bg-d-pink text-white inline-flex items-center justify-center">
+                <Check size={13} />
+              </span>
+            )}
+          </button>
+        </Tooltip>
         <div className="min-w-0 flex-1">
           <div className="text-sm font-semibold text-d-fg2 truncate">{image.name}</div>
           <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-d-fg4">
@@ -409,14 +415,15 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId }) {
               Sélectionner
             </button>
           )}
-          <button
-            type="button"
-            onClick={() => handleDelete(image)}
-            className="h-9 w-9 inline-flex items-center justify-center rounded-lg border border-line text-d-fg4 hover:text-red-400 hover:border-red-500/30 hover:bg-red-950/20 transition-colors"
-            title="Supprimer"
-          >
-            <Trash2 size={14} />
-          </button>
+          <Tooltip label="Supprimer" align="right">
+            <button
+              type="button"
+              onClick={() => handleDelete(image)}
+              className="h-9 w-9 inline-flex items-center justify-center rounded-lg border border-line text-d-fg4 hover:text-red-400 hover:border-red-500/30 hover:bg-red-950/20 transition-colors"
+            >
+              <Trash2 size={14} />
+            </button>
+          </Tooltip>
         </div>
       </article>
     );
@@ -437,23 +444,25 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId }) {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={refresh}
-            disabled={loading || uploading}
-            className="h-9 w-9 inline-flex items-center justify-center border border-line rounded-lg text-d-fg3 hover:text-d-fg hover:border-line2 disabled:opacity-50 transition-colors"
-            title="Rafraîchir"
-          >
-            <RefreshCw size={15} className={loading ? "animate-spin" : ""} />
-          </button>
-          <button
-            type="button"
-            onClick={onClose}
-            className="h-9 w-9 inline-flex items-center justify-center border border-line rounded-lg text-d-fg3 hover:text-d-fg hover:border-line2 transition-colors"
-            title="Fermer"
-          >
-            <X size={16} />
-          </button>
+          <Tooltip label="Rafraîchir">
+            <button
+              type="button"
+              onClick={refresh}
+              disabled={loading || uploading}
+              className="h-9 w-9 inline-flex items-center justify-center border border-line rounded-lg text-d-fg3 hover:text-d-fg hover:border-line2 disabled:opacity-50 transition-colors"
+            >
+              <RefreshCw size={15} className={loading ? "animate-spin" : ""} />
+            </button>
+          </Tooltip>
+          <Tooltip label="Fermer" align="right">
+            <button
+              type="button"
+              onClick={onClose}
+              className="h-9 w-9 inline-flex items-center justify-center border border-line rounded-lg text-d-fg3 hover:text-d-fg hover:border-line2 transition-colors"
+            >
+              <X size={16} />
+            </button>
+          </Tooltip>
         </div>
       </header>
 
@@ -570,20 +579,20 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId }) {
                   const Icon = mode.icon;
                   const active = viewMode === mode.id;
                   return (
-                    <button
-                      key={mode.id}
-                      type="button"
-                      onClick={() => setViewMode(mode.id)}
-                      className={`h-8 px-2.5 rounded-lg inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.14em] transition-colors ${
-                        active
-                          ? "bg-d-panel3 text-d-fg"
-                          : "text-d-fg4 hover:text-d-fg2"
-                      }`}
-                      title={mode.title}
-                    >
-                      <Icon size={13} />
-                      {mode.label}
-                    </button>
+                    <Tooltip key={mode.id} label={mode.title}>
+                      <button
+                        type="button"
+                        onClick={() => setViewMode(mode.id)}
+                        className={`h-8 px-2.5 rounded-lg inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.14em] transition-colors ${
+                          active
+                            ? "bg-d-panel3 text-d-fg"
+                            : "text-d-fg4 hover:text-d-fg2"
+                        }`}
+                      >
+                        <Icon size={13} />
+                        {mode.label}
+                      </button>
+                    </Tooltip>
                   );
                 })}
               </div>

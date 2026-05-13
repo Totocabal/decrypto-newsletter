@@ -10,6 +10,7 @@ import { Field, Input, TextArea } from "./FormControls.jsx";
 import { deleteImage, MAX_IMAGE_FILE_SIZE_LABEL } from "../lib/imageUpload.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import { ImageManagerModal } from "./ImageManagerModal.jsx";
+import { Tooltip } from "./Tooltip.jsx";
 
 export function SectionEditor({ type, data, onChange, sections = [] }) {
   const set = (patch) => onChange({ ...data, ...patch });
@@ -118,24 +119,26 @@ function ChipEditor({ chip, onChange, onDelete, sections }) {
         />
       </div>
       {type !== "manual" && (
+        <Tooltip label="Rafraîchir">
         <button
           type="button"
           onClick={handleSync}
           disabled={loading}
           className="p-2 text-d-fg4 hover:text-d-pink hover:bg-d-panel3 rounded-lg flex-shrink-0"
-          title="Rafraîchir"
         >
           {loading ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
         </button>
+        </Tooltip>
       )}
+      <Tooltip label="Supprimer">
       <button
         type="button"
         onClick={onDelete}
         className="p-2 text-d-fg4 hover:text-red-400 hover:bg-red-900/20 rounded-lg flex-shrink-0"
-        title="Supprimer"
       >
         <Trash2 size={14} />
       </button>
+      </Tooltip>
     </div>
   );
 }
@@ -230,14 +233,15 @@ function IndexEditor({ data, set, sections }) {
         <Field label="Libellé du bloc" className="flex-1 mb-0">
           <Input value={data.label} onChange={(e) => set({ label: e.target.value })} />
         </Field>
-        <button
-          type="button"
-          onClick={syncFromSections}
-          className="ml-3 flex items-center gap-1.5 px-3 py-2 text-[11px] font-medium border border-line text-d-fg3 rounded-xl hover:border-line2 hover:bg-d-panel2 transition-colors flex-shrink-0"
-          title="Regénérer depuis les blocs présents"
-        >
-          <RefreshCw size={12} /> Sync blocs
-        </button>
+        <Tooltip label="Regénérer depuis les blocs présents">
+          <button
+            type="button"
+            onClick={syncFromSections}
+            className="ml-3 flex items-center gap-1.5 px-3 py-2 text-[11px] font-medium border border-line text-d-fg3 rounded-xl hover:border-line2 hover:bg-d-panel2 transition-colors flex-shrink-0"
+          >
+            <RefreshCw size={12} /> Sync blocs
+          </button>
+        </Tooltip>
       </div>
       {items.map((it, i) => (
         <div
@@ -266,14 +270,15 @@ function IndexEditor({ data, set, sections }) {
             }
             placeholder="Titre"
           />
-          <button
-            type="button"
-            onClick={() => set({ items: items.filter((_, idx) => idx !== i) })}
-            className="p-2 text-stone-400 hover:text-red-600 hover:bg-red-50 rounded-sm"
-            title="Supprimer"
-          >
-            <Trash2 size={14} />
-          </button>
+          <Tooltip label="Supprimer">
+            <button
+              type="button"
+              onClick={() => set({ items: items.filter((_, idx) => idx !== i) })}
+              className="p-2 text-stone-400 hover:text-red-600 hover:bg-red-50 rounded-sm"
+            >
+              <Trash2 size={14} />
+            </button>
+          </Tooltip>
         </div>
       ))}
       <button
@@ -352,22 +357,23 @@ function EditoEditor({ data, set }) {
               >
                 <ChevronDown size={12} />
               </button>
-              <button
-                type="button"
-                onClick={() =>
-                  set({
-                    kpis: [
-                      ...kpis.slice(0, i + 1),
-                      JSON.parse(JSON.stringify(k)),
-                      ...kpis.slice(i + 1),
-                    ],
-                  })
-                }
-                className="p-1 text-d-fg4 hover:text-d-fg2 hover:bg-d-panel3 rounded-lg"
-                title="Dupliquer"
-              >
-                <CopyPlus size={12} />
-              </button>
+              <Tooltip label="Dupliquer">
+                <button
+                  type="button"
+                  onClick={() =>
+                    set({
+                      kpis: [
+                        ...kpis.slice(0, i + 1),
+                        JSON.parse(JSON.stringify(k)),
+                        ...kpis.slice(i + 1),
+                      ],
+                    })
+                  }
+                  className="p-1 text-d-fg4 hover:text-d-fg2 hover:bg-d-panel3 rounded-lg"
+                >
+                  <CopyPlus size={12} />
+                </button>
+              </Tooltip>
               <button
                 type="button"
                 onClick={() =>
@@ -1099,14 +1105,15 @@ function FocusEditor({ data, set }) {
               alt={data.image_alt || ""}
               className="w-full h-auto rounded-xl border border-line"
             />
-            <button
-              type="button"
-              onClick={handleRemoveImage}
-              className="absolute top-2 right-2 p-1.5 bg-d-panel2 border border-line rounded-lg hover:bg-red-900/20 hover:border-red-500/30 text-d-fg3 hover:text-red-400 shadow-sm"
-              title="Supprimer l'image"
-            >
-              <X size={14} />
-            </button>
+            <Tooltip label="Supprimer l'image" align="right" className="absolute top-2 right-2">
+              <button
+                type="button"
+                onClick={handleRemoveImage}
+                className="p-1.5 bg-d-panel2 border border-line rounded-lg hover:bg-red-900/20 hover:border-red-500/30 text-d-fg3 hover:text-red-400 shadow-sm"
+              >
+                <X size={14} />
+              </button>
+            </Tooltip>
           </div>
           <div className="grid grid-cols-2 gap-2">
             <button
@@ -1244,14 +1251,15 @@ function ImageBlockEditor({ data, set }) {
               alt={data.image_alt || ""}
               className="w-full h-auto rounded-xl border border-line"
             />
-            <button
-              type="button"
-              onClick={handleRemoveImage}
-              className="absolute top-2 right-2 p-1.5 bg-d-panel2 border border-line rounded-lg hover:bg-red-900/20 hover:border-red-500/30 text-d-fg3 hover:text-red-400 shadow-sm"
-              title="Supprimer l'image"
-            >
-              <X size={14} />
-            </button>
+            <Tooltip label="Supprimer l'image" align="right" className="absolute top-2 right-2">
+              <button
+                type="button"
+                onClick={handleRemoveImage}
+                className="p-1.5 bg-d-panel2 border border-line rounded-lg hover:bg-red-900/20 hover:border-red-500/30 text-d-fg3 hover:text-red-400 shadow-sm"
+              >
+                <X size={14} />
+              </button>
+            </Tooltip>
           </div>
           <div className="grid grid-cols-2 gap-2">
             <button

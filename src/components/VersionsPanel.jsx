@@ -5,6 +5,7 @@
 import { useEffect, useState } from "react";
 import { X, RotateCcw, User, Clock, Loader2 } from "lucide-react";
 import { supabase } from "../lib/supabase.js";
+import { Tooltip } from "./Tooltip.jsx";
 
 export function VersionsPanel({ newsletterId, onRestore, onClose }) {
   const [versions, setVersions] = useState([]);
@@ -77,14 +78,15 @@ export function VersionsPanel({ newsletterId, onRestore, onClose }) {
               Versions sauvegardées
             </h2>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="h-8 w-8 inline-flex items-center justify-center text-d-fg4 hover:text-d-fg2 hover:bg-d-panel2 rounded-lg transition-colors"
-            title="Fermer"
-          >
-            <X size={16} />
-          </button>
+          <Tooltip label="Fermer" align="right">
+            <button
+              type="button"
+              onClick={onClose}
+              className="h-8 w-8 inline-flex items-center justify-center text-d-fg4 hover:text-d-fg2 hover:bg-d-panel2 rounded-lg transition-colors"
+            >
+              <X size={16} />
+            </button>
+          </Tooltip>
         </div>
 
         <div className="overflow-y-auto flex-1">

@@ -10,6 +10,7 @@ import { EditorPanel } from "../components/EditorPanel.jsx";
 import { LockBanner } from "../components/LockBanner.jsx";
 import { VersionsPanel } from "../components/VersionsPanel.jsx";
 import { Wordmark } from "../components/Wordmark.jsx";
+import { Tooltip } from "../components/Tooltip.jsx";
 import { buildEmailHtml } from "../render/buildEmail.js";
 import { supabase } from "../lib/supabase.js";
 import { useNewsletter } from "../lib/useNewsletter.js";
@@ -292,15 +293,16 @@ export function EditorPage({ newsletterId, onBack }) {
               {leaving ? <Loader2 size={12} className="animate-spin" /> : <ArrowLeft size={12} />}
               {leaving ? "Sauvegarde…" : "Retour"}
             </button>
-            <input
-              type="text"
-              value={newsletter?.title || ""}
-              onChange={(e) => updateTitle(e.target.value)}
-              placeholder="Titre de la newsletter…"
-              className="flex-1 min-w-0 max-w-md text-sm font-medium text-d-fg bg-transparent border border-transparent hover:border-line focus:border-line2 focus:bg-d-panel2 px-3 py-1.5 rounded-full focus:outline-none transition-colors"
-              style={{ fontFamily: "'Sora', sans-serif" }}
-              title="Cliquer pour renommer cette newsletter"
-            />
+            <Tooltip label="Cliquer pour renommer cette newsletter" side="bottom" className="flex-1 min-w-0 max-w-md">
+              <input
+                type="text"
+                value={newsletter?.title || ""}
+                onChange={(e) => updateTitle(e.target.value)}
+                placeholder="Titre de la newsletter…"
+                className="w-full text-sm font-medium text-d-fg bg-transparent border border-transparent hover:border-line focus:border-line2 focus:bg-d-panel2 px-3 py-1.5 rounded-full focus:outline-none transition-colors"
+                style={{ fontFamily: "'Sora', sans-serif" }}
+              />
+            </Tooltip>
           </div>
           <div className="flex items-center gap-3 flex-shrink-0">
             <SaveIndicator
@@ -315,24 +317,26 @@ export function EditorPage({ newsletterId, onBack }) {
               <History size={12} />
               Versions
             </button>
-            <button
-              onClick={handleUndo}
-              disabled={!undoCount || lockedByOther}
-              className="flex items-center gap-2 text-[10px] uppercase tracking-[0.14em] font-medium text-d-fg3 hover:text-d-fg px-3 py-1.5 border border-line hover:border-line2 rounded-full disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-              title="Annuler le dernier changement"
-            >
-              <Undo2 size={12} />
-              Annuler
-            </button>
-            <button
-              onClick={handleRedo}
-              disabled={!redoCount || lockedByOther}
-              className="flex items-center gap-2 text-[10px] uppercase tracking-[0.14em] font-medium text-d-fg3 hover:text-d-fg px-3 py-1.5 border border-line hover:border-line2 rounded-full disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-              title="Restaurer le dernier changement annulé"
-            >
-              <Redo2 size={12} />
-              Restaurer
-            </button>
+            <Tooltip label="Annuler le dernier changement" side="bottom">
+              <button
+                onClick={handleUndo}
+                disabled={!undoCount || lockedByOther}
+                className="flex items-center gap-2 text-[10px] uppercase tracking-[0.14em] font-medium text-d-fg3 hover:text-d-fg px-3 py-1.5 border border-line hover:border-line2 rounded-full disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              >
+                <Undo2 size={12} />
+                Annuler
+              </button>
+            </Tooltip>
+            <Tooltip label="Restaurer le dernier changement annulé" side="bottom" align="right">
+              <button
+                onClick={handleRedo}
+                disabled={!redoCount || lockedByOther}
+                className="flex items-center gap-2 text-[10px] uppercase tracking-[0.14em] font-medium text-d-fg3 hover:text-d-fg px-3 py-1.5 border border-line hover:border-line2 rounded-full disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              >
+                <Redo2 size={12} />
+                Restaurer
+              </button>
+            </Tooltip>
           </div>
         </div>
       </div>

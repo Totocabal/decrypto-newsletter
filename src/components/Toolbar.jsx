@@ -12,6 +12,7 @@ import {
   UploadCloud,
   Loader2,
 } from "lucide-react";
+import { Tooltip } from "./Tooltip.jsx";
 
 export function Toolbar({
   brandName,
@@ -72,28 +73,19 @@ export function Toolbar({
           </div>
 
           {/* Sauvegarder une version */}
-          <div className="relative group/save">
+          <Tooltip
+            side="bottom"
+            align="right"
+            label="Crée une version numérotée automatiquement. Le champ proposé sert uniquement à ajouter un commentaire optionnel."
+          >
             <button
               onClick={onSave}
-              aria-describedby="save-version-tooltip"
               className="flex items-center gap-1.5 px-3 py-2 text-[11px] uppercase tracking-[0.14em] font-medium border border-line2 text-d-fg2 rounded-full hover:bg-d-panel2 focus:bg-d-panel2 focus:outline-none focus:ring-2 focus:ring-d-pink/30 transition-colors"
             >
               {saved ? <Check size={12} /> : <Save size={12} />}
               {saved ? "Sauvé" : "Sauvegarder"}
             </button>
-            <div
-              id="save-version-tooltip"
-              role="tooltip"
-              className="pointer-events-none absolute right-0 top-[calc(100%+10px)] z-30 w-72 rounded-2xl border border-line bg-d-panel px-4 py-3 text-left opacity-0 shadow-2xl transition-all duration-150 translate-y-1 group-hover/save:opacity-100 group-hover/save:translate-y-0 group-focus-within/save:opacity-100 group-focus-within/save:translate-y-0"
-            >
-              <div className="text-[10px] uppercase tracking-[0.18em] font-semibold text-d-pink mb-1">
-                Sauvegarde
-              </div>
-              <div className="text-xs leading-relaxed text-d-fg3 normal-case tracking-normal">
-                Crée une version numérotée automatiquement. Le champ proposé sert uniquement à ajouter un commentaire optionnel.
-              </div>
-            </div>
-          </div>
+          </Tooltip>
 
           <div className="w-px h-5 mx-1" style={{ background: "var(--d-line2)" }} />
 
@@ -108,6 +100,11 @@ export function Toolbar({
 
           {/* Export ZIP */}
           {onExportZip && (
+            <Tooltip
+              side="bottom"
+              align="right"
+              label="Exporter le HTML et le dossier assets avec les PNG dans un fichier ZIP."
+            >
             <button
               onClick={onExportZip}
               disabled={exporting}
@@ -115,7 +112,6 @@ export function Toolbar({
               style={{
                 background: "linear-gradient(90deg, #4141FF 0%, #FF00AA 60%, #FF4B28 100%)",
               }}
-              title="Exporter HTML + dossier assets/ avec PNG dans un ZIP"
             >
               {exporting ? (
                 <>
@@ -129,16 +125,21 @@ export function Toolbar({
                 </>
               )}
             </button>
+            </Tooltip>
           )}
 
           {/* Export Braze */}
           {onExportBraze && (
+            <Tooltip
+              side="bottom"
+              align="right"
+              label="Uploader les images dans Braze et exporter le HTML avec les URLs Braze."
+            >
             <button
               onClick={onExportBraze}
               disabled={exportingBraze}
               className="flex items-center gap-1.5 px-3 py-2 text-[11px] uppercase tracking-[0.14em] font-semibold rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-white"
               style={{ background: "#FF00AA" }}
-              title="Uploader les images dans Braze et exporter le HTML avec les URLs Braze"
             >
               {exportingBraze ? (
                 <>
@@ -152,6 +153,7 @@ export function Toolbar({
                 </>
               )}
             </button>
+            </Tooltip>
           )}
         </div>
       </div>

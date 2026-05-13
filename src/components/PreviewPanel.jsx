@@ -4,6 +4,7 @@
 
 import { Monitor, Smartphone } from "lucide-react";
 import { THEME } from "../config/theme.js";
+import { Tooltip } from "./Tooltip.jsx";
 
 export function PreviewPanel({ html, view, previewDevice, setPreviewDevice }) {
   return (
@@ -14,28 +15,30 @@ export function PreviewPanel({ html, view, previewDevice, setPreviewDevice }) {
       {view === "preview" && (
         <div className="flex items-center justify-center gap-1 px-3 py-2 border-b border-line">
           <div className="flex items-center bg-d-panel2 rounded-full p-1 border border-line">
-            <button
-              onClick={() => setPreviewDevice("desktop")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-[11px] uppercase tracking-[0.14em] rounded-full font-semibold transition-colors ${
-                previewDevice === "desktop"
-                  ? "bg-white text-[#15151A]"
-                  : "text-d-fg3 hover:text-d-fg2"
-              }`}
-              title="Aperçu desktop"
-            >
-              <Monitor size={12} /> Desktop
-            </button>
-            <button
-              onClick={() => setPreviewDevice("mobile")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-[11px] uppercase tracking-[0.14em] rounded-full font-semibold transition-colors ${
-                previewDevice === "mobile"
-                  ? "bg-white text-[#15151A]"
-                  : "text-d-fg3 hover:text-d-fg2"
-              }`}
-              title="Aperçu mobile"
-            >
-              <Smartphone size={12} /> Mobile
-            </button>
+            <Tooltip label="Aperçu desktop">
+              <button
+                onClick={() => setPreviewDevice("desktop")}
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-[11px] uppercase tracking-[0.14em] rounded-full font-semibold transition-colors ${
+                  previewDevice === "desktop"
+                    ? "bg-white text-[#15151A]"
+                    : "text-d-fg3 hover:text-d-fg2"
+                }`}
+              >
+                <Monitor size={12} /> Desktop
+              </button>
+            </Tooltip>
+            <Tooltip label="Aperçu mobile">
+              <button
+                onClick={() => setPreviewDevice("mobile")}
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-[11px] uppercase tracking-[0.14em] rounded-full font-semibold transition-colors ${
+                  previewDevice === "mobile"
+                    ? "bg-white text-[#15151A]"
+                    : "text-d-fg3 hover:text-d-fg2"
+                }`}
+              >
+                <Smartphone size={12} /> Mobile
+              </button>
+            </Tooltip>
           </div>
         </div>
       )}

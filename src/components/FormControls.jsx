@@ -17,6 +17,7 @@ import {
 import { createEditor, Editor, Element as SlateElement, Text, Transforms } from "slate";
 import { withHistory } from "slate-history";
 import { Editable, Slate, useSlate, withReact } from "slate-react";
+import { Tooltip } from "./Tooltip.jsx";
 
 export function Field({ label, children, hint }) {
   return (
@@ -300,6 +301,7 @@ function withInlines(editor) {
 
 function HtmlButton({ title, onClick, active = false, children }) {
   return (
+    <Tooltip label={title}>
     <button
       type="button"
       onMouseDown={(e) => e.preventDefault()}
@@ -309,10 +311,10 @@ function HtmlButton({ title, onClick, active = false, children }) {
           ? "border-d-fg3 bg-d-panel3 text-d-fg"
           : "border-line text-d-fg4 hover:text-d-fg2 hover:border-line2 bg-d-panel2"
       }`}
-      title={title}
     >
       {children}
     </button>
+    </Tooltip>
   );
 }
 

@@ -21,6 +21,7 @@ import { useAuth } from "../contexts/AuthContext.jsx";
 import { INITIAL_STATE } from "../config/schema.js";
 import { Wordmark } from "../components/Wordmark.jsx";
 import { ImageManagerModal } from "../components/ImageManagerModal.jsx";
+import { Tooltip } from "../components/Tooltip.jsx";
 
 export function NewslettersListPage({ onOpen, onOpenAdmin }) {
   const { profile, signOut } = useAuth();
@@ -310,27 +311,29 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                     </div>
 
                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          handleDuplicate(nl);
-                        }}
-                        className="p-2 text-d-fg4 hover:text-d-fg2 hover:bg-d-panel3 rounded-lg transition-colors"
-                        title="Dupliquer"
-                      >
-                        <Copy size={14} />
-                      </button>
-                      {profile?.is_admin && (
+                      <Tooltip label="Dupliquer">
                         <button
                           onClick={(event) => {
                             event.stopPropagation();
-                            handleDelete(nl);
+                            handleDuplicate(nl);
                           }}
-                          className="p-2 text-d-fg4 hover:text-red-400 hover:bg-red-900/20 rounded-lg transition-colors"
-                          title="Supprimer"
+                          className="p-2 text-d-fg4 hover:text-d-fg2 hover:bg-d-panel3 rounded-lg transition-colors"
                         >
-                          <Trash2 size={14} />
+                          <Copy size={14} />
                         </button>
+                      </Tooltip>
+                      {profile?.is_admin && (
+                        <Tooltip label="Supprimer" align="right">
+                          <button
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              handleDelete(nl);
+                            }}
+                            className="p-2 text-d-fg4 hover:text-red-400 hover:bg-red-900/20 rounded-lg transition-colors"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </Tooltip>
                       )}
                     </div>
 

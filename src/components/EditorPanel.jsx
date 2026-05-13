@@ -28,6 +28,7 @@ import {
   Type,
 } from "lucide-react";
 import { Field, Input, TextArea, Section } from "./FormControls.jsx";
+import { Tooltip } from "./Tooltip.jsx";
 import {
   SECTION_TYPES,
   UNNUMBERED_TYPES,
@@ -288,25 +289,30 @@ export function EditorPanel({ state, setState }) {
             Sections de la newsletter
           </div>
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={handleGlobalSync}
-              disabled={globalSyncing}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] uppercase tracking-[0.14em] font-semibold rounded-full text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              style={{
-                background: globalSyncing
-                  ? "#2E2E34"
-                  : "linear-gradient(90deg, #4141FF 0%, #FF00AA 60%, #FF4B28 100%)",
-              }}
-              title="Synchroniser le sommaire, les pastilles auto et les graphiques auto CoinGecko"
+            <Tooltip
+              side="bottom"
+              align="right"
+              label="Synchroniser le sommaire, les pastilles auto et les graphiques auto CoinGecko."
             >
-              {globalSyncing ? (
-                <Loader2 size={12} className="animate-spin" />
-              ) : (
-                <RefreshCw size={12} />
-              )}
-              {globalSyncing ? "Sync…" : "Synchroniser"}
-            </button>
+              <button
+                type="button"
+                onClick={handleGlobalSync}
+                disabled={globalSyncing}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] uppercase tracking-[0.14em] font-semibold rounded-full text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                style={{
+                  background: globalSyncing
+                    ? "#2E2E34"
+                    : "linear-gradient(90deg, #4141FF 0%, #FF00AA 60%, #FF4B28 100%)",
+                }}
+              >
+                {globalSyncing ? (
+                  <Loader2 size={12} className="animate-spin" />
+                ) : (
+                  <RefreshCw size={12} />
+                )}
+                {globalSyncing ? "Sync…" : "Synchroniser"}
+              </button>
+            </Tooltip>
             <div className="text-[10px] uppercase tracking-[0.18em] text-d-fg4">
               {state.sections.length} bloc{state.sections.length > 1 ? "s" : ""}
             </div>
@@ -374,14 +380,15 @@ export function EditorPanel({ state, setState }) {
                 placeholder="https://…"
               />
             </div>
-            <button
-              type="button"
-              onClick={() => links.remove(i)}
-              className="p-2 text-d-fg4 hover:text-red-400 hover:bg-red-900/20 rounded-lg transition-colors"
-              title="Supprimer"
-            >
-              <Trash2 size={14} />
-            </button>
+            <Tooltip label="Supprimer">
+              <button
+                type="button"
+                onClick={() => links.remove(i)}
+                className="p-2 text-d-fg4 hover:text-red-400 hover:bg-red-900/20 rounded-lg transition-colors"
+              >
+                <Trash2 size={14} />
+              </button>
+            </Tooltip>
           </div>
         ))}
         <button
@@ -466,16 +473,17 @@ function SectionCard({
     >
       {/* Barre de titre */}
       <div className="flex items-center gap-2 px-2 py-2">
-        <button
-          type="button"
-          draggable
-          onDragStart={onDragStart}
-          onDragEnd={onDragEnd}
-          className="p-1 text-d-fg4 cursor-grab active:cursor-grabbing hover:text-d-fg2 rounded-lg flex-shrink-0"
-          title="Glisser pour déplacer"
-        >
-          <GripVertical size={14} />
-        </button>
+        <Tooltip label="Glisser pour déplacer">
+          <button
+            type="button"
+            draggable
+            onDragStart={onDragStart}
+            onDragEnd={onDragEnd}
+            className="p-1 text-d-fg4 cursor-grab active:cursor-grabbing hover:text-d-fg2 rounded-lg flex-shrink-0"
+          >
+            <GripVertical size={14} />
+          </button>
+        </Tooltip>
         <button
           onClick={() => setOpen((v) => !v)}
           className="flex-1 flex items-center gap-2 min-w-0 text-left hover:bg-d-panel2 -mx-1 px-2 py-1 rounded-lg transition-colors"
@@ -505,38 +513,42 @@ function SectionCard({
         </button>
 
         <div className="flex items-center gap-0.5 flex-shrink-0">
-          <button
-            onClick={onMoveUp}
-            disabled={index === 0}
-            className="p-1.5 text-d-fg4 hover:text-d-fg2 hover:bg-d-panel2 rounded-lg disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
-            title="Monter"
-          >
-            <ChevronUp size={14} />
-          </button>
-          <button
-            onClick={onMoveDown}
-            disabled={index === total - 1}
-            className="p-1.5 text-d-fg4 hover:text-d-fg2 hover:bg-d-panel2 rounded-lg disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
-            title="Descendre"
-          >
-            <ChevronDown size={14} />
-          </button>
-          <button
-            onClick={onDuplicate}
-            className="p-1.5 text-d-fg4 hover:text-d-fg2 hover:bg-d-panel2 rounded-lg transition-colors"
-            title="Dupliquer"
-          >
-            <CopyPlus size={14} />
-          </button>
-          <button
-            onClick={() => {
-              if (confirm(`Supprimer la section « ${label} » ?`)) onDelete();
-            }}
-            className="p-1.5 text-d-fg4 hover:text-red-400 hover:bg-red-900/20 rounded-lg transition-colors"
-            title="Supprimer"
-          >
-            <Trash2 size={14} />
-          </button>
+          <Tooltip label="Monter">
+            <button
+              onClick={onMoveUp}
+              disabled={index === 0}
+              className="p-1.5 text-d-fg4 hover:text-d-fg2 hover:bg-d-panel2 rounded-lg disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
+            >
+              <ChevronUp size={14} />
+            </button>
+          </Tooltip>
+          <Tooltip label="Descendre">
+            <button
+              onClick={onMoveDown}
+              disabled={index === total - 1}
+              className="p-1.5 text-d-fg4 hover:text-d-fg2 hover:bg-d-panel2 rounded-lg disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
+            >
+              <ChevronDown size={14} />
+            </button>
+          </Tooltip>
+          <Tooltip label="Dupliquer">
+            <button
+              onClick={onDuplicate}
+              className="p-1.5 text-d-fg4 hover:text-d-fg2 hover:bg-d-panel2 rounded-lg transition-colors"
+            >
+              <CopyPlus size={14} />
+            </button>
+          </Tooltip>
+          <Tooltip label="Supprimer">
+            <button
+              onClick={() => {
+                if (confirm(`Supprimer la section « ${label} » ?`)) onDelete();
+              }}
+              className="p-1.5 text-d-fg4 hover:text-red-400 hover:bg-red-900/20 rounded-lg transition-colors"
+            >
+              <Trash2 size={14} />
+            </button>
+          </Tooltip>
         </div>
       </div>
 

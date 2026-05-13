@@ -6,6 +6,7 @@
 
 import { AlertTriangle, RefreshCw, ExternalLink } from "lucide-react";
 import { configStatus } from "../lib/supabase.js";
+import { Tooltip } from "../components/Tooltip.jsx";
 
 export function SetupErrorPage({ initError }) {
   // Liste des checks pour aider à diagnostiquer
@@ -105,14 +106,15 @@ export function SetupErrorPage({ initError }) {
                   <div className={c.ok ? "text-stone-700" : "text-stone-900 font-medium"}>
                     {c.label}
                   </div>
-                  <div
-                    className={`text-[11px] truncate ${
-                      c.ok ? "text-stone-400" : "text-red-600"
-                    }`}
-                    title={c.detail}
-                  >
-                    {c.detail}
-                  </div>
+                  <Tooltip label={c.detail} align="left">
+                    <div
+                      className={`text-[11px] truncate ${
+                        c.ok ? "text-stone-400" : "text-red-600"
+                      }`}
+                    >
+                      {c.detail}
+                    </div>
+                  </Tooltip>
                 </div>
               </li>
             ))}
