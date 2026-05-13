@@ -120,6 +120,20 @@ function sectionAnchor(sectionId) {
   return `<a id="${escapeAttr(id)}" name="${escapeAttr(id)}" style="display:block; line-height:0; font-size:0;">&nbsp;</a>`;
 }
 
+function renderEmailFontFaces() {
+  return Object.entries(FONTS.sora || {})
+    .flatMap(([weight, url]) =>
+      ["Sora", "DM Sans"].map((family) => `  @font-face {
+    font-family: '${family}';
+    src: url('${url}') format('truetype');
+    font-weight: ${weight};
+    font-style: normal;
+    font-display: swap;
+  }`)
+    )
+    .join("\n");
+}
+
 function sectionTitleForIndex(sec) {
   const d = sec.data || {};
   return d.title || d.label || d.kicker || sec.type;
@@ -856,16 +870,7 @@ export function buildEmailHtml(state, options = {}) {
 </style>
 <![endif]-->
 <style>
-  @font-face {
-    font-family: 'Sora';
-    src: url('${FONTS.customFontUrl}') format('truetype');
-    font-weight: 100 900; font-style: normal; font-display: swap;
-  }
-  @font-face {
-    font-family: 'DM Sans';
-    src: url('${FONTS.customFontUrl}') format('truetype');
-    font-weight: 100 900; font-style: normal; font-display: swap;
-  }
+${renderEmailFontFaces()}
   html, body { margin: 0 !important; padding: 0 !important; height: 100% !important; width: 100% !important; }
   * { -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; }
   table, td { mso-table-lspace: 0pt !important; mso-table-rspace: 0pt !important; border-collapse: collapse !important; border-spacing: 0 !important; }

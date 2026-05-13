@@ -36,17 +36,24 @@ export const THEME = {
 };
 
 // Polices web utilisées dans l'email
-// Coinhouse fournit une font custom hostée sur le CDN Braze, déclarée
-// sous les noms 'Sora' et 'DM Sans' pour rester compatible avec les
-// stacks de polices habituelles. Outlook ignore @font-face → fallback Arial.
+// Coinhouse fournit les fontes Sora hostées sur le CDN Braze. Elles sont
+// déclarées sous les noms 'Sora' et 'DM Sans' pour rester compatibles avec
+// les stacks de polices existantes. Outlook ignore @font-face → fallback Arial.
 export const FONTS = {
   // Police principale (titres, chiffres clés)
   heading: "'Sora', Arial, sans-serif",
   // Police body
   body: "'DM Sans', Arial, sans-serif",
-  // URL de la font custom Coinhouse (CDN Braze)
-  customFontUrl:
-    "https://cdn.braze.eu/appboy/communication/assets/font_assets/files/6581ae977282ee42cd89d198/original.ttf?1702997655",
+  // URLs des fontes Sora hostées sur le CDN Braze
+  sora: {
+    100: "https://cdn.braze.eu/appboy/communication/assets/font_assets/files/674095fb9216550091ffa745/original.ttf?1732285947",
+    200: "https://cdn.braze.eu/appboy/communication/assets/font_assets/files/674095fb8bdb0d00816f28ad/original.ttf?1732285947",
+    300: "https://cdn.braze.eu/appboy/communication/assets/font_assets/files/674095fb73d00e008136858e/original.ttf?1732285947",
+    500: "https://cdn.braze.eu/appboy/communication/assets/font_assets/files/674095fbd542e00081fc4555/original.ttf?1732285947",
+    600: "https://cdn.braze.eu/appboy/communication/assets/font_assets/files/674095fbed9c22008102ea58/original.ttf?1732285947",
+    700: "https://cdn.braze.eu/appboy/communication/assets/font_assets/files/674095fbcc898a00752a43a2/original.ttf?1732285947",
+    800: "https://cdn.braze.eu/appboy/communication/assets/font_assets/files/674095fbd0634300818b9578/original.ttf?1732285947",
+  },
 };
 
 // Identité de la marque
