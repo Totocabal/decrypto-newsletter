@@ -2,10 +2,7 @@ import React from "react";
 
 const DRAFT_KEY = "decrypto-newsletter-draft-v1";
 const DRAFT_RECOVERY_KEY = "decrypto-newsletter-draft-recovery-v1";
-const AUTO_RELOAD_KEY = "decrypto-auto-reload-after-crash-v1";
 const ERROR_DIAGNOSTIC_KEY = "decrypto-last-render-error-v1";
-const AUTO_RELOAD_MAX_ATTEMPTS = 3;
-const AUTO_RELOAD_DELAYS_MS = [250, 750, 1250];
 const AUTO_RELOAD_STABLE_RESET_MS = 15000;
 
 function storeDiagnostic(payload) {
@@ -56,7 +53,7 @@ async function clearBrowserCache() {
 export class AppErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { error: null, autoReloading: false, reloadAttempt: 0 };
+    this.state = { error: null };
     this.clearAutoReloadTimer = null;
   }
 
@@ -67,7 +64,6 @@ export class AppErrorBoundary extends React.Component {
   componentDidMount() {
     this.clearAutoReloadTimer = setTimeout(() => {
       try {
-        sessionStorage.removeItem(AUTO_RELOAD_KEY);
         sessionStorage.removeItem(ERROR_DIAGNOSTIC_KEY);
       } catch {
         // Session storage may be blocked.
@@ -107,37 +103,6 @@ export class AppErrorBoundary extends React.Component {
       componentStack: info?.componentStack || "",
     });
 
-    let recovery = { attempts: 0, startedAt: Date.now() };
-    try {
-      const stored = sessionStorage.getItem(AUTO_RELOAD_KEY);
-      if (stored === "1") {
-        recovery = { attempts: 1, startedAt: Date.now() };
-      } else if (stored) {
-        recovery = { ...recovery, ...JSON.parse(stored) };
-      }
-    } catch {
-      recovery = { attempts: AUTO_RELOAD_MAX_ATTEMPTS, startedAt: Date.now() };
-    }
-
-    if (recovery.attempts >= AUTO_RELOAD_MAX_ATTEMPTS) {
-      return;
-    }
-
-    const nextAttempt = recovery.attempts + 1;
-    try {
-      sessionStorage.setItem(
-        AUTO_RELOAD_KEY,
-        JSON.stringify({ attempts: nextAttempt, startedAt: recovery.startedAt })
-      );
-    } catch {
-      return;
-    }
-
-    this.setState({ autoReloading: true, reloadAttempt: nextAttempt });
-    const delay =
-      AUTO_RELOAD_DELAYS_MS[nextAttempt - 1] ??
-      AUTO_RELOAD_DELAYS_MS[AUTO_RELOAD_DELAYS_MS.length - 1];
-    setTimeout(() => window.location.reload(), delay);
   }
 
   componentWillUnmount() {
@@ -173,17 +138,6 @@ export class AppErrorBoundary extends React.Component {
   render() {
     if (!this.state.error) return this.props.children;
 
-    if (this.state.autoReloading) {
-      return (
-        <div className="min-h-screen bg-[#141416] flex items-center justify-center p-6 text-[#F1F2F5]">
-          <div className="flex items-center gap-3 text-xs uppercase tracking-[0.22em] text-stone-400">
-            <span className="h-2 w-2 rounded-full bg-[#ff00aa] animate-pulse" />
-            Récupération de l'éditeur {this.state.reloadAttempt}/{AUTO_RELOAD_MAX_ATTEMPTS}…
-          </div>
-        </div>
-      );
-    }
-
     let diagnostic = null;
     try {
       diagnostic = JSON.parse(sessionStorage.getItem(ERROR_DIAGNOSTIC_KEY) || "null");
@@ -203,9 +157,8 @@ export class AppErrorBoundary extends React.Component {
               L'application a rencontré une erreur
             </h1>
             <p className="text-sm sm:text-base leading-relaxed text-stone-300 max-w-xl mb-7">
-              J'ai tenté plusieurs rechargements automatiques. Si l'erreur revient,
-              ouvre la page sans le brouillon local : ton brouillon est mis de
-              côté dans le navigateur, et tu gardes ta session.
+              Le rechargement automatique est désactivé pour afficher le
+              diagnostic. Envoie le bloc ci-dessous pour identifier la cause.
             </p>
             {diagnostic?.message && (
               <div className="mb-7 rounded-sm border border-white/10 bg-black/25 p-4">
