@@ -154,79 +154,32 @@ function logoSvg(size, color, assetMode, name) {
   </svg>`;
 }
 
-function buildChartSvg(points, assetMode, {
-  yAxisLabels = [],
-  priceStart = "",
-  priceEnd = "",
-  priceHigh = "",
-  priceLow = "",
-} = {}) {
+function buildChartSvg(points, assetMode, { yAxisLabels = [] } = {}) {
   if (assetMode === "external") {
     return `<img src="assets/chart.png" alt="Graphique" style="display:block; width:100%; height:auto; border:0;" />`;
   }
   if (!points || points.length < 2) return "";
 
-  // PAD_TOP : espace pour les labels hauts / start / end
-  // PAD_BOT : espace pour les labels bas
-  const W = 560, PAD_TOP = 26, PAD_BOT = 20, CHART_H = 150;
-  const H = PAD_TOP + CHART_H + PAD_BOT;
+  const W = 560, H = 180;
   const FONT = "Sora,Arial,sans-serif";
   const stepX = W / (points.length - 1);
 
-  // p ∈ [0,100] : 0=bas, 100=haut → y_svg = PAD_TOP + (1-p/100)*CHART_H
   const xy = points.map((p, i) => [
     +(stepX * i).toFixed(2),
-    +(PAD_TOP + (1 - p / 100) * CHART_H).toFixed(2),
+    +((1 - p / 100) * H).toFixed(2),
   ]);
   const polyline = xy.map(([x, y]) => `${x},${y}`).join(" ");
-  const polygon  = `0,${PAD_TOP + CHART_H} ${polyline} ${W},${PAD_TOP + CHART_H}`;
+  const polygon  = `0,${H} ${polyline} ${W},${H}`;
+  const last = xy[xy.length - 1];
 
-  const first = xy[0];
-  const last  = xy[xy.length - 1];
-
-  // Indices du point le plus haut (p=100→y minimal) et le plus bas (p=0→y maximal)
-  let hiIdx = 0, loIdx = 0;
-  points.forEach((p, i) => {
-    if (p > points[hiIdx]) hiIdx = i;
-    if (p < points[loIdx]) loIdx = i;
-  });
-  const hiPt = xy[hiIdx];
-  const loPt = xy[loIdx];
-
-  // ── Labels Y (axe droite, aux 3 lignes de grille) ──
+  // Labels Y à gauche, aux 3 lignes de grille — rendus AVANT le tracé (background)
   const gridFracs = [0.25, 0.5, 0.75];
   const yAxisSvg = gridFracs.map((frac, i) => {
     const label = yAxisLabels[i];
     if (!label) return "";
-    const y = +(PAD_TOP + CHART_H * frac).toFixed(2);
-    return `<text x="${W - 4}" y="${y - 4}" font-family="${FONT}" font-size="10" fill="#555566" text-anchor="end">${escapeHtml(label)}</text>`;
+    const y = +(H * frac).toFixed(2);
+    return `<text x="6" y="${y - 5}" font-family="${FONT}" font-size="11" font-weight="600" fill="#9999BB" text-anchor="start">${escapeHtml(label)}</text>`;
   }).join("\n    ");
-
-  // ── Label start (premier point, aligné à gauche) ──
-  const startSvg = priceStart
-    ? `<text x="4" y="${Math.max(14, first[1] - 8)}" font-family="${FONT}" font-size="10" fill="#888899" text-anchor="start">${escapeHtml(priceStart)}</text>`
-    : "";
-
-  // ── Label end (dernier point, aligné à droite) ──
-  const endSvg = priceEnd
-    ? `<text x="${W - 4}" y="${Math.max(14, last[1] - 8)}" font-family="${FONT}" font-size="10" font-weight="600" fill="#00FFFF" text-anchor="end">${escapeHtml(priceEnd)}</text>`
-    : "";
-
-  // ── Marqueur HIGH : dot orange + label au-dessus (dans PAD_TOP) ──
-  const highDotY  = hiPt[1];
-  const highLblY  = Math.max(12, highDotY - 10);
-  const highSvg = priceHigh
-    ? `<circle cx="${hiPt[0]}" cy="${highDotY}" r="4" fill="#FF8B28" stroke="${THEME.bgPage}" stroke-width="1.5"/>
-    <text x="${hiPt[0]}" y="${highLblY}" font-family="${FONT}" font-size="10" font-weight="600" fill="#FF8B28" text-anchor="middle">${escapeHtml(priceHigh)}</text>`
-    : "";
-
-  // ── Marqueur LOW : dot rouge + label en-dessous (dans PAD_BOT) ──
-  const lowDotY  = loPt[1];
-  const lowLblY  = Math.min(H - 4, lowDotY + 16);
-  const lowSvg = priceLow
-    ? `<circle cx="${loPt[0]}" cy="${lowDotY}" r="4" fill="#FF4B28" stroke="${THEME.bgPage}" stroke-width="1.5"/>
-    <text x="${loPt[0]}" y="${lowLblY}" font-family="${FONT}" font-size="10" font-weight="600" fill="#FF4B28" text-anchor="middle">${escapeHtml(priceLow)}</text>`
-    : "";
 
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="100%" height="${H}" preserveAspectRatio="none" style="display:block;">
     <defs>
@@ -239,17 +192,13 @@ function buildChartSvg(points, assetMode, {
         <stop offset="100%" stop-color="#00FFFF"/>
       </linearGradient>
     </defs>
-    <line x1="0" x2="${W}" y1="${PAD_TOP + CHART_H * 0.25}" y2="${PAD_TOP + CHART_H * 0.25}" stroke="#222229" stroke-dasharray="2 4"/>
-    <line x1="0" x2="${W}" y1="${PAD_TOP + CHART_H * 0.5}"  y2="${PAD_TOP + CHART_H * 0.5}"  stroke="#222229" stroke-dasharray="2 4"/>
-    <line x1="0" x2="${W}" y1="${PAD_TOP + CHART_H * 0.75}" y2="${PAD_TOP + CHART_H * 0.75}" stroke="#222229" stroke-dasharray="2 4"/>
+    <line x1="0" x2="${W}" y1="${H * 0.25}" y2="${H * 0.25}" stroke="#222229" stroke-dasharray="2 4"/>
+    <line x1="0" x2="${W}" y1="${H * 0.5}"  y2="${H * 0.5}"  stroke="#222229" stroke-dasharray="2 4"/>
+    <line x1="0" x2="${W}" y1="${H * 0.75}" y2="${H * 0.75}" stroke="#222229" stroke-dasharray="2 4"/>
+    ${yAxisSvg}
     <polygon points="${polygon}" fill="url(#g1)"/>
     <polyline points="${polyline}" fill="none" stroke="url(#g2)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
     <circle cx="${last[0]}" cy="${last[1]}" r="5" fill="#00FFFF" stroke="${THEME.bgPage}" stroke-width="2"/>
-    ${yAxisSvg}
-    ${startSvg}
-    ${endSvg}
-    ${highSvg}
-    ${lowSvg}
   </svg>`;
 }
 
@@ -435,13 +384,7 @@ function renderChart(data, assetMode) {
           </tr>
           <tr>
             <td colspan="2" style="padding-top:20px;">
-              ${buildChartSvg(data.points, assetMode, {
-                yAxisLabels: data.y_axis_labels ?? [],
-                priceStart:  data.price_start  ?? "",
-                priceEnd:    data.value        ?? "",
-                priceHigh:   data.price_high   ?? "",
-                priceLow:    data.price_low    ?? "",
-              })}
+              ${buildChartSvg(data.points, assetMode, { yAxisLabels: data.y_axis_labels ?? [] })}
             </td>
           </tr>
           <tr>
@@ -914,8 +857,8 @@ export function getLogoSvg(size = 64, color = "#ffffff") {
   </svg>`;
 }
 
-export function getChartSvgFull(points, opts = {}) {
-  return buildChartSvg(points, "inline", opts);
+export function getChartSvgFull(points, yAxisLabels = []) {
+  return buildChartSvg(points, "inline", { yAxisLabels });
 }
 
 export function getGaugeSvgFull(value) {
