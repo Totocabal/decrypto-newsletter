@@ -196,7 +196,8 @@ function buildChartSvg(points, assetMode, {
 
   // ── Start (gris, gauche) ──
   const startSvg = priceStart
-    ? `<text x="4" y="${Math.max(12, first[1] - 8)}" font-family="${FONT}" font-size="11" fill="#888899" text-anchor="start">${escapeHtml(priceStart)}</text>`
+    ? `<circle cx="${first[0]}" cy="${first[1]}" r="4" fill="#888899" stroke="${THEME.bgPage}" stroke-width="1.5"/>
+    <text x="4" y="${Math.max(12, first[1] - 8)}" font-family="${FONT}" font-size="11" fill="#888899" text-anchor="start">${escapeHtml(priceStart)}</text>`
     : "";
 
   // ── End (cyan, droite) ──
