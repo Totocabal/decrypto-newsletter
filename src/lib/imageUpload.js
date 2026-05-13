@@ -75,7 +75,7 @@ export async function listImages(userId) {
   if (error) throw new Error(error.message);
 
   return (data || [])
-    .filter((item) => item?.name && item.name !== ".emptyFolderPlaceholder")
+    .filter((item) => item?.name && item.name !== ".emptyFolderPlaceholder" && item.name !== "braze-export")
     .map((item) => {
       const path = `${userId}/${item.name}`;
       const { data: publicData } = supabase.storage.from(BUCKET).getPublicUrl(path);
