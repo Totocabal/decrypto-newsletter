@@ -356,11 +356,11 @@ function LinkButton() {
 function RichTextElement({ attributes, children, element }) {
   switch (element.type) {
     case "bulleted-list":
-      return <ul {...attributes} className="list-disc pl-5 my-1 text-d-fg2">{children}</ul>;
+      return <ul {...attributes} className="list-disc pl-5 my-1 text-inherit text-sm leading-relaxed">{children}</ul>;
     case "numbered-list":
-      return <ol {...attributes} className="list-decimal pl-5 my-1 text-d-fg2">{children}</ol>;
+      return <ol {...attributes} className="list-decimal pl-5 my-1 text-inherit text-sm leading-relaxed">{children}</ol>;
     case "list-item":
-      return <li {...attributes} className="my-0.5">{children}</li>;
+      return <li {...attributes} className="my-0.5 text-inherit text-sm leading-relaxed">{children}</li>;
     case "link":
       return (
         <a

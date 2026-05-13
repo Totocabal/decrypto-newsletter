@@ -32,6 +32,8 @@ function decodeStoredTextEntities(str = "") {
 
 export function sanitizeRichText(text = "") {
   let out = escapeHtml(decodeStoredTextEntities(text));
+  const listStyle = `margin:0; padding-left:20px; font-family:${FONTS.body}; font-size:15px; line-height:1.65; color:${THEME.textSecondary};`;
+  const listItemStyle = `margin:0 0 6px; font-family:${FONTS.body}; font-size:15px; line-height:1.65; color:${THEME.textSecondary};`;
   out = out
     .replace(/&lt;br\s*\/?&gt;/gi, "<br />")
     .replace(/&lt;div&gt;/gi, "")
@@ -54,11 +56,11 @@ export function sanitizeRichText(text = "") {
     .replace(/&lt;\/strike&gt;/gi, "</s>")
     .replace(/&lt;sup&gt;/gi, "<sup>")
     .replace(/&lt;\/sup&gt;/gi, "</sup>")
-    .replace(/&lt;ul&gt;/gi, `<ul style="margin:0; padding-left:20px;">`)
+    .replace(/&lt;ul&gt;/gi, `<ul style="${listStyle}">`)
     .replace(/&lt;\/ul&gt;/gi, "</ul>")
-    .replace(/&lt;ol&gt;/gi, `<ol style="margin:0; padding-left:20px;">`)
+    .replace(/&lt;ol&gt;/gi, `<ol style="${listStyle}">`)
     .replace(/&lt;\/ol&gt;/gi, "</ol>")
-    .replace(/&lt;li&gt;/gi, `<li style="margin:0 0 6px;">`)
+    .replace(/&lt;li&gt;/gi, `<li style="${listItemStyle}">`)
     .replace(/&lt;\/li&gt;/gi, "</li>")
     .replace(/&lt;a href=&quot;([^&]+)&quot;&gt;/gi,
       `<a href="$1" style="color:${THEME.textMuted}; text-decoration:underline;">`)
