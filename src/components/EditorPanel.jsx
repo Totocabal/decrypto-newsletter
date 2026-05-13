@@ -74,7 +74,9 @@ export function EditorPanel({ state, setState }) {
   // ── Drag & drop ──
   const draggedId = useRef(null);
   const dragImageRef = useRef(null);
+  const pointerDragRef = useRef(null);
   const [dragOverId, setDragOverId] = useState(null);
+  const [touchDraggingId, setTouchDraggingId] = useState(null);
 
   const clearDragImage = () => {
     if (dragImageRef.current) {
@@ -117,15 +119,7 @@ export function EditorPanel({ state, setState }) {
     e.stopPropagation();
     const fromId = draggedId.current;
     if (fromId && fromId !== targetId) {
-      setState((s) => {
-        const sections = [...s.sections];
-        const fromIdx = sections.findIndex((x) => x.id === fromId);
-        const toIdx = sections.findIndex((x) => x.id === targetId);
-        if (fromIdx === -1 || toIdx === -1) return s;
-        const [removed] = sections.splice(fromIdx, 1);
-        sections.splice(toIdx, 0, removed);
-        return { ...s, sections };
-      });
+      moveSectionToTarget(fromId, targetId);
     }
     draggedId.current = null;
     setDragOverId(null);
@@ -135,6 +129,53 @@ export function EditorPanel({ state, setState }) {
     draggedId.current = null;
     setDragOverId(null);
     clearDragImage();
+  };
+
+  const moveSectionToTarget = (fromId, targetId) => {
+    setState((s) => {
+      const sections = [...s.sections];
+      const fromIdx = sections.findIndex((x) => x.id === fromId);
+      const toIdx = sections.findIndex((x) => x.id === targetId);
+      if (fromIdx === -1 || toIdx === -1 || fromIdx === toIdx) return s;
+      const [removed] = sections.splice(fromIdx, 1);
+      sections.splice(toIdx, 0, removed);
+      return { ...s, sections };
+    });
+  };
+
+  const finishPointerDrag = () => {
+    pointerDragRef.current = null;
+    draggedId.current = null;
+    setDragOverId(null);
+    setTouchDraggingId(null);
+    document.body.style.userSelect = "";
+  };
+
+  const handlePointerMove = (event) => {
+    const drag = pointerDragRef.current;
+    if (!drag) return;
+    event.preventDefault();
+    const targetCard = document
+      .elementFromPoint(event.clientX, event.clientY)
+      ?.closest("[data-section-card]");
+    const targetId = targetCard?.getAttribute("data-section-card");
+    if (!targetId || targetId === drag.id || targetId === drag.lastTargetId) return;
+    drag.lastTargetId = targetId;
+    setDragOverId(targetId);
+    moveSectionToTarget(drag.id, targetId);
+  };
+
+  const handlePointerUp = () => finishPointerDrag();
+
+  const handlePointerDragStart = (id, event) => {
+    if (event.pointerType === "mouse") return;
+    event.preventDefault();
+    event.stopPropagation();
+    pointerDragRef.current = { id, lastTargetId: null };
+    draggedId.current = id;
+    setTouchDraggingId(id);
+    document.body.style.userSelect = "none";
+    event.currentTarget.setPointerCapture?.(event.pointerId);
   };
 
   // ── Mutations sur la liste de sections ──
@@ -378,6 +419,11 @@ export function EditorPanel({ state, setState }) {
               onDragOver={(e) => handleDragOver(e, sec.id)}
               onDrop={(e) => handleDrop(e, sec.id)}
               onDragEnd={handleDragEnd}
+              onPointerMove={handlePointerMove}
+              onPointerUp={handlePointerUp}
+              onPointerCancel={handlePointerUp}
+              onPointerDragStart={handlePointerDragStart}
+              touchDragging={touchDraggingId === sec.id}
             />
           ))}
         </div>
@@ -471,6 +517,11 @@ function SectionCard({
   onDragOver,
   onDrop,
   onDragEnd,
+  onPointerMove,
+  onPointerUp,
+  onPointerCancel,
+  onPointerDragStart,
+  touchDragging,
 }) {
   const [open, setOpen] = useState(false);
   const type = SECTION_TYPES[section.type];
@@ -496,7 +547,8 @@ function SectionCard({
         border: isDragOver
           ? "1px solid #FF00AA"
           : "1px solid var(--d-line2)",
-        boxShadow: isDragOver ? "0 0 0 2px rgba(255,0,170,0.15)" : "none",
+        boxShadow: isDragOver || touchDragging ? "0 0 0 2px rgba(255,0,170,0.15)" : "none",
+        opacity: touchDragging ? 0.85 : 1,
       }}
     >
       {/* Barre de titre */}
@@ -507,7 +559,11 @@ function SectionCard({
             draggable
             onDragStart={onDragStart}
             onDragEnd={onDragEnd}
-            className="p-1 text-d-fg4 cursor-grab active:cursor-grabbing hover:text-d-fg2 rounded-lg flex-shrink-0"
+            onPointerDown={(event) => onPointerDragStart(section.id, event)}
+            onPointerMove={onPointerMove}
+            onPointerUp={onPointerUp}
+            onPointerCancel={onPointerCancel}
+            className="flex-shrink-0 rounded-lg p-1 text-d-fg4 touch-none cursor-grab transition-colors hover:text-d-fg2 active:cursor-grabbing"
           >
             <GripVertical size={14} />
           </button>

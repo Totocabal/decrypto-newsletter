@@ -6,6 +6,8 @@ import { useEffect, useState, useCallback } from "react";
 import {
   ArrowLeft,
   Check,
+  ChevronDown,
+  ChevronUp,
   Copy,
   GripVertical,
   Loader2,
@@ -407,6 +409,18 @@ function DefaultSectionsEditor() {
     setSaved(false);
   };
 
+  const moveBlock = (id, dir) => {
+    setActive((prev) => {
+      const index = prev.findIndex((entry) => entry.id === id);
+      const nextIndex = index + dir;
+      if (index === -1 || nextIndex < 0 || nextIndex >= prev.length) return prev;
+      const next = [...prev];
+      [next[index], next[nextIndex]] = [next[nextIndex], next[index]];
+      return next;
+    });
+    setSaved(false);
+  };
+
   const handleDragStart = (id) => { draggedRef.current = id; };
   const handleDragOver = (e, id) => { e.preventDefault(); setDragOverId(id); };
   const handleDragLeave = () => setDragOverId(null);
@@ -539,6 +553,24 @@ function DefaultSectionsEditor() {
                   <span className="text-[10px] text-d-fg5 tabular-nums">
                     {String(index + 1).padStart(2, "0")}
                   </span>
+                  <button
+                    type="button"
+                    onClick={() => moveBlock(entry.id, -1)}
+                    disabled={index === 0}
+                    className="rounded p-0.5 text-d-fg4 transition-colors hover:text-d-fg2 disabled:opacity-20"
+                    title="Monter"
+                  >
+                    <ChevronUp size={12} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => moveBlock(entry.id, 1)}
+                    disabled={index === active.length - 1}
+                    className="rounded p-0.5 text-d-fg4 transition-colors hover:text-d-fg2 disabled:opacity-20"
+                    title="Descendre"
+                  >
+                    <ChevronDown size={12} />
+                  </button>
                   <button
                     type="button"
                     onClick={() => removeBlock(entry.id)}
