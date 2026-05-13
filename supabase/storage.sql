@@ -11,6 +11,13 @@ insert into storage.buckets (id, name, public)
 values ('newsletter-images', 'newsletter-images', true)
 on conflict (id) do nothing;
 
+-- Capacité totale prévue pour ce bucket : 1 Go.
+-- Supabase Storage expose ici une limite par fichier ; on la laisse à 1 Go
+-- pour ne pas bloquer le bucket côté infra, et l'app impose 5 Mo par image.
+update storage.buckets
+set file_size_limit = 1073741824
+where id = 'newsletter-images';
+
 -- 2. Lecture publique (tout le monde peut afficher les images dans un email)
 drop policy if exists "newsletter_images_public_read" on storage.objects;
 create policy "newsletter_images_public_read"

@@ -8,7 +8,10 @@
 import { supabase } from "./supabase.js";
 
 const BUCKET = "newsletter-images";
-const MAX_SIZE_MB = 5;
+export const MAX_IMAGE_FILE_SIZE_BYTES = 5 * 1024 * 1024;
+export const MAX_IMAGE_FILE_SIZE_LABEL = "5 Mo";
+export const MAX_IMAGE_STORAGE_BYTES = 1024 * 1024 * 1024;
+export const MAX_IMAGE_STORAGE_LABEL = "1 Go";
 
 /**
  * Upload une image vers Supabase Storage.
@@ -24,8 +27,8 @@ export async function uploadImage(file, userId) {
   }
 
   const sizeMb = file.size / 1024 / 1024;
-  if (sizeMb > MAX_SIZE_MB) {
-    throw new Error(`Image trop lourde (${sizeMb.toFixed(1)} Mo). Max ${MAX_SIZE_MB} Mo.`);
+  if (file.size > MAX_IMAGE_FILE_SIZE_BYTES) {
+    throw new Error(`Image trop lourde (${sizeMb.toFixed(1)} Mo). Max ${MAX_IMAGE_FILE_SIZE_LABEL}.`);
   }
 
   // Nom unique : userId/timestamp-original.ext
@@ -57,4 +60,29 @@ export async function uploadImage(file, userId) {
 export async function deleteImage(path) {
   if (!path) return;
   await supabase.storage.from(BUCKET).remove([path]);
+}
+
+export async function listImages(userId) {
+  if (!userId) return [];
+  const { data, error } = await supabase.storage
+    .from(BUCKET)
+    .list(userId, {
+      limit: 200,
+      offset: 0,
+      sortBy: { column: "updated_at", order: "desc" },
+    });
+
+  if (error) throw new Error(error.message);
+
+  return (data || [])
+    .filter((item) => item?.name && item.name !== ".emptyFolderPlaceholder")
+    .map((item) => {
+      const path = `${userId}/${item.name}`;
+      const { data: publicData } = supabase.storage.from(BUCKET).getPublicUrl(path);
+      return {
+        ...item,
+        path,
+        url: publicData.publicUrl,
+      };
+    });
 }

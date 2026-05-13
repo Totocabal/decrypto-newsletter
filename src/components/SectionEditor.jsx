@@ -2,13 +2,14 @@
 // SectionEditor — formulaire d'édition spécifique à un type de section
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { Plus, Trash2, ChevronUp, ChevronDown, CopyPlus, Upload, Loader2, X, RefreshCw } from "lucide-react";
 import { useCoinGecko } from "../lib/useCoinGecko.js";
 import { UNNUMBERED_TYPES } from "../config/schema.js";
 import { Field, Input, TextArea } from "./FormControls.jsx";
-import { uploadImage, deleteImage } from "../lib/imageUpload.js";
+import { deleteImage, MAX_IMAGE_FILE_SIZE_LABEL } from "../lib/imageUpload.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
+import { ImageManagerModal } from "./ImageManagerModal.jsx";
 
 export function SectionEditor({ type, data, onChange, sections = [] }) {
   const set = (patch) => onChange({ ...data, ...patch });
@@ -1057,31 +1058,8 @@ function EventEditor({ data, set }) {
 
 function FocusEditor({ data, set }) {
   const { profile } = useAuth();
-  const fileInputRef = useRef(null);
-  const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState(null);
-
-  const handleFile = async (file) => {
-    if (!file) return;
-    setUploadError(null);
-    setUploading(true);
-    try {
-      // Si une image était déjà uploadée, on tente de la supprimer du bucket
-      if (data.image_path) {
-        try {
-          await deleteImage(data.image_path);
-        } catch {
-          // best-effort, on continue
-        }
-      }
-      const { url, path } = await uploadImage(file, profile.id);
-      set({ ...data, image_url: url, image_path: path });
-    } catch (e) {
-      setUploadError(e.message || String(e));
-    } finally {
-      setUploading(false);
-    }
-  };
+  const [imageManagerOpen, setImageManagerOpen] = useState(false);
 
   const handleRemoveImage = async () => {
     if (data.image_path) {
@@ -1094,6 +1072,12 @@ function FocusEditor({ data, set }) {
     set({ ...data, image_url: "", image_path: "" });
   };
 
+  const handleSelectImage = ({ url, path }) => {
+    set({ ...data, image_url: url, image_path: path });
+    setImageManagerOpen(false);
+    setUploadError(null);
+  };
+
   return (
     <>
       <Field label="Kicker">
@@ -1104,7 +1088,7 @@ function FocusEditor({ data, set }) {
       </Field>
 
       <div className="text-[10px] uppercase tracking-[0.18em] font-semibold text-d-fg3 mb-1.5">
-        Image (568×280 conseillé, max 5 Mo)
+        Image (568×280 conseillé, max {MAX_IMAGE_FILE_SIZE_LABEL})
       </div>
       {data.image_url ? (
         <div className="mb-4 bg-d-panel2 border border-line rounded-xl p-3">
@@ -1123,55 +1107,35 @@ function FocusEditor({ data, set }) {
               <X size={14} />
             </button>
           </div>
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={uploading}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2 border border-line text-d-fg3 rounded-xl text-[10px] uppercase tracking-[0.18em] hover:bg-d-panel3 disabled:opacity-50 transition-colors"
-          >
-            {uploading ? (
-              <>
-                <Loader2 size={12} className="animate-spin" />
-                Upload…
-              </>
-            ) : (
-              <>
-                <Upload size={12} />
-                Remplacer
-              </>
-            )}
-          </button>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => setImageManagerOpen(true)}
+              className="w-full flex items-center justify-center gap-2 px-3 py-2 border border-line text-d-fg3 rounded-xl text-[10px] uppercase tracking-[0.18em] hover:bg-d-panel3 transition-colors"
+            >
+              <Upload size={12} />
+              Gestionnaire
+            </button>
+            <button
+              type="button"
+              onClick={handleRemoveImage}
+              className="w-full flex items-center justify-center gap-2 px-3 py-2 border border-line text-d-fg3 rounded-xl text-[10px] uppercase tracking-[0.18em] hover:bg-red-900/20 hover:border-red-500/30 hover:text-red-400 transition-colors"
+            >
+              <X size={12} />
+              Retirer
+            </button>
+          </div>
         </div>
       ) : (
         <button
           type="button"
-          onClick={() => fileInputRef.current?.click()}
-          disabled={uploading}
+          onClick={() => setImageManagerOpen(true)}
           className="w-full mb-4 flex items-center justify-center gap-2 px-4 py-6 border border-dashed border-line text-d-fg3 hover:border-line2 hover:bg-d-panel2 rounded-xl text-[10px] uppercase tracking-[0.18em] transition-colors disabled:opacity-50"
         >
-          {uploading ? (
-            <>
-              <Loader2 size={14} className="animate-spin" />
-              Upload en cours…
-            </>
-          ) : (
-            <>
-              <Upload size={14} />
-              Cliquer pour uploader une image
-            </>
-          )}
+          <Upload size={14} />
+          Ouvrir le gestionnaire d'images
         </button>
       )}
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/png,image/jpeg,image/jpg,image/gif,image/webp"
-        onChange={(e) => {
-          if (e.target.files?.[0]) handleFile(e.target.files[0]);
-          e.target.value = "";
-        }}
-        className="hidden"
-      />
       {uploadError && (
         <div className="rounded-xl p-2 mb-3 text-[11px]" style={{ background: "rgba(255,75,40,0.10)", border: "1px solid rgba(255,75,40,0.20)", color: "#FF8466" }}>
           {uploadError}
@@ -1232,6 +1196,14 @@ function FocusEditor({ data, set }) {
           />
         </Field>
       </div>
+      {imageManagerOpen && (
+        <ImageManagerModal
+          currentPath={data.image_path}
+          onClose={() => setImageManagerOpen(false)}
+          onSelect={handleSelectImage}
+          userId={profile?.id}
+        />
+      )}
     </>
   );
 }
