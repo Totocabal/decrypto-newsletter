@@ -32,6 +32,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
   const [locks, setLocks] = useState({});
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
+  const [createChoiceOpen, setCreateChoiceOpen] = useState(false);
   const [imageManagerOpen, setImageManagerOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("updated_desc");
@@ -82,13 +83,18 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
     return () => clearInterval(t);
   }, [load]);
 
-  const handleCreate = async () => {
+  const handleCreate = async (mode = "template") => {
     if (!profile?.id) return;
     setCreating(true);
-    const template = getDefaultNewsletterTemplate();
-    const initialState = buildInitialStateFromTypes(template.sections, {
-      includeDefaultContent: template.includeDefaultContent,
-    });
+    const initialState =
+      mode === "blank"
+        ? { ...INITIAL_STATE, sections: [] }
+        : (() => {
+            const template = getDefaultNewsletterTemplate();
+            return buildInitialStateFromTypes(template.sections, {
+              includeDefaultContent: template.includeDefaultContent,
+            });
+          })();
     const { data, error } = await supabase
       .from("newsletters")
       .insert({
@@ -105,6 +111,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
       alert("Erreur à la création : " + error.message);
       return;
     }
+    setCreateChoiceOpen(false);
     onOpen(data.id);
   };
 
@@ -257,7 +264,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
             </p>
           </div>
           <button
-            onClick={handleCreate}
+            onClick={() => setCreateChoiceOpen(true)}
             disabled={creating}
             className="flex items-center gap-2 px-5 py-2.5 text-[12px] uppercase tracking-[0.18em] font-semibold rounded-full transition-colors disabled:opacity-50"
             style={{ background: "#FFFFFF", color: "#15151A" }}
@@ -433,6 +440,70 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
           </div>
         )}
       </main>
+      {createChoiceOpen && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-6">
+          <div className="w-full max-w-2xl rounded-2xl border border-line bg-d-panel shadow-2xl overflow-hidden">
+            <div className="h-1 bg-gradient-to-r from-d-blue via-d-pink to-d-green" />
+            <div className="p-6 border-b border-line flex items-start justify-between gap-4">
+              <div>
+                <div className="text-[10px] uppercase tracking-[0.22em] text-d-pink font-semibold mb-2">
+                  Nouvelle newsletter
+                </div>
+                <h2
+                  className="text-xl font-semibold text-d-fg tracking-tight"
+                  style={{ fontFamily: "'Sora', sans-serif" }}
+                >
+                  Choisir un point de départ
+                </h2>
+              </div>
+              <button
+                type="button"
+                onClick={() => setCreateChoiceOpen(false)}
+                disabled={creating}
+                className="h-8 w-8 inline-flex items-center justify-center text-d-fg4 hover:text-d-fg2 hover:bg-d-panel2 rounded-lg transition-colors disabled:opacity-50"
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-6">
+              <button
+                type="button"
+                onClick={() => handleCreate("template")}
+                disabled={creating}
+                className="text-left rounded-2xl border border-line bg-d-panel2 p-5 hover:border-line2 hover:bg-d-panel3 transition-colors disabled:opacity-50"
+              >
+                <FileText size={18} className="text-d-pink mb-4" />
+                <div className="text-sm font-semibold text-d-fg mb-2" style={{ fontFamily: "'Sora', sans-serif" }}>
+                  Version par défaut
+                </div>
+                <div className="text-xs leading-relaxed text-d-fg4">
+                  Crée la newsletter avec les blocs du template admin, selon le réglage de contenu par défaut.
+                </div>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleCreate("blank")}
+                disabled={creating}
+                className="text-left rounded-2xl border border-line bg-d-panel2 p-5 hover:border-line2 hover:bg-d-panel3 transition-colors disabled:opacity-50"
+              >
+                <Plus size={18} className="text-d-green mb-4" />
+                <div className="text-sm font-semibold text-d-fg mb-2" style={{ fontFamily: "'Sora', sans-serif" }}>
+                  Version vide
+                </div>
+                <div className="text-xs leading-relaxed text-d-fg4">
+                  Crée une newsletter sans blocs placés. Tu pourras composer la structure depuis l'éditeur.
+                </div>
+              </button>
+            </div>
+            {creating && (
+              <div className="px-6 pb-6 text-xs uppercase tracking-[0.18em] text-d-fg3 flex items-center gap-2">
+                <Clock size={13} className="animate-spin" />
+                Création…
+              </div>
+            )}
+          </div>
+        </div>
+      )}
       {imageManagerOpen && (
         <ImageManagerModal
           onClose={() => setImageManagerOpen(false)}
