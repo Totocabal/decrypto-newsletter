@@ -205,16 +205,20 @@ function buildChartSvg(points, assetMode, {
     ? `<text x="${W - 4}" y="${Math.max(12, last[1] - 8)}" font-family="${FONT}" font-size="11" font-weight="600" fill="#00FFFF" text-anchor="end">${escapeHtml(priceEnd)}</text>`
     : "";
 
+  // Estime la demi-largeur d'un label centré (font-size 11, ~6.5 px/char) + marge
+  const halfW = (label) => Math.ceil(label.length * 6.5 / 2) + 6;
+  const clampX = (x, label) => Math.max(halfW(label), Math.min(W - halfW(label), x));
+
   // ── High (orange) — masqué si c'est Start ou End ──
   const highSvg = (priceHigh && !hiIsEdge)
     ? `<circle cx="${hiPt[0]}" cy="${hiPt[1]}" r="4" fill="#FF8B28" stroke="${THEME.bgPage}" stroke-width="1.5"/>
-    <text x="${hiPt[0]}" y="${Math.max(12, hiPt[1] - 9)}" font-family="${FONT}" font-size="11" font-weight="600" fill="#FF8B28" text-anchor="middle">${escapeHtml(priceHigh)}</text>`
+    <text x="${clampX(hiPt[0], priceHigh)}" y="${Math.max(12, hiPt[1] - 9)}" font-family="${FONT}" font-size="11" font-weight="600" fill="#FF8B28" text-anchor="middle">${escapeHtml(priceHigh)}</text>`
     : "";
 
   // ── Low (rouge) — masqué si c'est Start ou End ──
   const lowSvg = (priceLow && !loIsEdge)
     ? `<circle cx="${loPt[0]}" cy="${loPt[1]}" r="4" fill="#FF4B28" stroke="${THEME.bgPage}" stroke-width="1.5"/>
-    <text x="${loPt[0]}" y="${Math.min(H - 4, loPt[1] + 16)}" font-family="${FONT}" font-size="11" font-weight="600" fill="#FF4B28" text-anchor="middle">${escapeHtml(priceLow)}</text>`
+    <text x="${clampX(loPt[0], priceLow)}" y="${Math.min(H - 4, loPt[1] + 16)}" font-family="${FONT}" font-size="11" font-weight="600" fill="#FF4B28" text-anchor="middle">${escapeHtml(priceLow)}</text>`
     : "";
 
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="100%" height="${H}" preserveAspectRatio="none" style="display:block;">
