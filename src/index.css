@@ -24,6 +24,13 @@ html, body {
 
 * { box-sizing: border-box; }
 
+@media (max-width: 639px) {
+  .mobile-section-card-selected {
+    border-color: #FF00AA !important;
+    box-shadow: 0 0 0 2px rgba(255, 0, 170, 0.18) !important;
+  }
+}
+
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: #1E1E22; }
 ::-webkit-scrollbar-thumb { background: #2E2E34; border-radius: 999px; }

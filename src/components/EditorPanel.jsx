@@ -74,9 +74,8 @@ export function EditorPanel({ state, setState }) {
   // ── Drag & drop ──
   const draggedId = useRef(null);
   const dragImageRef = useRef(null);
-  const pointerDragRef = useRef(null);
   const [dragOverId, setDragOverId] = useState(null);
-  const [touchDraggingId, setTouchDraggingId] = useState(null);
+  const [selectedMobileSectionId, setSelectedMobileSectionId] = useState(null);
 
   const clearDragImage = () => {
     if (dragImageRef.current) {
@@ -141,41 +140,6 @@ export function EditorPanel({ state, setState }) {
       sections.splice(toIdx, 0, removed);
       return { ...s, sections };
     });
-  };
-
-  const finishPointerDrag = () => {
-    pointerDragRef.current = null;
-    draggedId.current = null;
-    setDragOverId(null);
-    setTouchDraggingId(null);
-    document.body.style.userSelect = "";
-  };
-
-  const handlePointerMove = (event) => {
-    const drag = pointerDragRef.current;
-    if (!drag) return;
-    event.preventDefault();
-    const targetCard = document
-      .elementFromPoint(event.clientX, event.clientY)
-      ?.closest("[data-section-card]");
-    const targetId = targetCard?.getAttribute("data-section-card");
-    if (!targetId || targetId === drag.id || targetId === drag.lastTargetId) return;
-    drag.lastTargetId = targetId;
-    setDragOverId(null);
-    moveSectionToTarget(drag.id, targetId);
-  };
-
-  const handlePointerUp = () => finishPointerDrag();
-
-  const handlePointerDragStart = (id, event) => {
-    if (event.pointerType === "mouse") return;
-    event.preventDefault();
-    event.stopPropagation();
-    pointerDragRef.current = { id, lastTargetId: null };
-    draggedId.current = id;
-    setTouchDraggingId(id);
-    document.body.style.userSelect = "none";
-    event.currentTarget.setPointerCapture?.(event.pointerId);
   };
 
   // ── Mutations sur la liste de sections ──
@@ -419,11 +383,8 @@ export function EditorPanel({ state, setState }) {
               onDragOver={(e) => handleDragOver(e, sec.id)}
               onDrop={(e) => handleDrop(e, sec.id)}
               onDragEnd={handleDragEnd}
-              onPointerMove={handlePointerMove}
-              onPointerUp={handlePointerUp}
-              onPointerCancel={handlePointerUp}
-              onPointerDragStart={handlePointerDragStart}
-              touchDragging={touchDraggingId === sec.id}
+              selectedMobile={selectedMobileSectionId === sec.id}
+              onSelectMobile={() => setSelectedMobileSectionId(sec.id)}
             />
           ))}
         </div>
@@ -517,11 +478,8 @@ function SectionCard({
   onDragOver,
   onDrop,
   onDragEnd,
-  onPointerMove,
-  onPointerUp,
-  onPointerCancel,
-  onPointerDragStart,
-  touchDragging,
+  selectedMobile,
+  onSelectMobile,
 }) {
   const [open, setOpen] = useState(false);
   const type = SECTION_TYPES[section.type];
@@ -541,29 +499,27 @@ function SectionCard({
       onDragOver={onDragOver}
       onDrop={onDrop}
       onDragEnd={onDragEnd}
-      className="rounded-xl overflow-hidden transition-all"
+      onClick={onSelectMobile}
+      className={`overflow-hidden rounded-xl transition-all ${
+        selectedMobile ? "mobile-section-card-selected" : ""
+      }`}
       style={{
         background: "#1E1E22",
         border: isDragOver
           ? "1px solid #FF00AA"
           : "1px solid var(--d-line2)",
-        boxShadow: isDragOver || touchDragging ? "0 0 0 2px rgba(255,0,170,0.15)" : "none",
-        opacity: touchDragging ? 0.85 : 1,
+        boxShadow: isDragOver ? "0 0 0 2px rgba(255,0,170,0.15)" : "none",
       }}
     >
       {/* Barre de titre */}
       <div className="flex items-center gap-2 px-2 py-2">
-        <Tooltip label="Glisser pour déplacer">
+        <Tooltip label="Glisser pour déplacer" className="hidden sm:inline-flex">
           <button
             type="button"
             draggable
             onDragStart={onDragStart}
             onDragEnd={onDragEnd}
-            onPointerDown={(event) => onPointerDragStart(section.id, event)}
-            onPointerMove={onPointerMove}
-            onPointerUp={onPointerUp}
-            onPointerCancel={onPointerCancel}
-            className="flex-shrink-0 rounded-lg p-1 text-d-fg4 touch-none cursor-grab transition-colors hover:text-d-fg2 active:cursor-grabbing"
+            className="flex-shrink-0 rounded-lg p-1 text-d-fg4 cursor-grab transition-colors hover:text-d-fg2 active:cursor-grabbing"
           >
             <GripVertical size={14} />
           </button>
@@ -599,18 +555,26 @@ function SectionCard({
         <div className="flex items-center gap-0.5 flex-shrink-0">
           <Tooltip label="Monter">
             <button
-              onClick={onMoveUp}
+              onClick={(event) => {
+                event.stopPropagation();
+                onSelectMobile();
+                onMoveUp();
+              }}
               disabled={index === 0}
-              className="p-1.5 text-d-fg4 hover:text-d-fg2 hover:bg-d-panel2 rounded-lg disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
+              className="rounded-lg bg-d-pink/10 p-1.5 text-d-pink transition-colors hover:bg-d-pink/15 hover:text-d-pink disabled:cursor-not-allowed disabled:opacity-20 sm:bg-transparent sm:text-d-fg4 sm:hover:bg-d-panel2 sm:hover:text-d-fg2"
             >
               <ChevronUp size={14} />
             </button>
           </Tooltip>
           <Tooltip label="Descendre">
             <button
-              onClick={onMoveDown}
+              onClick={(event) => {
+                event.stopPropagation();
+                onSelectMobile();
+                onMoveDown();
+              }}
               disabled={index === total - 1}
-              className="p-1.5 text-d-fg4 hover:text-d-fg2 hover:bg-d-panel2 rounded-lg disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
+              className="rounded-lg bg-d-pink/10 p-1.5 text-d-pink transition-colors hover:bg-d-pink/15 hover:text-d-pink disabled:cursor-not-allowed disabled:opacity-20 sm:bg-transparent sm:text-d-fg4 sm:hover:bg-d-panel2 sm:hover:text-d-fg2"
             >
               <ChevronDown size={14} />
             </button>
