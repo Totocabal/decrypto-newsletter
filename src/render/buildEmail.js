@@ -38,19 +38,22 @@ function escapedClosingTagPattern(tagName) {
   return new RegExp(`&(?:amp;)?lt;\\/${tagName}&(?:amp;)?gt;`, "gi");
 }
 
+const RICH_TEXT_WEIGHT = 500;
+const RICH_TEXT_BOLD_WEIGHT = 800;
+
 export function sanitizeRichText(text = "") {
   let out = escapeHtml(decodeStoredTextEntities(text));
-  const listStyle = `margin:0; padding-left:20px; font-family:${FONTS.body}; font-size:15px; line-height:1.65; color:${THEME.textSecondary};`;
-  const listItemStyle = `margin:0 0 6px; font-family:${FONTS.body}; font-size:15px; line-height:1.65; color:${THEME.textSecondary};`;
+  const listStyle = `margin:0; padding-left:20px; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:15px; line-height:1.65; color:${THEME.textSecondary};`;
+  const listItemStyle = `margin:0 0 6px; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:15px; line-height:1.65; color:${THEME.textSecondary};`;
   out = out
     .replace(/&lt;br\s*\/?&gt;/gi, "<br />")
     .replace(/&lt;div&gt;/gi, "")
     .replace(/&lt;\/div&gt;/gi, "<br />")
     .replace(/&lt;p&gt;/gi, "")
     .replace(/&lt;\/p&gt;/gi, "<br />")
-    .replace(escapedOpeningTagPattern("b"), `<strong style="font-weight:700;">`)
+    .replace(escapedOpeningTagPattern("b"), `<strong style="font-weight:${RICH_TEXT_BOLD_WEIGHT};">`)
     .replace(escapedClosingTagPattern("b"), "</strong>")
-    .replace(escapedOpeningTagPattern("strong"), `<strong style="font-weight:700;">`)
+    .replace(escapedOpeningTagPattern("strong"), `<strong style="font-weight:${RICH_TEXT_BOLD_WEIGHT};">`)
     .replace(escapedClosingTagPattern("strong"), "</strong>")
     .replace(/&lt;i&gt;/gi, `<em style="font-style:italic;">`)
     .replace(/&lt;\/i&gt;/gi, "</em>")
@@ -76,9 +79,9 @@ export function sanitizeRichText(text = "") {
     .replace(/\[([^\]\n]+)\]\((https?:\/\/[^)\s]+|mailto:[^)\s]+|#[^)\s]+)\)/gi,
       `<a href="$2" style="color:${THEME.textMuted}; text-decoration:underline;">$1</a>`)
     .replace(/\*\*([^*\n][\s\S]*?[^*\n])\*\*/g,
-      `<strong style="font-weight:700;">$1</strong>`)
+      `<strong style="font-weight:${RICH_TEXT_BOLD_WEIGHT};">$1</strong>`)
     .replace(/__([^_\n][\s\S]*?[^_\n])__/g,
-      `<strong style="font-weight:700;">$1</strong>`)
+      `<strong style="font-weight:${RICH_TEXT_BOLD_WEIGHT};">$1</strong>`)
     .replace(/(^|[\s>])\*([^*\n]+)\*/g, `$1<em style="font-style:italic;">$2</em>`)
     .replace(/(^|[\s>])_([^_\n]+)_/g, `$1<em style="font-style:italic;">$2</em>`)
     .replace(/^-\s+(.+)$/gm, "• $1");
@@ -325,7 +328,7 @@ function renderHero(data) {
           ${escapeHtml(data.title_part1)}<br />
           ${escapeHtml(data.title_part2)}<span style="color:${THEME.accentPrimary};">${escapeHtml(data.title_highlight)}</span>
         </h1>
-        <p style="margin:22px 0 0; font-family:${FONTS.body}; font-size:17px; line-height:1.5; color:${THEME.textMuted}; max-width:460px;">
+        <p style="margin:22px 0 0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:17px; line-height:1.5; color:${THEME.textMuted}; max-width:460px;">
           ${sanitizeRichText(data.subtitle)}
         </p>
         ${chips ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:28px;"><tr>${chips}</tr></table>` : ""}
@@ -397,7 +400,7 @@ function renderEdito(data, number, anchor = "") {
         ${sectionHeader(number, data.kicker)}
         ${sectionTitle(data.title)}
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-          <tr><td style="padding-top:22px;"><p style="margin:0; font-family:${FONTS.body}; font-size:15px; line-height:1.65; color:${THEME.textSecondary};">${sanitizeRichText(data.body)}</p></td></tr>
+          <tr><td style="padding-top:22px;"><p style="margin:0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:15px; line-height:1.65; color:${THEME.textSecondary};">${sanitizeRichText(data.body)}</p></td></tr>
           ${grid ? `<tr><td style="padding-top:24px;">${grid}</td></tr>` : ""}
         </table>
       </td>
@@ -483,7 +486,7 @@ function renderFearGreed(data, number, assetMode, anchor = "") {
             </td>
           </tr>
         </table>
-        <p style="margin:22px 0 0; font-family:${FONTS.body}; font-size:15px; line-height:1.65; color:${THEME.textSecondary};">${sanitizeRichText(data.commentary)}</p>
+        <p style="margin:22px 0 0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:15px; line-height:1.65; color:${THEME.textSecondary};">${sanitizeRichText(data.commentary)}</p>
       </td>
     </tr>`;
 }
@@ -514,7 +517,7 @@ function renderSignals(data, number, anchor = "") {
             </td>
             <td valign="top">
               <p style="margin:0 0 4px; font-family:${FONTS.heading}; font-weight:600; font-size:14px; color:${THEME.textPrimary};">${escapeHtml(s.title)}</p>
-              <p style="margin:0; font-family:${FONTS.body}; font-size:13px; line-height:1.5; color:${THEME.textMuted};">${sanitizeRichText(s.description)}</p>
+              <p style="margin:0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:13px; line-height:1.5; color:${THEME.textMuted};">${sanitizeRichText(s.description)}</p>
             </td>
           </tr>
         </table>
@@ -578,8 +581,8 @@ function renderMacro(data, number, anchor = "") {
   const quoteBlock = data.quote ? `
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#1a0c2e; background-image:linear-gradient(135deg, rgba(135,1,255,0.18), rgba(255,0,170,0.10)); border:0; border-radius:14px;">
       <tr><td style="padding:24px 24px;">
-        <p style="margin:0; font-family:${FONTS.heading}; font-weight:500; font-size:18px; line-height:1.4; letter-spacing:-0.01em; color:${THEME.textPrimary};">«&nbsp;${sanitizeRichText(data.quote)}&nbsp;»</p>
-        <p style="margin:14px 0 0; font-family:${FONTS.body}; font-size:12px; color:${THEME.textMuted}; letter-spacing:0.04em;">${sanitizeRichText(data.quote_author)}</p>
+        <p style="margin:0; font-family:${FONTS.heading}; font-weight:${RICH_TEXT_WEIGHT}; font-size:18px; line-height:1.4; letter-spacing:-0.01em; color:${THEME.textPrimary};">«&nbsp;${sanitizeRichText(data.quote)}&nbsp;»</p>
+        <p style="margin:14px 0 0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:12px; color:${THEME.textMuted}; letter-spacing:0.04em;">${sanitizeRichText(data.quote_author)}</p>
       </td></tr>
     </table>` : "";
 
@@ -589,7 +592,7 @@ function renderMacro(data, number, anchor = "") {
         ${anchor}
         ${sectionHeader(number, data.kicker)}
         <h2 class="em-h2" style="margin:12px 0 22px; font-family:${FONTS.heading}; font-weight:600; font-size:30px; line-height:1.1; letter-spacing:-0.025em; color:${THEME.textPrimary};">${escapeHtml(data.title)}</h2>
-        <p style="margin:0 0 22px; font-family:${FONTS.body}; font-size:15px; line-height:1.65; color:${THEME.textSecondary};">${sanitizeRichText(data.body)}</p>
+        <p style="margin:0 0 22px; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:15px; line-height:1.65; color:${THEME.textSecondary};">${sanitizeRichText(data.body)}</p>
         ${quoteBlock}
       </td>
     </tr>`;
@@ -612,7 +615,7 @@ function renderEvent(data, anchor = "") {
                 <td class="em-stack em-event-text" valign="middle" style="padding:32px 28px;">
                   <p style="margin:0 0 12px; font-family:${FONTS.body}; font-size:11px; letter-spacing:0.2em; text-transform:uppercase; font-weight:600; color:${THEME.positive};">${escapeHtml(data.kicker)}</p>
                   <h3 style="margin:0; font-family:${FONTS.heading}; font-weight:700; font-size:28px; letter-spacing:-0.025em; line-height:1.05; color:${THEME.textPrimary};">${escapeHtml(data.title)}</h3>
-                  <p style="margin:12px 0 0; font-family:${FONTS.body}; font-size:13px; line-height:1.5; color:${THEME.textSecondary};">${sanitizeRichText(data.description)}</p>
+                  <p style="margin:12px 0 0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:13px; line-height:1.5; color:${THEME.textSecondary};">${sanitizeRichText(data.description)}</p>
                   <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:18px;">
                     <tr><td bgcolor="#ffffff" style="border-radius:99px;">
                       <a href="${escapeAttr(data.cta_url)}" style="display:inline-block; padding:11px 20px; font-family:${FONTS.heading}; font-weight:600; font-size:13px; color:${THEME.bgEventCard}; text-decoration:none; border-radius:99px;">${escapeHtml(data.cta_label)}</a>
@@ -689,7 +692,7 @@ function renderFocus(data, number, anchor = "") {
           </tr>
         </table>
 
-        <p style="margin:0; font-family:${FONTS.body}; font-size:15px; line-height:1.65; color:${THEME.textSecondary};">
+        <p style="margin:0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:15px; line-height:1.65; color:${THEME.textSecondary};">
           ${sanitizeRichText(data.body)}
         </p>
 
@@ -739,7 +742,7 @@ function renderTextBlock(data, number, anchor = "") {
         ${anchor}
         ${sectionHeader(number, data.kicker)}
         ${sectionTitle(data.title)}
-        <p style="margin:22px 0 0; font-family:${FONTS.body}; font-size:15px; line-height:1.65; color:${THEME.textSecondary};">${sanitizeRichText(data.body)}</p>
+        <p style="margin:22px 0 0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:15px; line-height:1.65; color:${THEME.textSecondary};">${sanitizeRichText(data.body)}</p>
         ${ctaBtn}
       </td>
     </tr>`;
@@ -816,7 +819,7 @@ function renderFooter(footer, assetMode) {
         ${links ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:24px;" align="center"><tr>${links}</tr></table>` : ""}
         <p style="margin:0; font-family:${FONTS.body}; font-size:11px; color:${THEME.textDim}; line-height:1.6; letter-spacing:0.02em;">
           ${escapeHtml(footer.address)}<br /><br />
-          <span style="color:${THEME.textFaint};">${sanitizeRichText(footer.legal)}</span>
+          <span style="font-weight:${RICH_TEXT_WEIGHT}; color:${THEME.textFaint};">${sanitizeRichText(footer.legal)}</span>
         </p>
         <p style="margin:18px 0 0; font-family:${FONTS.body}; font-size:11px; color:${THEME.textFaint};">
           <a href="${escapeAttr(footer.unsub_url || "{{${set_user_to_unsubscribed_url}}}")}" style="color:${THEME.textFaint}; text-decoration:underline;">Se désinscrire</a>

@@ -390,7 +390,7 @@ function RichTextElement({ attributes, children, element }) {
 
 function RichTextLeaf({ attributes, children, leaf }) {
   let content = children;
-  if (leaf.bold) content = <strong style={{ fontWeight: 700 }}>{content}</strong>;
+  if (leaf.bold) content = <strong style={{ fontWeight: 800 }}>{content}</strong>;
   if (leaf.italic) content = <em>{content}</em>;
   if (leaf.underline) content = <u>{content}</u>;
   if (leaf.strikethrough) content = <s>{content}</s>;
@@ -563,7 +563,7 @@ function RichTextEditor({ showCount, onChange, value = "", ...props }) {
           }}
           spellCheck
           className="w-full px-3 py-2 bg-d-panel2 text-sm text-d-fg focus:outline-none leading-relaxed overflow-auto"
-          style={{ minHeight: `${Math.max(Number(rows) || 3, 2) * 1.6}rem`, fontFamily: "'DM Sans', sans-serif" }}
+          style={{ minHeight: `${Math.max(Number(rows) || 3, 2) * 1.6}rem`, fontFamily: "'DM Sans', sans-serif", fontWeight: 500 }}
         />
       </Slate>
     </div>
