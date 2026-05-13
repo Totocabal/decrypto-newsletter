@@ -179,7 +179,7 @@ export const SECTION_TYPES = {
     }),
   },
   focus: {
-    label: "Focus (image + CTA)",
+    label: "Focus",
     icon: "ImageIcon",
     factory: () => ({
       kicker: "FOCUS",

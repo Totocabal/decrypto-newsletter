@@ -13,6 +13,19 @@ import {
   ChevronRight,
   RefreshCw,
   Loader2,
+  Activity,
+  BarChart2,
+  Calendar,
+  Gauge,
+  ImageIcon,
+  List,
+  Megaphone,
+  Minus,
+  Newspaper,
+  Quote,
+  Square,
+  TrendingUp,
+  Type,
 } from "lucide-react";
 import { Field, Input, TextArea, Section } from "./FormControls.jsx";
 import {
@@ -552,6 +565,36 @@ function SectionCard({
 // AddSectionButton — bouton "+" avec palette des types
 // ─────────────────────────────────────────────────────────────────────────────
 
+const SECTION_TYPE_DESCRIPTIONS = {
+  hero: "En-tête complet avec titre, intro et indicateurs clés.",
+  index: "Sommaire cliquable vers les sections de la newsletter.",
+  edito: "Texte éditorial accompagné de KPI marché.",
+  chart: "Graphique crypto manuel ou synchronisé CoinGecko.",
+  fear_greed: "Jauge Fear & Greed avec commentaire.",
+  signals: "Signaux haussiers et baissiers en grille.",
+  macro: "Analyse macro avec citation mise en avant.",
+  macro_bars: "Barres de données pour comparer des indicateurs.",
+  event: "Annonce d'évènement avec informations et CTA.",
+  text_block: "Bloc texte simple avec bouton optionnel.",
+  focus: "Image, texte long et boutons optionnels.",
+  divider: "Séparateur visuel entre deux blocs.",
+};
+
+const SECTION_TYPE_ICONS = {
+  Activity,
+  BarChart2,
+  Calendar,
+  Gauge,
+  ImageIcon,
+  List,
+  Megaphone,
+  Minus,
+  Newspaper,
+  Quote,
+  TrendingUp,
+  Type,
+};
+
 function AddSectionButton({ onAdd }) {
   const [open, setOpen] = useState(false);
 
@@ -559,43 +602,77 @@ function AddSectionButton({ onAdd }) {
     <div className="mt-3">
       {!open ? (
         <button
+          type="button"
           onClick={() => setOpen(true)}
-          className="w-full flex items-center justify-center gap-2 px-4 py-3 border-dashed border text-d-fg3 hover:text-d-fg2 hover:border-line2 rounded-2xl text-[10px] uppercase tracking-[0.18em] font-medium transition-colors border-line"
+          aria-expanded={open}
+          className="group w-full flex items-center justify-center gap-3 px-4 py-4 border-dashed border text-d-fg3 hover:text-d-fg2 hover:border-line2 rounded-2xl text-[10px] uppercase tracking-[0.18em] font-medium transition-colors border-line bg-d-panel/30 hover:bg-d-panel2"
         >
-          <Plus size={14} /> Ajouter un bloc
+          <span className="flex h-8 w-8 items-center justify-center rounded-xl border border-line bg-d-panel2 text-d-fg3 transition-colors group-hover:border-line2 group-hover:text-d-pink">
+            <Plus size={15} />
+          </span>
+          Ajouter un bloc
         </button>
       ) : (
         <div
-          className="rounded-2xl p-4 border border-line"
+          className="rounded-3xl p-4 border border-line shadow-2xl"
           style={{ background: "#1E1E22" }}
         >
-          <div className="flex items-center justify-between mb-3">
-            <div
-              className="text-[10px] uppercase tracking-[0.18em] font-semibold text-d-fg2"
-              style={{ fontFamily: "'Sora', sans-serif" }}
-            >
-              Choisir un type
+          <div className="flex items-start justify-between gap-4 mb-4">
+            <div>
+              <div
+                className="text-[10px] uppercase tracking-[0.18em] font-semibold text-d-fg2"
+                style={{ fontFamily: "'Sora', sans-serif" }}
+              >
+                Ajouter un bloc
+              </div>
+              <p className="mt-1 text-xs leading-relaxed text-d-fg4">
+                Choisis le format qui correspond au contenu à insérer.
+              </p>
             </div>
             <button
+              type="button"
               onClick={() => setOpen(false)}
-              className="text-[10px] uppercase tracking-[0.18em] text-d-fg4 hover:text-d-fg2 transition-colors"
+              className="shrink-0 rounded-full border border-line px-3 py-2 text-[10px] uppercase tracking-[0.18em] text-d-fg4 hover:text-d-fg2 hover:border-line2 transition-colors"
             >
               Annuler
             </button>
           </div>
-          <div className="grid grid-cols-2 gap-2">
-            {Object.entries(SECTION_TYPES).map(([type, def]) => (
-              <button
-                key={type}
-                onClick={() => {
-                  onAdd(type);
-                  setOpen(false);
-                }}
-                className="text-left px-3 py-2.5 border border-line hover:border-line2 hover:bg-d-panel3 rounded-xl text-xs text-d-fg2 transition-colors font-medium"
-              >
-                {def.label}
-              </button>
-            ))}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {Object.entries(SECTION_TYPES).map(([type, def]) => {
+              const Icon = SECTION_TYPE_ICONS[def.icon] || Square;
+              return (
+                <button
+                  type="button"
+                  key={type}
+                  onClick={() => {
+                    onAdd(type);
+                    setOpen(false);
+                  }}
+                  className="group/item text-left rounded-2xl border border-line bg-d-panel2 p-3 text-d-fg2 transition-colors hover:border-line2 hover:bg-d-panel3"
+                >
+                  <span className="flex items-start gap-3">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-line bg-d-panel text-d-fg3 transition-colors group-hover/item:border-d-pink/50 group-hover/item:text-d-pink">
+                      <Icon size={18} />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span
+                        className="block text-sm font-semibold text-d-fg"
+                        style={{ fontFamily: "'Sora', sans-serif" }}
+                      >
+                        {def.label}
+                      </span>
+                      <span className="mt-1 block text-[11px] leading-relaxed text-d-fg4">
+                        {SECTION_TYPE_DESCRIPTIONS[type] || "Ajouter ce bloc à la newsletter."}
+                      </span>
+                    </span>
+                    <ChevronRight
+                      size={15}
+                      className="mt-1 shrink-0 text-d-fg5 transition-colors group-hover/item:text-d-fg3"
+                    />
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </div>
       )}
