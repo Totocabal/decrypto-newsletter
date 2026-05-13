@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { supabase } from "../lib/supabase.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
+import { Wordmark } from "../components/Wordmark.jsx";
 
 function generateTemporaryPassword() {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!#$%?";
@@ -126,30 +127,36 @@ export function AdminPage({ onBack }) {
   const approved = profiles.filter((p) => p.approved);
 
   return (
-    <div className="min-h-screen bg-stone-100">
-      <header className="bg-white border-b border-stone-200 px-6 py-4">
-        <div className="max-w-4xl mx-auto flex items-center gap-4">
+    <div className="min-h-screen bg-d-bg">
+      <header
+        className="border-b border-line px-6"
+        style={{ background: "#1E1E22", height: 64, display: "flex", alignItems: "center" }}
+      >
+        <div className="max-w-4xl mx-auto w-full flex items-center gap-4">
+          <Wordmark size={17} />
+          <div className="w-px h-6" style={{ background: "var(--d-line2)", flexShrink: 0 }} />
           <button
             onClick={onBack}
-            className="flex items-center gap-2 text-[10px] uppercase tracking-[0.18em] font-medium text-stone-600 hover:text-stone-900 px-3 py-2 border border-stone-300 hover:border-stone-500 rounded-sm"
+            className="flex items-center gap-2 text-[10px] uppercase tracking-[0.18em] font-medium text-d-fg3 hover:text-d-fg px-3 py-1.5 border border-line hover:border-line2 rounded-full transition-colors"
           >
             <ArrowLeft size={12} />
             Retour
           </button>
           <div>
-            <div className="text-[10px] uppercase tracking-[0.18em] text-stone-500 font-medium">
+            <div className="text-[10px] uppercase tracking-[0.18em] text-d-fg4 font-medium">
               Administration
             </div>
-            <h1 className="text-lg font-semibold text-stone-900">
+            <div className="text-sm font-semibold text-d-fg" style={{ fontFamily: "'Sora', sans-serif" }}>
               Comptes utilisateurs
-            </h1>
+            </div>
           </div>
         </div>
       </header>
 
       <main className="max-w-4xl mx-auto p-6 space-y-6">
         {loading && (
-          <div className="text-xs text-stone-400 text-center p-8">
+          <div className="text-xs text-d-fg4 text-center p-8 flex items-center justify-center gap-2">
+            <Loader2 size={14} className="animate-spin" />
             Chargement…
           </div>
         )}
@@ -157,17 +164,17 @@ export function AdminPage({ onBack }) {
         {/* Création */}
         <section>
           <div className="flex items-center gap-2 mb-3">
-            <h2 className="text-[10px] uppercase tracking-[0.18em] text-stone-500 font-medium">
+            <h2 className="text-[10px] uppercase tracking-[0.18em] text-d-fg3 font-medium">
               Créer un compte
             </h2>
           </div>
-          <div className="bg-white border border-stone-200 rounded-sm p-4">
+          <div className="bg-d-panel border border-line rounded-2xl p-4">
             <form
               onSubmit={handleCreateAccount}
               className="grid grid-cols-1 lg:grid-cols-[1fr_1fr_auto_auto] gap-3 items-end"
             >
               <div>
-                <label className="text-[10px] uppercase tracking-[0.18em] text-stone-500 font-medium block mb-2">
+                <label className="text-[10px] uppercase tracking-[0.18em] text-d-fg3 font-medium block mb-2">
                   Email
                 </label>
                 <input
@@ -178,12 +185,12 @@ export function AdminPage({ onBack }) {
                     setCreateForm((form) => ({ ...form, email: e.target.value }))
                   }
                   placeholder="prenom.nom@coinhouse.com"
-                  className="w-full px-3 py-2 border border-stone-300 rounded-sm text-sm focus:outline-none focus:border-stone-900"
+                  className="w-full px-3 py-2.5 border border-line rounded-xl text-sm focus:outline-none focus:border-line2 bg-d-panel2 text-d-fg placeholder:text-d-fg4 transition-colors"
                   disabled={creating}
                 />
               </div>
               <div>
-                <label className="text-[10px] uppercase tracking-[0.18em] text-stone-500 font-medium block mb-2">
+                <label className="text-[10px] uppercase tracking-[0.18em] text-d-fg3 font-medium block mb-2">
                   Nom
                 </label>
                 <input
@@ -193,18 +200,19 @@ export function AdminPage({ onBack }) {
                     setCreateForm((form) => ({ ...form, fullName: e.target.value }))
                   }
                   placeholder="Nom affiché"
-                  className="w-full px-3 py-2 border border-stone-300 rounded-sm text-sm focus:outline-none focus:border-stone-900"
+                  className="w-full px-3 py-2.5 border border-line rounded-xl text-sm focus:outline-none focus:border-line2 bg-d-panel2 text-d-fg placeholder:text-d-fg4 transition-colors"
                   disabled={creating}
                 />
               </div>
-              <label className="flex items-center gap-2 px-2 py-2 text-xs text-stone-600 whitespace-nowrap">
+              <label className="flex items-center gap-2 px-2 py-2.5 text-xs text-d-fg2 whitespace-nowrap">
                 <input
                   type="checkbox"
                   checked={createForm.isAdmin}
                   onChange={(e) =>
                     setCreateForm((form) => ({ ...form, isAdmin: e.target.checked }))
                   }
-                  className="h-4 w-4 accent-stone-900"
+                  className="h-4 w-4"
+                  style={{ accentColor: "#03FFCF" }}
                   disabled={creating}
                 />
                 Admin
@@ -212,7 +220,7 @@ export function AdminPage({ onBack }) {
               <button
                 type="submit"
                 disabled={creating || !createForm.email.trim()}
-                className="flex items-center justify-center gap-2 text-[10px] uppercase tracking-[0.18em] font-medium text-white bg-stone-900 hover:bg-stone-700 px-4 py-2.5 rounded-sm disabled:opacity-50"
+                className="flex items-center justify-center gap-2 text-[10px] uppercase tracking-[0.18em] font-semibold text-[#15151A] bg-white hover:bg-d-fg2 px-4 py-2.5 rounded-full disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {creating ? (
                   <Loader2 size={12} className="animate-spin" />
@@ -224,18 +232,21 @@ export function AdminPage({ onBack }) {
             </form>
 
             {createdAccount && (
-              <div className="mt-4 border border-emerald-200 bg-emerald-50 rounded-sm p-4">
-                <div className="text-sm font-medium text-emerald-900 mb-2">
+              <div
+                className="mt-4 rounded-xl p-4"
+                style={{ background: "rgba(3,255,207,0.08)", border: "1px solid rgba(3,255,207,0.20)" }}
+              >
+                <div className="text-sm font-semibold mb-2" style={{ color: "#03FFCF" }}>
                   Compte créé
                 </div>
-                <div className="grid gap-1 text-xs text-emerald-800 font-mono">
+                <div className="grid gap-1 text-xs text-d-fg2 font-mono">
                   <div>Email : {createdAccount.email}</div>
                   <div>Mot de passe temporaire : {createdAccount.password}</div>
                 </div>
                 <button
                   type="button"
                   onClick={copyCreatedAccount}
-                  className="mt-3 inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] font-medium text-emerald-900 border border-emerald-300 hover:border-emerald-600 px-3 py-1.5 rounded-sm"
+                  className="mt-3 inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] font-medium text-d-fg3 hover:text-d-fg border border-line hover:border-line2 px-3 py-1.5 rounded-full transition-colors"
                 >
                   <Copy size={11} />
                   Copier les identifiants
@@ -248,35 +259,39 @@ export function AdminPage({ onBack }) {
         {/* En attente */}
         <section>
           <div className="flex items-center gap-2 mb-3">
-            <h2 className="text-[10px] uppercase tracking-[0.18em] text-stone-500 font-medium">
+            <h2 className="text-[10px] uppercase tracking-[0.18em] text-d-fg3 font-medium">
               En attente d'approbation
             </h2>
-            <span className="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-sm font-medium">
+            <span
+              className="text-[10px] px-2 py-0.5 rounded-full font-medium"
+              style={{ background: "rgba(255,165,0,0.15)", color: "#FFAD33" }}
+            >
               {pending.length}
             </span>
           </div>
           {pending.length === 0 ? (
-            <div className="bg-white border border-stone-200 rounded-sm p-6 text-xs text-stone-400 text-center">
+            <div className="bg-d-panel border border-line rounded-2xl p-6 text-xs text-d-fg4 text-center">
               Aucun compte en attente.
             </div>
           ) : (
-            <div className="bg-white border border-stone-200 rounded-sm divide-y divide-stone-100">
+            <div className="bg-d-panel border border-line rounded-2xl divide-y" style={{ borderColor: "var(--d-line)" }}>
               {pending.map((p) => (
                 <div
                   key={p.id}
                   className="flex items-center gap-4 px-4 py-3"
                 >
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm text-stone-900">
+                    <div className="text-sm text-d-fg">
                       {p.full_name || p.email}
                     </div>
-                    <div className="text-[11px] text-stone-500">
+                    <div className="text-[11px] text-d-fg4">
                       {p.email} · inscrit le {formatDate(p.created_at)}
                     </div>
                   </div>
                   <button
                     onClick={() => updateProfile(p.id, { approved: true })}
-                    className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] font-medium text-white bg-emerald-600 hover:bg-emerald-700 px-3 py-1.5 rounded-sm"
+                    className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] font-semibold text-[#15151A] px-3 py-1.5 rounded-full transition-colors"
+                    style={{ background: "#03FFCF" }}
                   >
                     <Check size={11} />
                     Approuver
@@ -290,14 +305,14 @@ export function AdminPage({ onBack }) {
         {/* Approuvés */}
         <section>
           <div className="flex items-center gap-2 mb-3">
-            <h2 className="text-[10px] uppercase tracking-[0.18em] text-stone-500 font-medium">
+            <h2 className="text-[10px] uppercase tracking-[0.18em] text-d-fg3 font-medium">
               Comptes approuvés
             </h2>
-            <span className="text-[10px] bg-stone-200 text-stone-700 px-2 py-0.5 rounded-sm font-medium">
+            <span className="text-[10px] bg-d-panel2 text-d-fg3 px-2 py-0.5 rounded-full font-medium border border-line">
               {approved.length}
             </span>
           </div>
-          <div className="bg-white border border-stone-200 rounded-sm divide-y divide-stone-100">
+          <div className="bg-d-panel border border-line rounded-2xl divide-y" style={{ borderColor: "var(--d-line)" }}>
             {approved.map((p) => {
               const isSelf = p.id === currentProfile?.id;
               return (
@@ -307,22 +322,25 @@ export function AdminPage({ onBack }) {
                 >
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm text-stone-900">
+                      <span className="text-sm text-d-fg">
                         {p.full_name || p.email}
                       </span>
                       {p.is_admin && (
-                        <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.14em] font-medium bg-stone-900 text-white px-2 py-0.5 rounded-sm">
+                        <span
+                          className="inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.14em] font-semibold px-2 py-0.5 rounded-full"
+                          style={{ background: "rgba(65,65,255,0.18)", color: "#8888FF" }}
+                        >
                           <ShieldCheck size={10} />
                           Admin
                         </span>
                       )}
                       {isSelf && (
-                        <span className="text-[10px] uppercase tracking-[0.14em] font-medium text-stone-400">
+                        <span className="text-[10px] uppercase tracking-[0.14em] font-medium text-d-fg4">
                           (toi)
                         </span>
                       )}
                     </div>
-                    <div className="text-[11px] text-stone-500">{p.email}</div>
+                    <div className="text-[11px] text-d-fg4">{p.email}</div>
                   </div>
                   {!isSelf && (
                     <div className="flex items-center gap-1">
@@ -330,7 +348,7 @@ export function AdminPage({ onBack }) {
                         onClick={() =>
                           updateProfile(p.id, { is_admin: !p.is_admin })
                         }
-                        className="text-[10px] uppercase tracking-[0.18em] font-medium text-stone-600 hover:text-stone-900 px-3 py-1.5 border border-stone-200 hover:border-stone-500 rounded-sm"
+                        className="text-[10px] uppercase tracking-[0.18em] font-medium text-d-fg3 hover:text-d-fg px-3 py-1.5 border border-line hover:border-line2 rounded-full transition-colors"
                       >
                         {p.is_admin ? "Retirer admin" : "Promouvoir admin"}
                       </button>
@@ -339,7 +357,8 @@ export function AdminPage({ onBack }) {
                           confirm(`Révoquer l'accès de ${p.email} ?`) &&
                           updateProfile(p.id, { approved: false, is_admin: false })
                         }
-                        className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] font-medium text-red-700 hover:bg-red-50 px-3 py-1.5 border border-red-200 hover:border-red-500 rounded-sm"
+                        className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] font-medium px-3 py-1.5 border rounded-full transition-colors"
+                        style={{ color: "#FF8466", borderColor: "rgba(255,75,40,0.25)" }}
                       >
                         <X size={11} />
                         Révoquer
