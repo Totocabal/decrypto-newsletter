@@ -161,7 +161,7 @@ export function EditorPanel({ state, setState }) {
     const targetId = targetCard?.getAttribute("data-section-card");
     if (!targetId || targetId === drag.id || targetId === drag.lastTargetId) return;
     drag.lastTargetId = targetId;
-    setDragOverId(targetId);
+    setDragOverId(null);
     moveSectionToTarget(drag.id, targetId);
   };
 
