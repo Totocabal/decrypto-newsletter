@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Check,
+  CheckSquare,
   Grid2X2,
   Grid3X3,
   ImageIcon,
   List,
   Loader2,
   RefreshCw,
+  Square,
   Trash2,
   Upload,
   X,
@@ -112,11 +114,14 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId }) {
   const [compressBeforeUpload, setCompressBeforeUpload] = useState(true);
   const [uploadNotice, setUploadNotice] = useState(null);
   const [viewMode, setViewMode] = useState("grid4");
+  const [multiSelect, setMultiSelect] = useState(false);
+  const [selectedPaths, setSelectedPaths] = useState([]);
   const canSelect = typeof onSelect === "function";
 
   const usedBytes = images.reduce((total, image) => total + (image.metadata?.size || 0), 0);
   const remainingBytes = Math.max(0, MAX_IMAGE_STORAGE_BYTES - usedBytes);
   const usedPercent = Math.min(100, (usedBytes / MAX_IMAGE_STORAGE_BYTES) * 100);
+  const selectedCount = selectedPaths.length;
 
   const refresh = useCallback(async () => {
     if (!userId) return;
@@ -184,6 +189,20 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId }) {
     try {
       await deleteImage(image.path);
       setImages((items) => items.filter((item) => item.path !== image.path));
+      setSelectedPaths((paths) => paths.filter((path) => path !== image.path));
+    } catch (err) {
+      setError(err.message || String(err));
+    }
+  };
+
+  const handleDeleteSelected = async () => {
+    if (!selectedPaths.length) return;
+    if (!confirm(`Supprimer ${selectedPaths.length} image(s) du gestionnaire ?`)) return;
+    setError(null);
+    try {
+      await Promise.all(selectedPaths.map((path) => deleteImage(path)));
+      setImages((items) => items.filter((item) => !selectedPaths.includes(item.path)));
+      setSelectedPaths([]);
     } catch (err) {
       setError(err.message || String(err));
     }
@@ -211,15 +230,58 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId }) {
   const viewModes = [
     { id: "grid4", label: "4", title: "Grille 4 images", icon: Grid2X2 },
     { id: "grid8", label: "8", title: "Grille 8 images", icon: Grid3X3 },
+    { id: "grid16", label: "16", title: "Grille 16 images", icon: Grid3X3 },
     { id: "list", label: "Liste", title: "Vue liste", icon: List },
   ];
 
   const selectImage = (image) => {
+    if (multiSelect) {
+      toggleImageSelection(image.path);
+      return;
+    }
     if (canSelect) onSelect({ url: image.url, path: image.path });
   };
 
-  const renderImageCard = (image, compact = false) => {
+  const toggleImageSelection = (path) => {
+    setSelectedPaths((paths) =>
+      paths.includes(path)
+        ? paths.filter((item) => item !== path)
+        : [...paths, path]
+    );
+  };
+
+  const toggleSelectAll = () => {
+    setSelectedPaths((paths) =>
+      paths.length === images.length ? [] : images.map((image) => image.path)
+    );
+  };
+
+  const renderSelectionButton = (image, className = "") => {
+    const checked = selectedPaths.includes(image.path);
+    const Icon = checked ? CheckSquare : Square;
+    return (
+      <button
+        type="button"
+        onClick={(event) => {
+          event.stopPropagation();
+          toggleImageSelection(image.path);
+        }}
+        className={`inline-flex items-center justify-center rounded-lg border transition-colors ${
+          checked
+            ? "border-d-pink bg-d-pink text-white"
+            : "border-line bg-d-panel/90 text-d-fg3 hover:text-d-fg hover:border-line2"
+        } ${className}`}
+        title={checked ? "Désélectionner" : "Sélectionner pour suppression"}
+      >
+        <Icon size={14} />
+      </button>
+    );
+  };
+
+  const renderImageCard = (image, density = "default") => {
     const selected = canSelect && image.path === currentPath;
+    const compact = density === "compact" || density === "micro";
+    const micro = density === "micro";
     return (
       <article
         key={image.path}
@@ -227,54 +289,79 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId }) {
           selected ? "border-d-pink" : "border-line hover:border-line2"
         }`}
       >
-        <button
-          type="button"
-          onClick={() => selectImage(image)}
-          className={`relative block w-full aspect-[4/3] bg-d-panel2 overflow-hidden ${
-            canSelect ? "" : "cursor-default"
-          }`}
-          title={canSelect ? "Sélectionner cette image" : image.name}
-        >
-          <img
-            src={image.url}
-            alt={image.name}
-            className="h-full w-full object-cover transition-transform group-hover:scale-[1.02]"
-            loading="lazy"
-          />
-          {selected && (
-            <span className="absolute top-3 left-3 h-7 w-7 rounded-full bg-d-pink text-white inline-flex items-center justify-center">
-              <Check size={15} />
-            </span>
-          )}
-        </button>
-        <div className={compact ? "p-2" : "p-3"}>
-          <div className="text-xs font-semibold text-d-fg2 truncate mb-1">
-            {image.name}
-          </div>
-          <div className="flex items-center justify-between gap-3 text-[11px] text-d-fg4">
-            <span>{formatBytes(image.metadata?.size)}</span>
-            {!compact && <span>{formatDate(image.updated_at || image.created_at)}</span>}
-          </div>
-          <div className="mt-3 flex items-center gap-2">
-            {canSelect && (
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => selectImage(image)}
+            className={`block w-full aspect-[4/3] bg-d-panel2 overflow-hidden ${
+              canSelect || multiSelect ? "" : "cursor-default"
+            }`}
+            title={canSelect ? "Sélectionner cette image" : image.name}
+          >
+            <img
+              src={image.url}
+              alt={image.name}
+              className="h-full w-full object-cover transition-transform group-hover:scale-[1.02]"
+              loading="lazy"
+            />
+            {selected && (
+              <span className="absolute top-3 left-3 h-7 w-7 rounded-full bg-d-pink text-white inline-flex items-center justify-center">
+                <Check size={15} />
+              </span>
+            )}
+          </button>
+          {(multiSelect || selectedPaths.includes(image.path)) &&
+            renderSelectionButton(image, "absolute top-2 right-2 h-7 w-7")}
+        </div>
+        {!micro && (
+          <div className={compact ? "p-2" : "p-3"}>
+            <div className="text-xs font-semibold text-d-fg2 truncate mb-1">
+              {image.name}
+            </div>
+            <div className="flex items-center justify-between gap-3 text-[11px] text-d-fg4">
+              <span>{formatBytes(image.metadata?.size)}</span>
+              {!compact && <span>{formatDate(image.updated_at || image.created_at)}</span>}
+            </div>
+            <div className="mt-3 flex items-center gap-2">
+              {(multiSelect || selectedPaths.includes(image.path)) &&
+                renderSelectionButton(image, "h-8 w-8")}
+              {canSelect && (
+                <button
+                  type="button"
+                  onClick={() => selectImage(image)}
+                  className="flex-1 px-3 py-2 rounded-lg border border-line text-[10px] uppercase tracking-[0.18em] text-d-fg2 hover:text-d-fg hover:border-line2 transition-colors"
+                >
+                  Sélectionner
+                </button>
+              )}
               <button
                 type="button"
-                onClick={() => selectImage(image)}
-                className="flex-1 px-3 py-2 rounded-lg border border-line text-[10px] uppercase tracking-[0.18em] text-d-fg2 hover:text-d-fg hover:border-line2 transition-colors"
+                onClick={() => handleDelete(image)}
+                className="h-8 w-8 inline-flex items-center justify-center rounded-lg border border-line text-d-fg4 hover:text-red-400 hover:border-red-500/30 hover:bg-red-950/20 transition-colors"
+                title="Supprimer"
               >
-                Sélectionner
+                <Trash2 size={13} />
+              </button>
+            </div>
+          </div>
+        )}
+        {micro && (
+          <div className="p-1.5 flex items-center justify-between gap-1">
+            <span className="text-[10px] text-d-fg4 truncate">{formatBytes(image.metadata?.size)}</span>
+            {(multiSelect || selectedPaths.includes(image.path)) ? (
+              renderSelectionButton(image, "h-7 w-7 flex-shrink-0")
+            ) : (
+              <button
+                type="button"
+                onClick={() => handleDelete(image)}
+                className="h-7 w-7 inline-flex items-center justify-center rounded-lg border border-line text-d-fg4 hover:text-red-400 hover:border-red-500/30 hover:bg-red-950/20 transition-colors flex-shrink-0"
+                title="Supprimer"
+              >
+                <Trash2 size={12} />
               </button>
             )}
-            <button
-              type="button"
-              onClick={() => handleDelete(image)}
-              className="h-8 w-8 inline-flex items-center justify-center rounded-lg border border-line text-d-fg4 hover:text-red-400 hover:border-red-500/30 hover:bg-red-950/20 transition-colors"
-              title="Supprimer"
-            >
-              <Trash2 size={13} />
-            </button>
           </div>
-        </div>
+        )}
       </article>
     );
   };
@@ -311,6 +398,8 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId }) {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          {(multiSelect || selectedPaths.includes(image.path)) &&
+            renderSelectionButton(image, "h-9 w-9")}
           {canSelect && (
             <button
               type="button"
@@ -470,29 +559,68 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId }) {
               </div>
               <div className="text-sm text-d-fg2">
                 {images.length} image{images.length > 1 ? "s" : ""}
+                {selectedCount > 0 && (
+                  <span className="text-d-pink"> · {selectedCount} sélectionnée{selectedCount > 1 ? "s" : ""}</span>
+                )}
               </div>
             </div>
-            <div className="flex items-center gap-1 rounded-xl border border-line bg-d-panel p-1">
-              {viewModes.map((mode) => {
-                const Icon = mode.icon;
-                const active = viewMode === mode.id;
-                return (
+            <div className="flex flex-wrap items-center justify-end gap-2">
+              <div className="flex items-center gap-1 rounded-xl border border-line bg-d-panel p-1">
+                {viewModes.map((mode) => {
+                  const Icon = mode.icon;
+                  const active = viewMode === mode.id;
+                  return (
+                    <button
+                      key={mode.id}
+                      type="button"
+                      onClick={() => setViewMode(mode.id)}
+                      className={`h-8 px-2.5 rounded-lg inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.14em] transition-colors ${
+                        active
+                          ? "bg-d-panel3 text-d-fg"
+                          : "text-d-fg4 hover:text-d-fg2"
+                      }`}
+                      title={mode.title}
+                    >
+                      <Icon size={13} />
+                      {mode.label}
+                    </button>
+                  );
+                })}
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setMultiSelect((active) => !active);
+                  if (multiSelect) setSelectedPaths([]);
+                }}
+                className={`h-10 px-3 rounded-xl border text-[10px] uppercase tracking-[0.16em] transition-colors ${
+                  multiSelect
+                    ? "border-d-pink bg-d-pink/10 text-d-pink"
+                    : "border-line text-d-fg3 hover:text-d-fg2 hover:border-line2"
+                }`}
+              >
+                Sélection
+              </button>
+              {multiSelect && (
+                <>
                   <button
-                    key={mode.id}
                     type="button"
-                    onClick={() => setViewMode(mode.id)}
-                    className={`h-8 px-2.5 rounded-lg inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.14em] transition-colors ${
-                      active
-                        ? "bg-d-panel3 text-d-fg"
-                        : "text-d-fg4 hover:text-d-fg2"
-                    }`}
-                    title={mode.title}
+                    onClick={toggleSelectAll}
+                    disabled={images.length === 0}
+                    className="h-10 px-3 rounded-xl border border-line text-[10px] uppercase tracking-[0.16em] text-d-fg3 hover:text-d-fg2 hover:border-line2 disabled:opacity-40 transition-colors"
                   >
-                    <Icon size={13} />
-                    {mode.label}
+                    {selectedCount === images.length && images.length > 0 ? "Tout retirer" : "Tout sélectionner"}
                   </button>
-                );
-              })}
+                  <button
+                    type="button"
+                    onClick={handleDeleteSelected}
+                    disabled={selectedCount === 0}
+                    className="h-10 px-3 rounded-xl border border-red-500/30 text-[10px] uppercase tracking-[0.16em] text-red-300 hover:bg-red-950/20 disabled:opacity-40 transition-colors"
+                  >
+                    Supprimer ({selectedCount})
+                  </button>
+                </>
+              )}
             </div>
           </div>
           {loading ? (
@@ -517,7 +645,12 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId }) {
               )}
               {viewMode === "grid8" && (
                 <div className="grid grid-cols-4 xl:grid-cols-8 gap-3">
-                  {images.map((image) => renderImageCard(image, true))}
+                  {images.map((image) => renderImageCard(image, "compact"))}
+                </div>
+              )}
+              {viewMode === "grid16" && (
+                <div className="grid grid-cols-8 2xl:grid-cols-[repeat(16,minmax(0,1fr))] gap-2">
+                  {images.map((image) => renderImageCard(image, "micro"))}
                 </div>
               )}
               {viewMode === "list" && (
