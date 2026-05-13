@@ -198,10 +198,9 @@ export function AdminPage({ onBack }) {
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto p-6 space-y-6">
+      <main className="max-w-4xl mx-auto p-6">
         {/* ── Onglet Gestion des comptes ── */}
-        {tab === "accounts" && (
-          <>
+        <div className={`space-y-6 ${tab !== "accounts" ? "hidden" : ""}`}>
             {loading && (
               <div className="text-xs text-d-fg4 text-center p-8 flex items-center justify-center gap-2">
                 <Loader2 size={14} className="animate-spin" />
@@ -406,11 +405,12 @@ export function AdminPage({ onBack }) {
                 })}
               </div>
             </section>
-          </>
-        )}
+        </div>
 
         {/* ── Onglet Template newsletter ── */}
-        {tab === "template" && <DefaultSectionsEditor />}
+        <div className={tab !== "template" ? "hidden" : ""}>
+          <DefaultSectionsEditor />
+        </div>
       </main>
     </div>
   );
