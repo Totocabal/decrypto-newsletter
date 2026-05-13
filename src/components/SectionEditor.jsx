@@ -314,7 +314,7 @@ function EditoEditor({ data, set }) {
       </Field>
       <Field
         label="Corps"
-        hint="HTML : <strong>, <em>, <u>, <s>, <a>, <ul><li>, <ol><li>"
+        hint="Éditeur riche : gras, italique, souligné, rayé, lien et listes"
       >
         <TextArea
           showCount
@@ -726,7 +726,7 @@ function FearGreedEditor({ data, set }) {
           </span>
         </div>
       </Field>
-      <Field label="Commentaire" hint="HTML : <strong>, <em>, <u>, <s>, <a>, <ul><li>, <ol><li>">
+      <Field label="Commentaire" hint="Éditeur riche : gras, italique, souligné, rayé, lien et listes">
         <TextArea
           showCount
           rows={3}
@@ -907,7 +907,7 @@ function MacroEditor({ data, set }) {
       <Field label="Titre">
         <Input value={data.title} onChange={(e) => set({ title: e.target.value })} />
       </Field>
-      <Field label="Corps" hint="HTML autorisé">
+      <Field label="Corps" hint="Éditeur riche">
         <TextArea
           showCount
           rows={3}
@@ -1186,7 +1186,7 @@ function FocusEditor({ data, set }) {
 
       <Field
         label="Texte du focus"
-        hint="HTML : <strong>, <em>, <u>, <s>, <a>, <ul><li>, <ol><li>"
+        hint="Éditeur riche : gras, italique, souligné, rayé, lien et listes"
       >
         <TextArea
           showCount
@@ -1248,7 +1248,7 @@ function TextBlockEditor({ data, set }) {
       <Field label="Titre">
         <Input value={data.title} onChange={(e) => set({ title: e.target.value })} />
       </Field>
-      <Field label="Corps" hint="HTML : <strong>, <em>, <u>, <s>, <a>, <ul><li>, <ol><li>">
+      <Field label="Corps" hint="Éditeur riche : gras, italique, souligné, rayé, lien et listes">
         <TextArea
           showCount
           rows={5}
