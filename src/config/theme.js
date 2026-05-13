@@ -49,6 +49,7 @@ export const FONTS = {
     100: "https://cdn.braze.eu/appboy/communication/assets/font_assets/files/674095fb9216550091ffa745/original.ttf?1732285947",
     200: "https://cdn.braze.eu/appboy/communication/assets/font_assets/files/674095fb8bdb0d00816f28ad/original.ttf?1732285947",
     300: "https://cdn.braze.eu/appboy/communication/assets/font_assets/files/674095fb73d00e008136858e/original.ttf?1732285947",
+    400: "https://cdn.braze.eu/appboy/communication/assets/font_assets/files/674095fb62d2910080b83ef1/original.ttf?1732285947",
     500: "https://cdn.braze.eu/appboy/communication/assets/font_assets/files/674095fbd542e00081fc4555/original.ttf?1732285947",
     600: "https://cdn.braze.eu/appboy/communication/assets/font_assets/files/674095fbed9c22008102ea58/original.ttf?1732285947",
     700: "https://cdn.braze.eu/appboy/communication/assets/font_assets/files/674095fbcc898a00752a43a2/original.ttf?1732285947",

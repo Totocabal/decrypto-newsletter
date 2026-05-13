@@ -38,8 +38,8 @@ function escapedClosingTagPattern(tagName) {
   return new RegExp(`&(?:amp;)?lt;\\/${tagName}&(?:amp;)?gt;`, "gi");
 }
 
-const RICH_TEXT_WEIGHT = 500;
-const RICH_TEXT_BOLD_WEIGHT = 800;
+const RICH_TEXT_WEIGHT = 400;
+const RICH_TEXT_BOLD_WEIGHT = 700;
 
 export function sanitizeRichText(text = "") {
   let out = escapeHtml(decodeStoredTextEntities(text));
