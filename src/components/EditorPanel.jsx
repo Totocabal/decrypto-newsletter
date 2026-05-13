@@ -73,17 +73,39 @@ export function EditorPanel({ state, setState }) {
 
   // ── Drag & drop ──
   const draggedId = useRef(null);
+  const dragImageRef = useRef(null);
   const [dragOverId, setDragOverId] = useState(null);
+
+  const clearDragImage = () => {
+    if (dragImageRef.current) {
+      dragImageRef.current.remove();
+      dragImageRef.current = null;
+    }
+  };
 
   const handleDragStart = (id, event) => {
     event.stopPropagation();
+    clearDragImage();
     draggedId.current = id;
     event.dataTransfer.effectAllowed = "move";
     event.dataTransfer.setData("text/plain", id);
     const card = document.querySelector(`[data-section-card="${id}"]`);
     if (card && event.dataTransfer?.setDragImage) {
       const rect = card.getBoundingClientRect();
-      event.dataTransfer.setDragImage(card, 16, Math.min(32, rect.height / 2));
+      const clone = card.cloneNode(true);
+      clone.style.position = "fixed";
+      clone.style.top = "-10000px";
+      clone.style.left = "-10000px";
+      clone.style.width = `${rect.width}px`;
+      clone.style.maxHeight = `${rect.height}px`;
+      clone.style.overflow = "hidden";
+      clone.style.pointerEvents = "none";
+      clone.style.opacity = "0.9";
+      clone.style.transform = "none";
+      clone.style.boxSizing = "border-box";
+      document.body.appendChild(clone);
+      dragImageRef.current = clone;
+      event.dataTransfer.setDragImage(clone, 16, Math.min(32, rect.height / 2));
     }
   };
   const handleDragOver = (e, id) => {
@@ -107,10 +129,12 @@ export function EditorPanel({ state, setState }) {
     }
     draggedId.current = null;
     setDragOverId(null);
+    clearDragImage();
   };
   const handleDragEnd = () => {
     draggedId.current = null;
     setDragOverId(null);
+    clearDragImage();
   };
 
   // ── Mutations sur la liste de sections ──
