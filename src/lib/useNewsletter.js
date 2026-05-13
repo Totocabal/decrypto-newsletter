@@ -121,18 +121,18 @@ export function useNewsletter(newsletterId, userId) {
     const release = () => {
       // Best-effort. Au refresh, le navigateur peut couper la requête: on
       // absorbe l'erreur pour éviter une rejection globale pendant l'unload.
-      void supabase
-        .rpc("release_lock", { p_newsletter_id: newsletterId })
-        .catch(() => {});
+      void Promise.resolve(
+        supabase.rpc("release_lock", { p_newsletter_id: newsletterId })
+      ).catch(() => {});
     };
 
     window.addEventListener("beforeunload", release);
     return () => {
       window.removeEventListener("beforeunload", release);
       // À la sortie React (changement de page), on libère explicitement
-      void supabase
-        .rpc("release_lock", { p_newsletter_id: newsletterId })
-        .catch(() => {});
+      void Promise.resolve(
+        supabase.rpc("release_lock", { p_newsletter_id: newsletterId })
+      ).catch(() => {});
     };
   }, [newsletterId]);
 
