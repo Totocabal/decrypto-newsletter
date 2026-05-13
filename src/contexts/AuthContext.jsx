@@ -52,6 +52,7 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [profileLoading, setProfileLoading] = useState(false);
   const [initError, setInitError] = useState(null);
 
   // Récupère le profil correspondant au user courant. Si la ligne n'existe pas
@@ -62,6 +63,7 @@ export function AuthProvider({ children }) {
       setProfile(null);
       return;
     }
+    setProfileLoading(true);
     for (let attempt = 0; attempt < 3; attempt++) {
       const { data, error } = await withTimeout(
         supabase
@@ -94,6 +96,7 @@ export function AuthProvider({ children }) {
       }
       if (data) {
         setProfile(data);
+        setProfileLoading(false);
         return;
       }
       // Pas d'erreur mais pas de profil → on attend que le trigger crée la ligne
@@ -102,6 +105,7 @@ export function AuthProvider({ children }) {
     // Toujours pas de profil après 3 essais → on continue sans (l'UI affichera
     // "Création du profil…" et l'utilisateur peut rafraîchir)
     setProfile(null);
+    setProfileLoading(false);
   }, []);
 
   const refreshProfile = useCallback(async () => {
@@ -188,9 +192,13 @@ export function AuthProvider({ children }) {
       setLoading(false);
       if (!u) {
         setProfile(null);
+        setProfileLoading(false);
         return;
       }
 
+      // Marquer profileLoading avant le setTimeout pour éviter un flash de
+      // "Création du profil…" entre setLoading(false) et le début du fetch.
+      setProfileLoading(true);
       // Ne jamais attendre une requête Supabase directement dans
       // onAuthStateChange: le client auth tient un verrou interne pendant cet
       // événement, et une requête imbriquée peut bloquer la session au refresh.
@@ -199,7 +207,10 @@ export function AuthProvider({ children }) {
         fetchProfile(u.id).catch((err) => {
           // eslint-disable-next-line no-console
           console.warn("[auth] profil indisponible après changement auth:", err);
-          if (mounted) setProfile(null);
+          if (mounted) {
+            setProfile(null);
+            setProfileLoading(false);
+          }
         });
       }, 0);
     });
@@ -266,6 +277,7 @@ export function AuthProvider({ children }) {
         user,
         profile,
         loading,
+        profileLoading,
         initError,
         signIn, // alias rétrocompat — équivalent à signInWithMagicLink
         signInWithMagicLink,

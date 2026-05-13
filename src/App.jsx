@@ -37,7 +37,7 @@ export default function App() {
 }
 
 function Router() {
-  const { user, profile, loading, initError, refreshProfile, resetLocalSession } = useAuth();
+  const { user, profile, loading, profileLoading, initError, refreshProfile, resetLocalSession } = useAuth();
   const [route, setRoute] = useState({ name: "list" });
   const [longWait, setLongWait] = useState(false);
 
@@ -45,20 +45,20 @@ function Router() {
   // un bouton "voir le diagnostic". Évite l'angoisse du "Chargement…" qui
   // tourne dans le vide.
   useEffect(() => {
-    if (!loading) {
+    if (!loading && !profileLoading) {
       setLongWait(false);
       return;
     }
     const t = setTimeout(() => setLongWait(true), 6000);
     return () => clearTimeout(t);
-  }, [loading]);
+  }, [loading, profileLoading]);
 
   // Erreur d'init → page de diag détaillée
   if (initError) {
     return <SetupErrorPage initError={initError} />;
   }
 
-  if (loading) {
+  if (loading || profileLoading) {
     return (
       <div className="min-h-screen bg-d-bg flex flex-col items-center justify-center p-6 gap-8">
         <Wordmark size={18} />
