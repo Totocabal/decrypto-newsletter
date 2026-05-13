@@ -1,6 +1,7 @@
 import React from "react";
 
 const DRAFT_KEY = "decrypto-newsletter-draft-v1";
+const DRAFT_RECOVERY_KEY = "decrypto-newsletter-draft-recovery-v1";
 const AUTO_RELOAD_KEY = "decrypto-auto-reload-after-crash-v1";
 
 async function clearBrowserCache() {
@@ -91,42 +92,73 @@ export class AppErrorBoundary extends React.Component {
     window.location.replace(url.toString());
   };
 
+  openWithoutDraft = () => {
+    try {
+      const draft = localStorage.getItem(DRAFT_KEY);
+      if (draft) {
+        localStorage.setItem(DRAFT_RECOVERY_KEY, draft);
+        localStorage.removeItem(DRAFT_KEY);
+      }
+    } catch {
+      // If storage is unavailable, a regular reload is still the best fallback.
+    }
+    window.location.reload();
+  };
+
   render() {
     if (!this.state.error) return this.props.children;
 
     if (this.state.autoReloading) {
       return (
-        <div className="min-h-screen bg-stone-100 flex items-center justify-center p-6">
-          <div className="text-xs uppercase tracking-[0.18em] text-stone-500">
-            Rechargement…
+        <div className="min-h-screen bg-[#141416] flex items-center justify-center p-6 text-[#F1F2F5]">
+          <div className="flex items-center gap-3 text-xs uppercase tracking-[0.22em] text-stone-400">
+            <span className="h-2 w-2 rounded-full bg-[#ff00aa] animate-pulse" />
+            Récupération de l'éditeur…
           </div>
         </div>
       );
     }
 
     return (
-      <div className="min-h-screen bg-stone-100 flex items-center justify-center p-6">
-        <div className="bg-white border border-red-200 rounded-sm p-6 max-w-md">
-          <div className="text-red-700 text-sm font-medium mb-2">
-            L'application a rencontré une erreur
-          </div>
-          <div className="text-xs text-stone-600 mb-4">
-            Recharge la page. Si le problème revient après un refresh, vide le
-            cache local pour repartir sur une session propre.
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <button
-              onClick={this.reload}
-              className="text-[10px] uppercase tracking-[0.18em] text-stone-700 border border-stone-300 hover:border-stone-500 px-3 py-2 rounded-sm"
-            >
-              Recharger
-            </button>
-            <button
-              onClick={this.clearCacheAndReload}
-              className="text-[10px] uppercase tracking-[0.18em] text-white bg-stone-900 hover:bg-stone-700 px-3 py-2 rounded-sm"
-            >
-              Vider le cache local
-            </button>
+      <div className="min-h-screen bg-[#141416] flex items-center justify-center p-6 text-[#F1F2F5]">
+        <div className="w-full max-w-2xl border border-white/10 bg-[#1E1E22] rounded-sm overflow-hidden shadow-2xl">
+          <div className="h-1 bg-gradient-to-r from-[#8701FF] via-[#ff00aa] to-[#03FFCF]" />
+          <div className="p-7 sm:p-9">
+            <div className="text-[10px] uppercase tracking-[0.24em] text-[#ff00aa] font-semibold mb-5">
+              Éditeur interrompu
+            </div>
+            <h1 className="font-sora text-3xl sm:text-4xl font-semibold tracking-tight text-white mb-4">
+              L'application a rencontré une erreur
+            </h1>
+            <p className="text-sm sm:text-base leading-relaxed text-stone-300 max-w-xl mb-7">
+              J'ai tenté un rechargement automatique. Si l'erreur revient,
+              ouvre la page sans le brouillon local : ton brouillon est mis de
+              côté dans le navigateur, et tu gardes ta session.
+            </p>
+            <div className="flex flex-wrap gap-3">
+              <button
+                onClick={this.reload}
+                className="text-[10px] uppercase tracking-[0.18em] text-stone-200 border border-white/15 hover:border-white/35 hover:bg-white/5 px-4 py-3 rounded-sm transition-colors"
+              >
+                Recharger
+              </button>
+              <button
+                onClick={this.openWithoutDraft}
+                className="text-[10px] uppercase tracking-[0.18em] text-white bg-[#ff00aa] hover:bg-[#d90091] px-4 py-3 rounded-sm transition-colors"
+              >
+                Ouvrir sans brouillon
+              </button>
+              <button
+                onClick={this.clearCacheAndReload}
+                className="text-[10px] uppercase tracking-[0.18em] text-stone-950 bg-[#03FFCF] hover:bg-[#00d9b0] px-4 py-3 rounded-sm transition-colors"
+              >
+                Réinitialiser local
+              </button>
+            </div>
+            <div className="mt-6 border-t border-white/10 pt-5 text-[11px] leading-relaxed text-stone-500">
+              Le bouton "Réinitialiser local" nettoie aussi la session locale.
+              À utiliser seulement si l'ouverture sans brouillon ne suffit pas.
+            </div>
           </div>
         </div>
       </div>

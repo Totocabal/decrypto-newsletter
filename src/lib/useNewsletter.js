@@ -57,7 +57,15 @@ export function useNewsletter(newsletterId, userId) {
       // Migration auto : si la newsletter a été créée avec l'ancien format
       // (propriétés à plat sans `sections`), on convertit au nouveau format
       // basé sur sections. Transparent pour l'utilisateur.
-      const migrated = migrateLegacyState(nl.current_state);
+      let migrated = null;
+      try {
+        migrated = migrateLegacyState(nl.current_state);
+      } catch (migrationError) {
+        console.error("[useNewsletter] migration état impossible:", migrationError);
+        setError("Le contenu de cette newsletter est illisible. Restaure une version précédente ou contacte un administrateur.");
+        setLoading(false);
+        return;
+      }
       setState(migrated);
 
       // Tente d'acquérir le lock

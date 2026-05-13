@@ -2,7 +2,7 @@
 // Contrôles de formulaire réutilisables
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Bold,
   Italic,
@@ -100,19 +100,26 @@ function normalizeSlateValue(nodes) {
 }
 
 function deserializeHtml(html = "") {
-  if (typeof window === "undefined" || !window.DOMParser) {
+  try {
+    if (typeof window === "undefined" || !window.DOMParser) {
+      return [{ type: "paragraph", children: [{ text: String(html || "") }] }];
+    }
+
+    const source = String(html || "").trim();
+    if (!source) return createEmptySlateValue();
+
+    const doc = new window.DOMParser().parseFromString(source, "text/html");
+    const nodes = Array.from(doc.body.childNodes)
+      .flatMap((node) => deserializeNode(node))
+      .filter(Boolean);
+
+    return normalizeSlateValue(nodes);
+  } catch (error) {
+    // Un vieux brouillon peut contenir un fragment HTML impossible à normaliser
+    // pour Slate. On conserve le texte au lieu de laisser tomber l'app entière.
+    console.warn("[rich-text] contenu incompatible, fallback texte:", error);
     return [{ type: "paragraph", children: [{ text: String(html || "") }] }];
   }
-
-  const source = String(html || "").trim();
-  if (!source) return createEmptySlateValue();
-
-  const doc = new window.DOMParser().parseFromString(source, "text/html");
-  const nodes = Array.from(doc.body.childNodes)
-    .flatMap((node) => deserializeNode(node))
-    .filter(Boolean);
-
-  return normalizeSlateValue(nodes);
 }
 
 function deserializeNode(node, marks = {}) {
@@ -377,7 +384,77 @@ function RichTextLeaf({ attributes, children, leaf }) {
   return <span {...attributes}>{content}</span>;
 }
 
-export function TextArea({ showCount, onChange, value = "", ...props }) {
+function PlainTextFallback({ showCount, onChange, value = "", rows = 3, onRetry, ...props }) {
+  const textValue = String(value ?? "");
+  return (
+    <div>
+      <div className="border border-d-orange/40 rounded-xl bg-d-panel2 overflow-hidden">
+        <div className="flex items-center justify-between gap-3 px-3 py-2 border-b border-line bg-d-panel">
+          <div className="text-[10px] uppercase tracking-[0.18em] text-d-orange">
+            Mode texte
+          </div>
+          <button
+            type="button"
+            onClick={onRetry}
+            className="text-[10px] uppercase tracking-[0.18em] text-d-fg2 border border-line hover:border-line2 px-2 py-1 rounded-lg transition-colors"
+          >
+            Réessayer l'éditeur
+          </button>
+        </div>
+        <textarea
+          {...props}
+          rows={rows}
+          value={textValue}
+          onChange={onChange}
+          className="w-full px-3 py-2 bg-d-panel2 text-sm text-d-fg focus:outline-none leading-relaxed resize-y"
+          style={{ fontFamily: "'DM Sans', sans-serif" }}
+        />
+      </div>
+      {showCount && (
+        <div className="text-right text-[10px] text-d-fg4 mt-0.5 tabular-nums">
+          {textValue.replace(/<[^>]*>/g, "").length} car.
+        </div>
+      )}
+    </div>
+  );
+}
+
+class RichTextErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { error: null, retryKey: 0 };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { error };
+  }
+
+  componentDidCatch(error) {
+    console.warn("[rich-text] éditeur indisponible:", error);
+  }
+
+  retry = () => {
+    this.setState((state) => ({ error: null, retryKey: state.retryKey + 1 }));
+  };
+
+  render() {
+    if (this.state.error) {
+      return <PlainTextFallback {...this.props.editorProps} onRetry={this.retry} />;
+    }
+
+    return React.cloneElement(this.props.children, { key: this.state.retryKey });
+  }
+}
+
+export function TextArea(props) {
+  return (
+    <RichTextErrorBoundary editorProps={props}>
+      <RichTextEditor {...props} />
+    </RichTextErrorBoundary>
+  );
+}
+
+function RichTextEditor({ showCount, onChange, value = "", ...props }) {
   const editor = useMemo(() => withInlines(withHistory(withReact(createEditor()))), []);
   const lastEmittedRef = useRef("");
   const initialValueRef = useRef(null);
