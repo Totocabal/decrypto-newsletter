@@ -629,6 +629,30 @@ function renderFocus(data, number, anchor = "") {
     </tr>`;
 }
 
+function renderImageBlock(data) {
+  const imgUrl =
+    data.image_url ||
+    "https://placehold.co/568x280/1a0c2e/ffffff?text=VISUEL+%C2%B7+568+%C3%97+280";
+  const altText = data.image_alt || "Visuel d'illustration";
+  const image = `<img src="${escapeAttr(imgUrl)}" width="568" height="280" alt="${escapeAttr(altText)}" style="display:block; width:100%; max-width:568px; height:auto; border-radius:14px; border:1px solid ${THEME.borderSubtle};" />`;
+  const linkedImage = data.link_url
+    ? `<a href="${escapeAttr(data.link_url)}" target="_blank" style="display:block; text-decoration:none;">${image}</a>`
+    : image;
+
+  return `
+    <tr>
+      <td class="em-px" style="padding:36px; border-bottom:1px solid ${THEME.border};">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+          <tr>
+            <td>
+              ${linkedImage}
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>`;
+}
+
 function renderTextBlock(data, number, anchor = "") {
   const ctaBtn = data.cta_label
     ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:28px;">
@@ -678,6 +702,7 @@ function renderSection(sec, allSections, assetMode) {
     case "macro_bars": return renderMacroBars(sec.data);
     case "event":      return renderEvent(sec.data, anchor);
     case "focus":      return renderFocus(sec.data, number, anchor);
+    case "image_block": return renderImageBlock(sec.data);
     case "text_block": return renderTextBlock(sec.data, number, anchor);
     case "divider":    return renderDivider(sec.data);
     default:           return `<tr><td>Type inconnu : ${escapeHtml(sec.type)}</td></tr>`;

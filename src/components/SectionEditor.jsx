@@ -25,6 +25,7 @@ export function SectionEditor({ type, data, onChange, sections = [] }) {
     case "macro_bars": return <MacroBarsEditor data={data} set={set} />;
     case "event":      return <EventEditor data={data} set={set} />;
     case "focus":      return <FocusEditor data={data} set={set} />;
+    case "image_block": return <ImageBlockEditor data={data} set={set} />;
     case "text_block": return <TextBlockEditor data={data} set={set} />;
     case "divider":    return <DividerEditor data={data} set={set} />;
     default:
@@ -1196,6 +1197,111 @@ function FocusEditor({ data, set }) {
           />
         </Field>
       </div>
+      {imageManagerOpen && (
+        <ImageManagerModal
+          currentPath={data.image_path}
+          onClose={() => setImageManagerOpen(false)}
+          onSelect={handleSelectImage}
+          userId={profile?.id}
+        />
+      )}
+    </>
+  );
+}
+
+function ImageBlockEditor({ data, set }) {
+  const { profile } = useAuth();
+  const [uploadError, setUploadError] = useState(null);
+  const [imageManagerOpen, setImageManagerOpen] = useState(false);
+
+  const handleRemoveImage = async () => {
+    if (data.image_path) {
+      try {
+        await deleteImage(data.image_path);
+      } catch {
+        // best-effort
+      }
+    }
+    set({ ...data, image_url: "", image_path: "" });
+  };
+
+  const handleSelectImage = ({ url, path }) => {
+    set({ ...data, image_url: url, image_path: path });
+    setImageManagerOpen(false);
+    setUploadError(null);
+  };
+
+  return (
+    <>
+      <div className="text-[10px] uppercase tracking-[0.18em] font-semibold text-d-fg3 mb-1.5">
+        Image (568×280 conseillé, max {MAX_IMAGE_FILE_SIZE_LABEL})
+      </div>
+      {data.image_url ? (
+        <div className="mb-4 bg-d-panel2 border border-line rounded-xl p-3">
+          <div className="relative mb-2">
+            <img
+              src={data.image_url}
+              alt={data.image_alt || ""}
+              className="w-full h-auto rounded-xl border border-line"
+            />
+            <button
+              type="button"
+              onClick={handleRemoveImage}
+              className="absolute top-2 right-2 p-1.5 bg-d-panel2 border border-line rounded-lg hover:bg-red-900/20 hover:border-red-500/30 text-d-fg3 hover:text-red-400 shadow-sm"
+              title="Supprimer l'image"
+            >
+              <X size={14} />
+            </button>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => setImageManagerOpen(true)}
+              className="w-full flex items-center justify-center gap-2 px-3 py-2 border border-line text-d-fg3 rounded-xl text-[10px] uppercase tracking-[0.18em] hover:bg-d-panel3 transition-colors"
+            >
+              <Upload size={12} />
+              Gestionnaire
+            </button>
+            <button
+              type="button"
+              onClick={handleRemoveImage}
+              className="w-full flex items-center justify-center gap-2 px-3 py-2 border border-line text-d-fg3 rounded-xl text-[10px] uppercase tracking-[0.18em] hover:bg-red-900/20 hover:border-red-500/30 hover:text-red-400 transition-colors"
+            >
+              <X size={12} />
+              Retirer
+            </button>
+          </div>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setImageManagerOpen(true)}
+          className="w-full mb-4 flex items-center justify-center gap-2 px-4 py-6 border border-dashed border-line text-d-fg3 hover:border-line2 hover:bg-d-panel2 rounded-xl text-[10px] uppercase tracking-[0.18em] transition-colors"
+        >
+          <Upload size={14} />
+          Ouvrir le gestionnaire d'images
+        </button>
+      )}
+      {uploadError && (
+        <div className="rounded-xl p-2 mb-3 text-[11px]" style={{ background: "rgba(255,75,40,0.10)", border: "1px solid rgba(255,75,40,0.20)", color: "#FF8466" }}>
+          {uploadError}
+        </div>
+      )}
+
+      <Field label="Texte alternatif (alt)" hint="Pour les lecteurs d'écran et si l'image ne charge pas">
+        <Input
+          value={data.image_alt || ""}
+          onChange={(e) => set({ ...data, image_alt: e.target.value })}
+        />
+      </Field>
+      <Field label="Lien de redirection" hint="Optionnel : si renseigné, l'image devient cliquable">
+        <Input
+          value={data.link_url || ""}
+          onChange={(e) => set({ ...data, link_url: e.target.value })}
+          placeholder="https://..."
+        />
+      </Field>
+
       {imageManagerOpen && (
         <ImageManagerModal
           currentPath={data.image_path}

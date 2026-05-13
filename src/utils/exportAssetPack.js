@@ -63,7 +63,7 @@ async function buildPngAssets(state) {
   let chartPoints = null;
   let needGauge = false;
   let gaugeValue = null;
-  // Map { sectionId → { url, filename } } pour les images de blocs focus
+  // Map { sectionId → { url, filename } } pour les images de blocs focus/image
   const focusImages = [];
 
   for (const sec of state.sections || []) {
@@ -75,10 +75,10 @@ async function buildPngAssets(state) {
       needGauge = true;
       gaugeValue = sec.data.value;
     }
-    if (sec.type === "focus" && sec.data.image_url) {
+    if ((sec.type === "focus" || sec.type === "image_block") && sec.data.image_url) {
       // On télécharge l'image et on la met dans assets/ avec un nom unique
       const ext = guessImageExtension(sec.data.image_url);
-      const filename = `focus-${sec.id}.${ext}`;
+      const filename = `${sec.type}-${sec.id}.${ext}`;
       focusImages.push({
         sectionId: sec.id,
         originalUrl: sec.data.image_url,
@@ -100,7 +100,7 @@ async function buildPngAssets(state) {
     assets["gauge.png"] = await svgToPngBlob(gaugeSvg, 200, 120);
   }
 
-  // Télécharge chaque image de bloc focus
+  // Télécharge chaque image de bloc focus/image
   for (const fi of focusImages) {
     try {
       const resp = await fetch(fi.originalUrl);
@@ -121,7 +121,7 @@ function buildExternalAssetState(state, focusImages, assets, assetUrlMap = {}) {
   return {
     ...state,
     sections: (state.sections || []).map((sec) => {
-      if (sec.type === "focus" && sec.data.image_url) {
+      if ((sec.type === "focus" || sec.type === "image_block") && sec.data.image_url) {
         const fi = focusImages.find((f) => f.sectionId === sec.id);
         if (fi && assets[fi.filename]) {
           return {
@@ -244,16 +244,16 @@ Upload les assets sur ton serveur, puis adapte les chemins comme ci-dessus.
 export async function exportAssetPack(state, filename = "decrypto-export.zip") {
   const zip = new JSZip();
 
-  // 1. Génère les PNG + télécharge les images focus
+  // 1. Génère les PNG + télécharge les images intégrées aux blocs
   const { assets, focusImages } = await buildPngAssets(state);
 
   // 2. HTML avec références externes. On clone l'état pour réécrire les URL
-  // des images focus vers leur chemin local dans assets/.
+  // des images intégrées vers leur chemin local dans assets/.
   const stateForExport = buildExternalAssetState(state, focusImages, assets);
   const html = buildEmailHtml(stateForExport, { assetMode: "external" });
   zip.file("email.html", html);
 
-  // 3. Assets (PNG + images focus)
+  // 3. Assets (PNG + images intégrées)
   const assetsFolder = zip.folder("assets");
   for (const [name, blob] of Object.entries(assets)) {
     assetsFolder.file(name, blob);
