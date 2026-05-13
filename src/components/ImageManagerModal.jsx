@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Check,
+  Grid2X2,
+  Grid3X3,
   ImageIcon,
+  List,
   Loader2,
   RefreshCw,
   Trash2,
@@ -108,6 +111,7 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId }) {
   const [error, setError] = useState(null);
   const [compressBeforeUpload, setCompressBeforeUpload] = useState(true);
   const [uploadNotice, setUploadNotice] = useState(null);
+  const [viewMode, setViewMode] = useState("grid4");
   const canSelect = typeof onSelect === "function";
 
   const usedBytes = images.reduce((total, image) => total + (image.metadata?.size || 0), 0);
@@ -202,6 +206,131 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId }) {
       setDragging(false);
       handleUpload(event.dataTransfer.files);
     },
+  };
+
+  const viewModes = [
+    { id: "grid4", label: "4", title: "Grille 4 images", icon: Grid2X2 },
+    { id: "grid8", label: "8", title: "Grille 8 images", icon: Grid3X3 },
+    { id: "list", label: "Liste", title: "Vue liste", icon: List },
+  ];
+
+  const selectImage = (image) => {
+    if (canSelect) onSelect({ url: image.url, path: image.path });
+  };
+
+  const renderImageCard = (image, compact = false) => {
+    const selected = canSelect && image.path === currentPath;
+    return (
+      <article
+        key={image.path}
+        className={`group border rounded-2xl overflow-hidden bg-d-panel transition-colors ${
+          selected ? "border-d-pink" : "border-line hover:border-line2"
+        }`}
+      >
+        <button
+          type="button"
+          onClick={() => selectImage(image)}
+          className={`relative block w-full aspect-[4/3] bg-d-panel2 overflow-hidden ${
+            canSelect ? "" : "cursor-default"
+          }`}
+          title={canSelect ? "Sélectionner cette image" : image.name}
+        >
+          <img
+            src={image.url}
+            alt={image.name}
+            className="h-full w-full object-cover transition-transform group-hover:scale-[1.02]"
+            loading="lazy"
+          />
+          {selected && (
+            <span className="absolute top-3 left-3 h-7 w-7 rounded-full bg-d-pink text-white inline-flex items-center justify-center">
+              <Check size={15} />
+            </span>
+          )}
+        </button>
+        <div className={compact ? "p-2" : "p-3"}>
+          <div className="text-xs font-semibold text-d-fg2 truncate mb-1">
+            {image.name}
+          </div>
+          <div className="flex items-center justify-between gap-3 text-[11px] text-d-fg4">
+            <span>{formatBytes(image.metadata?.size)}</span>
+            {!compact && <span>{formatDate(image.updated_at || image.created_at)}</span>}
+          </div>
+          <div className="mt-3 flex items-center gap-2">
+            {canSelect && (
+              <button
+                type="button"
+                onClick={() => selectImage(image)}
+                className="flex-1 px-3 py-2 rounded-lg border border-line text-[10px] uppercase tracking-[0.18em] text-d-fg2 hover:text-d-fg hover:border-line2 transition-colors"
+              >
+                Sélectionner
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => handleDelete(image)}
+              className="h-8 w-8 inline-flex items-center justify-center rounded-lg border border-line text-d-fg4 hover:text-red-400 hover:border-red-500/30 hover:bg-red-950/20 transition-colors"
+              title="Supprimer"
+            >
+              <Trash2 size={13} />
+            </button>
+          </div>
+        </div>
+      </article>
+    );
+  };
+
+  const renderImageRow = (image) => {
+    const selected = canSelect && image.path === currentPath;
+    return (
+      <article
+        key={image.path}
+        className={`flex items-center gap-4 border rounded-2xl bg-d-panel p-3 transition-colors ${
+          selected ? "border-d-pink" : "border-line hover:border-line2"
+        }`}
+      >
+        <button
+          type="button"
+          onClick={() => selectImage(image)}
+          className={`relative h-20 w-28 rounded-xl overflow-hidden bg-d-panel2 flex-shrink-0 ${
+            canSelect ? "" : "cursor-default"
+          }`}
+          title={canSelect ? "Sélectionner cette image" : image.name}
+        >
+          <img src={image.url} alt={image.name} className="h-full w-full object-cover" loading="lazy" />
+          {selected && (
+            <span className="absolute top-2 left-2 h-6 w-6 rounded-full bg-d-pink text-white inline-flex items-center justify-center">
+              <Check size={13} />
+            </span>
+          )}
+        </button>
+        <div className="min-w-0 flex-1">
+          <div className="text-sm font-semibold text-d-fg2 truncate">{image.name}</div>
+          <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-d-fg4">
+            <span>{formatBytes(image.metadata?.size)}</span>
+            <span>{formatDate(image.updated_at || image.created_at)}</span>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          {canSelect && (
+            <button
+              type="button"
+              onClick={() => selectImage(image)}
+              className="px-3 py-2 rounded-lg border border-line text-[10px] uppercase tracking-[0.18em] text-d-fg2 hover:text-d-fg hover:border-line2 transition-colors"
+            >
+              Sélectionner
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => handleDelete(image)}
+            className="h-9 w-9 inline-flex items-center justify-center rounded-lg border border-line text-d-fg4 hover:text-red-400 hover:border-red-500/30 hover:bg-red-950/20 transition-colors"
+            title="Supprimer"
+          >
+            <Trash2 size={14} />
+          </button>
+        </div>
+      </article>
+    );
   };
 
   return (
@@ -334,6 +463,38 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId }) {
         </aside>
 
         <section className="overflow-y-auto p-6">
+          <div className="mb-5 flex items-center justify-between gap-4">
+            <div>
+              <div className="text-[10px] uppercase tracking-[0.18em] text-d-fg4">
+                Bibliothèque
+              </div>
+              <div className="text-sm text-d-fg2">
+                {images.length} image{images.length > 1 ? "s" : ""}
+              </div>
+            </div>
+            <div className="flex items-center gap-1 rounded-xl border border-line bg-d-panel p-1">
+              {viewModes.map((mode) => {
+                const Icon = mode.icon;
+                const active = viewMode === mode.id;
+                return (
+                  <button
+                    key={mode.id}
+                    type="button"
+                    onClick={() => setViewMode(mode.id)}
+                    className={`h-8 px-2.5 rounded-lg inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.14em] transition-colors ${
+                      active
+                        ? "bg-d-panel3 text-d-fg"
+                        : "text-d-fg4 hover:text-d-fg2"
+                    }`}
+                    title={mode.title}
+                  >
+                    <Icon size={13} />
+                    {mode.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
           {loading ? (
             <div className="h-full min-h-[360px] flex items-center justify-center gap-2 text-xs uppercase tracking-[0.18em] text-d-fg3">
               <Loader2 size={14} className="animate-spin" />
@@ -348,70 +509,23 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId }) {
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-2 xl:grid-cols-3 gap-4">
-              {images.map((image) => {
-                const selected = canSelect && image.path === currentPath;
-                return (
-                  <article
-                    key={image.path}
-                    className={`group border rounded-2xl overflow-hidden bg-d-panel transition-colors ${
-                      selected ? "border-d-pink" : "border-line hover:border-line2"
-                    }`}
-                  >
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (canSelect) onSelect({ url: image.url, path: image.path });
-                      }}
-                      className={`relative block w-full aspect-[4/3] bg-d-panel2 overflow-hidden ${
-                        canSelect ? "" : "cursor-default"
-                      }`}
-                      title={canSelect ? "Sélectionner cette image" : image.name}
-                    >
-                      <img
-                        src={image.url}
-                        alt={image.name}
-                        className="h-full w-full object-cover transition-transform group-hover:scale-[1.02]"
-                        loading="lazy"
-                      />
-                      {selected && (
-                        <span className="absolute top-3 left-3 h-7 w-7 rounded-full bg-d-pink text-white inline-flex items-center justify-center">
-                          <Check size={15} />
-                        </span>
-                      )}
-                    </button>
-                    <div className="p-3">
-                      <div className="text-xs font-semibold text-d-fg2 truncate mb-1">
-                        {image.name}
-                      </div>
-                      <div className="flex items-center justify-between gap-3 text-[11px] text-d-fg4">
-                        <span>{formatBytes(image.metadata?.size)}</span>
-                        <span>{formatDate(image.updated_at || image.created_at)}</span>
-                      </div>
-                      <div className="mt-3 flex items-center gap-2">
-                        {canSelect && (
-                          <button
-                            type="button"
-                            onClick={() => onSelect({ url: image.url, path: image.path })}
-                            className="flex-1 px-3 py-2 rounded-lg border border-line text-[10px] uppercase tracking-[0.18em] text-d-fg2 hover:text-d-fg hover:border-line2 transition-colors"
-                          >
-                            Sélectionner
-                          </button>
-                        )}
-                        <button
-                          type="button"
-                          onClick={() => handleDelete(image)}
-                          className="h-8 w-8 inline-flex items-center justify-center rounded-lg border border-line text-d-fg4 hover:text-red-400 hover:border-red-500/30 hover:bg-red-950/20 transition-colors"
-                          title="Supprimer"
-                        >
-                          <Trash2 size={13} />
-                        </button>
-                      </div>
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
+            <>
+              {viewMode === "grid4" && (
+                <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
+                  {images.map((image) => renderImageCard(image))}
+                </div>
+              )}
+              {viewMode === "grid8" && (
+                <div className="grid grid-cols-4 xl:grid-cols-8 gap-3">
+                  {images.map((image) => renderImageCard(image, true))}
+                </div>
+              )}
+              {viewMode === "list" && (
+                <div className="space-y-3">
+                  {images.map((image) => renderImageRow(image))}
+                </div>
+              )}
+            </>
           )}
         </section>
       </main>
