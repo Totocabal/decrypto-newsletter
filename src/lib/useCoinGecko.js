@@ -80,6 +80,13 @@ export function useCoinGecko() {
 
       const cfg = CRYPTO_CONFIG[cryptoId] ?? CRYPTO_CONFIG.bitcoin;
 
+      const minPrice = Math.min(...rawValues);
+      const maxPrice = Math.max(...rawValues);
+      // 3 labels Y aux niveaux 75 %, 50 %, 25 % de la plage (haut → bas dans le SVG)
+      const y_axis_labels = [0.75, 0.5, 0.25].map(
+        (frac) => formatPrice(minPrice + frac * (maxPrice - minPrice), currency)
+      );
+
       return {
         label: cfg[currency] ?? cfg.eur,
         value: formatPrice(currentPrice, currency),
@@ -90,6 +97,7 @@ export function useCoinGecko() {
         points,
         x_labels,
         raw_prices,
+        y_axis_labels,
       };
     } catch (e) {
       setError(e.message);

@@ -80,6 +80,7 @@ export const SECTION_TYPES = {
       label: "BTC / EUR",
       value: "64 492,76 €",
       price_start: "62 654 €",
+      y_axis_labels: [],
       delta: "▲ +2,93 %",
       delta_tone: "positive",
       subdelta: "+1 838 € sur 7j",
