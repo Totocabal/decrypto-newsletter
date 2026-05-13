@@ -2,7 +2,7 @@
 // NewslettersListPage — page d'accueil avec liste de toutes les newsletters
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import {
   Plus,
   FileText,
@@ -15,6 +15,9 @@ import {
   LogOut,
   Settings,
   ChevronRight,
+  Search,
+  X,
+  ArrowUpDown,
 } from "lucide-react";
 import { supabase } from "../lib/supabase.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
@@ -30,6 +33,8 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [imageManagerOpen, setImageManagerOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState("updated_desc");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -163,6 +168,28 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
   const getCreatorName = (nl) =>
     nl?.creator?.full_name || nl?.creator?.email || "Créateur inconnu";
 
+  const normalize = (s) =>
+    String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+
+  const filteredNewsletters = useMemo(() => {
+    const q = normalize(search);
+    let list = q
+      ? newsletters.filter(
+          (nl) =>
+            normalize(nl.title).includes(q) ||
+            normalize(getPreviewText(nl)).includes(q)
+        )
+      : [...newsletters];
+
+    if (sortBy === "updated_asc") list.sort((a, b) => new Date(a.updated_at) - new Date(b.updated_at));
+    else if (sortBy === "updated_desc") list.sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
+    else if (sortBy === "title_asc") list.sort((a, b) => normalize(a.title).localeCompare(normalize(b.title)));
+    else if (sortBy === "title_desc") list.sort((a, b) => normalize(b.title).localeCompare(normalize(a.title)));
+
+    return list;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [newsletters, search, sortBy]);
+
   return (
     <div className="min-h-screen bg-d-bg">
       {/* Header */}
@@ -209,7 +236,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
 
       {/* Body */}
       <main className="max-w-5xl mx-auto px-6 py-10">
-        <div className="flex items-end justify-between mb-8">
+        <div className="flex items-end justify-between mb-6">
           <div>
             <h1
               className="text-d-fg font-bold text-3xl tracking-tight mb-1"
@@ -220,7 +247,9 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
             <p className="text-sm text-d-fg3">
               {loading
                 ? "Chargement…"
-                : `${newsletters.length} newsletter${newsletters.length > 1 ? "s" : ""}`}
+                : filteredNewsletters.length === newsletters.length
+                  ? `${newsletters.length} newsletter${newsletters.length > 1 ? "s" : ""}`
+                  : `${filteredNewsletters.length} / ${newsletters.length} newsletter${newsletters.length > 1 ? "s" : ""}`}
             </p>
           </div>
           <button
@@ -233,6 +262,43 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
             Nouvelle newsletter
           </button>
         </div>
+
+        {/* Barre recherche + tri */}
+        {newsletters.length > 0 && (
+          <div className="flex gap-3 mb-5">
+            <div className="relative flex-1">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-d-fg4 pointer-events-none" />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Rechercher par titre ou texte de prévisualisation…"
+                className="w-full pl-9 pr-8 py-2.5 bg-d-panel border border-line rounded-xl text-sm text-d-fg placeholder:text-d-fg4 focus:outline-none focus:border-line2 transition-colors"
+              />
+              {search && (
+                <button
+                  onClick={() => setSearch("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-d-fg4 hover:text-d-fg2 transition-colors"
+                >
+                  <X size={13} />
+                </button>
+              )}
+            </div>
+            <div className="relative">
+              <ArrowUpDown size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-d-fg4 pointer-events-none" />
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="pl-8 pr-4 py-2.5 bg-d-panel border border-line rounded-xl text-sm text-d-fg focus:outline-none focus:border-line2 transition-colors appearance-none cursor-pointer"
+              >
+                <option value="updated_desc">Plus récent</option>
+                <option value="updated_asc">Plus ancien</option>
+                <option value="title_asc">Titre A → Z</option>
+                <option value="title_desc">Titre Z → A</option>
+              </select>
+            </div>
+          </div>
+        )}
 
         {!loading && newsletters.length === 0 && (
           <div
@@ -249,11 +315,24 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
           </div>
         )}
 
-        {newsletters.length > 0 && (
+        {!loading && newsletters.length > 0 && filteredNewsletters.length === 0 && (
+          <div
+            className="border rounded-2xl p-12 text-center border-line"
+            style={{ background: "transparent", borderStyle: "dashed" }}
+          >
+            <Search className="text-d-fg4 mx-auto mb-3" size={28} />
+            <div className="text-sm text-d-fg2 mb-1 font-medium">Aucun résultat</div>
+            <div className="text-xs text-d-fg3">
+              Aucune newsletter ne correspond à « {search} ».
+            </div>
+          </div>
+        )}
+
+        {filteredNewsletters.length > 0 && (
           <div
             className="bg-d-panel rounded-2xl overflow-hidden border border-line"
           >
-            {newsletters.map((nl, i, arr) => {
+            {filteredNewsletters.map((nl, i, arr) => {
               const lock = locks[nl.id];
               const lockedByOther = lock && lock.user_id !== profile?.id;
               return (
