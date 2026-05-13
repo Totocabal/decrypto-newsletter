@@ -7,14 +7,36 @@ import {
   ArrowLeft,
   Check,
   Copy,
+  GripVertical,
   Loader2,
+  Megaphone,
+  Newspaper,
+  List,
+  TrendingUp,
+  Gauge,
+  Activity,
+  Quote,
+  BarChart2,
+  Calendar,
+  Type,
+  ImageIcon,
+  Minus,
+  RotateCcw,
+  Save,
   ShieldCheck,
   UserPlus,
   X,
 } from "lucide-react";
+import { useRef } from "react";
 import { supabase } from "../lib/supabase.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import { Wordmark } from "../components/Wordmark.jsx";
+import {
+  SECTION_TYPES,
+  INITIAL_SECTION_TYPES,
+  getDefaultSectionTypes,
+  saveDefaultSectionTypes,
+} from "../config/schema.js";
 
 function generateTemporaryPassword() {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!#$%?";
@@ -370,7 +392,202 @@ export function AdminPage({ onBack }) {
             })}
           </div>
         </section>
+        {/* Template de nouvelle newsletter */}
+        <DefaultSectionsEditor />
       </main>
     </div>
   );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DefaultSectionsEditor
+// ─────────────────────────────────────────────────────────────────────────────
+
+const SECTION_ICON_MAP = {
+  hero: Megaphone,
+  index: List,
+  edito: Newspaper,
+  chart: TrendingUp,
+  fear_greed: Gauge,
+  signals: Activity,
+  macro: Quote,
+  macro_bars: BarChart2,
+  event: Calendar,
+  text_block: Type,
+  focus: ImageIcon,
+  image_block: ImageIcon,
+  divider: Minus,
+};
+
+function DefaultSectionsEditor() {
+  const allTypes = Object.keys(SECTION_TYPES);
+  const [active, setActive] = useState(() => getDefaultSectionTypes());
+  const [saved, setSaved] = useState(false);
+  const draggedRef = useRef(null);
+  const [dragOverId, setDragOverId] = useState(null);
+
+  const inactive = allTypes.filter((t) => !active.includes(t));
+
+  const toggle = (type) => {
+    setActive((prev) =>
+      prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]
+    );
+    setSaved(false);
+  };
+
+  const handleDragStart = (type) => { draggedRef.current = type; };
+  const handleDragOver = (e, type) => { e.preventDefault(); setDragOverId(type); };
+  const handleDragLeave = () => setDragOverId(null);
+  const handleDrop = (e, targetType) => {
+    e.preventDefault();
+    const from = draggedRef.current;
+    if (!from || from === targetType) { setDragOverId(null); return; }
+    setActive((prev) => {
+      const arr = [...prev];
+      const fi = arr.indexOf(from);
+      const ti = arr.indexOf(targetType);
+      if (fi === -1 || ti === -1) return prev;
+      arr.splice(fi, 1);
+      arr.splice(ti, 0, from);
+      return arr;
+    });
+    draggedRef.current = null;
+    setDragOverId(null);
+    setSaved(false);
+  };
+  const handleDragEnd = () => { draggedRef.current = null; setDragOverId(null); };
+
+  const handleSave = () => {
+    saveDefaultSectionTypes(active);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
+
+  const handleReset = () => {
+    setActive([...INITIAL_SECTION_TYPES]);
+    setSaved(false);
+  };
+
+  return (
+    <section>
+      <div className="flex items-center justify-between mb-3">
+        <div>
+          <h2 className="text-[10px] uppercase tracking-[0.18em] text-d-fg3 font-medium">
+            Template nouvelle newsletter
+          </h2>
+          <p className="text-[11px] text-d-fg4 mt-0.5">
+            Blocs inclus par défaut à la création. Glisse pour réordonner.
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <button
+            onClick={handleReset}
+            className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] font-medium text-d-fg3 hover:text-d-fg border border-line hover:border-line2 px-3 py-1.5 rounded-full transition-colors"
+          >
+            <RotateCcw size={11} />
+            Réinitialiser
+          </button>
+          <button
+            onClick={handleSave}
+            className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] font-semibold px-3 py-1.5 rounded-full transition-colors"
+            style={saved ? { background: "rgba(3,255,207,0.15)", color: "#03FFCF", border: "1px solid rgba(3,255,207,0.25)" } : { background: "#FFFFFF", color: "#15151A" }}
+          >
+            {saved ? <Check size={11} /> : <Save size={11} />}
+            {saved ? "Sauvegardé" : "Sauvegarder"}
+          </button>
+        </div>
+      </div>
+
+      <div className="bg-d-panel border border-line rounded-2xl overflow-hidden">
+        {/* Blocs actifs */}
+        <div className="px-4 pt-4 pb-2">
+          <div className="text-[10px] uppercase tracking-[0.18em] text-d-fg4 font-medium mb-2 px-1">
+            Inclus ({active.length})
+          </div>
+          {active.length === 0 && (
+            <div className="text-[11px] text-d-fg4 px-1 pb-2 italic">Aucun bloc actif</div>
+          )}
+          <div className="flex flex-col gap-1">
+            {active.map((type) => {
+              const Icon = SECTION_ICON_MAP[type] ?? FileTextIcon;
+              const isDragOver = dragOverId === type;
+              return (
+                <div
+                  key={type}
+                  draggable
+                  onDragStart={() => handleDragStart(type)}
+                  onDragOver={(e) => handleDragOver(e, type)}
+                  onDragLeave={handleDragLeave}
+                  onDrop={(e) => handleDrop(e, type)}
+                  onDragEnd={handleDragEnd}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl border transition-colors cursor-grab active:cursor-grabbing ${
+                    isDragOver
+                      ? "border-line2 bg-d-panel3"
+                      : "border-line bg-d-panel2 hover:border-line2"
+                  }`}
+                >
+                  <GripVertical size={14} className="text-d-fg4 flex-shrink-0" />
+                  <Icon size={14} className="text-d-fg3 flex-shrink-0" />
+                  <span className="text-xs font-medium text-d-fg flex-1">
+                    {SECTION_TYPES[type].label}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => toggle(type)}
+                    className="text-d-fg4 hover:text-d-fg2 transition-colors p-0.5 rounded"
+                    title="Retirer"
+                  >
+                    <X size={13} />
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Séparateur */}
+        {inactive.length > 0 && (
+          <div className="h-px mx-4 my-2" style={{ background: "var(--d-line)" }} />
+        )}
+
+        {/* Blocs inactifs */}
+        {inactive.length > 0 && (
+          <div className="px-4 pb-4">
+            <div className="text-[10px] uppercase tracking-[0.18em] text-d-fg4 font-medium mb-2 px-1">
+              Non inclus
+            </div>
+            <div className="flex flex-col gap-1">
+              {inactive.map((type) => {
+                const Icon = SECTION_ICON_MAP[type] ?? FileTextIcon;
+                return (
+                  <div
+                    key={type}
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl border border-line bg-d-panel opacity-50 hover:opacity-75 transition-opacity cursor-default"
+                  >
+                    <GripVertical size={14} className="text-d-fg4 flex-shrink-0 opacity-30" />
+                    <Icon size={14} className="text-d-fg4 flex-shrink-0" />
+                    <span className="text-xs text-d-fg3 flex-1">
+                      {SECTION_TYPES[type].label}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => toggle(type)}
+                      className="text-d-fg4 hover:text-d-fg2 transition-colors p-0.5 rounded"
+                      title="Ajouter"
+                    >
+                      <Check size={13} />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function FileTextIcon(props) {
+  return <Newspaper {...props} />;
 }

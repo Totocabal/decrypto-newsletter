@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import { supabase } from "../lib/supabase.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
-import { INITIAL_STATE } from "../config/schema.js";
+import { INITIAL_STATE, getDefaultSectionTypes, buildInitialStateFromTypes } from "../config/schema.js";
 import { Wordmark } from "../components/Wordmark.jsx";
 import { ImageManagerModal } from "../components/ImageManagerModal.jsx";
 import { Tooltip } from "../components/Tooltip.jsx";
@@ -85,12 +85,13 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
   const handleCreate = async () => {
     if (!profile?.id) return;
     setCreating(true);
+    const initialState = buildInitialStateFromTypes(getDefaultSectionTypes());
     const { data, error } = await supabase
       .from("newsletters")
       .insert({
         title: `Décrypto N°${INITIAL_STATE.issue_number}`,
         issue_number: INITIAL_STATE.issue_number,
-        current_state: INITIAL_STATE,
+        current_state: initialState,
         created_by: profile.id,
         updated_by: profile.id,
       })

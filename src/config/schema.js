@@ -434,6 +434,44 @@ export function createSection(type) {
   return section(type);
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Template par défaut configurable par l'admin
+// ─────────────────────────────────────────────────────────────────────────────
+
+const STORAGE_KEY = "decrypto:default_sections";
+
+export const INITIAL_SECTION_TYPES = INITIAL_STATE.sections.map((s) => s.type);
+
+export function getDefaultSectionTypes() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.every((t) => SECTION_TYPES[t])) {
+        return parsed;
+      }
+    }
+  } catch {
+    // Ignore parse errors
+  }
+  return INITIAL_SECTION_TYPES;
+}
+
+export function saveDefaultSectionTypes(types) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(types));
+  } catch {
+    // Storage may be unavailable
+  }
+}
+
+export function buildInitialStateFromTypes(types) {
+  return {
+    ...INITIAL_STATE,
+    sections: types.map((type) => section(type)),
+  };
+}
+
 // Numéro affiché d'une section (selon sa position parmi les sections numérotables)
 // Hero, sommaire, graphique et divider ne portent pas de numéro.
 export const UNNUMBERED_TYPES = new Set(["hero", "index", "chart", "macro_bars", "image_block", "divider"]);
