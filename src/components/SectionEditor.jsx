@@ -4,7 +4,7 @@
 
 import { useState } from "react";
 import { Plus, Trash2, ChevronUp, ChevronDown, CopyPlus, Upload, Loader2, X, RefreshCw } from "lucide-react";
-import { useCoinGecko } from "../lib/useCoinGecko.js";
+import { useCoinGecko, CRYPTO_CONFIG } from "../lib/useCoinGecko.js";
 import { UNNUMBERED_TYPES } from "../config/schema.js";
 import { Field, Input, TextArea } from "./FormControls.jsx";
 import { deleteImage, MAX_IMAGE_FILE_SIZE_LABEL } from "../lib/imageUpload.js";
@@ -522,8 +522,9 @@ function ChartEditor({ data, set }) {
               onChange={(e) => set({ chart_crypto: e.target.value })}
               className="w-full px-3 py-2 border border-line rounded-xl text-sm bg-d-panel2 text-d-fg"
             >
-              <option value="bitcoin">Bitcoin (BTC)</option>
-              <option value="ethereum">Ethereum (ETH)</option>
+              {Object.entries(CRYPTO_CONFIG).map(([id, { name, symbol }]) => (
+                <option key={id} value={id}>{name} ({symbol})</option>
+              ))}
             </select>
           </div>
           <div>
