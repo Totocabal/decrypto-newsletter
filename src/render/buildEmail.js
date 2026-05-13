@@ -30,6 +30,14 @@ function decodeStoredTextEntities(str = "") {
     .replace(/&amp;/gi, "&");
 }
 
+function escapedOpeningTagPattern(tagName) {
+  return new RegExp(`&(?:amp;)?lt;${tagName}(?:\\s+[\\s\\S]*?)?&(?:amp;)?gt;`, "gi");
+}
+
+function escapedClosingTagPattern(tagName) {
+  return new RegExp(`&(?:amp;)?lt;\\/${tagName}&(?:amp;)?gt;`, "gi");
+}
+
 export function sanitizeRichText(text = "") {
   let out = escapeHtml(decodeStoredTextEntities(text));
   const listStyle = `margin:0; padding-left:20px; font-family:${FONTS.body}; font-size:15px; line-height:1.65; color:${THEME.textSecondary};`;
@@ -40,10 +48,10 @@ export function sanitizeRichText(text = "") {
     .replace(/&lt;\/div&gt;/gi, "<br />")
     .replace(/&lt;p&gt;/gi, "")
     .replace(/&lt;\/p&gt;/gi, "<br />")
-    .replace(/&lt;b&gt;/gi, `<strong style="font-weight:700;">`)
-    .replace(/&lt;\/b&gt;/gi, "</strong>")
-    .replace(/&lt;strong&gt;/gi, `<strong style="font-weight:700;">`)
-    .replace(/&lt;\/strong&gt;/gi, "</strong>")
+    .replace(escapedOpeningTagPattern("b"), `<strong style="font-weight:700;">`)
+    .replace(escapedClosingTagPattern("b"), "</strong>")
+    .replace(escapedOpeningTagPattern("strong"), `<strong style="font-weight:700;">`)
+    .replace(escapedClosingTagPattern("strong"), "</strong>")
     .replace(/&lt;i&gt;/gi, `<em style="font-style:italic;">`)
     .replace(/&lt;\/i&gt;/gi, "</em>")
     .replace(/&lt;em&gt;/gi, `<em style="font-style:italic;">`)
