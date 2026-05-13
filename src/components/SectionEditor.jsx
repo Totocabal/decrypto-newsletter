@@ -101,7 +101,7 @@ function ChipEditor({ chip, onChange, onDelete, sections }) {
       <select
         value={type}
         onChange={(e) => handleTypeChange(e.target.value)}
-        className="px-2 py-2 border border-stone-300 rounded-sm text-[11px] bg-white flex-shrink-0"
+        className="px-2 py-2 border border-line rounded-xl text-[11px] bg-d-panel2 text-d-fg flex-shrink-0"
       >
         {CHIP_TYPES.map((t) => (
           <option key={t.value} value={t.value}>{t.label}</option>
@@ -120,7 +120,7 @@ function ChipEditor({ chip, onChange, onDelete, sections }) {
           type="button"
           onClick={handleSync}
           disabled={loading}
-          className="p-2 text-stone-400 hover:text-pink-600 hover:bg-pink-50 rounded-sm flex-shrink-0"
+          className="p-2 text-d-fg4 hover:text-d-pink hover:bg-d-panel3 rounded-lg flex-shrink-0"
           title="Rafraîchir"
         >
           {loading ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
@@ -129,7 +129,7 @@ function ChipEditor({ chip, onChange, onDelete, sections }) {
       <button
         type="button"
         onClick={onDelete}
-        className="p-2 text-stone-400 hover:text-red-600 hover:bg-red-50 rounded-sm flex-shrink-0"
+        className="p-2 text-d-fg4 hover:text-red-400 hover:bg-red-900/20 rounded-lg flex-shrink-0"
         title="Supprimer"
       >
         <Trash2 size={14} />
@@ -172,7 +172,7 @@ function HeroEditor({ data, set, sections }) {
         />
       </Field>
 
-      <div className="text-[10px] uppercase tracking-[0.18em] font-medium text-stone-500 mb-2 mt-2">
+      <div className="text-[10px] uppercase tracking-[0.18em] font-semibold text-d-fg3 mb-2 mt-2">
         Pastilles (chips)
       </div>
       {chips.map((c, i) => (
@@ -187,7 +187,7 @@ function HeroEditor({ data, set, sections }) {
       <button
         type="button"
         onClick={() => set({ chips: [...chips, { label: "Nouvelle", type: "manual" }] })}
-        className="w-full mt-1 flex items-center justify-center gap-2 px-4 py-2 border border-dashed border-stone-300 text-stone-600 hover:border-stone-500 rounded-sm text-[10px] uppercase tracking-[0.18em] transition-colors"
+        className="w-full mt-1 flex items-center justify-center gap-2 px-4 py-2 border border-dashed border-line text-d-fg3 hover:border-line2 hover:text-d-fg2 rounded-xl text-[10px] uppercase tracking-[0.18em] transition-colors"
       >
         <Plus size={12} /> Ajouter une pastille
       </button>
@@ -231,7 +231,7 @@ function IndexEditor({ data, set, sections }) {
         <button
           type="button"
           onClick={syncFromSections}
-          className="ml-3 flex items-center gap-1.5 px-3 py-2 text-[11px] font-medium border border-stone-300 text-stone-600 rounded-sm hover:border-stone-500 hover:bg-stone-50 transition-colors flex-shrink-0"
+          className="ml-3 flex items-center gap-1.5 px-3 py-2 text-[11px] font-medium border border-line text-d-fg3 rounded-xl hover:border-line2 hover:bg-d-panel2 transition-colors flex-shrink-0"
           title="Regénérer depuis les blocs présents"
         >
           <RefreshCw size={12} /> Sync blocs
@@ -281,7 +281,7 @@ function IndexEditor({ data, set, sections }) {
             items: [...items, { number: String(items.length + 1).padStart(2, "0"), title: "Nouvelle entrée" }],
           })
         }
-        className="w-full mt-1 flex items-center justify-center gap-2 px-4 py-2 border border-dashed border-stone-300 text-stone-600 hover:border-stone-500 rounded-sm text-[10px] uppercase tracking-[0.18em] transition-colors"
+        className="w-full mt-1 flex items-center justify-center gap-2 px-4 py-2 border border-dashed border-line text-d-fg3 hover:border-line2 hover:text-d-fg2 rounded-xl text-[10px] uppercase tracking-[0.18em] transition-colors"
       >
         <Plus size={12} /> Ajouter une entrée
       </button>
@@ -324,13 +324,13 @@ function EditoEditor({ data, set }) {
         />
       </Field>
 
-      <div className="text-[10px] uppercase tracking-[0.18em] font-medium text-stone-500 mb-2 mt-2">
+      <div className="text-[10px] uppercase tracking-[0.18em] font-semibold text-d-fg3 mb-2 mt-2">
         Grille KPI
       </div>
       {kpis.map((k, i) => (
-        <div key={i} className="mb-2 bg-white border border-stone-200 rounded-sm p-3">
+        <div key={i} className="mb-2 bg-d-panel2 border border-line rounded-xl p-3">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] uppercase tracking-[0.18em] text-stone-400 font-medium">
+            <span className="text-[10px] uppercase tracking-[0.18em] text-d-fg4 font-semibold">
               KPI {String(i + 1).padStart(2, "0")}
             </span>
             <div className="flex items-center gap-1">
@@ -338,7 +338,7 @@ function EditoEditor({ data, set }) {
                 type="button"
                 onClick={() => moveKpi(i, -1)}
                 disabled={i === 0}
-                className="p-1 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-sm disabled:opacity-20"
+                className="p-1 text-d-fg4 hover:text-d-fg2 hover:bg-d-panel3 rounded-lg disabled:opacity-20"
               >
                 <ChevronUp size={12} />
               </button>
@@ -346,7 +346,7 @@ function EditoEditor({ data, set }) {
                 type="button"
                 onClick={() => moveKpi(i, 1)}
                 disabled={i === kpis.length - 1}
-                className="p-1 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-sm disabled:opacity-20"
+                className="p-1 text-d-fg4 hover:text-d-fg2 hover:bg-d-panel3 rounded-lg disabled:opacity-20"
               >
                 <ChevronDown size={12} />
               </button>
@@ -361,7 +361,7 @@ function EditoEditor({ data, set }) {
                     ],
                   })
                 }
-                className="p-1 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-sm"
+                className="p-1 text-d-fg4 hover:text-d-fg2 hover:bg-d-panel3 rounded-lg"
                 title="Dupliquer"
               >
                 <CopyPlus size={12} />
@@ -371,7 +371,7 @@ function EditoEditor({ data, set }) {
                 onClick={() =>
                   set({ kpis: kpis.filter((_, idx) => idx !== i) })
                 }
-                className="p-1 text-stone-400 hover:text-red-600 hover:bg-red-50 rounded-sm"
+                className="p-1 text-d-fg4 hover:text-red-400 hover:bg-red-900/20 rounded-lg"
               >
                 <Trash2 size={12} />
               </button>
@@ -422,7 +422,7 @@ function EditoEditor({ data, set }) {
                   ),
                 })
               }
-              className="w-full px-3 py-2 border border-stone-300 rounded-sm text-sm bg-white"
+              className="w-full px-3 py-2 border border-line rounded-xl text-sm bg-d-panel2 text-d-fg"
             >
               <option value="positive">Positif (cyan)</option>
               <option value="negative">Négatif (rouge)</option>
@@ -442,7 +442,7 @@ function EditoEditor({ data, set }) {
             ],
           })
         }
-        className="w-full mt-1 flex items-center justify-center gap-2 px-4 py-2 border border-dashed border-stone-300 text-stone-600 hover:border-stone-500 rounded-sm text-[10px] uppercase tracking-[0.18em] transition-colors"
+        className="w-full mt-1 flex items-center justify-center gap-2 px-4 py-2 border border-dashed border-line text-d-fg3 hover:border-line2 hover:text-d-fg2 rounded-xl text-[10px] uppercase tracking-[0.18em] transition-colors"
       >
         <Plus size={12} /> Ajouter un KPI
       </button>
@@ -479,10 +479,10 @@ function ChartEditor({ data, set }) {
         <button
           type="button"
           onClick={() => set({ chart_mode: "manual" })}
-          className={`flex-1 py-2 text-xs font-medium rounded-sm border transition-colors ${
+          className={`flex-1 py-2 text-xs font-semibold rounded-xl border transition-colors ${
             mode === "manual"
-              ? "bg-stone-800 text-white border-stone-800"
-              : "bg-white text-stone-500 border-stone-300 hover:border-stone-400"
+              ? "bg-white text-[#15151A] border-white"
+              : "bg-d-panel2 text-d-fg3 border-line hover:border-line2"
           }`}
         >
           Manuel
@@ -490,10 +490,10 @@ function ChartEditor({ data, set }) {
         <button
           type="button"
           onClick={() => set({ chart_mode: "auto" })}
-          className={`flex-1 py-2 text-xs font-medium rounded-sm border transition-colors ${
+          className={`flex-1 py-2 text-xs font-semibold rounded-xl border transition-colors ${
             mode === "auto"
-              ? "bg-stone-800 text-white border-stone-800"
-              : "bg-white text-stone-500 border-stone-300 hover:border-stone-400"
+              ? "bg-white text-[#15151A] border-white"
+              : "bg-d-panel2 text-d-fg3 border-line hover:border-line2"
           }`}
         >
           Auto CoinGecko
@@ -504,13 +504,13 @@ function ChartEditor({ data, set }) {
       {mode === "auto" && (
         <div className="flex gap-2 items-end mb-4">
           <div className="flex-1">
-            <div className="text-[10px] uppercase tracking-[0.18em] font-medium text-stone-500 mb-1.5">
+            <div className="text-[10px] uppercase tracking-[0.18em] font-semibold text-d-fg3 mb-1.5">
               Crypto
             </div>
             <select
               value={crypto}
               onChange={(e) => set({ chart_crypto: e.target.value })}
-              className="w-full px-3 py-2 border border-stone-300 rounded-sm text-sm bg-white"
+              className="w-full px-3 py-2 border border-line rounded-xl text-sm bg-d-panel2 text-d-fg"
             >
               <option value="bitcoin">Bitcoin (BTC)</option>
               <option value="ethereum">Ethereum (ETH)</option>
@@ -520,7 +520,8 @@ function ChartEditor({ data, set }) {
             type="button"
             onClick={handleRefresh}
             disabled={loading}
-            className="flex items-center gap-1.5 px-4 py-2 text-xs font-medium bg-pink-600 text-white rounded-sm hover:bg-pink-700 disabled:opacity-50 transition-colors"
+            className="flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white rounded-xl disabled:opacity-50 transition-colors"
+            style={{ background: "#FF00AA" }}
           >
             {loading ? (
               <Loader2 size={13} className="animate-spin" />
@@ -533,7 +534,7 @@ function ChartEditor({ data, set }) {
       )}
 
       {error && (
-        <div className="text-[11px] text-red-600 bg-red-50 border border-red-200 rounded-sm px-3 py-2 mb-3">
+        <div className="text-[11px] rounded-xl px-3 py-2 mb-3" style={{ color: "#FF8466", background: "rgba(255,75,40,0.10)", border: "1px solid rgba(255,75,40,0.20)" }}>
           Erreur CoinGecko : {error}
         </div>
       )}
@@ -569,7 +570,7 @@ function ChartEditor({ data, set }) {
             value={data.delta_tone}
             onChange={(e) => set({ delta_tone: e.target.value })}
             disabled={mode === "auto"}
-            className="w-full px-3 py-2 border border-stone-300 rounded-sm text-sm bg-white disabled:bg-stone-50 disabled:text-stone-400"
+            className="w-full px-3 py-2 border border-line rounded-xl text-sm bg-d-panel2 text-d-fg disabled:opacity-50"
           >
             <option value="positive">Positif (cyan)</option>
             <option value="negative">Négatif (rouge)</option>
@@ -589,17 +590,17 @@ function ChartEditor({ data, set }) {
 
       {mode === "manual" && (
         <>
-          <div className="text-[10px] uppercase tracking-[0.18em] font-medium text-stone-500 mb-2 mt-3">
+          <div className="text-[10px] uppercase tracking-[0.18em] font-semibold text-d-fg3 mb-2 mt-3">
             Courbe — déplace les curseurs pour dessiner
           </div>
-          <div className="text-[11px] text-stone-400 mb-3 italic">
+          <div className="text-[11px] text-d-fg4 mb-3 italic">
             100% = haut du graphique (prix élevé) · 0% = bas (prix bas)
           </div>
 
-          <div className="bg-white border border-stone-200 rounded-sm p-4 mb-3">
+          <div className="bg-d-panel2 border border-line rounded-xl p-4 mb-3">
             {points.map((p, i) => (
               <div key={i} className="flex items-center gap-3 mb-2 last:mb-0">
-                <div className="w-12 text-[11px] uppercase tracking-[0.1em] text-stone-500 font-medium flex-shrink-0">
+                <div className="w-12 text-[11px] uppercase tracking-[0.1em] text-d-fg3 font-semibold flex-shrink-0">
                   {labels[i] || `P${i + 1}`}
                 </div>
                 <input
@@ -611,7 +612,7 @@ function ChartEditor({ data, set }) {
                   onChange={(e) => updatePoint(i, e.target.value)}
                   className="flex-1 accent-pink-600"
                 />
-                <div className="w-12 text-right text-[11px] text-stone-700 tabular-nums flex-shrink-0">
+                <div className="w-12 text-right text-[11px] text-d-fg2 tabular-nums flex-shrink-0">
                   {Number(p).toFixed(1)}
                 </div>
               </div>
@@ -638,25 +639,25 @@ function ChartEditor({ data, set }) {
       )}
 
       {mode === "auto" && points.length > 0 && (
-        <div className="mt-3 bg-stone-50 border border-stone-200 rounded-sm overflow-hidden">
-          <div className="text-[10px] uppercase tracking-[0.18em] font-medium text-stone-500 px-3 pt-3 pb-2">
+        <div className="mt-3 bg-d-panel2 border border-line rounded-xl overflow-hidden">
+          <div className="text-[10px] uppercase tracking-[0.18em] font-semibold text-d-fg3 px-3 pt-3 pb-2">
             Données importées — {points.length} jours
           </div>
           <table className="w-full text-[11px]">
             <tbody>
               {points.map((p, i) => (
-                <tr key={i} className="border-t border-stone-100">
-                  <td className="px-3 py-1.5 text-stone-500 font-medium w-12">{labels[i] || `J${i + 1}`}</td>
-                  <td className="px-3 py-1.5 text-stone-400 tabular-nums w-24">
+                <tr key={i} style={{ borderTop: "1px solid var(--d-line)" }}>
+                  <td className="px-3 py-1.5 text-d-fg3 font-semibold w-12">{labels[i] || `J${i + 1}`}</td>
+                  <td className="px-3 py-1.5 text-d-fg4 tabular-nums w-24">
                     {data.raw_prices?.[i]?.date ?? ""}
                   </td>
-                  <td className="px-3 py-1.5 text-stone-700 tabular-nums font-medium text-right">
+                  <td className="px-3 py-1.5 text-d-fg2 tabular-nums font-medium text-right">
                     {data.raw_prices?.[i]?.price ?? "—"}
                   </td>
                   <td className="pr-3 py-1.5 w-24">
-                    <div className="h-1.5 bg-stone-200 rounded-full overflow-hidden">
+                    <div className="h-1.5 bg-d-panel3 rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-pink-500 rounded-full"
+                        className="h-full bg-d-pink rounded-full"
                         style={{ width: `${p}%` }}
                       />
                     </div>
@@ -685,11 +686,11 @@ function fgClassification(v) {
 }
 
 const FG_COLORS = {
-  "EXTREME FEAR": "text-red-600 bg-red-50 border-red-200",
-  "FEAR": "text-orange-600 bg-orange-50 border-orange-200",
-  "NEUTRAL": "text-stone-500 bg-stone-100 border-stone-300",
-  "GREED": "text-teal-600 bg-teal-50 border-teal-200",
-  "EXTREME GREED": "text-cyan-600 bg-cyan-50 border-cyan-200",
+  "EXTREME FEAR":  "text-red-400 border",
+  "FEAR":          "text-orange-400 border",
+  "NEUTRAL":       "text-d-fg3 border",
+  "GREED":         "text-teal-400 border",
+  "EXTREME GREED": "text-d-cyan border",
 };
 
 function FearGreedEditor({ data, set }) {
@@ -761,23 +762,23 @@ function SignalsEditor({ data, set }) {
       <Field label="Titre">
         <Input value={data.title} onChange={(e) => set({ title: e.target.value })} />
       </Field>
-      <div className="text-[11px] text-stone-400 italic mb-2 mt-1">
+      <div className="text-[11px] text-d-fg4 italic mb-2 mt-1">
         Affichage en grille 2×2. Idéal : 4 signaux.
       </div>
 
       {signals.map((sig, i) => (
         <div
           key={i}
-          className="mb-3 bg-white border border-stone-200 rounded-sm overflow-hidden"
+          className="mb-3 bg-d-panel2 border border-line rounded-xl overflow-hidden"
         >
-          <div className="flex items-center justify-between px-3 py-2 border-b border-stone-100">
+          <div className="flex items-center justify-between px-3 py-2" style={{ borderBottom: "1px solid var(--d-line)" }}>
             <div className="flex items-center gap-2 min-w-0 flex-1">
-              <span className="text-base font-semibold text-stone-400">
+              <span className="text-base font-semibold text-d-fg3">
                 {sig.direction === "up" ? "↗" : "↘"}
               </span>
-              <div className="text-sm font-medium text-stone-800 truncate">
+              <div className="text-sm font-medium text-d-fg truncate">
                 {sig.title || (
-                  <span className="italic text-stone-400">Sans titre</span>
+                  <span className="italic text-d-fg4">Sans titre</span>
                 )}
               </div>
             </div>
@@ -786,7 +787,7 @@ function SignalsEditor({ data, set }) {
                 type="button"
                 onClick={() => moveSignal(i, -1)}
                 disabled={i === 0}
-                className="p-1 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-sm disabled:opacity-20"
+                className="p-1 text-d-fg4 hover:text-d-fg2 hover:bg-d-panel3 rounded-lg disabled:opacity-20"
               >
                 <ChevronUp size={12} />
               </button>
@@ -794,7 +795,7 @@ function SignalsEditor({ data, set }) {
                 type="button"
                 onClick={() => moveSignal(i, 1)}
                 disabled={i === signals.length - 1}
-                className="p-1 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-sm disabled:opacity-20"
+                className="p-1 text-d-fg4 hover:text-d-fg2 hover:bg-d-panel3 rounded-lg disabled:opacity-20"
               >
                 <ChevronDown size={12} />
               </button>
@@ -820,13 +821,13 @@ function SignalsEditor({ data, set }) {
                     signals: signals.filter((_, idx) => idx !== i),
                   })
                 }
-                className="p-1 text-stone-400 hover:text-red-600 hover:bg-red-50 rounded-sm"
+                className="p-1 text-d-fg4 hover:text-red-400 hover:bg-red-900/20 rounded-lg"
               >
                 <Trash2 size={12} />
               </button>
             </div>
           </div>
-          <div className="p-3 bg-stone-50/40">
+          <div className="p-3 bg-d-panel3">
             <Field label="Direction">
               <select
                 value={sig.direction}
@@ -837,7 +838,7 @@ function SignalsEditor({ data, set }) {
                     ),
                   })
                 }
-                className="w-full px-3 py-2 border border-stone-300 rounded-sm text-sm bg-white"
+                className="w-full px-3 py-2 border border-line rounded-xl text-sm bg-d-panel2 text-d-fg"
               >
                 <option value="up">Positif (↗ cyan)</option>
                 <option value="down">Négatif (↘ orange)</option>
@@ -886,7 +887,7 @@ function SignalsEditor({ data, set }) {
             ],
           })
         }
-        className="w-full mt-1 flex items-center justify-center gap-2 px-4 py-2 border border-dashed border-stone-300 text-stone-600 hover:border-stone-500 rounded-sm text-[10px] uppercase tracking-[0.18em] transition-colors"
+        className="w-full mt-1 flex items-center justify-center gap-2 px-4 py-2 border border-dashed border-line text-d-fg3 hover:border-line2 hover:text-d-fg2 rounded-xl text-[10px] uppercase tracking-[0.18em] transition-colors"
       >
         <Plus size={12} /> Ajouter un signal
       </button>
@@ -944,7 +945,7 @@ function MacroBarsEditor({ data, set }) {
       {bars.map((bar, i) => (
         <div
           key={i}
-          className="bg-white border border-stone-200 rounded-sm p-3 mb-2"
+          className="bg-d-panel2 border border-line rounded-xl p-3 mb-2"
         >
           <div className="grid grid-cols-2 gap-2 mb-2">
             <Input
@@ -981,7 +982,7 @@ function MacroBarsEditor({ data, set }) {
           <button
             type="button"
             onClick={() => set({ bars: bars.filter((_, idx) => idx !== i) })}
-            className="text-[10px] uppercase tracking-[0.18em] text-stone-500 hover:text-red-600"
+            className="text-[10px] uppercase tracking-[0.18em] text-d-fg4 hover:text-red-400 transition-colors"
           >
             Supprimer
           </button>
@@ -992,7 +993,7 @@ function MacroBarsEditor({ data, set }) {
         onClick={() =>
           set({ bars: [...bars, { label: "", value: "", percent: "0", caption: "" }] })
         }
-        className="w-full mt-1 flex items-center justify-center gap-2 px-4 py-2 border border-dashed border-stone-300 text-stone-600 hover:border-stone-500 rounded-sm text-[10px] uppercase tracking-[0.18em] transition-colors"
+        className="w-full mt-1 flex items-center justify-center gap-2 px-4 py-2 border border-dashed border-line text-d-fg3 hover:border-line2 hover:text-d-fg2 rounded-xl text-[10px] uppercase tracking-[0.18em] transition-colors"
       >
         <Plus size={12} /> Ajouter une barre
       </button>
@@ -1102,21 +1103,21 @@ function FocusEditor({ data, set }) {
         <Input value={data.title} onChange={(e) => set({ ...data, title: e.target.value })} />
       </Field>
 
-      <div className="text-[10px] uppercase tracking-[0.18em] font-medium text-stone-500 mb-1.5">
+      <div className="text-[10px] uppercase tracking-[0.18em] font-semibold text-d-fg3 mb-1.5">
         Image (568×280 conseillé, max 5 Mo)
       </div>
       {data.image_url ? (
-        <div className="mb-4 bg-white border border-stone-200 rounded-sm p-3">
+        <div className="mb-4 bg-d-panel2 border border-line rounded-xl p-3">
           <div className="relative mb-2">
             <img
               src={data.image_url}
               alt={data.image_alt || ""}
-              className="w-full h-auto rounded-sm border border-stone-200"
+              className="w-full h-auto rounded-xl border border-line"
             />
             <button
               type="button"
               onClick={handleRemoveImage}
-              className="absolute top-2 right-2 p-1.5 bg-white border border-stone-300 rounded-sm hover:bg-red-50 hover:border-red-300 text-stone-600 hover:text-red-600 shadow-sm"
+              className="absolute top-2 right-2 p-1.5 bg-d-panel2 border border-line rounded-lg hover:bg-red-900/20 hover:border-red-500/30 text-d-fg3 hover:text-red-400 shadow-sm"
               title="Supprimer l'image"
             >
               <X size={14} />
@@ -1126,7 +1127,7 @@ function FocusEditor({ data, set }) {
             type="button"
             onClick={() => fileInputRef.current?.click()}
             disabled={uploading}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2 border border-stone-300 text-stone-700 rounded-sm text-[10px] uppercase tracking-[0.18em] hover:bg-stone-50 disabled:opacity-50"
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 border border-line text-d-fg3 rounded-xl text-[10px] uppercase tracking-[0.18em] hover:bg-d-panel3 disabled:opacity-50 transition-colors"
           >
             {uploading ? (
               <>
@@ -1146,7 +1147,7 @@ function FocusEditor({ data, set }) {
           type="button"
           onClick={() => fileInputRef.current?.click()}
           disabled={uploading}
-          className="w-full mb-4 flex items-center justify-center gap-2 px-4 py-6 border border-dashed border-stone-300 text-stone-600 hover:border-stone-500 hover:bg-stone-50 rounded-sm text-[10px] uppercase tracking-[0.18em] transition-colors disabled:opacity-50"
+          className="w-full mb-4 flex items-center justify-center gap-2 px-4 py-6 border border-dashed border-line text-d-fg3 hover:border-line2 hover:bg-d-panel2 rounded-xl text-[10px] uppercase tracking-[0.18em] transition-colors disabled:opacity-50"
         >
           {uploading ? (
             <>
@@ -1172,7 +1173,7 @@ function FocusEditor({ data, set }) {
         className="hidden"
       />
       {uploadError && (
-        <div className="bg-red-50 border border-red-200 rounded-sm p-2 mb-3 text-[11px] text-red-700">
+        <div className="rounded-xl p-2 mb-3 text-[11px]" style={{ background: "rgba(255,75,40,0.10)", border: "1px solid rgba(255,75,40,0.20)", color: "#FF8466" }}>
           {uploadError}
         </div>
       )}
@@ -1196,8 +1197,8 @@ function FocusEditor({ data, set }) {
         />
       </Field>
 
-      <div className="text-[10px] uppercase tracking-[0.18em] font-medium text-stone-500 mb-2 mt-2">
-        Bouton principal (gradient) — <span className="normal-case font-normal">laisse vide pour ne pas l'afficher</span>
+      <div className="text-[10px] uppercase tracking-[0.18em] font-semibold text-d-fg3 mb-2 mt-2">
+        Bouton principal (gradient) — <span className="normal-case font-normal text-d-fg4">laisse vide pour ne pas l'afficher</span>
       </div>
       <div className="grid grid-cols-2 gap-3 mb-2">
         <Field label="Texte">
@@ -1214,8 +1215,8 @@ function FocusEditor({ data, set }) {
         </Field>
       </div>
 
-      <div className="text-[10px] uppercase tracking-[0.18em] font-medium text-stone-500 mb-2">
-        Bouton secondaire (outline) — <span className="normal-case font-normal">laisse vide pour ne pas l'afficher</span>
+      <div className="text-[10px] uppercase tracking-[0.18em] font-semibold text-d-fg3 mb-2">
+        Bouton secondaire (outline) — <span className="normal-case font-normal text-d-fg4">laisse vide pour ne pas l'afficher</span>
       </div>
       <div className="grid grid-cols-2 gap-3">
         <Field label="Texte">
@@ -1256,8 +1257,8 @@ function TextBlockEditor({ data, set }) {
           onChange={(e) => set({ body: e.target.value })}
         />
       </Field>
-      <div className="text-[10px] uppercase tracking-[0.18em] font-medium text-stone-500 mb-2 mt-2">
-        Bouton (gradient) — <span className="normal-case font-normal">laisse vide pour ne pas l'afficher</span>
+      <div className="text-[10px] uppercase tracking-[0.18em] font-semibold text-d-fg3 mb-2 mt-2">
+        Bouton (gradient) — <span className="normal-case font-normal text-d-fg4">laisse vide pour ne pas l'afficher</span>
       </div>
       <div className="grid grid-cols-2 gap-3">
         <Field label="Texte">
@@ -1287,7 +1288,7 @@ function DividerEditor({ data, set }) {
       <select
         value={data.style}
         onChange={(e) => set({ style: e.target.value })}
-        className="w-full px-3 py-2 border border-stone-300 rounded-sm text-sm bg-white"
+        className="w-full px-3 py-2 border border-line rounded-xl text-sm bg-d-panel2 text-d-fg"
       >
         <option value="thin">Fin (1px)</option>
         <option value="thick">Épais (4px)</option>

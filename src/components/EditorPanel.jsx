@@ -268,7 +268,10 @@ export function EditorPanel({ state, setState }) {
       {/* ── SECTIONS MODULAIRES ─────────────────────────────────────────── */}
       <div className="mb-6">
         <div className="flex items-center justify-between mb-3 px-1">
-          <div className="text-[10px] uppercase tracking-[0.18em] font-medium text-stone-700">
+          <div
+            className="text-[10px] uppercase tracking-[0.18em] font-semibold text-d-fg2"
+            style={{ fontFamily: "'DM Sans', sans-serif" }}
+          >
             Sections de la newsletter
           </div>
           <div className="flex items-center gap-2">
@@ -276,7 +279,12 @@ export function EditorPanel({ state, setState }) {
               type="button"
               onClick={handleGlobalSync}
               disabled={globalSyncing}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] uppercase tracking-[0.18em] font-medium bg-pink-600 text-white rounded-sm hover:bg-pink-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] uppercase tracking-[0.14em] font-semibold rounded-full text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              style={{
+                background: globalSyncing
+                  ? "#2E2E34"
+                  : "linear-gradient(90deg, #4141FF 0%, #FF00AA 60%, #FF4B28 100%)",
+              }}
               title="Synchroniser le sommaire, les pastilles auto et les graphiques auto CoinGecko"
             >
               {globalSyncing ? (
@@ -286,13 +294,20 @@ export function EditorPanel({ state, setState }) {
               )}
               {globalSyncing ? "Sync…" : "Synchroniser"}
             </button>
-            <div className="text-[10px] uppercase tracking-[0.18em] text-stone-400">
+            <div className="text-[10px] uppercase tracking-[0.18em] text-d-fg4">
               {state.sections.length} bloc{state.sections.length > 1 ? "s" : ""}
             </div>
           </div>
         </div>
         {syncError && (
-          <div className="mb-3 text-[11px] text-red-600 bg-red-50 border border-red-200 rounded-sm px-3 py-2">
+          <div
+            className="mb-3 text-[11px] rounded-xl px-3 py-2"
+            style={{
+              color: "#FF8466",
+              background: "rgba(255,75,40,0.10)",
+              border: "1px solid rgba(255,75,40,0.20)",
+            }}
+          >
             Erreur CoinGecko : {syncError}
           </div>
         )}
@@ -325,7 +340,7 @@ export function EditorPanel({ state, setState }) {
 
       {/* ── PIED DE PAGE FIXE ───────────────────────────────────────────── */}
       <Section title="Pied de page" defaultOpen={false}>
-        <div className="text-[10px] uppercase tracking-[0.18em] font-medium text-stone-500 mb-2 mt-2">
+        <div className="text-[10px] uppercase tracking-[0.18em] font-semibold text-d-fg3 mb-2 mt-2">
           Liens du footer
         </div>
         {(state.footer.links || []).map((l, i) => (
@@ -349,7 +364,7 @@ export function EditorPanel({ state, setState }) {
             <button
               type="button"
               onClick={() => links.remove(i)}
-              className="p-2 text-stone-400 hover:text-red-600 hover:bg-red-50 rounded-sm"
+              className="p-2 text-d-fg4 hover:text-red-400 hover:bg-red-900/20 rounded-lg transition-colors"
               title="Supprimer"
             >
               <Trash2 size={14} />
@@ -359,7 +374,7 @@ export function EditorPanel({ state, setState }) {
         <button
           type="button"
           onClick={links.add}
-          className="w-full mt-1 mb-4 flex items-center justify-center gap-2 px-4 py-2 border border-dashed border-stone-300 text-stone-600 hover:border-stone-500 rounded-sm text-[10px] uppercase tracking-[0.18em] transition-colors"
+          className="w-full mt-1 mb-4 flex items-center justify-center gap-2 px-4 py-2 border-dashed border text-d-fg3 hover:text-d-fg2 hover:border-line2 rounded-xl text-[10px] uppercase tracking-[0.18em] transition-colors border-line"
         >
           <Plus size={12} /> Ajouter un lien
         </button>
@@ -413,7 +428,6 @@ function SectionCard({
   const type = SECTION_TYPES[section.type];
   const label = type?.label || section.type;
 
-  // Aperçu textuel : utiliser un champ représentatif selon le type
   const preview = (() => {
     const d = section.data || {};
     if (d.title) return d.title;
@@ -428,11 +442,14 @@ function SectionCard({
       onDragOver={onDragOver}
       onDrop={onDrop}
       onDragEnd={onDragEnd}
-      className={`bg-white border rounded-sm overflow-hidden transition-colors ${
-        isDragOver
-          ? "border-pink-400 border-t-2 shadow-sm"
-          : "border-stone-200"
-      }`}
+      className="rounded-xl overflow-hidden transition-all"
+      style={{
+        background: "#1E1E22",
+        border: isDragOver
+          ? "1px solid #FF00AA"
+          : "1px solid var(--d-line2)",
+        boxShadow: isDragOver ? "0 0 0 2px rgba(255,0,170,0.15)" : "none",
+      }}
     >
       {/* Barre de titre */}
       <div className="flex items-center gap-2 px-2 py-2">
@@ -441,31 +458,34 @@ function SectionCard({
           draggable
           onDragStart={onDragStart}
           onDragEnd={onDragEnd}
-          className="p-1 text-stone-400 cursor-grab active:cursor-grabbing hover:text-stone-700 rounded-sm flex-shrink-0"
+          className="p-1 text-d-fg4 cursor-grab active:cursor-grabbing hover:text-d-fg2 rounded-lg flex-shrink-0"
           title="Glisser pour déplacer"
         >
           <GripVertical size={14} />
         </button>
         <button
           onClick={() => setOpen((v) => !v)}
-          className="flex-1 flex items-center gap-2 min-w-0 text-left hover:bg-stone-50 -mx-1 px-2 py-1 rounded-sm"
+          className="flex-1 flex items-center gap-2 min-w-0 text-left hover:bg-d-panel2 -mx-1 px-2 py-1 rounded-lg transition-colors"
         >
           <ChevronRight
             size={14}
-            className={`text-stone-400 flex-shrink-0 transition-transform ${
+            className={`text-d-fg4 flex-shrink-0 transition-transform ${
               open ? "rotate-90" : ""
             }`}
           />
           {number && (
-            <span className="text-[10px] font-bold text-pink-600 flex-shrink-0">
+            <span className="text-[10px] font-bold text-d-pink flex-shrink-0">
               {number}
             </span>
           )}
-          <span className="text-[10px] uppercase tracking-[0.18em] font-medium text-stone-600 flex-shrink-0">
+          <span
+            className="text-[10px] uppercase tracking-[0.18em] font-semibold text-d-fg3 flex-shrink-0"
+            style={{ fontFamily: "'DM Sans', sans-serif" }}
+          >
             {label}
           </span>
           {preview && (
-            <span className="text-[12px] text-stone-400 truncate">
+            <span className="text-[12px] text-d-fg4 truncate">
               · {preview}
             </span>
           )}
@@ -475,7 +495,7 @@ function SectionCard({
           <button
             onClick={onMoveUp}
             disabled={index === 0}
-            className="p-1.5 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-sm disabled:opacity-20 disabled:cursor-not-allowed"
+            className="p-1.5 text-d-fg4 hover:text-d-fg2 hover:bg-d-panel2 rounded-lg disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
             title="Monter"
           >
             <ChevronUp size={14} />
@@ -483,14 +503,14 @@ function SectionCard({
           <button
             onClick={onMoveDown}
             disabled={index === total - 1}
-            className="p-1.5 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-sm disabled:opacity-20 disabled:cursor-not-allowed"
+            className="p-1.5 text-d-fg4 hover:text-d-fg2 hover:bg-d-panel2 rounded-lg disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
             title="Descendre"
           >
             <ChevronDown size={14} />
           </button>
           <button
             onClick={onDuplicate}
-            className="p-1.5 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-sm"
+            className="p-1.5 text-d-fg4 hover:text-d-fg2 hover:bg-d-panel2 rounded-lg transition-colors"
             title="Dupliquer"
           >
             <CopyPlus size={14} />
@@ -499,7 +519,7 @@ function SectionCard({
             onClick={() => {
               if (confirm(`Supprimer la section « ${label} » ?`)) onDelete();
             }}
-            className="p-1.5 text-stone-400 hover:text-red-600 hover:bg-red-50 rounded-sm"
+            className="p-1.5 text-d-fg4 hover:text-red-400 hover:bg-red-900/20 rounded-lg transition-colors"
             title="Supprimer"
           >
             <Trash2 size={14} />
@@ -509,7 +529,13 @@ function SectionCard({
 
       {/* Corps éditable */}
       {open && (
-        <div className="border-t border-stone-100 p-4 bg-stone-50/40">
+        <div
+          className="p-4"
+          style={{
+            borderTop: "1px solid var(--d-line)",
+            background: "#26262B",
+          }}
+        >
           <SectionEditor
             type={section.type}
             data={section.data}
@@ -534,19 +560,25 @@ function AddSectionButton({ onAdd }) {
       {!open ? (
         <button
           onClick={() => setOpen(true)}
-          className="w-full flex items-center justify-center gap-2 px-4 py-3 border border-dashed border-stone-300 text-stone-600 hover:border-stone-500 hover:bg-white rounded-sm text-[10px] uppercase tracking-[0.18em] font-medium transition-colors"
+          className="w-full flex items-center justify-center gap-2 px-4 py-3 border-dashed border text-d-fg3 hover:text-d-fg2 hover:border-line2 rounded-2xl text-[10px] uppercase tracking-[0.18em] font-medium transition-colors border-line"
         >
           <Plus size={14} /> Ajouter un bloc
         </button>
       ) : (
-        <div className="bg-white border border-stone-200 rounded-sm p-3">
+        <div
+          className="rounded-2xl p-4 border border-line"
+          style={{ background: "#1E1E22" }}
+        >
           <div className="flex items-center justify-between mb-3">
-            <div className="text-[10px] uppercase tracking-[0.18em] font-medium text-stone-500">
+            <div
+              className="text-[10px] uppercase tracking-[0.18em] font-semibold text-d-fg2"
+              style={{ fontFamily: "'Sora', sans-serif" }}
+            >
               Choisir un type
             </div>
             <button
               onClick={() => setOpen(false)}
-              className="text-[10px] uppercase tracking-[0.18em] text-stone-400 hover:text-stone-700"
+              className="text-[10px] uppercase tracking-[0.18em] text-d-fg4 hover:text-d-fg2 transition-colors"
             >
               Annuler
             </button>
@@ -559,7 +591,7 @@ function AddSectionButton({ onAdd }) {
                   onAdd(type);
                   setOpen(false);
                 }}
-                className="text-left px-3 py-2 border border-stone-200 hover:border-stone-500 hover:bg-stone-50 rounded-sm text-xs text-stone-800 transition-colors"
+                className="text-left px-3 py-2.5 border border-line hover:border-line2 hover:bg-d-panel3 rounded-xl text-xs text-d-fg2 transition-colors font-medium"
               >
                 {def.label}
               </button>

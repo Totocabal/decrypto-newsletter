@@ -25,11 +25,17 @@ export function LockBanner({ lockInfo, onTakeOver, onBack }) {
   };
 
   return (
-    <div className="bg-amber-50 border-b border-amber-200 px-6 py-3">
+    <div
+      className="px-6 py-3 border-b"
+      style={{
+        background: "rgba(255,75,40,0.08)",
+        borderColor: "rgba(255,75,40,0.20)",
+      }}
+    >
       <div className="max-w-6xl mx-auto flex items-center gap-3">
-        <Lock className="text-amber-600 flex-shrink-0" size={16} />
-        <div className="flex-1 text-sm text-amber-900">
-          <strong>
+        <Lock size={16} style={{ color: "#FF8466", flexShrink: 0 }} />
+        <div className="flex-1 text-sm" style={{ color: "#FFB8A0" }}>
+          <strong style={{ color: "#FFCFBD" }}>
             {lockInfo?.user_full_name || lockInfo?.user_email}
           </strong>{" "}
           édite cette newsletter
@@ -37,13 +43,18 @@ export function LockBanner({ lockInfo, onTakeOver, onBack }) {
         </div>
         <button
           onClick={onBack}
-          className="text-[10px] uppercase tracking-[0.18em] font-medium text-amber-900 hover:text-amber-700 px-3 py-1.5 border border-amber-300 hover:border-amber-500 rounded-sm"
+          className="text-[10px] uppercase tracking-[0.18em] font-medium px-3 py-1.5 rounded-full transition-colors"
+          style={{
+            color: "#FFB8A0",
+            border: "1px solid rgba(255,75,40,0.30)",
+          }}
         >
           Retour
         </button>
         <button
           onClick={handleTakeOver}
-          className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] font-medium text-white bg-amber-600 hover:bg-amber-700 px-3 py-1.5 rounded-sm"
+          className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] font-semibold text-white px-3 py-1.5 rounded-full transition-colors"
+          style={{ background: "#FF4B28" }}
         >
           <AlertTriangle size={11} />
           Forcer la prise de contrôle

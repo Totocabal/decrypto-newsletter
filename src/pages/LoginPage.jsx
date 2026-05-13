@@ -1,14 +1,11 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // LoginPage — connexion par mot de passe (principal) ou magic link (fallback)
 // ─────────────────────────────────────────────────────────────────────────────
-// Deux onglets :
-//   - Connexion : email + mot de passe (méthode privilégiée)
-//   - Lien magique : email seul, lien envoyé par mail (fallback / récupération
-//     / premier login pour un nouveau compte)
 
 import { useState } from "react";
 import { Mail, Lock, Loader2, CheckCircle2, ArrowRight, KeyRound } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext.jsx";
+import { Wordmark } from "../components/Wordmark.jsx";
 
 function getAuthErrorMessage(error) {
   const message = error?.message || String(error || "");
@@ -26,13 +23,12 @@ function getAuthErrorMessage(error) {
 
 export function LoginPage() {
   const { signInWithPassword, signInWithMagicLink, requestPasswordRecovery } = useAuth();
-  // mode = "password" | "magic"
   const [mode, setMode] = useState("password");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [status, setStatus] = useState("idle"); // idle | loading | sent | error
+  const [status, setStatus] = useState("idle");
   const [error, setError] = useState(null);
-  const [sentKind, setSentKind] = useState("magic"); // magic | recovery
+  const [sentKind, setSentKind] = useState("magic");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -49,7 +45,6 @@ export function LoginPage() {
       const { error } = await signInWithPassword(email.trim(), password);
       if (error) {
         setStatus("error");
-        // Message d'erreur clair pour le cas courant
         if (/invalid login credentials/i.test(error.message)) {
           setError(
             "Email ou mot de passe incorrect. Si tu n'as jamais défini de mot de passe, utilise le lien magique pour ta première connexion."
@@ -58,11 +53,9 @@ export function LoginPage() {
           setError(getAuthErrorMessage(error));
         }
       } else {
-        // L'AuthContext va capter la session et rediriger automatiquement
         setStatus("idle");
       }
     } else {
-      // mode "magic"
       const { error } = await signInWithMagicLink(email.trim());
       if (error) {
         setStatus("error");
@@ -94,27 +87,31 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-stone-100 flex items-center justify-center p-6">
-      <div className="bg-white border border-stone-200 rounded-sm w-full max-w-md p-8">
-        <div className="text-[10px] uppercase tracking-[0.18em] text-stone-500 font-medium mb-1">
-          Coinhouse
+    <div className="min-h-screen bg-d-bg flex items-center justify-center p-6">
+      <div
+        className="w-full max-w-md p-8 rounded-2xl border border-line"
+        style={{ background: "#1E1E22" }}
+      >
+        {/* Logo */}
+        <div className="mb-8">
+          <Wordmark size={18} />
         </div>
-        <h1 className="text-2xl font-semibold text-stone-900 mb-6">
-          Éditeur de newsletter
-        </h1>
 
         {status === "sent" ? (
-          <div className="bg-emerald-50 border border-emerald-200 rounded-sm p-4 flex gap-3">
-            <CheckCircle2 className="text-emerald-600 flex-shrink-0 mt-0.5" size={18} />
+          <div
+            className="rounded-xl p-4 flex gap-3"
+            style={{ background: "rgba(3,255,207,0.08)", border: "1px solid rgba(3,255,207,0.20)" }}
+          >
+            <CheckCircle2 style={{ color: "#03FFCF", flexShrink: 0, marginTop: 2 }} size={18} />
             <div>
-              <div className="text-sm font-medium text-emerald-900 mb-1">
+              <div className="text-sm font-semibold mb-1" style={{ color: "#03FFCF" }}>
                 {sentKind === "recovery" ? "Lien de récupération envoyé" : "Lien envoyé"}
               </div>
-              <div className="text-xs text-emerald-700 leading-relaxed">
+              <div className="text-xs text-d-fg3 leading-relaxed">
                 {sentKind === "recovery"
                   ? "Ouvre l'email envoyé à "
                   : "Ouvre l'email envoyé à "}
-                <strong>{email}</strong>
+                <strong className="text-d-fg">{email}</strong>
                 {sentKind === "recovery"
                   ? " et clique sur le lien pour réinitialiser ton mot de passe."
                   : " et clique sur le lien pour te connecter. Tu peux fermer cette page."}
@@ -124,7 +121,7 @@ export function LoginPage() {
                   setStatus("idle");
                   setError(null);
                 }}
-                className="mt-3 text-[10px] uppercase tracking-[0.18em] text-emerald-800 hover:text-emerald-950 underline"
+                className="mt-3 text-[10px] uppercase tracking-[0.18em] text-d-fg3 hover:text-d-fg underline transition-colors"
               >
                 Revenir
               </button>
@@ -133,7 +130,7 @@ export function LoginPage() {
         ) : (
           <>
             {/* Onglets Connexion / Lien magique */}
-            <div className="flex items-center bg-stone-100 rounded-sm p-0.5 mb-6">
+            <div className="flex items-center bg-d-panel2 rounded-full p-1 mb-6 border border-line">
               <button
                 type="button"
                 onClick={() => {
@@ -141,10 +138,10 @@ export function LoginPage() {
                   setError(null);
                   setStatus("idle");
                 }}
-                className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-[10px] uppercase tracking-[0.18em] rounded-sm transition-colors ${
+                className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-[11px] uppercase tracking-[0.14em] rounded-full transition-colors font-semibold ${
                   mode === "password"
-                    ? "bg-white text-stone-800 shadow-sm"
-                    : "text-stone-500 hover:text-stone-700"
+                    ? "bg-white text-[#15151A]"
+                    : "text-d-fg3 hover:text-d-fg2"
                 }`}
               >
                 <KeyRound size={12} />
@@ -157,10 +154,10 @@ export function LoginPage() {
                   setError(null);
                   setStatus("idle");
                 }}
-                className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-[10px] uppercase tracking-[0.18em] rounded-sm transition-colors ${
+                className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-[11px] uppercase tracking-[0.14em] rounded-full transition-colors font-semibold ${
                   mode === "magic"
-                    ? "bg-white text-stone-800 shadow-sm"
-                    : "text-stone-500 hover:text-stone-700"
+                    ? "bg-white text-[#15151A]"
+                    : "text-d-fg3 hover:text-d-fg2"
                 }`}
               >
                 <Mail size={12} />
@@ -168,7 +165,7 @@ export function LoginPage() {
               </button>
             </div>
 
-            <p className="text-xs text-stone-500 mb-5 leading-relaxed">
+            <p className="text-xs text-d-fg3 mb-5 leading-relaxed">
               {mode === "password"
                 ? "Saisis ton email et ton mot de passe."
                 : "Reçois un lien de connexion par email pour un compte déjà créé."}
@@ -176,13 +173,13 @@ export function LoginPage() {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="text-[10px] uppercase tracking-[0.18em] text-stone-500 font-medium block mb-2">
+                <label className="text-[10px] uppercase tracking-[0.18em] text-d-fg3 font-semibold block mb-2">
                   Email
                 </label>
                 <div className="relative">
                   <Mail
                     size={16}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 pointer-events-none"
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-d-fg4 pointer-events-none"
                   />
                   <input
                     type="email"
@@ -191,7 +188,7 @@ export function LoginPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="prenom.nom@coinhouse.com"
-                    className="w-full pl-10 pr-3 py-2.5 border border-stone-300 rounded-sm text-sm focus:outline-none focus:border-stone-900"
+                    className="w-full pl-10 pr-3 py-2.5 border border-line rounded-xl text-sm focus:outline-none focus:border-line2 bg-d-panel2 text-d-fg placeholder:text-d-fg4 transition-colors"
                     disabled={status === "loading"}
                   />
                 </div>
@@ -199,13 +196,13 @@ export function LoginPage() {
 
               {mode === "password" && (
                 <div>
-                  <label className="text-[10px] uppercase tracking-[0.18em] text-stone-500 font-medium block mb-2">
+                  <label className="text-[10px] uppercase tracking-[0.18em] text-d-fg3 font-semibold block mb-2">
                     Mot de passe
                   </label>
                   <div className="relative">
                     <Lock
                       size={16}
-                      className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 pointer-events-none"
+                      className="absolute left-3 top-1/2 -translate-y-1/2 text-d-fg4 pointer-events-none"
                     />
                     <input
                       type="password"
@@ -213,7 +210,7 @@ export function LoginPage() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="••••••••"
-                      className="w-full pl-10 pr-3 py-2.5 border border-stone-300 rounded-sm text-sm focus:outline-none focus:border-stone-900"
+                      className="w-full pl-10 pr-3 py-2.5 border border-line rounded-xl text-sm focus:outline-none focus:border-line2 bg-d-panel2 text-d-fg placeholder:text-d-fg4 transition-colors"
                       disabled={status === "loading"}
                     />
                   </div>
@@ -221,7 +218,14 @@ export function LoginPage() {
               )}
 
               {error && (
-                <div className="bg-red-50 border border-red-200 rounded-sm p-3 text-xs text-red-800 leading-relaxed">
+                <div
+                  className="rounded-xl p-3 text-xs leading-relaxed"
+                  style={{
+                    background: "rgba(255,75,40,0.10)",
+                    border: "1px solid rgba(255,75,40,0.20)",
+                    color: "#FF8466",
+                  }}
+                >
                   {error}
                 </div>
               )}
@@ -229,7 +233,8 @@ export function LoginPage() {
               <button
                 type="submit"
                 disabled={status === "loading" || !email.trim() || (mode === "password" && !password)}
-                className="w-full bg-stone-900 hover:bg-stone-700 text-white text-xs uppercase tracking-[0.18em] font-medium py-3 rounded-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full text-[#15151A] text-xs uppercase tracking-[0.18em] font-semibold py-3 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                style={{ background: "#FFFFFF" }}
               >
                 {status === "loading" ? (
                   <>
@@ -250,13 +255,13 @@ export function LoginPage() {
                 type="button"
                 onClick={handlePasswordRecovery}
                 disabled={status === "loading"}
-                className="mt-4 text-[11px] text-stone-500 hover:text-stone-900 underline w-full text-center"
+                className="mt-4 text-[11px] text-d-fg4 hover:text-d-fg2 underline w-full text-center transition-colors"
               >
                 Mot de passe oublié ? Recevoir un lien de récupération.
               </button>
             )}
 
-            <p className="text-[11px] text-stone-400 mt-6 leading-relaxed">
+            <p className="text-[11px] text-d-fg4 mt-6 leading-relaxed">
               Pas encore de compte ? Demande à un admin de t'inviter ou de
               créer ton accès dans Supabase.
             </p>

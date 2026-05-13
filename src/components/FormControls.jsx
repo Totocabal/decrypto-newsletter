@@ -21,12 +21,12 @@ import { Editable, Slate, useSlate, withReact } from "slate-react";
 export function Field({ label, children, hint }) {
   return (
     <div className="block mb-4">
-      <div className="min-h-[30px] flex items-end text-[10px] uppercase tracking-[0.18em] font-medium text-stone-500 mb-1.5 leading-tight">
+      <div className="min-h-[28px] flex items-end text-[10px] uppercase tracking-[0.18em] font-medium text-d-fg3 mb-1.5 leading-tight">
         {label}
       </div>
       {children}
       {hint && (
-        <div className="text-[11px] text-stone-400 mt-1 italic">{hint}</div>
+        <div className="text-[11px] text-d-fg4 mt-1 italic">{hint}</div>
       )}
     </div>
   );
@@ -37,11 +37,12 @@ export function Input({ readOnly, ...props }) {
     <input
       readOnly={readOnly}
       {...props}
-      className={`w-full px-3 py-2 border rounded-sm text-sm focus:outline-none transition-colors ${
+      className={`w-full px-3 py-2 border rounded-xl text-sm focus:outline-none transition-colors ${
         readOnly
-          ? "bg-stone-50 border-stone-200 text-stone-400 cursor-default"
-          : "bg-white border-stone-200 text-stone-800 focus:border-stone-400"
+          ? "bg-d-panel3 border-line text-d-fg4 cursor-default"
+          : "bg-d-panel2 border-line text-d-fg focus:border-line2 hover:border-line2"
       }`}
+      style={{ fontFamily: "'DM Sans', sans-serif" }}
     />
   );
 }
@@ -296,10 +297,10 @@ function HtmlButton({ title, onClick, active = false, children }) {
       type="button"
       onMouseDown={(e) => e.preventDefault()}
       onClick={onClick}
-      className={`h-7 w-7 inline-flex items-center justify-center border rounded-sm transition-colors ${
+      className={`h-7 w-7 inline-flex items-center justify-center border rounded-lg transition-colors ${
         active
-          ? "border-stone-700 bg-stone-800 text-white"
-          : "border-stone-200 bg-white text-stone-500 hover:text-stone-900 hover:border-stone-400"
+          ? "border-d-fg3 bg-d-panel3 text-d-fg"
+          : "border-line text-d-fg4 hover:text-d-fg2 hover:border-line2 bg-d-panel2"
       }`}
       title={title}
     >
@@ -346,9 +347,9 @@ function LinkButton() {
 function RichTextElement({ attributes, children, element }) {
   switch (element.type) {
     case "bulleted-list":
-      return <ul {...attributes} className="list-disc pl-5 my-1">{children}</ul>;
+      return <ul {...attributes} className="list-disc pl-5 my-1 text-d-fg2">{children}</ul>;
     case "numbered-list":
-      return <ol {...attributes} className="list-decimal pl-5 my-1">{children}</ol>;
+      return <ol {...attributes} className="list-decimal pl-5 my-1 text-d-fg2">{children}</ol>;
     case "list-item":
       return <li {...attributes} className="my-0.5">{children}</li>;
     case "link":
@@ -356,7 +357,7 @@ function RichTextElement({ attributes, children, element }) {
         <a
           {...attributes}
           href={element.url}
-          className="text-stone-900 underline decoration-stone-400 underline-offset-2"
+          className="text-d-cyan underline decoration-d-cyan/40 underline-offset-2"
         >
           {children}
         </a>
@@ -419,13 +420,13 @@ export function TextArea({ showCount, onChange, value = "", ...props }) {
   };
 
   const el = (
-    <div className="border border-stone-200 rounded-sm bg-white focus-within:border-stone-400 transition-colors overflow-hidden">
+    <div className="border border-line rounded-xl bg-d-panel2 focus-within:border-line2 transition-colors overflow-hidden">
       <Slate
         editor={editor}
         initialValue={initialValueRef.current}
         onChange={handleChange}
       >
-        <div className="flex items-center gap-1 px-2 py-1.5 border-b border-stone-100 bg-stone-50/70">
+        <div className="flex items-center gap-1 px-2 py-1.5 border-b border-line bg-d-panel2">
           <MarkButton format="bold" title="Gras">
             <Bold size={13} />
           </MarkButton>
@@ -451,8 +452,8 @@ export function TextArea({ showCount, onChange, value = "", ...props }) {
           renderElement={renderElement}
           renderLeaf={renderLeaf}
           spellCheck
-          className="w-full px-3 py-2 bg-white text-sm text-stone-800 focus:outline-none leading-relaxed overflow-auto"
-          style={{ minHeight: `${Math.max(Number(rows) || 3, 2) * 1.6}rem` }}
+          className="w-full px-3 py-2 bg-d-panel2 text-sm text-d-fg focus:outline-none leading-relaxed overflow-auto"
+          style={{ minHeight: `${Math.max(Number(rows) || 3, 2) * 1.6}rem`, fontFamily: "'DM Sans', sans-serif" }}
         />
       </Slate>
     </div>
@@ -463,7 +464,7 @@ export function TextArea({ showCount, onChange, value = "", ...props }) {
   return (
     <div>
       {el}
-      <div className="text-right text-[10px] text-stone-400 mt-0.5 tabular-nums">{plainTextCount} car.</div>
+      <div className="text-right text-[10px] text-d-fg4 mt-0.5 tabular-nums">{plainTextCount} car.</div>
     </div>
   );
 }
@@ -471,20 +472,23 @@ export function TextArea({ showCount, onChange, value = "", ...props }) {
 export function Section({ title, children, defaultOpen = true, action }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <div className="mb-6 bg-stone-50/50 border border-stone-200 rounded-sm overflow-hidden">
-      <div className="w-full flex items-center justify-between bg-white border-b border-stone-200">
+    <div className="mb-5 border border-line rounded-2xl overflow-hidden bg-d-panel">
+      <div className="w-full flex items-center justify-between border-b border-line">
         <button
           type="button"
           onClick={() => setOpen(!open)}
-          className="flex-1 flex items-center justify-between px-4 py-3 hover:bg-stone-50 transition-colors"
+          className="flex-1 flex items-center justify-between px-4 py-3 hover:bg-d-panel2 transition-colors"
         >
-          <span className="text-xs uppercase tracking-[0.22em] font-medium text-stone-700">
+          <span
+            className="text-xs uppercase tracking-[0.22em] font-semibold text-d-fg2"
+            style={{ fontFamily: "'Sora', sans-serif" }}
+          >
             {title}
           </span>
           {open ? (
-            <ChevronUp size={14} className="text-stone-400" />
+            <ChevronUp size={14} className="text-d-fg4" />
           ) : (
-            <ChevronDown size={14} className="text-stone-400" />
+            <ChevronDown size={14} className="text-d-fg4" />
           )}
         </button>
         {action && open && <div className="pr-3">{action}</div>}

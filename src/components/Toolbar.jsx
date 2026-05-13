@@ -1,11 +1,10 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // Barre d'outils en haut de l'éditeur
 // ─────────────────────────────────────────────────────────────────────────────
-// Boutons : aperçu/code, sauvegarder une version, copier HTML, export ZIP.
 
 import {
   Eye,
-  Settings,
+  Code2,
   Save,
   Copy,
   Check,
@@ -28,69 +27,80 @@ export function Toolbar({
   exportingBraze,
 }) {
   return (
-    <div className="bg-white border-b border-stone-200 sticky top-0 z-20">
+    <div className="bg-d-panel border-b border-line sticky top-0 z-20">
       <div className="px-6 py-4 flex items-center justify-between gap-4 flex-wrap">
         <div>
-          <div className="text-[10px] uppercase tracking-[0.22em] text-stone-500">
+          <div
+            className="text-[10px] uppercase tracking-[0.22em] text-d-fg3 font-semibold"
+            style={{ fontFamily: "'DM Sans', sans-serif" }}
+          >
             {brandName}
           </div>
-          <div className="text-lg font-medium text-stone-900">
+          <div
+            className="text-xl font-bold text-d-fg mt-0.5"
+            style={{ fontFamily: "'Sora', sans-serif", letterSpacing: "-0.01em" }}
+          >
             Éditeur de newsletter
           </div>
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
           {/* Switch Aperçu / Code */}
-          <div className="flex items-center bg-stone-100 rounded-sm p-0.5 mr-2">
+          <div
+            className="flex items-center bg-d-panel2 rounded-full p-1 mr-2 border border-line"
+          >
             <button
               onClick={() => setView("preview")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-[10px] uppercase tracking-[0.18em] rounded-sm transition-colors ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-[11px] uppercase tracking-[0.14em] rounded-full transition-colors font-semibold ${
                 view === "preview"
-                  ? "bg-white text-stone-800 shadow-sm"
-                  : "text-stone-500 hover:text-stone-700"
+                  ? "bg-white text-[#15151A]"
+                  : "text-d-fg3 hover:text-d-fg2"
               }`}
             >
               <Eye size={12} /> Aperçu
             </button>
             <button
               onClick={() => setView("code")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-[10px] uppercase tracking-[0.18em] rounded-sm transition-colors ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-[11px] uppercase tracking-[0.14em] rounded-full transition-colors font-semibold ${
                 view === "code"
-                  ? "bg-white text-stone-800 shadow-sm"
-                  : "text-stone-500 hover:text-stone-700"
+                  ? "bg-white text-[#15151A]"
+                  : "text-d-fg3 hover:text-d-fg2"
               }`}
             >
-              <Settings size={12} /> Code HTML
+              <Code2 size={12} /> Code HTML
             </button>
           </div>
 
           {/* Sauvegarder une version */}
           <button
             onClick={onSave}
-            className="flex items-center gap-1.5 px-3 py-2 text-[10px] uppercase tracking-[0.18em] border border-stone-300 text-stone-700 rounded-sm hover:bg-stone-50 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-2 text-[11px] uppercase tracking-[0.14em] font-medium border border-line2 text-d-fg2 rounded-full hover:bg-d-panel2 transition-colors"
             title="Créer une version (snapshot) avec un commentaire"
           >
             {saved ? <Check size={12} /> : <Save size={12} />}
             {saved ? "Sauvé" : "Sauvegarder"}
           </button>
 
-          <div className="w-px h-6 bg-stone-200 mx-1" />
+          <div className="w-px h-5 mx-1" style={{ background: "var(--d-line2)" }} />
 
-          {/* Export HTML inline */}
+          {/* Copier HTML */}
           <button
             onClick={onCopy}
-            className="flex items-center gap-1.5 px-3 py-2 text-[10px] uppercase tracking-[0.18em] bg-stone-800 text-white rounded-sm hover:bg-stone-700 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-2 text-[11px] uppercase tracking-[0.14em] font-medium border border-line2 text-d-fg2 rounded-full hover:bg-d-panel2 transition-colors"
           >
             {copied ? <Check size={12} /> : <Copy size={12} />}
             {copied ? "Copié" : "Copier HTML"}
           </button>
 
-          {/* Export ZIP avec assets */}
+          {/* Export ZIP */}
           {onExportZip && (
             <button
               onClick={onExportZip}
               disabled={exporting}
-              className="flex items-center gap-1.5 px-3 py-2 text-[10px] uppercase tracking-[0.18em] bg-pink-600 hover:bg-pink-700 text-white rounded-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-1.5 px-3 py-2 text-[11px] uppercase tracking-[0.14em] font-semibold rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-white"
+              style={{
+                background: "linear-gradient(90deg, #4141FF 0%, #FF00AA 60%, #FF4B28 100%)",
+              }}
               title="Exporter HTML + dossier assets/ avec PNG dans un ZIP"
             >
               {exporting ? (
@@ -107,11 +117,13 @@ export function Toolbar({
             </button>
           )}
 
+          {/* Export Braze */}
           {onExportBraze && (
             <button
               onClick={onExportBraze}
               disabled={exportingBraze}
-              className="flex items-center gap-1.5 px-3 py-2 text-[10px] uppercase tracking-[0.18em] bg-pink-600 hover:bg-pink-700 text-white rounded-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-1.5 px-3 py-2 text-[11px] uppercase tracking-[0.14em] font-semibold rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-white"
+              style={{ background: "#FF00AA" }}
               title="Uploader les images dans Braze et exporter le HTML avec les URLs Braze"
             >
               {exportingBraze ? (

@@ -17,6 +17,7 @@ import {
 import { supabase } from "../lib/supabase.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import { INITIAL_STATE } from "../config/schema.js";
+import { Wordmark } from "../components/Wordmark.jsx";
 
 export function NewslettersListPage({ onOpen, onOpenAdmin }) {
   const { profile, signOut } = useAuth();
@@ -45,7 +46,6 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
 
       if (nlsError) throw nlsError;
       if (locksError) {
-        // Les locks sont secondaires: on garde la liste utilisable.
         // eslint-disable-next-line no-console
         console.warn("[newsletters] locks indisponibles:", locksError);
       }
@@ -68,7 +68,6 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
 
   useEffect(() => {
     load();
-    // Rafraîchit toutes les 20s pour refléter les nouveaux locks
     const t = setInterval(load, 20000);
     return () => clearInterval(t);
   }, [load]);
@@ -148,34 +147,34 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
   };
 
   return (
-    <div className="min-h-screen bg-stone-100">
+    <div className="min-h-screen bg-d-bg">
       {/* Header */}
-      <header className="bg-white border-b border-stone-200 px-6 py-4">
-        <div className="max-w-5xl mx-auto flex items-center justify-between">
-          <div>
-            <div className="text-[10px] uppercase tracking-[0.18em] text-stone-500 font-medium">
-              Coinhouse
-            </div>
-            <h1 className="text-lg font-semibold text-stone-900">
-              Éditeur de newsletter
-            </h1>
-          </div>
-          <div className="flex items-center gap-2">
+      <header
+        className="bg-d-panel border-b px-6 py-0 border-line"
+        style={{ height: 64, display: "flex", alignItems: "center" }}
+      >
+        <div className="max-w-5xl mx-auto w-full flex items-center justify-between">
+          <Wordmark size={18} />
+
+          <div className="flex items-center gap-3">
             {profile?.is_admin && (
               <button
                 onClick={onOpenAdmin}
-                className="flex items-center gap-2 px-3 py-2 border border-stone-300 hover:border-stone-500 text-stone-700 text-[10px] uppercase tracking-[0.18em] font-medium rounded-sm transition-colors"
+                className="flex items-center gap-2 px-3 py-1.5 border border-line2 text-d-fg2 text-[11px] uppercase tracking-[0.18em] font-medium rounded-full hover:bg-d-panel2 transition-colors"
               >
                 <Settings size={12} />
                 Admin
               </button>
             )}
-            <div className="text-xs text-stone-500 px-3">
+            <div
+              className="text-xs text-d-fg3 px-3 font-dm"
+              style={{ fontFamily: "'DM Sans', sans-serif" }}
+            >
               {profile?.full_name || profile?.email}
             </div>
             <button
               onClick={signOut}
-              className="flex items-center gap-2 px-3 py-2 border border-stone-300 hover:border-stone-500 text-stone-700 text-[10px] uppercase tracking-[0.18em] font-medium rounded-sm transition-colors"
+              className="flex items-center gap-2 px-3 py-1.5 border border-line2 text-d-fg2 text-[11px] uppercase tracking-[0.18em] font-medium rounded-full hover:bg-d-panel2 transition-colors"
             >
               <LogOut size={12} />
               Déconnexion
@@ -185,19 +184,26 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
       </header>
 
       {/* Body */}
-      <main className="max-w-5xl mx-auto p-6">
-        <div className="flex items-center justify-between mb-6">
-          <div className="text-xs text-stone-500">
-            {loading
-              ? "Chargement…"
-              : `${newsletters.length} newsletter${
-                  newsletters.length > 1 ? "s" : ""
-                }`}
+      <main className="max-w-5xl mx-auto px-6 py-10">
+        <div className="flex items-end justify-between mb-8">
+          <div>
+            <h1
+              className="text-d-fg font-bold text-3xl tracking-tight mb-1"
+              style={{ fontFamily: "'Sora', sans-serif", letterSpacing: "-0.02em" }}
+            >
+              Mes newsletters
+            </h1>
+            <p className="text-sm text-d-fg3">
+              {loading
+                ? "Chargement…"
+                : `${newsletters.length} newsletter${newsletters.length > 1 ? "s" : ""}`}
+            </p>
           </div>
           <button
             onClick={handleCreate}
             disabled={creating}
-            className="bg-stone-900 hover:bg-stone-700 text-white text-xs uppercase tracking-[0.18em] font-medium px-4 py-2.5 rounded-sm transition-colors disabled:opacity-50 flex items-center gap-2"
+            className="flex items-center gap-2 px-5 py-2.5 text-[12px] uppercase tracking-[0.18em] font-semibold rounded-full transition-colors disabled:opacity-50"
+            style={{ background: "#FFFFFF", color: "#15151A" }}
           >
             <Plus size={14} />
             Nouvelle newsletter
@@ -205,79 +211,97 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
         </div>
 
         {!loading && newsletters.length === 0 && (
-          <div className="bg-white border border-dashed border-stone-300 rounded-sm p-12 text-center">
-            <FileText className="text-stone-300 mx-auto mb-3" size={36} />
-            <div className="text-sm text-stone-600 mb-1">
+          <div
+            className="border rounded-2xl p-14 text-center border-line"
+            style={{ background: "transparent", borderStyle: "dashed" }}
+          >
+            <FileText className="text-d-fg4 mx-auto mb-4" size={36} />
+            <div className="text-sm text-d-fg2 mb-1 font-medium">
               Aucune newsletter pour l'instant
             </div>
-            <div className="text-xs text-stone-400">
+            <div className="text-xs text-d-fg3">
               Clique sur « Nouvelle newsletter » pour démarrer.
             </div>
           </div>
         )}
 
         {newsletters.length > 0 && (
-          <div className="bg-white border border-stone-200 rounded-sm divide-y divide-stone-100">
-            {newsletters.map((nl) => {
+          <div
+            className="bg-d-panel rounded-2xl overflow-hidden border border-line"
+          >
+            {newsletters.map((nl, i, arr) => {
               const lock = locks[nl.id];
               const lockedByOther = lock && lock.user_id !== profile?.id;
               return (
-                <div
-                  key={nl.id}
-                  className="flex items-center gap-4 px-4 py-4 hover:bg-stone-50 transition-colors group"
-                >
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <button
-                        onClick={() => onOpen(nl.id)}
-                        className="text-sm font-medium text-stone-900 hover:underline truncate text-left"
-                      >
-                        {nl.title || "Newsletter sans titre"}
-                      </button>
-                      {lockedByOther && (
-                        <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.14em] font-medium bg-amber-100 text-amber-800 px-2 py-0.5 rounded-sm">
-                          <Lock size={10} />
-                          {lock.user_full_name || lock.user_email}
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-3 text-[11px] text-stone-500">
-                      <span className="flex items-center gap-1">
-                        <Clock size={11} />
-                        {formatDate(nl.updated_at)}
-                      </span>
-                      {nl.issue_number && (
-                        <span>N° {nl.issue_number}</span>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button
-                      onClick={() => handleDuplicate(nl)}
-                      className="p-2 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-sm"
-                      title="Dupliquer"
+                <div key={nl.id}>
+                  <div className="flex items-center gap-4 px-5 py-4 hover:bg-d-panel2 transition-colors group">
+                    {/* Icon */}
+                    <div
+                      className="flex-shrink-0 w-11 h-11 rounded-xl bg-d-panel2 border border-line flex items-center justify-center"
                     >
-                      <Copy size={14} />
-                    </button>
-                    {profile?.is_admin && (
-                      <button
-                        onClick={() => handleDelete(nl)}
-                        className="p-2 text-stone-400 hover:text-red-600 hover:bg-red-50 rounded-sm"
-                        title="Supprimer"
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    )}
-                  </div>
+                      <FileText size={18} className="text-d-fg3" />
+                    </div>
 
-                  <button
-                    onClick={() => onOpen(nl.id)}
-                    className="p-2 text-stone-400 hover:text-stone-700"
-                    title="Ouvrir"
-                  >
-                    <ChevronRight size={16} />
-                  </button>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <button
+                          onClick={() => onOpen(nl.id)}
+                          className="text-sm font-semibold text-d-fg hover:text-white truncate text-left transition-colors"
+                          style={{ fontFamily: "'Sora', sans-serif" }}
+                        >
+                          {nl.title || "Newsletter sans titre"}
+                        </button>
+                        {lockedByOther && (
+                          <span
+                            className="inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.14em] font-semibold px-2 py-0.5 rounded-full"
+                            style={{ background: "rgba(255,75,40,0.12)", color: "#FF8466" }}
+                          >
+                            <Lock size={10} />
+                            {lock.user_full_name || lock.user_email}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-3 text-[11px] text-d-fg3">
+                        <span className="flex items-center gap-1">
+                          <Clock size={11} />
+                          {formatDate(nl.updated_at)}
+                        </span>
+                        {nl.issue_number && (
+                          <span className="text-d-fg4">N° {nl.issue_number}</span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={() => handleDuplicate(nl)}
+                        className="p-2 text-d-fg4 hover:text-d-fg2 hover:bg-d-panel3 rounded-lg transition-colors"
+                        title="Dupliquer"
+                      >
+                        <Copy size={14} />
+                      </button>
+                      {profile?.is_admin && (
+                        <button
+                          onClick={() => handleDelete(nl)}
+                          className="p-2 text-d-fg4 hover:text-red-400 hover:bg-red-900/20 rounded-lg transition-colors"
+                          title="Supprimer"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      )}
+                    </div>
+
+                    <button
+                      onClick={() => onOpen(nl.id)}
+                      className="p-2 text-d-fg4 hover:text-d-fg2 transition-colors"
+                      title="Ouvrir"
+                    >
+                      <ChevronRight size={16} />
+                    </button>
+                  </div>
+                  {i < arr.length - 1 && (
+                    <div className="h-px mx-5 border-line" style={{ background: "var(--d-line)" }} />
+                  )}
                 </div>
               );
             })}
