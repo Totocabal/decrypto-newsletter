@@ -73,9 +73,8 @@ async function canvasToBlob(canvas, type) {
 }
 
 async function compressImage(file, options = {}) {
-  const { maxWidth = 1600 } = options;
+  const { maxWidth = 1600, forcePng = false } = options;
   if (!file?.type?.startsWith("image/")) return file;
-  if (file.type === "image/gif") return file;
 
   const img = await fileToImage(file);
   let ratio = Math.min(1, maxWidth / img.naturalWidth);
@@ -94,7 +93,7 @@ async function compressImage(file, options = {}) {
     ratio *= 0.8;
   }
 
-  if (!compressed || (file.size <= MAX_IMAGE_FILE_SIZE_BYTES && compressed.size >= file.size)) {
+  if (!compressed || (!forcePng && file.size <= MAX_IMAGE_FILE_SIZE_BYTES && compressed.size >= file.size)) {
     return file;
   }
 
@@ -154,8 +153,12 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId }) {
       for (const file of fileList) {
         let uploadFile = file;
         if (compressBeforeUpload || file.size > MAX_IMAGE_FILE_SIZE_BYTES) {
-          uploadFile = await compressImage(file);
-          if (uploadFile.size < file.size) {
+          uploadFile = await compressImage(file, { forcePng: compressBeforeUpload });
+          if (uploadFile.type === "image/png" && file.type !== "image/png") {
+            setUploadNotice(
+              `Conversion PNG : ${formatBytes(file.size)} → ${formatBytes(uploadFile.size)}`
+            );
+          } else if (uploadFile.size < file.size) {
             setUploadNotice(
               `Compression : ${formatBytes(file.size)} → ${formatBytes(uploadFile.size)}`
             );
@@ -510,7 +513,7 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId }) {
                 onChange={(event) => setCompressBeforeUpload(event.target.checked)}
                 className="accent-d-pink"
               />
-              Proposer une version compressée avant l'upload
+              Compresser et convertir en PNG avant l'upload
             </label>
             <button
               type="button"

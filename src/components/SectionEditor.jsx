@@ -7,7 +7,7 @@ import { Plus, Trash2, ChevronUp, ChevronDown, CopyPlus, Upload, Loader2, X, Ref
 import { useCoinGecko, CRYPTO_CONFIG } from "../lib/useCoinGecko.js";
 import { UNNUMBERED_TYPES } from "../config/schema.js";
 import { Field, Input, TextArea } from "./FormControls.jsx";
-import { deleteImage, MAX_IMAGE_FILE_SIZE_LABEL } from "../lib/imageUpload.js";
+import { MAX_IMAGE_FILE_SIZE_LABEL } from "../lib/imageUpload.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import { ImageManagerModal } from "./ImageManagerModal.jsx";
 import { Tooltip } from "./Tooltip.jsx";
@@ -1129,14 +1129,7 @@ function FocusEditor({ data, set }) {
   const [uploadError, setUploadError] = useState(null);
   const [imageManagerOpen, setImageManagerOpen] = useState(false);
 
-  const handleRemoveImage = async () => {
-    if (data.image_path) {
-      try {
-        await deleteImage(data.image_path);
-      } catch {
-        // best-effort
-      }
-    }
+  const handleRemoveImage = () => {
     set({ ...data, image_url: "", image_path: "" });
   };
 
@@ -1166,7 +1159,7 @@ function FocusEditor({ data, set }) {
               alt={data.image_alt || ""}
               className="w-full h-auto rounded-xl border border-line"
             />
-            <Tooltip label="Supprimer l'image" align="right" className="absolute top-2 right-2">
+            <Tooltip label="Retirer du bloc" align="right" className="absolute top-2 right-2">
               <button
                 type="button"
                 onClick={handleRemoveImage}
@@ -1282,14 +1275,7 @@ function ImageBlockEditor({ data, set }) {
   const [uploadError, setUploadError] = useState(null);
   const [imageManagerOpen, setImageManagerOpen] = useState(false);
 
-  const handleRemoveImage = async () => {
-    if (data.image_path) {
-      try {
-        await deleteImage(data.image_path);
-      } catch {
-        // best-effort
-      }
-    }
+  const handleRemoveImage = () => {
     set({ ...data, image_url: "", image_path: "" });
   };
 
@@ -1312,7 +1298,7 @@ function ImageBlockEditor({ data, set }) {
               alt={data.image_alt || ""}
               className="w-full h-auto rounded-xl border border-line"
             />
-            <Tooltip label="Supprimer l'image" align="right" className="absolute top-2 right-2">
+            <Tooltip label="Retirer du bloc" align="right" className="absolute top-2 right-2">
               <button
                 type="button"
                 onClick={handleRemoveImage}

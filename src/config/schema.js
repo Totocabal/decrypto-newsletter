@@ -252,6 +252,7 @@ export const INITIAL_STATE = {
   issue_date: thursdayOfCurrentWeek(),
   preview_text:
     "Le marché reprend son souffle — F&G à 72, ETF +1,2 Md$, FED qui tempère.",
+  show_section_numbers: true,
 
   // ── Sections modulaires ───────────────────────────────────────────────
   sections: [
@@ -287,7 +288,10 @@ export const INITIAL_STATE = {
 export function migrateLegacyState(oldState) {
   if (oldState && Array.isArray(oldState.sections)) {
     // Déjà au nouveau format
-    return oldState;
+    return {
+      ...oldState,
+      show_section_numbers: oldState.show_section_numbers !== false,
+    };
   }
   if (!oldState) return INITIAL_STATE;
 
@@ -420,6 +424,7 @@ export function migrateLegacyState(oldState) {
     issue_number: o.issue_number ?? "",
     issue_date: o.issue_date ?? "",
     preview_text: o.preview_text ?? "",
+    show_section_numbers: o.show_section_numbers !== false,
     sections,
     footer: {
       links: o.footer_links ?? [],
@@ -517,6 +522,7 @@ export function getDefaultNewsletterTemplate() {
           typeof parsed?.includeDefaultContent === "boolean"
             ? parsed.includeDefaultContent
             : DEFAULT_TEMPLATE_USES_CONTENT,
+        showSectionNumbers: parsed?.showSectionNumbers !== false,
       };
     }
   } catch {
@@ -525,6 +531,7 @@ export function getDefaultNewsletterTemplate() {
   return {
     sections: INITIAL_SECTION_TEMPLATE.map((entry) => ({ ...entry })),
     includeDefaultContent: DEFAULT_TEMPLATE_USES_CONTENT,
+    showSectionNumbers: true,
   };
 }
 
@@ -532,13 +539,18 @@ export function getDefaultSectionTypes() {
   return getDefaultNewsletterTemplate().sections;
 }
 
-export function saveDefaultSectionTypes(sections, includeDefaultContent = DEFAULT_TEMPLATE_USES_CONTENT) {
+export function saveDefaultSectionTypes(
+  sections,
+  includeDefaultContent = DEFAULT_TEMPLATE_USES_CONTENT,
+  showSectionNumbers = true
+) {
   try {
     localStorage.setItem(
       STORAGE_KEY,
       JSON.stringify({
         sections: normalizeTemplateSections(sections),
         includeDefaultContent,
+        showSectionNumbers: showSectionNumbers !== false,
       })
     );
   } catch {
@@ -548,9 +560,11 @@ export function saveDefaultSectionTypes(sections, includeDefaultContent = DEFAUL
 
 export function buildInitialStateFromTypes(types, options = {}) {
   const includeDefaultContent = options.includeDefaultContent !== false;
+  const showSectionNumbers = options.showSectionNumbers !== false;
   const sections = normalizeTemplateSections(types);
   return {
     ...INITIAL_STATE,
+    show_section_numbers: showSectionNumbers,
     sections: sections.map(({ type }) =>
       section(type, includeDefaultContent ? {} : emptySectionData(type))
     ),

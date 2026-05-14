@@ -401,6 +401,9 @@ function DefaultSectionsEditor() {
   const [includeDefaultContent, setIncludeDefaultContent] = useState(
     () => getDefaultNewsletterTemplate().includeDefaultContent
   );
+  const [showSectionNumbers, setShowSectionNumbers] = useState(
+    () => getDefaultNewsletterTemplate().showSectionNumbers
+  );
   const [saved, setSaved] = useState(false);
   const [presets, setPresets] = useState([]);
   const [presetsLoading, setPresetsLoading] = useState(true);
@@ -471,7 +474,7 @@ function DefaultSectionsEditor() {
   const handleDragEnd = () => { draggedRef.current = null; setDragOverId(null); };
 
   const handleSave = () => {
-    saveDefaultSectionTypes(active, includeDefaultContent);
+    saveDefaultSectionTypes(active, includeDefaultContent, showSectionNumbers);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
@@ -488,6 +491,7 @@ function DefaultSectionsEditor() {
         name: cleanName,
         sections: active,
         includeDefaultContent,
+        showSectionNumbers,
       });
       setPresets((items) =>
         [...items, preset].sort((a, b) => a.name.localeCompare(b.name))
@@ -502,6 +506,7 @@ function DefaultSectionsEditor() {
   const handleLoadPreset = (preset) => {
     setActive(preset.sections);
     setIncludeDefaultContent(preset.includeDefaultContent);
+    setShowSectionNumbers(preset.showSectionNumbers);
     setSaved(false);
   };
 
@@ -519,6 +524,7 @@ function DefaultSectionsEditor() {
   const handleReset = () => {
     setActive(INITIAL_SECTION_TEMPLATE.map((entry) => ({ ...entry })));
     setIncludeDefaultContent(true);
+    setShowSectionNumbers(true);
     setSaved(false);
   };
 
@@ -580,6 +586,32 @@ function DefaultSectionsEditor() {
             checked={includeDefaultContent}
             onChange={(event) => {
               setIncludeDefaultContent(event.target.checked);
+              setSaved(false);
+            }}
+            className="peer sr-only"
+          />
+          <span className="absolute inset-0 rounded-full border border-line bg-d-panel2 transition-colors peer-checked:border-d-pink peer-checked:bg-d-pink/25" />
+          <span className="relative ml-1 h-4 w-4 rounded-full bg-d-fg4 transition-transform peer-checked:translate-x-5 peer-checked:bg-d-pink" />
+        </span>
+      </label>
+
+      <label className="mb-4 flex items-center justify-between gap-4 rounded-2xl border border-line bg-d-panel p-4 cursor-pointer">
+        <span>
+          <span className="block text-xs font-semibold text-d-fg mb-1" style={{ fontFamily: "'Sora', sans-serif" }}>
+            Numérotation des blocs
+          </span>
+          <span className="block text-[11px] leading-relaxed text-d-fg4">
+            {showSectionNumbers
+              ? "Les blocs numérotables afficheront 01, 02, 03…"
+              : "Les blocs seront créés sans numéro affiché."}
+          </span>
+        </span>
+        <span className="relative inline-flex h-6 w-11 flex-shrink-0 items-center">
+          <input
+            type="checkbox"
+            checked={showSectionNumbers}
+            onChange={(event) => {
+              setShowSectionNumbers(event.target.checked);
               setSaved(false);
             }}
             className="peer sr-only"
@@ -739,7 +771,7 @@ function DefaultSectionsEditor() {
                     {preset.name}
                   </div>
                   <div className="mt-1 text-[11px] text-d-fg4">
-                    {preset.sections.length} bloc{preset.sections.length > 1 ? "s" : ""} · {preset.includeDefaultContent ? "avec contenu d'exemple" : "structure vide"}
+                    {preset.sections.length} bloc{preset.sections.length > 1 ? "s" : ""} · {preset.includeDefaultContent ? "avec contenu d'exemple" : "structure vide"} · {preset.showSectionNumbers ? "numéroté" : "sans numérotation"}
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-2">

@@ -306,10 +306,12 @@ function buildFgGauge(value, assetMode) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 function sectionHeader(number, kicker) {
+  const cleanKicker = String(kicker || "").trim();
+  if (!number && !cleanKicker) return "";
   return `<table role="presentation" cellpadding="0" cellspacing="0" border="0">
     <tr>
       ${number ? `<td style="font-family:${FONTS.heading}; font-weight:700; font-size:13px; color:${THEME.accentPrimary}; padding-right:12px;">${escapeHtml(number)}</td>` : ""}
-      <td style="font-family:${FONTS.body}; font-size:11px; letter-spacing:0.2em; text-transform:uppercase; color:${THEME.textMuted}; font-weight:500;">${escapeHtml(kicker)}</td>
+      ${cleanKicker ? `<td style="font-family:${FONTS.body}; font-size:11px; letter-spacing:0.2em; text-transform:uppercase; color:${THEME.textMuted}; font-weight:500;">${escapeHtml(cleanKicker)}</td>` : ""}
     </tr>
   </table>`;
 }
@@ -325,6 +327,7 @@ function sectionTitle(title) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 function renderHero(data) {
+  const kicker = String(data.kicker || "").trim();
   const chips = (data.chips || []).map((c, i, arr) => `
     <td style="${i < arr.length - 1 ? "padding-right:8px;" : ""}">
       <table role="presentation" cellpadding="0" cellspacing="0" border="0">
@@ -335,9 +338,7 @@ function renderHero(data) {
   return `
     <tr>
       <td class="em-px" style="padding:56px 36px 40px;">
-        <p style="margin:0 0 28px; font-family:${FONTS.body}; font-size:11px; letter-spacing:0.2em; color:${THEME.accentPrimary}; font-weight:600; text-transform:uppercase;">
-          ${escapeHtml(data.kicker)}
-        </p>
+        ${kicker ? `<p style="margin:0 0 28px; font-family:${FONTS.body}; font-size:11px; letter-spacing:0.2em; color:${THEME.accentPrimary}; font-weight:600; text-transform:uppercase;">${escapeHtml(kicker)}</p>` : ""}
         <h1 class="em-h1" style="margin:0; font-family:${FONTS.heading}; font-weight:700; font-size:60px; line-height:0.98; letter-spacing:-0.035em; color:${THEME.textPrimary};">
           ${escapeHtml(data.title_part1)}<br />
           ${escapeHtml(data.title_part2)}<span style="color:${THEME.accentPrimary};">${escapeHtml(data.title_highlight)}</span>
@@ -613,6 +614,7 @@ function renderMacro(data, number, anchor = "") {
 }
 
 function renderEvent(data, anchor = "") {
+  const kicker = String(data.kicker || "").trim();
   return `
     <tr>
       <td class="em-px" style="padding:36px;">
@@ -627,7 +629,7 @@ function renderEvent(data, anchor = "") {
                   <p style="margin:0; font-family:${FONTS.body}; font-size:12px; color:${THEME.textMuted}; letter-spacing:0.1em;">${escapeHtml(data.year)}</p>
                 </td>
                 <td class="em-stack em-event-text" valign="middle" style="padding:32px 28px;">
-                  <p style="margin:0 0 12px; font-family:${FONTS.body}; font-size:11px; letter-spacing:0.2em; text-transform:uppercase; font-weight:600; color:${THEME.positive};">${escapeHtml(data.kicker)}</p>
+                  ${kicker ? `<p style="margin:0 0 12px; font-family:${FONTS.body}; font-size:11px; letter-spacing:0.2em; text-transform:uppercase; font-weight:600; color:${THEME.positive};">${escapeHtml(kicker)}</p>` : ""}
                   <h3 style="margin:0; font-family:${FONTS.heading}; font-weight:700; font-size:28px; letter-spacing:-0.025em; line-height:1.05; color:${THEME.textPrimary};">${escapeHtml(data.title)}</h3>
                   <p style="margin:12px 0 0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:13px; line-height:1.5; color:${THEME.textSecondary};">${sanitizeRichText(data.description)}</p>
                   <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:18px;">
@@ -774,8 +776,10 @@ function renderDivider(data) {
 // Dispatcher : section → fonction de rendu
 // ─────────────────────────────────────────────────────────────────────────────
 
-function renderSection(sec, allSections, assetMode) {
-  const number = computeSectionNumber(allSections, sec.id);
+function renderSection(sec, allSections, assetMode, showSectionNumbers = true) {
+  const number = showSectionNumbers === false
+    ? null
+    : computeSectionNumber(allSections, sec.id);
   const anchor = number ? sectionAnchor(sec.id) : "";
   switch (sec.type) {
     case "hero":       return renderHero(sec.data);
@@ -848,8 +852,9 @@ function renderFooter(footer, assetMode) {
 
 export function buildEmailHtml(state, options = {}) {
   const assetMode = options.assetMode || "inline"; // "inline" ou "external"
+  const showSectionNumbers = state.show_section_numbers !== false;
   const sectionsHtml = (state.sections || [])
-    .map(s => renderSection(s, state.sections, assetMode))
+    .map(s => renderSection(s, state.sections, assetMode, showSectionNumbers))
     .join("");
 
   return `<!doctype html>

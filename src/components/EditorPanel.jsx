@@ -304,14 +304,23 @@ export function EditorPanel({ state, setState }) {
 
       {/* ── SECTIONS MODULAIRES ─────────────────────────────────────────── */}
       <div className="mb-6">
-        <div className="flex items-center justify-between mb-3 px-1">
+        <div className="flex flex-col gap-3 mb-3 px-1 sm:flex-row sm:items-center sm:justify-between">
           <div
             className="text-[10px] uppercase tracking-[0.18em] font-semibold text-d-fg2"
             style={{ fontFamily: "'DM Sans', sans-serif" }}
           >
             Sections de la newsletter
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <label className="flex items-center gap-2 rounded-full border border-line px-3 py-1.5 text-[10px] uppercase tracking-[0.14em] font-semibold text-d-fg3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={state.show_section_numbers !== false}
+                onChange={(event) => update({ show_section_numbers: event.target.checked })}
+                className="h-3.5 w-3.5 accent-d-pink"
+              />
+              Numérotation
+            </label>
             <Tooltip
               side="bottom"
               align="right"
@@ -361,7 +370,7 @@ export function EditorPanel({ state, setState }) {
               section={sec}
               index={i}
               total={state.sections.length}
-              number={computeSectionNumber(state.sections, sec.id)}
+              number={state.show_section_numbers === false ? null : computeSectionNumber(state.sections, sec.id)}
               allSections={state.sections}
               isDragOver={dragOverId === sec.id}
               onUpdate={(data) => setSection(sec.id, data)}

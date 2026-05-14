@@ -113,11 +113,13 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
         : mode === "preset" && preset
           ? buildInitialStateFromTypes(preset.sections, {
               includeDefaultContent: preset.includeDefaultContent,
+              showSectionNumbers: preset.showSectionNumbers,
             })
         : (() => {
             const template = getDefaultNewsletterTemplate();
             return buildInitialStateFromTypes(template.sections, {
               includeDefaultContent: template.includeDefaultContent,
+              showSectionNumbers: template.showSectionNumbers,
             });
           })();
     const { data, error } = await supabase
@@ -558,7 +560,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                           {preset.name}
                         </div>
                         <div className="text-[11px] text-d-fg4">
-                          {preset.sections.length} bloc{preset.sections.length > 1 ? "s" : ""} · {preset.includeDefaultContent ? "avec contenu" : "sans contenu"}
+                          {preset.sections.length} bloc{preset.sections.length > 1 ? "s" : ""} · {preset.includeDefaultContent ? "avec contenu" : "sans contenu"} · {preset.showSectionNumbers ? "numéroté" : "sans numérotation"}
                         </div>
                       </button>
                     ))}
