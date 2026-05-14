@@ -80,6 +80,49 @@ export async function createTemplatePreset({
   return normalizePreset(data);
 }
 
+export async function updateTemplatePreset(id, {
+  name,
+  sections,
+  includeDefaultContent,
+  showSectionNumbers,
+}) {
+  const patch = {
+    sections,
+    include_default_content: includeDefaultContent !== false,
+    show_section_numbers: showSectionNumbers !== false,
+  };
+  if (typeof name === "string") patch.name = name;
+
+  const { data, error } = await supabase
+    .from(TABLE)
+    .update(patch)
+    .eq("id", id)
+    .select(SELECT_WITH_NUMBERING)
+    .single();
+
+  if (isMissingNumberingColumn(error)) {
+    const legacyPatch = {
+      sections,
+      include_default_content: includeDefaultContent !== false,
+    };
+    if (typeof name === "string") legacyPatch.name = name;
+    const legacy = await supabase
+      .from(TABLE)
+      .update(legacyPatch)
+      .eq("id", id)
+      .select(SELECT_LEGACY)
+      .single();
+    if (legacy.error) throw legacy.error;
+    return normalizePreset({
+      ...legacy.data,
+      show_section_numbers: showSectionNumbers !== false,
+    });
+  }
+
+  if (error) throw error;
+  return normalizePreset(data);
+}
+
 export async function deleteTemplatePreset(id) {
   const { error } = await supabase.from(TABLE).delete().eq("id", id);
   if (error) throw error;

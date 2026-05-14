@@ -40,6 +40,7 @@ import {
   createTemplatePreset,
   deleteTemplatePreset,
   listTemplatePresets,
+  updateTemplatePreset,
 } from "../lib/templatePresets.js";
 import { Wordmark } from "../components/Wordmark.jsx";
 import {
@@ -409,8 +410,10 @@ function DefaultSectionsEditor() {
   const [presetsLoading, setPresetsLoading] = useState(true);
   const [presetsError, setPresetsError] = useState(null);
   const [presetSaving, setPresetSaving] = useState(false);
+  const [editingPresetId, setEditingPresetId] = useState(null);
   const draggedRef = useRef(null);
   const [dragOverId, setDragOverId] = useState(null);
+  const editingPreset = presets.find((preset) => preset.id === editingPresetId) || null;
 
   const loadPresets = useCallback(async () => {
     setPresetsLoading(true);
@@ -431,6 +434,12 @@ function DefaultSectionsEditor() {
 
   const addBlock = (type) => {
     setActive((prev) => [...prev, createDefaultSectionTemplateEntry(type)]);
+    setSaved(false);
+  };
+
+  const clearBlocks = () => {
+    if (active.length && !confirm("Vider tous les blocs de cette disposition ?")) return;
+    setActive([]);
     setSaved(false);
   };
 
@@ -473,7 +482,29 @@ function DefaultSectionsEditor() {
   };
   const handleDragEnd = () => { draggedRef.current = null; setDragOverId(null); };
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    if (editingPreset) {
+      setPresetSaving(true);
+      setPresetsError(null);
+      try {
+        const updated = await updateTemplatePreset(editingPreset.id, {
+          sections: active,
+          includeDefaultContent,
+          showSectionNumbers,
+        });
+        setPresets((items) =>
+          items.map((item) => (item.id === updated.id ? updated : item))
+        );
+        setSaved(true);
+        setTimeout(() => setSaved(false), 2000);
+      } catch (error) {
+        setPresetsError(error.message || String(error));
+      } finally {
+        setPresetSaving(false);
+      }
+      return;
+    }
+
     saveDefaultSectionTypes(active, includeDefaultContent, showSectionNumbers);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
@@ -496,6 +527,9 @@ function DefaultSectionsEditor() {
       setPresets((items) =>
         [...items, preset].sort((a, b) => a.name.localeCompare(b.name))
       );
+      setEditingPresetId(preset.id);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
     } catch (error) {
       setPresetsError(error.message || String(error));
     } finally {
@@ -507,6 +541,7 @@ function DefaultSectionsEditor() {
     setActive(preset.sections);
     setIncludeDefaultContent(preset.includeDefaultContent);
     setShowSectionNumbers(preset.showSectionNumbers);
+    setEditingPresetId(preset.id);
     setSaved(false);
   };
 
@@ -516,6 +551,7 @@ function DefaultSectionsEditor() {
     try {
       await deleteTemplatePreset(preset.id);
       setPresets((items) => items.filter((item) => item.id !== preset.id));
+      if (editingPresetId === preset.id) setEditingPresetId(null);
     } catch (error) {
       setPresetsError(error.message || String(error));
     }
@@ -525,6 +561,7 @@ function DefaultSectionsEditor() {
     setActive(INITIAL_SECTION_TEMPLATE.map((entry) => ({ ...entry })));
     setIncludeDefaultContent(true);
     setShowSectionNumbers(true);
+    setEditingPresetId(null);
     setSaved(false);
   };
 
@@ -548,14 +585,22 @@ function DefaultSectionsEditor() {
             Réinitialiser
           </button>
           <button
+            onClick={clearBlocks}
+            className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] font-medium text-d-fg3 hover:text-red-300 border border-line hover:border-red-500/30 px-3 py-1.5 rounded-full transition-colors"
+          >
+            <X size={11} />
+            Vider les blocs
+          </button>
+          <button
             onClick={handleSave}
+            disabled={presetSaving}
             className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] font-semibold px-3 py-1.5 rounded-full transition-colors"
             style={saved
               ? { background: "rgba(3,255,207,0.15)", color: "#03FFCF", border: "1px solid rgba(3,255,207,0.25)" }
               : { background: "#FFFFFF", color: "#15151A" }}
           >
-            {saved ? <Check size={11} /> : <Save size={11} />}
-            {saved ? "Sauvegardé" : "Sauvegarder"}
+            {presetSaving ? <Loader2 size={11} className="animate-spin" /> : saved ? <Check size={11} /> : <Save size={11} />}
+            {saved ? "Sauvegardé" : editingPreset ? "Sauvegarder le preset" : "Sauvegarder"}
           </button>
           <button
             onClick={handleCreatePreset}
@@ -568,6 +613,21 @@ function DefaultSectionsEditor() {
           </button>
         </div>
       </div>
+
+      {editingPreset && (
+        <div className="mb-4 flex flex-col gap-2 rounded-2xl border border-d-pink/30 bg-d-pink/10 p-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0 text-xs text-d-fg2">
+            Preset en édition : <span className="font-semibold text-d-fg">{editingPreset.name}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setEditingPresetId(null)}
+            className="self-start rounded-full border border-line px-3 py-1.5 text-[10px] uppercase tracking-[0.18em] text-d-fg3 transition-colors hover:border-line2 hover:text-d-fg sm:self-auto"
+          >
+            Revenir au template par défaut
+          </button>
+        </div>
+      )}
 
       <label className="mb-4 flex items-center justify-between gap-4 rounded-2xl border border-line bg-d-panel p-4 cursor-pointer">
         <span>
