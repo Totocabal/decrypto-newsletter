@@ -73,7 +73,7 @@ async function canvasToBlob(canvas, type) {
 }
 
 async function compressImage(file, options = {}) {
-  const { maxWidth = 1600, forcePng = false } = options;
+  const { maxWidth = 1200, forcePng = false } = options;
   if (!file?.type?.startsWith("image/")) return file;
 
   const img = await fileToImage(file);
