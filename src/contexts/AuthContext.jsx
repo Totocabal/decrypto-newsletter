@@ -10,7 +10,7 @@
 //   signOut     : déconnexion
 //   refreshProfile : re-fetch du profil (après approbation)
 
-import { createContext, useContext, useEffect, useState, useCallback } from "react";
+import { createContext, useContext, useEffect, useRef, useState, useCallback } from "react";
 import { supabase } from "../lib/supabase.js";
 
 const AuthContext = createContext(null);
@@ -54,6 +54,16 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [profileLoading, setProfileLoading] = useState(false);
   const [initError, setInitError] = useState(null);
+  const userIdRef = useRef(null);
+  const profileRef = useRef(null);
+
+  useEffect(() => {
+    userIdRef.current = user?.id || null;
+  }, [user]);
+
+  useEffect(() => {
+    profileRef.current = profile;
+  }, [profile]);
 
   // Récupère le profil correspondant au user courant. Si la ligne n'existe pas
   // encore (cas rare au tout premier login : le trigger côté Supabase peut
@@ -185,14 +195,27 @@ export function AuthProvider({ children }) {
     init();
 
     // Réagit aux changements (login, logout, refresh)
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
       if (!mounted) return;
       const u = session?.user ?? null;
+      const sameLoadedUser = Boolean(
+        u?.id && userIdRef.current === u.id && profileRef.current
+      );
       setUser(u);
       setLoading(false);
       if (!u) {
         setProfile(null);
         setProfileLoading(false);
+        return;
+      }
+
+      // Les refreshs automatiques de Supabase peuvent arriver quand l'onglet
+      // redevient actif. Si c'est le même utilisateur et que le profil est déjà
+      // chargé, on ne repasse pas par le loader global: l'éditeur reste monté.
+      if (
+        sameLoadedUser &&
+        (event === "TOKEN_REFRESHED" || event === "INITIAL_SESSION" || event === "USER_UPDATED")
+      ) {
         return;
       }
 
