@@ -482,32 +482,32 @@ function DefaultSectionsEditor() {
   };
   const handleDragEnd = () => { draggedRef.current = null; setDragOverId(null); };
 
-  const handleSave = async () => {
-    if (editingPreset) {
-      setPresetSaving(true);
-      setPresetsError(null);
-      try {
-        const updated = await updateTemplatePreset(editingPreset.id, {
-          sections: active,
-          includeDefaultContent,
-          showSectionNumbers,
-        });
-        setPresets((items) =>
-          items.map((item) => (item.id === updated.id ? updated : item))
-        );
-        setSaved(true);
-        setTimeout(() => setSaved(false), 2000);
-      } catch (error) {
-        setPresetsError(error.message || String(error));
-      } finally {
-        setPresetSaving(false);
-      }
-      return;
-    }
-
+  const handleSaveDefault = () => {
     saveDefaultSectionTypes(active, includeDefaultContent, showSectionNumbers);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
+  };
+
+  const handleSavePreset = async () => {
+    if (!editingPreset) return;
+    setPresetSaving(true);
+    setPresetsError(null);
+    try {
+      const updated = await updateTemplatePreset(editingPreset.id, {
+        sections: active,
+        includeDefaultContent,
+        showSectionNumbers,
+      });
+      setPresets((items) =>
+        items.map((item) => (item.id === updated.id ? updated : item))
+      );
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch (error) {
+      setPresetsError(error.message || String(error));
+    } finally {
+      setPresetSaving(false);
+    }
   };
 
   const handleCreatePreset = async () => {
@@ -592,16 +592,26 @@ function DefaultSectionsEditor() {
             Vider les blocs
           </button>
           <button
-            onClick={handleSave}
-            disabled={presetSaving}
+            onClick={handleSaveDefault}
             className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] font-semibold px-3 py-1.5 rounded-full transition-colors"
             style={saved
               ? { background: "rgba(3,255,207,0.15)", color: "#03FFCF", border: "1px solid rgba(3,255,207,0.25)" }
               : { background: "#FFFFFF", color: "#15151A" }}
           >
-            {presetSaving ? <Loader2 size={11} className="animate-spin" /> : saved ? <Check size={11} /> : <Save size={11} />}
-            {saved ? "Sauvegardé" : editingPreset ? "Sauvegarder le preset" : "Sauvegarder"}
+            {saved ? <Check size={11} /> : <Save size={11} />}
+            {saved ? "Sauvegardé" : "Sauvegarder version par défaut"}
           </button>
+          {editingPreset && (
+            <button
+              onClick={handleSavePreset}
+              disabled={presetSaving}
+              className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] font-semibold px-3 py-1.5 rounded-full transition-colors disabled:opacity-50"
+              style={{ background: "#FF00AA", color: "#FFFFFF" }}
+            >
+              {presetSaving ? <Loader2 size={11} className="animate-spin" /> : <Save size={11} />}
+              Sauvegarder le preset
+            </button>
+          )}
           <button
             onClick={handleCreatePreset}
             disabled={presetSaving}
@@ -725,7 +735,7 @@ function DefaultSectionsEditor() {
                     type="button"
                     onClick={() => moveBlock(entry.id, -1)}
                     disabled={index === 0}
-                    className="rounded p-0.5 text-d-fg4 transition-colors hover:text-d-fg2 disabled:opacity-20"
+                    className="rounded p-0.5 text-d-pink transition-colors hover:bg-d-pink/10 hover:text-d-pink disabled:opacity-20"
                     title="Monter"
                   >
                     <ChevronUp size={12} />
@@ -734,7 +744,7 @@ function DefaultSectionsEditor() {
                     type="button"
                     onClick={() => moveBlock(entry.id, 1)}
                     disabled={index === active.length - 1}
-                    className="rounded p-0.5 text-d-fg4 transition-colors hover:text-d-fg2 disabled:opacity-20"
+                    className="rounded p-0.5 text-d-pink transition-colors hover:bg-d-pink/10 hover:text-d-pink disabled:opacity-20"
                     title="Descendre"
                   >
                     <ChevronDown size={12} />

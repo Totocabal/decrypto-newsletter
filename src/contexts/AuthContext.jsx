@@ -209,13 +209,10 @@ export function AuthProvider({ children }) {
         return;
       }
 
-      // Les refreshs automatiques de Supabase peuvent arriver quand l'onglet
+      // Supabase peut émettre SIGNED_IN / TOKEN_REFRESHED quand l'onglet
       // redevient actif. Si c'est le même utilisateur et que le profil est déjà
       // chargé, on ne repasse pas par le loader global: l'éditeur reste monté.
-      if (
-        sameLoadedUser &&
-        (event === "TOKEN_REFRESHED" || event === "INITIAL_SESSION" || event === "USER_UPDATED")
-      ) {
+      if (sameLoadedUser && event !== "SIGNED_OUT") {
         return;
       }
 
