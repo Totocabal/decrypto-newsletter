@@ -1159,7 +1159,7 @@ function FocusEditor({ data, set }) {
     let item;
     if (type === "text") item = { id, type: "text", body: "" };
     else if (type === "image") item = { id, type: "image", image_url: "", image_path: "", image_alt: "Visuel d'illustration" };
-    else item = { id, type: "cta", label: "", url: "", style: "primary" };
+    else item = { id, type: "cta", label: "", url: "", arrow: false, centered: false, secondary_label: "", secondary_url: "" };
     setItems([...items, item]);
   };
 
@@ -1245,7 +1245,9 @@ function FocusEditor({ data, set }) {
               )}
               {item.type === "cta" && (
                 <>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                  {/* Bouton principal — gradient */}
+                  <div className="text-[10px] uppercase tracking-[0.15em] font-semibold text-d-fg4 mb-1.5">Bouton principal (gradient)</div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-2">
                     <Field label="Texte">
                       <Input value={item.label || ""} onChange={(e) => updateItem(item.id, { label: e.target.value })} />
                     </Field>
@@ -1253,21 +1255,38 @@ function FocusEditor({ data, set }) {
                       <Input value={item.url || ""} onChange={(e) => updateItem(item.id, { url: e.target.value })} />
                     </Field>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 mb-3">
                     <button
                       type="button"
-                      onClick={() => updateItem(item.id, { style: "primary" })}
-                      className={`flex-1 py-1.5 text-[10px] uppercase tracking-[0.15em] font-semibold rounded-lg border transition-colors ${item.style !== "secondary" ? "bg-d-fg3 border-d-fg3 text-d-bg" : "border-line text-d-fg3 hover:border-line2"}`}
+                      onClick={() => updateItem(item.id, { centered: !item.centered })}
+                      title="Centrer"
+                      className={`px-3 py-1.5 text-[13px] font-semibold rounded-lg border transition-colors ${item.centered ? "bg-d-fg3 border-d-fg3 text-d-bg" : "border-line text-d-fg3 hover:border-line2"}`}
                     >
-                      Gradient
+                      ≡
                     </button>
                     <button
                       type="button"
-                      onClick={() => updateItem(item.id, { style: "secondary" })}
-                      className={`flex-1 py-1.5 text-[10px] uppercase tracking-[0.15em] font-semibold rounded-lg border transition-colors ${item.style === "secondary" ? "bg-d-fg3 border-d-fg3 text-d-bg" : "border-line text-d-fg3 hover:border-line2"}`}
+                      onClick={() => updateItem(item.id, { arrow: !item.arrow })}
+                      title="Flèche →"
+                      className={`px-3 py-1.5 text-[13px] font-semibold rounded-lg border transition-colors ${item.arrow ? "bg-d-fg3 border-d-fg3 text-d-bg" : "border-line text-d-fg3 hover:border-line2"}`}
                     >
-                      Outline
+                      →
                     </button>
+                  </div>
+
+                  {/* Bouton secondaire — outline */}
+                  <div className="border-t border-line pt-3">
+                    <div className="text-[10px] uppercase tracking-[0.15em] font-semibold text-d-fg4 mb-1.5">
+                      Bouton secondaire (outline) — <span className="normal-case font-normal">optionnel, à droite</span>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <Field label="Texte">
+                        <Input value={item.secondary_label || ""} onChange={(e) => updateItem(item.id, { secondary_label: e.target.value })} placeholder="Laisser vide pour masquer" />
+                      </Field>
+                      <Field label="Lien">
+                        <Input value={item.secondary_url || ""} onChange={(e) => updateItem(item.id, { secondary_url: e.target.value })} />
+                      </Field>
+                    </div>
                   </div>
                 </>
               )}
