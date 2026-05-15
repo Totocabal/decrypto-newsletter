@@ -171,11 +171,7 @@ export function AdminPage({ onBack }) {
         className="border-b border-line px-4 py-3 sm:px-6"
         style={{ background: "#1E1E22" }}
       >
-        <div
-          className={`mx-auto flex w-full flex-wrap items-center gap-3 sm:gap-4 ${
-            tab === "template" ? "max-w-none" : "max-w-4xl"
-          }`}
-        >
+        <div className="mx-auto flex w-full max-w-none flex-wrap items-center gap-3 sm:gap-4">
           <Wordmark size={17} />
           <div className="hidden h-6 w-px sm:block" style={{ background: "var(--d-line2)", flexShrink: 0 }} />
           <button
@@ -210,13 +206,7 @@ export function AdminPage({ onBack }) {
         </div>
       </header>
 
-      <main
-        className={
-          tab === "template"
-            ? "w-full min-w-0 p-4 sm:p-6"
-            : "mx-auto max-w-4xl p-4 sm:p-6"
-        }
-      >
+      <main className="w-full min-w-0 p-4 sm:p-6">
         {/* ── Onglet Gestion des comptes ── */}
         <div className={`space-y-6 ${tab !== "accounts" ? "hidden" : ""}`}>
             {loading && (

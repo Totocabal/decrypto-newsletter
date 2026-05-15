@@ -263,7 +263,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
       <header
         className="border-b border-line bg-d-panel px-4 py-3 sm:px-6"
       >
-        <div className="mx-auto flex w-full max-w-5xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mx-auto flex w-full max-w-none flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <Wordmark size={18} />
 
           <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:justify-end sm:overflow-visible sm:pb-0">
@@ -301,7 +301,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
       </header>
 
       {/* Body */}
-      <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10">
+      <main className="w-full min-w-0 px-4 py-8 sm:px-6 sm:py-10">
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h1
