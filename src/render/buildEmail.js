@@ -681,10 +681,11 @@ function renderFocusItem(item) {
   if (item.type === "cta") {
     if (!item.label) return "";
     const ctaText = escapeHtml(item.label) + (item.arrow ? " →" : "");
+    const align = item.centered ? "center" : "left";
     if (item.style === "secondary") {
-      return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:16px;">
+      return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:16px;">
         <tr>
-          <td valign="middle">
+          <td align="${align}" valign="middle">
             <table role="presentation" cellpadding="0" cellspacing="0" border="0">
               <tr>
                 <td style="border:1px solid rgba(255,255,255,0.22); border-radius:99px;">
@@ -696,9 +697,9 @@ function renderFocusItem(item) {
         </tr>
       </table>`;
     }
-    return `<table role="presentation" class="em-cta-row" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:16px;">
+    return `<table role="presentation" class="em-cta-row" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:16px;">
         <tr>
-          <td valign="middle">
+          <td align="${align}" valign="middle">
             <!--[if mso]>
             <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${escapeAttr(item.url || "#")}" style="height:46px; v-text-anchor:middle; width:260px;" arcsize="50%" stroke="f" fillcolor="${EMAIL_THEME.accentTertiary}">
               <w:anchorlock/>

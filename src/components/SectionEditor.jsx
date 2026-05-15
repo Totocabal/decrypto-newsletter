@@ -1270,7 +1270,16 @@ function FocusEditor({ data, set }) {
                     </button>
                     <button
                       type="button"
+                      onClick={() => updateItem(item.id, { centered: !item.centered })}
+                      title="Centrer le bouton"
+                      className={`px-3 py-1.5 text-[13px] font-semibold rounded-lg border transition-colors ${item.centered ? "bg-d-fg3 border-d-fg3 text-d-bg" : "border-line text-d-fg3 hover:border-line2"}`}
+                    >
+                      ≡
+                    </button>
+                    <button
+                      type="button"
                       onClick={() => updateItem(item.id, { arrow: !item.arrow })}
+                      title="Ajouter une flèche"
                       className={`px-3 py-1.5 text-[13px] font-semibold rounded-lg border transition-colors ${item.arrow ? "bg-d-fg3 border-d-fg3 text-d-bg" : "border-line text-d-fg3 hover:border-line2"}`}
                     >
                       →
