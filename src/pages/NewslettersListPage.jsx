@@ -431,7 +431,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
 
         {filteredNewsletters.length > 0 && (
           <div
-            className="bg-d-panel rounded-2xl overflow-hidden border border-line"
+            className="bg-d-panel rounded-2xl border border-line"
             onClick={() => setLabelPickerOpen(null)}
           >
             {filteredNewsletters.map((nl, i, arr) => {
@@ -440,6 +440,8 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
               const cardLabelIds = nlLabels[nl.id] || [];
               const cardLabels = labels.filter((l) => cardLabelIds.includes(l.id));
               const pickerOpen = labelPickerOpen === nl.id;
+              const isFirst = i === 0;
+              const isLast = i === arr.length - 1;
               return (
                 <div key={nl.id}>
                   <div
@@ -452,7 +454,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                         onOpen(nl.id);
                       }
                     }}
-                    className="group flex cursor-pointer items-start gap-3 px-4 py-4 transition-colors hover:bg-d-panel2 focus:bg-d-panel2 focus:outline-none sm:items-center sm:gap-4 sm:px-5"
+                    className={`group flex cursor-pointer items-start gap-3 px-4 py-4 transition-colors hover:bg-d-panel2 focus:bg-d-panel2 focus:outline-none sm:items-center sm:gap-4 sm:px-5 ${isFirst ? "rounded-t-2xl" : ""} ${isLast ? "rounded-b-2xl" : ""}`}
                   >
                     {/* Icon */}
                     <div
