@@ -61,7 +61,7 @@ export const LIGHT_THEME = {
   borderStrong: "rgba(21,21,26,0.22)",
   borderSubtle: "rgba(21,21,26,0.12)",
   positive: "#00BB97",
-  positiveSoft: "#00BB97",
+  positiveSoft: "#00FFFF",
   positiveBg: "rgba(0,187,151,0.12)",
   barTrack: "#D9E0E8",
   gaugeNeedle: "#15151A",
