@@ -408,6 +408,22 @@ const SECTION_ICON_MAP = {
   divider: Minus,
 };
 
+const SECTION_TYPE_DESCRIPTIONS = {
+  hero: "En-tête complet avec titre, intro et indicateurs clés.",
+  index: "Sommaire cliquable vers les sections de la newsletter.",
+  edito: "Texte éditorial accompagné de KPI marché.",
+  chart: "Graphique crypto manuel ou synchronisé CoinGecko.",
+  fear_greed: "Jauge Fear & Greed avec commentaire.",
+  signals: "Signaux haussiers et baissiers en grille.",
+  macro: "Analyse macro avec citation mise en avant.",
+  macro_bars: "Barres de données pour comparer des indicateurs.",
+  event: "Annonce d'évènement avec informations et CTA.",
+  text_block: "Bloc texte simple avec bouton optionnel.",
+  focus: "Texte long, image et boutons optionnels.",
+  image_block: "Image seule avec lien de redirection optionnel.",
+  divider: "Séparateur visuel entre deux blocs.",
+};
+
 function DefaultSectionsEditor() {
   const allTypes = Object.keys(SECTION_TYPES);
   const [blockSearch, setBlockSearch] = useState("");
