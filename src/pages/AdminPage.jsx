@@ -568,12 +568,12 @@ function DefaultSectionsEditor() {
   return (
     <section>
       <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
+        <div className="min-w-0 max-w-xl">
           <h2 className="text-sm font-semibold text-d-fg mb-1" style={{ fontFamily: "'Sora', sans-serif" }}>
             Template nouvelle newsletter
           </h2>
-          <p className="text-xs text-d-fg4 leading-relaxed">
-            Choisis les blocs inclus par défaut à la création. Tu peux ajouter plusieurs fois le même bloc et réordonner les blocs actifs.
+          <p className="max-w-md text-xs text-d-fg4 leading-relaxed">
+            Configure la disposition proposée lors de la création.
           </p>
         </div>
         <div className="flex flex-wrap gap-2 sm:flex-shrink-0">
@@ -639,57 +639,55 @@ function DefaultSectionsEditor() {
         </div>
       )}
 
-      <label className="mb-4 flex items-center justify-between gap-4 rounded-2xl border border-line bg-d-panel p-4 cursor-pointer">
-        <span>
-          <span className="block text-xs font-semibold text-d-fg mb-1" style={{ fontFamily: "'Sora', sans-serif" }}>
-            Contenu par défaut
+      <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <label className="flex items-center justify-between gap-4 rounded-2xl border border-line bg-d-panel p-4 cursor-pointer">
+          <span className="min-w-0">
+            <span className="block text-xs font-semibold text-d-fg mb-1" style={{ fontFamily: "'Sora', sans-serif" }}>
+              Contenu par défaut
+            </span>
+            <span className="block text-[11px] leading-relaxed text-d-fg4">
+              {includeDefaultContent ? "Blocs avec contenu d'exemple." : "Blocs sans contenu prérempli."}
+            </span>
           </span>
-          <span className="block text-[11px] leading-relaxed text-d-fg4">
-            {includeDefaultContent
-              ? "Les blocs créés reprennent le contenu d'exemple existant."
-              : "Les blocs créés sont ajoutés sans contenu prérempli."}
+          <span className="relative inline-flex h-6 w-11 flex-shrink-0 items-center">
+            <input
+              type="checkbox"
+              checked={includeDefaultContent}
+              onChange={(event) => {
+                setIncludeDefaultContent(event.target.checked);
+                setSaved(false);
+              }}
+              className="peer sr-only"
+            />
+            <span className="absolute inset-0 rounded-full border border-line bg-d-panel2 transition-colors peer-checked:border-d-pink peer-checked:bg-d-pink/25" />
+            <span className="relative ml-1 h-4 w-4 rounded-full bg-d-fg4 transition-transform peer-checked:translate-x-5 peer-checked:bg-d-pink" />
           </span>
-        </span>
-        <span className="relative inline-flex h-6 w-11 flex-shrink-0 items-center">
-          <input
-            type="checkbox"
-            checked={includeDefaultContent}
-            onChange={(event) => {
-              setIncludeDefaultContent(event.target.checked);
-              setSaved(false);
-            }}
-            className="peer sr-only"
-          />
-          <span className="absolute inset-0 rounded-full border border-line bg-d-panel2 transition-colors peer-checked:border-d-pink peer-checked:bg-d-pink/25" />
-          <span className="relative ml-1 h-4 w-4 rounded-full bg-d-fg4 transition-transform peer-checked:translate-x-5 peer-checked:bg-d-pink" />
-        </span>
-      </label>
+        </label>
 
-      <label className="mb-4 flex items-center justify-between gap-4 rounded-2xl border border-line bg-d-panel p-4 cursor-pointer">
-        <span>
-          <span className="block text-xs font-semibold text-d-fg mb-1" style={{ fontFamily: "'Sora', sans-serif" }}>
-            Numérotation des blocs
+        <label className="flex items-center justify-between gap-4 rounded-2xl border border-line bg-d-panel p-4 cursor-pointer">
+          <span className="min-w-0">
+            <span className="block text-xs font-semibold text-d-fg mb-1" style={{ fontFamily: "'Sora', sans-serif" }}>
+              Numérotation des blocs
+            </span>
+            <span className="block text-[11px] leading-relaxed text-d-fg4">
+              {showSectionNumbers ? "Affiche 01, 02, 03…" : "Crée sans numéros."}
+            </span>
           </span>
-          <span className="block text-[11px] leading-relaxed text-d-fg4">
-            {showSectionNumbers
-              ? "Les blocs numérotables afficheront 01, 02, 03…"
-              : "Les blocs seront créés sans numéro affiché."}
+          <span className="relative inline-flex h-6 w-11 flex-shrink-0 items-center">
+            <input
+              type="checkbox"
+              checked={showSectionNumbers}
+              onChange={(event) => {
+                setShowSectionNumbers(event.target.checked);
+                setSaved(false);
+              }}
+              className="peer sr-only"
+            />
+            <span className="absolute inset-0 rounded-full border border-line bg-d-panel2 transition-colors peer-checked:border-d-pink peer-checked:bg-d-pink/25" />
+            <span className="relative ml-1 h-4 w-4 rounded-full bg-d-fg4 transition-transform peer-checked:translate-x-5 peer-checked:bg-d-pink" />
           </span>
-        </span>
-        <span className="relative inline-flex h-6 w-11 flex-shrink-0 items-center">
-          <input
-            type="checkbox"
-            checked={showSectionNumbers}
-            onChange={(event) => {
-              setShowSectionNumbers(event.target.checked);
-              setSaved(false);
-            }}
-            className="peer sr-only"
-          />
-          <span className="absolute inset-0 rounded-full border border-line bg-d-panel2 transition-colors peer-checked:border-d-pink peer-checked:bg-d-pink/25" />
-          <span className="relative ml-1 h-4 w-4 rounded-full bg-d-fg4 transition-transform peer-checked:translate-x-5 peer-checked:bg-d-pink" />
-        </span>
-      </label>
+        </label>
+      </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {/* Colonne gauche — blocs actifs */}

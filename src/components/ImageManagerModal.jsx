@@ -237,10 +237,10 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId }) {
   };
 
   const viewModes = [
-    { id: "grid4", label: "4", title: "Grille 4 images", icon: Grid2X2 },
-    { id: "grid8", label: "8", title: "Grille 8 images", icon: Grid3X3 },
-    { id: "grid16", label: "16", title: "Grille 16 images", icon: Grid3X3 },
-    { id: "list", label: "Liste", title: "Vue liste", icon: List },
+    { id: "grid4", label: "4", mobileLabel: "1", icon: Grid2X2 },
+    { id: "grid8", label: "8", mobileLabel: "2", icon: Grid3X3 },
+    { id: "grid16", label: "16", mobileLabel: "4", icon: Grid3X3 },
+    { id: "list", label: "Liste", mobileLabel: "Liste", icon: List },
   ];
 
   const selectImage = (image) => {
@@ -595,20 +595,20 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId }) {
                   const Icon = mode.icon;
                   const active = viewMode === mode.id;
                   return (
-                    <Tooltip key={mode.id} label={mode.title} side="bottom">
-                      <button
-                        type="button"
-                        onClick={() => setViewMode(mode.id)}
-                        className={`inline-flex h-8 flex-shrink-0 items-center gap-1.5 rounded-lg px-2.5 text-[10px] uppercase tracking-[0.14em] transition-colors ${
-                          active
-                            ? "bg-d-panel3 text-d-fg"
-                            : "text-d-fg4 hover:text-d-fg2"
-                        }`}
-                      >
-                        <Icon size={13} />
-                        {mode.label}
-                      </button>
-                    </Tooltip>
+                    <button
+                      key={mode.id}
+                      type="button"
+                      onClick={() => setViewMode(mode.id)}
+                      className={`inline-flex h-8 flex-shrink-0 items-center gap-1.5 rounded-lg px-2.5 text-[10px] uppercase tracking-[0.14em] transition-colors ${
+                        active
+                          ? "bg-d-panel3 text-d-fg"
+                          : "text-d-fg4 hover:text-d-fg2"
+                      }`}
+                    >
+                      <Icon size={13} />
+                      <span className="sm:hidden">{mode.mobileLabel}</span>
+                      <span className="hidden sm:inline">{mode.label}</span>
+                    </button>
                   );
                 })}
               </div>
