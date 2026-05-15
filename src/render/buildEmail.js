@@ -659,11 +659,23 @@ function renderEvent(data, anchor = "") {
 }
 
 function renderFocus(data, number, anchor = "") {
-  // Image : si pas d'URL renseignée, on affiche un placeholder gris
-  const imgUrl =
-    data.image_url ||
-    "https://placehold.co/568x280/1a0c2e/ffffff?text=VISUEL+%C2%B7+568+%C3%97+280";
+  const imgUrl = String(data.image_url || "").trim();
   const altText = data.image_alt || "Visuel d'illustration";
+  const hasBody = String(data.body || "").replace(/<[^>]*>/g, "").trim();
+  const imageBlock = imgUrl
+    ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="${hasBody || data.cta_primary_label || data.cta_secondary_label ? "margin-bottom:26px;" : ""}">
+        <tr>
+          <td>
+            <img src="${escapeAttr(imgUrl)}" width="568" height="280" alt="${escapeAttr(altText)}" style="display:block; width:100%; max-width:568px; height:auto; border-radius:14px; border:1px solid ${EMAIL_THEME.borderSubtle};" />
+          </td>
+        </tr>
+      </table>`
+    : "";
+  const textBlock = hasBody
+    ? `<p style="margin:0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:15px; line-height:1.65; color:${EMAIL_THEME.textSecondary};">
+        ${sanitizeRichText(data.body)}
+      </p>`
+    : "";
 
   // CTA primaire (gradient) — version bulletproof avec fallback Outlook VML
   const primaryBtn = data.cta_primary_label
@@ -700,7 +712,7 @@ function renderFocus(data, number, anchor = "") {
     : "";
 
   const ctaRow = (primaryBtn || secondaryBtn)
-    ? `<table role="presentation" class="em-cta-row" cellpadding="0" cellspacing="0" border="0" style="margin-top:26px;">
+    ? `<table role="presentation" class="em-cta-row" cellpadding="0" cellspacing="0" border="0" style="${textBlock || imageBlock ? "margin-top:26px;" : ""}">
         <tr>${primaryBtn}${secondaryBtn}</tr>
       </table>`
     : "";
@@ -712,18 +724,8 @@ function renderFocus(data, number, anchor = "") {
         ${sectionHeader(number, data.kicker)}
         <h2 class="em-h2" style="margin:12px 0 22px; font-family:${FONTS.heading}; font-weight:600; font-size:30px; line-height:1.1; letter-spacing:-0.025em; color:${EMAIL_THEME.textPrimary};">${escapeHtml(data.title)}</h2>
 
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:26px;">
-          <tr>
-            <td>
-              <img src="${escapeAttr(imgUrl)}" width="568" height="280" alt="${escapeAttr(altText)}" style="display:block; width:100%; max-width:568px; height:auto; border-radius:14px; border:1px solid ${EMAIL_THEME.borderSubtle};" />
-            </td>
-          </tr>
-        </table>
-
-        <p style="margin:0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:15px; line-height:1.65; color:${EMAIL_THEME.textSecondary};">
-          ${sanitizeRichText(data.body)}
-        </p>
-
+        ${imageBlock}
+        ${textBlock}
         ${ctaRow}
       </td>
     </tr>`;

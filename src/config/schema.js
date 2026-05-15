@@ -185,7 +185,7 @@ export const SECTION_TYPES = {
     }),
   },
   focus: {
-    label: "Focus",
+    label: "Texte & Media",
     icon: "ImageIcon",
     factory: () => ({
       kicker: "FOCUS",

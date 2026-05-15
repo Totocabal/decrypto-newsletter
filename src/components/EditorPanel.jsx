@@ -662,7 +662,7 @@ const SECTION_TYPE_DESCRIPTIONS = {
   macro_bars: "Barres de données pour comparer des indicateurs.",
   event: "Annonce d'évènement avec informations et CTA.",
   text_block: "Bloc texte simple avec bouton optionnel.",
-  focus: "Image, texte long et boutons optionnels.",
+  focus: "Texte long, image et boutons optionnels.",
   image_block: "Image seule avec lien de redirection optionnel.",
   divider: "Séparateur visuel entre deux blocs.",
 };

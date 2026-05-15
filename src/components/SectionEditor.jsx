@@ -1149,7 +1149,7 @@ function FocusEditor({ data, set }) {
       </Field>
 
       <div className="text-[10px] uppercase tracking-[0.18em] font-semibold text-d-fg3 mb-1.5">
-        Image (568×280 conseillé, max {MAX_IMAGE_FILE_SIZE_LABEL})
+        Image optionnelle (568×280 conseillé, max {MAX_IMAGE_FILE_SIZE_LABEL})
       </div>
       {data.image_url ? (
         <div className="mb-4 bg-d-panel2 border border-line rounded-xl p-3">
@@ -1204,16 +1204,18 @@ function FocusEditor({ data, set }) {
         </div>
       )}
 
-      <Field label="Texte alternatif (alt)" hint="Pour les lecteurs d'écran et si l'image ne charge pas">
-        <Input
-          value={data.image_alt}
-          onChange={(e) => set({ ...data, image_alt: e.target.value })}
-        />
-      </Field>
+      {data.image_url && (
+        <Field label="Texte alternatif (alt)" hint="Pour les lecteurs d'écran et si l'image ne charge pas">
+          <Input
+            value={data.image_alt}
+            onChange={(e) => set({ ...data, image_alt: e.target.value })}
+          />
+        </Field>
+      )}
 
       <Field
-        label="Texte du focus"
-        hint="Éditeur riche : gras, italique, souligné, rayé, lien et listes"
+        label="Texte optionnel"
+        hint="Laisse vide pour ne pas afficher de paragraphe. Éditeur riche : gras, italique, souligné, rayé, lien et listes"
       >
         <TextArea
           showCount
