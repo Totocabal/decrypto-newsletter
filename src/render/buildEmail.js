@@ -405,7 +405,7 @@ function renderIndex(data, allSections) {
   return `
     <tr>
       <td class="em-px" style="padding:0 36px; border-bottom:1px solid ${EMAIL_THEME.border};">
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-top:1px solid ${EMAIL_THEME.borderSubtle};">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
           <tr>
             <td style="padding:28px 0 18px;">
               <p style="margin:0; font-family:${FONTS.body}; font-size:11px; letter-spacing:0.18em; text-transform:uppercase; color:${EMAIL_THEME.textDim}; font-weight:500;">${escapeHtml(data.label)}</p>
@@ -952,9 +952,12 @@ function renderSection(sec, allSections, assetMode, showSectionNumbers = true) {
 
 function renderHeader(state, assetMode) {
   const logoUrl = BRAND_LOGOS[getEmailThemeVariant(state)] || BRAND_LOGOS.dark;
+  const gradientHeaderUrl = assetMode === "external"
+    ? "assets/gradient-header.png"
+    : "https://decrypto-newsletter.vercel.app/gradient-header.png";
   return `
     <tr>
-      <td style="height:4px; line-height:4px; font-size:1px; padding:0; border:0;"><img src="https://decrypto-newsletter.vercel.app/gradient-header.png" width="640" height="4" alt="" style="display:block; width:100%; height:4px; border:0; line-height:4px;" /></td>
+      <td style="height:4px; line-height:4px; font-size:1px; padding:0; border:0;"><img src="${gradientHeaderUrl}" width="640" height="4" alt="" style="display:block; width:100%; height:4px; border:0; line-height:4px;" /></td>
     </tr>
     <tr>
       <td class="em-px" style="padding:22px 36px; border-bottom:1px solid ${EMAIL_THEME.border};">
