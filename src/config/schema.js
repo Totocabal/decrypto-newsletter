@@ -524,6 +524,7 @@ export function getDefaultNewsletterTemplate() {
             : DEFAULT_TEMPLATE_USES_CONTENT,
         showSectionNumbers: parsed?.showSectionNumbers !== false,
         themeVariant: parsed?.themeVariant === "light" ? "light" : "dark",
+        includeIssueDate: parsed?.includeIssueDate !== false,
       };
     }
   } catch {
@@ -534,6 +535,7 @@ export function getDefaultNewsletterTemplate() {
     includeDefaultContent: DEFAULT_TEMPLATE_USES_CONTENT,
     showSectionNumbers: true,
     themeVariant: "dark",
+    includeIssueDate: true,
   };
 }
 
@@ -545,7 +547,8 @@ export function saveDefaultSectionTypes(
   sections,
   includeDefaultContent = DEFAULT_TEMPLATE_USES_CONTENT,
   showSectionNumbers = true,
-  themeVariant = "dark"
+  themeVariant = "dark",
+  includeIssueDate = true
 ) {
   try {
     localStorage.setItem(
@@ -555,6 +558,7 @@ export function saveDefaultSectionTypes(
         includeDefaultContent,
         showSectionNumbers: showSectionNumbers !== false,
         themeVariant: themeVariant === "light" ? "light" : "dark",
+        includeIssueDate: includeIssueDate !== false,
       })
     );
   } catch {
@@ -566,11 +570,13 @@ export function buildInitialStateFromTypes(types, options = {}) {
   const includeDefaultContent = options.includeDefaultContent !== false;
   const showSectionNumbers = options.showSectionNumbers !== false;
   const themeVariant = options.themeVariant === "light" ? "light" : "dark";
+  const includeIssueDate = options.includeIssueDate !== false;
   const sections = normalizeTemplateSections(types);
   return {
     ...INITIAL_STATE,
     show_section_numbers: showSectionNumbers,
     theme_variant: themeVariant,
+    issue_date: includeIssueDate ? INITIAL_STATE.issue_date : "",
     sections: sections.map(({ type }) =>
       section(type, includeDefaultContent ? {} : emptySectionData(type))
     ),

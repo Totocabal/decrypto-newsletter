@@ -128,6 +128,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
               includeDefaultContent: preset.includeDefaultContent,
               showSectionNumbers: preset.showSectionNumbers,
               themeVariant: preset.themeVariant,
+              includeIssueDate: preset.includeIssueDate,
             })
         : (() => {
             const template = getDefaultNewsletterTemplate();
@@ -135,6 +136,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
               includeDefaultContent: template.includeDefaultContent,
               showSectionNumbers: template.showSectionNumbers,
               themeVariant: template.themeVariant,
+              includeIssueDate: template.includeIssueDate,
             });
           })();
     const { data, error } = await supabase
@@ -699,7 +701,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                           {preset.name}
                         </div>
                         <div className="text-[11px] text-d-fg4">
-                          {preset.sections.length} bloc{preset.sections.length > 1 ? "s" : ""} · {preset.includeDefaultContent ? "avec contenu" : "sans contenu"} · {preset.showSectionNumbers ? "numéroté" : "sans numérotation"} · {preset.themeVariant === "light" ? "fond blanc" : "fond sombre"}
+                          {preset.sections.length} bloc{preset.sections.length > 1 ? "s" : ""} · {preset.includeDefaultContent ? "avec contenu" : "sans contenu"} · {preset.showSectionNumbers ? "numéroté" : "sans numérotation"} · {preset.themeVariant === "light" ? "fond blanc" : "fond sombre"} · {preset.includeIssueDate ? "avec date" : "sans date"}
                         </div>
                       </button>
                     ))}
