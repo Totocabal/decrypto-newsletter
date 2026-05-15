@@ -277,6 +277,30 @@ export function EditorPanel({ state, setState }) {
 
   return (
     <>
+      <div className="mb-6 px-1">
+        <label className="flex items-center justify-between gap-4 rounded-xl border border-line bg-d-panel px-4 py-3 text-xs text-d-fg3 cursor-pointer">
+          <span className="min-w-0">
+            <span className="flex items-center gap-2 font-semibold text-d-fg">
+              <Palette size={14} />
+              Fond blanc
+            </span>
+            <span className="mt-1 block text-[11px] leading-relaxed text-d-fg4">
+              {state.theme_variant === "light" ? "Newsletter sur fond blanc." : "Newsletter sur fond sombre."}
+            </span>
+          </span>
+          <span className="relative inline-flex h-6 w-11 flex-shrink-0 items-center">
+            <input
+              type="checkbox"
+              checked={state.theme_variant === "light"}
+              onChange={(event) => update({ theme_variant: event.target.checked ? "light" : "dark" })}
+              className="peer sr-only"
+            />
+            <span className="absolute inset-0 rounded-full border border-line bg-d-panel2 transition-colors peer-checked:border-d-pink peer-checked:bg-d-pink/25" />
+            <span className="relative ml-1 h-4 w-4 rounded-full bg-d-fg4 transition-transform peer-checked:translate-x-5 peer-checked:bg-d-pink" />
+          </span>
+        </label>
+      </div>
+
       {/* ── EN-TÊTE FIXE ────────────────────────────────────────────────── */}
       <Section title="En-tête">
         <Field label="Nom de la marque">
@@ -301,22 +325,6 @@ export function EditorPanel({ state, setState }) {
             onChange={(e) => update({ preview_text: e.target.value })}
           />
         </Field>
-        <label className="flex items-center justify-between gap-4 rounded-xl border border-line bg-d-panel2 px-3 py-2.5 text-xs text-d-fg3 cursor-pointer">
-          <span className="flex items-center gap-2">
-            <Palette size={14} />
-            Fond blanc
-          </span>
-          <span className="relative inline-flex h-6 w-11 flex-shrink-0 items-center">
-            <input
-              type="checkbox"
-              checked={state.theme_variant === "light"}
-              onChange={(event) => update({ theme_variant: event.target.checked ? "light" : "dark" })}
-              className="peer sr-only"
-            />
-            <span className="absolute inset-0 rounded-full border border-line bg-d-panel transition-colors peer-checked:border-d-pink peer-checked:bg-d-pink/25" />
-            <span className="relative ml-1 h-4 w-4 rounded-full bg-d-fg4 transition-transform peer-checked:translate-x-5 peer-checked:bg-d-pink" />
-          </span>
-        </label>
       </Section>
 
       {/* ── SECTIONS MODULAIRES ─────────────────────────────────────────── */}
