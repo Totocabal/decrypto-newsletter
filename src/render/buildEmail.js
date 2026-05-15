@@ -791,9 +791,9 @@ function renderFocusItem(item) {
   if (item.type === "text") {
     const hasBody = String(item.body || "").replace(/<[^>]*>/g, "").trim();
     if (!hasBody) return "";
-    return `<p style="margin:0 0 26px; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:15px; line-height:1.65; color:${EMAIL_THEME.textSecondary};">
+    return `<div style="margin:0 0 26px; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:15px; line-height:1.65; color:${EMAIL_THEME.textSecondary};">
         ${sanitizeRichText(item.body)}
-      </p>`;
+      </div>`;
   }
   if (item.type === "cta") {
     if (!item.label) return "";
@@ -897,7 +897,7 @@ function renderFocusItem(item) {
                 <td valign="middle" style="font-family:${FONTS.body}; font-size:11px; letter-spacing:0.2em; text-transform:uppercase; font-weight:600; color:${calloutAccent};">${escapeHtml(item.label || "Note de la rédac")}</td>
               </tr>
             </table>
-            <p style="margin:0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:14px; line-height:1.6; color:${bodyColor};">${sanitizeRichText(item.body)}</p>
+            <div style="margin:0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:14px; line-height:1.6; color:${bodyColor};">${sanitizeRichText(item.body)}</div>
             ${footer}
           </td>
         </tr>
