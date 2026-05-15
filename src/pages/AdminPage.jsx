@@ -9,6 +9,7 @@ import {
   ChevronDown,
   ChevronUp,
   Copy,
+  Eye,
   GripVertical,
   Loader2,
   Megaphone,
@@ -29,6 +30,7 @@ import {
   RefreshCw,
   RotateCcw,
   Save,
+  Search,
   ShieldCheck,
   Tag,
   Users,
@@ -408,6 +410,7 @@ const SECTION_ICON_MAP = {
 
 function DefaultSectionsEditor() {
   const allTypes = Object.keys(SECTION_TYPES);
+  const [blockSearch, setBlockSearch] = useState("");
   const [active, setActive] = useState(() => getDefaultNewsletterTemplate().sections);
   const [includeDefaultContent, setIncludeDefaultContent] = useState(
     () => getDefaultNewsletterTemplate().includeDefaultContent
@@ -430,6 +433,9 @@ function DefaultSectionsEditor() {
   const draggedRef = useRef(null);
   const [dragOverId, setDragOverId] = useState(null);
   const editingPreset = presets.find((preset) => preset.id === editingPresetId) || null;
+  const filteredTypes = allTypes.filter((type) =>
+    SECTION_TYPES[type].label.toLowerCase().includes(blockSearch.trim().toLowerCase())
+  );
 
   const loadPresets = useCallback(async () => {
     setPresetsLoading(true);
@@ -663,281 +669,442 @@ function DefaultSectionsEditor() {
         </div>
       )}
 
-      <div className="mb-4 grid grid-cols-1 gap-3 lg:grid-cols-4">
-        <label className="flex items-center justify-between gap-4 rounded-2xl border border-line bg-d-panel p-4 cursor-pointer">
-          <span className="min-w-0">
-            <span className="block text-xs font-semibold text-d-fg mb-1" style={{ fontFamily: "'Sora', sans-serif" }}>
-              Contenu par défaut
-            </span>
-            <span className="block text-[11px] leading-relaxed text-d-fg4">
-              {includeDefaultContent ? "Blocs avec contenu d'exemple." : "Blocs sans contenu prérempli."}
-            </span>
-          </span>
-          <span className="relative inline-flex h-6 w-11 flex-shrink-0 items-center">
-            <input
-              type="checkbox"
-              checked={includeDefaultContent}
-              onChange={(event) => {
-                setIncludeDefaultContent(event.target.checked);
-                setSaved(false);
-              }}
-              className="peer sr-only"
-            />
-            <span className="absolute inset-0 rounded-full border border-line bg-d-panel2 transition-colors peer-checked:border-d-pink peer-checked:bg-d-pink/25" />
-            <span className="relative ml-1 h-4 w-4 rounded-full bg-d-fg4 transition-transform peer-checked:translate-x-5 peer-checked:bg-d-pink" />
-          </span>
-        </label>
-
-        <label className="flex items-center justify-between gap-4 rounded-2xl border border-line bg-d-panel p-4 cursor-pointer">
-          <span className="min-w-0">
-            <span className="block text-xs font-semibold text-d-fg mb-1" style={{ fontFamily: "'Sora', sans-serif" }}>
-              Numérotation des blocs
-            </span>
-            <span className="block text-[11px] leading-relaxed text-d-fg4">
-              {showSectionNumbers ? "Affiche 01, 02, 03…" : "Crée sans numéros."}
-            </span>
-          </span>
-          <span className="relative inline-flex h-6 w-11 flex-shrink-0 items-center">
-            <input
-              type="checkbox"
-              checked={showSectionNumbers}
-              onChange={(event) => {
-                setShowSectionNumbers(event.target.checked);
-                setSaved(false);
-              }}
-              className="peer sr-only"
-            />
-            <span className="absolute inset-0 rounded-full border border-line bg-d-panel2 transition-colors peer-checked:border-d-pink peer-checked:bg-d-pink/25" />
-            <span className="relative ml-1 h-4 w-4 rounded-full bg-d-fg4 transition-transform peer-checked:translate-x-5 peer-checked:bg-d-pink" />
-          </span>
-        </label>
-
-        <label className="flex items-center justify-between gap-4 rounded-2xl border border-line bg-d-panel p-4 cursor-pointer">
-          <span className="min-w-0">
-            <span className="flex items-center gap-2 text-xs font-semibold text-d-fg mb-1" style={{ fontFamily: "'Sora', sans-serif" }}>
-              <Palette size={13} />
-              Fond blanc
-            </span>
-            <span className="block text-[11px] leading-relaxed text-d-fg4">
-              {themeVariant === "light" ? "Email clair avec logo noir." : "Email sombre avec logo clair."}
-            </span>
-          </span>
-          <span className="relative inline-flex h-6 w-11 flex-shrink-0 items-center">
-            <input
-              type="checkbox"
-              checked={themeVariant === "light"}
-              onChange={(event) => {
-                setThemeVariant(event.target.checked ? "light" : "dark");
-                setSaved(false);
-              }}
-              className="peer sr-only"
-            />
-            <span className="absolute inset-0 rounded-full border border-line bg-d-panel2 transition-colors peer-checked:border-d-pink peer-checked:bg-d-pink/25" />
-            <span className="relative ml-1 h-4 w-4 rounded-full bg-d-fg4 transition-transform peer-checked:translate-x-5 peer-checked:bg-d-pink" />
-          </span>
-        </label>
-
-        <label className="flex items-center justify-between gap-4 rounded-2xl border border-line bg-d-panel p-4 cursor-pointer">
-          <span className="min-w-0">
-            <span className="flex items-center gap-2 text-xs font-semibold text-d-fg mb-1" style={{ fontFamily: "'Sora', sans-serif" }}>
-              <Calendar size={13} />
-              Date d'en-tête
-            </span>
-            <span className="block text-[11px] leading-relaxed text-d-fg4">
-              {includeIssueDate ? "Date préremplie à la création." : "Crée avec une date vide."}
-            </span>
-          </span>
-          <span className="relative inline-flex h-6 w-11 flex-shrink-0 items-center">
-            <input
-              type="checkbox"
-              checked={includeIssueDate}
-              onChange={(event) => {
-                setIncludeIssueDate(event.target.checked);
-                setSaved(false);
-              }}
-              className="peer sr-only"
-            />
-            <span className="absolute inset-0 rounded-full border border-line bg-d-panel2 transition-colors peer-checked:border-d-pink peer-checked:bg-d-pink/25" />
-            <span className="relative ml-1 h-4 w-4 rounded-full bg-d-fg4 transition-transform peer-checked:translate-x-5 peer-checked:bg-d-pink" />
-          </span>
-        </label>
-      </div>
-
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        {/* Colonne gauche — blocs actifs */}
-        <div>
-          <div className="text-[10px] uppercase tracking-[0.18em] text-d-fg3 font-medium mb-3 flex items-center gap-2">
-            Inclus
-            <span className="bg-d-panel2 border border-line px-1.5 py-0.5 rounded-full text-d-fg4">
-              {active.length}
-            </span>
-          </div>
-          <div className="flex flex-col gap-1.5 min-h-16">
-            {active.length === 0 && (
-              <div className="text-[11px] text-d-fg4 italic py-3 px-1">Aucun bloc actif</div>
-            )}
-            {active.map((entry, index) => {
-              const type = entry.type;
-              const Icon = SECTION_ICON_MAP[type] ?? Newspaper;
-              const isDragOver = dragOverId === entry.id;
-              return (
-                <div
-                  key={entry.id}
-                  draggable
-                  onDragStart={() => handleDragStart(entry.id)}
-                  onDragOver={(e) => handleDragOver(e, entry.id)}
-                  onDragLeave={handleDragLeave}
-                  onDrop={(e) => handleDrop(e, entry.id)}
-                  onDragEnd={handleDragEnd}
-                  className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl border transition-all cursor-grab active:cursor-grabbing ${
-                    isDragOver
-                      ? "border-line2 bg-d-panel3 scale-[1.01]"
-                      : "border-line bg-d-panel2 hover:border-line2"
-                  }`}
-                >
-                  <GripVertical size={13} className="text-d-fg4 flex-shrink-0" />
-                  <Icon size={13} className="text-d-fg3 flex-shrink-0" />
-                  <span className="text-xs font-medium text-d-fg flex-1 leading-none">
-                    {SECTION_TYPES[type].label}
-                  </span>
-                  <span className="text-[10px] text-d-fg5 tabular-nums">
-                    {String(index + 1).padStart(2, "0")}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => moveBlock(entry.id, -1)}
-                    disabled={index === 0}
-                    className="rounded p-0.5 text-d-pink transition-colors hover:bg-d-pink/10 hover:text-d-pink disabled:opacity-20"
-                    title="Monter"
-                  >
-                    <ChevronUp size={12} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => moveBlock(entry.id, 1)}
-                    disabled={index === active.length - 1}
-                    className="rounded p-0.5 text-d-pink transition-colors hover:bg-d-pink/10 hover:text-d-pink disabled:opacity-20"
-                    title="Descendre"
-                  >
-                    <ChevronDown size={12} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => removeBlock(entry.id)}
-                    className="text-d-fg4 hover:text-d-fg2 transition-colors p-0.5 rounded flex-shrink-0"
-                    title="Retirer"
-                  >
-                    <X size={12} />
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Colonne droite — catalogue de blocs */}
-        <div>
-          <div className="text-[10px] uppercase tracking-[0.18em] text-d-fg3 font-medium mb-3 flex items-center gap-2">
-            Ajouter un bloc
-            <span className="bg-d-panel2 border border-line px-1.5 py-0.5 rounded-full text-d-fg4">
-              {allTypes.length}
-            </span>
-          </div>
-          <div className="flex flex-col gap-1.5">
-            {allTypes.map((type) => {
-              const Icon = SECTION_ICON_MAP[type] ?? Newspaper;
-              return (
-                <button
-                  key={type}
-                  type="button"
-                  onClick={() => addBlock(type)}
-                  className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl border border-line bg-d-panel hover:bg-d-panel2 hover:border-line2 transition-all cursor-pointer text-left group"
-                >
-                  <Icon size={13} className="text-d-fg4 flex-shrink-0 group-hover:text-d-fg3 transition-colors" />
-                  <span className="text-xs text-d-fg3 flex-1 leading-none group-hover:text-d-fg transition-colors">
-                    {SECTION_TYPES[type].label}
-                  </span>
-                  <Plus size={12} className="text-d-fg4 flex-shrink-0 group-hover:text-d-fg2 transition-colors" />
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-
-      <div className="mt-6 rounded-2xl border border-line bg-d-panel p-4">
-        <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h3 className="text-xs font-semibold text-d-fg" style={{ fontFamily: "'Sora', sans-serif" }}>
-              Presets partagés
-            </h3>
-            <p className="mt-1 text-[11px] leading-relaxed text-d-fg4">
-              Ces dispositions seront proposées aux utilisateurs dans “Nouveau Template”.
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={loadPresets}
-            disabled={presetsLoading}
-            className="inline-flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5 text-[10px] uppercase tracking-[0.18em] text-d-fg3 transition-colors hover:border-line2 hover:text-d-fg disabled:opacity-50"
-          >
-            <RefreshCw size={11} className={presetsLoading ? "animate-spin" : ""} />
-            Rafraîchir
-          </button>
-        </div>
-
-        {presetsError && (
-          <div className="mb-3 rounded-xl border border-red-500/20 bg-red-950/20 p-3 text-[11px] leading-relaxed text-red-300">
-            Presets indisponibles : {presetsError}. Exécute `supabase/template-presets.sql` si la table n'existe pas encore.
-          </div>
-        )}
-
-        {presetsLoading ? (
-          <div className="flex items-center justify-center gap-2 py-6 text-xs uppercase tracking-[0.18em] text-d-fg3">
-            <Loader2 size={14} className="animate-spin" />
-            Chargement…
-          </div>
-        ) : presets.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-line p-5 text-center text-xs text-d-fg4">
-            Aucun preset partagé pour le moment.
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 gap-2">
-            {presets.map((preset) => (
-              <div
-                key={preset.id}
-                className="flex flex-col gap-3 rounded-xl border border-line bg-d-panel2 p-3 sm:flex-row sm:items-center"
-              >
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-sm font-semibold text-d-fg2">
-                    {preset.name}
-                  </div>
-                  <div className="mt-1 text-[11px] text-d-fg4">
-                    {preset.sections.length} bloc{preset.sections.length > 1 ? "s" : ""} · {preset.includeDefaultContent ? "avec contenu d'exemple" : "structure vide"} · {preset.showSectionNumbers ? "numéroté" : "sans numérotation"} · {preset.themeVariant === "light" ? "fond blanc" : "fond sombre"} · {preset.includeIssueDate ? "avec date" : "sans date"}
-                  </div>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    onClick={() => handleLoadPreset(preset)}
-                    className="rounded-full border border-line px-3 py-1.5 text-[10px] uppercase tracking-[0.18em] text-d-fg3 transition-colors hover:border-line2 hover:text-d-fg"
-                  >
-                    Charger
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleDeletePreset(preset)}
-                    className="rounded-full border border-red-500/30 px-3 py-1.5 text-[10px] uppercase tracking-[0.18em] text-red-300 transition-colors hover:bg-red-950/20"
-                  >
-                    Supprimer
-                  </button>
-                </div>
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[310px_minmax(0,1fr)_360px]">
+        <aside className="overflow-hidden rounded-2xl border border-line bg-d-panel">
+          <div className="border-b border-line p-4">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-d-fg3">
+                Bibliothèque
               </div>
-            ))}
+              <div className="font-mono text-[11px] text-d-fg4">{filteredTypes.length} blocs</div>
+            </div>
+            <div className="relative">
+              <Search size={13} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-d-fg4" />
+              <input
+                value={blockSearch}
+                onChange={(event) => setBlockSearch(event.target.value)}
+                placeholder="Rechercher un bloc…"
+                className="h-9 w-full rounded-lg border border-line bg-d-panel2 pl-9 pr-3 text-xs text-d-fg outline-none transition-colors placeholder:text-d-fg4 focus:border-line2"
+              />
+            </div>
           </div>
-        )}
+
+          <div className="max-h-[420px] overflow-auto p-3">
+            <div className="flex flex-col gap-1.5">
+              {filteredTypes.map((type) => {
+                const Icon = SECTION_ICON_MAP[type] ?? Newspaper;
+                return (
+                  <button
+                    key={type}
+                    type="button"
+                    onClick={() => addBlock(type)}
+                    className="grid grid-cols-[30px_minmax(0,1fr)_18px] items-center gap-3 rounded-lg border border-line bg-d-panel2 px-2.5 py-2 text-left transition-all hover:border-line2 hover:bg-d-panel3"
+                  >
+                    <span className="flex h-7 w-7 items-center justify-center rounded-md border border-line bg-d-panel text-d-fg3">
+                      <Icon size={14} />
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block truncate text-xs font-medium text-d-fg">{SECTION_TYPES[type].label}</span>
+                      <span className="mt-0.5 block truncate text-[11px] text-d-fg4">{SECTION_TYPE_DESCRIPTIONS[type]}</span>
+                    </span>
+                    <Plus size={13} className="text-d-fg4" />
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="border-t border-line bg-d-panel2 p-4">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-d-fg3">
+                Presets partagés
+              </div>
+              <button
+                type="button"
+                onClick={loadPresets}
+                disabled={presetsLoading}
+                className="rounded-md p-1 text-d-fg4 transition-colors hover:bg-d-panel3 hover:text-d-fg2 disabled:opacity-50"
+                title="Rafraîchir"
+              >
+                <RefreshCw size={12} className={presetsLoading ? "animate-spin" : ""} />
+              </button>
+            </div>
+
+            {presetsError && (
+              <div className="mb-3 rounded-lg border border-red-500/20 bg-red-950/20 p-3 text-[11px] leading-relaxed text-red-300">
+                Presets indisponibles : {presetsError}. Exécute `supabase/template-presets.sql` si la table n'existe pas encore.
+              </div>
+            )}
+
+            {presetsLoading ? (
+              <div className="flex items-center gap-2 py-4 text-[11px] uppercase tracking-[0.18em] text-d-fg3">
+                <Loader2 size={13} className="animate-spin" />
+                Chargement…
+              </div>
+            ) : presets.length === 0 ? (
+              <div className="rounded-lg border border-dashed border-line p-4 text-center text-xs text-d-fg4">
+                Aucun preset partagé.
+              </div>
+            ) : (
+              <div className="flex max-h-56 flex-col gap-1.5 overflow-auto">
+                {presets.map((preset) => {
+                  const isActivePreset = editingPresetId === preset.id;
+                  return (
+                    <div
+                      key={preset.id}
+                      className={`grid grid-cols-[minmax(0,1fr)_26px] items-center gap-2 rounded-lg border px-2.5 py-2 ${
+                        isActivePreset
+                          ? "border-d-pink/40 bg-d-pink/10"
+                          : "border-transparent bg-transparent hover:bg-d-panel3"
+                      }`}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => handleLoadPreset(preset)}
+                        className="min-w-0 text-left"
+                      >
+                        <span className={`block truncate text-xs font-semibold ${isActivePreset ? "text-d-pink" : "text-d-fg2"}`}>
+                          {preset.name}
+                        </span>
+                        <span className="mt-0.5 block truncate font-mono text-[10px] text-d-fg4">
+                          {preset.sections.length} blocs · {preset.themeVariant === "light" ? "clair" : "sombre"} · {preset.includeIssueDate ? "daté" : "sans date"}
+                        </span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeletePreset(preset)}
+                        className="rounded-md p-1 text-d-fg4 transition-colors hover:bg-red-950/20 hover:text-red-300"
+                        title="Supprimer"
+                      >
+                        <X size={13} />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </aside>
+
+        <main className="min-w-0 rounded-2xl border border-line bg-d-bg">
+          <div className="flex flex-col gap-2 border-b border-line px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-d-fg3">
+                Composition active
+              </div>
+              <div className="mt-1 text-xs text-d-fg4">
+                {active.length === 0
+                  ? "Aucun bloc — sélectionne des blocs dans la bibliothèque."
+                  : `Glisse les blocs pour les réordonner. ${active.length}/${allTypes.length} blocs actifs.`}
+              </div>
+            </div>
+            <div className="self-start rounded-lg border border-line bg-d-panel px-2.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-d-fg4 sm:self-auto">
+              Ordre <span className="text-d-cyan">top → bottom</span>
+            </div>
+          </div>
+
+          <div className="max-h-[640px] overflow-auto p-5">
+            {active.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-line p-10 text-center">
+                <LayoutTemplate size={28} className="mx-auto mb-3 text-d-fg4" />
+                <div className="text-sm font-semibold text-d-fg">Aucun bloc dans le template</div>
+                <div className="mt-1 text-xs text-d-fg4">Sélectionne des blocs dans la bibliothèque, ou charge un preset existant.</div>
+                <button
+                  type="button"
+                  onClick={handleReset}
+                  className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5 text-[10px] uppercase tracking-[0.18em] text-d-fg3 transition-colors hover:border-line2 hover:text-d-fg"
+                >
+                  <RotateCcw size={11} />
+                  Restaurer les blocs par défaut
+                </button>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-2">
+                {active.map((entry, index) => {
+                  const type = entry.type;
+                  const Icon = SECTION_ICON_MAP[type] ?? Newspaper;
+                  const isDragOver = dragOverId === entry.id;
+                  return (
+                    <div
+                      key={entry.id}
+                      draggable
+                      onDragStart={() => handleDragStart(entry.id)}
+                      onDragOver={(e) => handleDragOver(e, entry.id)}
+                      onDragLeave={handleDragLeave}
+                      onDrop={(e) => handleDrop(e, entry.id)}
+                      onDragEnd={handleDragEnd}
+                      className={`grid grid-cols-[20px_38px_38px_minmax(0,1fr)_auto] items-center gap-3 rounded-xl border px-3 py-3 transition-all ${
+                        isDragOver
+                          ? "border-d-pink bg-d-panel3 shadow-[0_0_0_2px_rgba(255,0,170,0.15)]"
+                          : "border-line bg-d-panel hover:border-line2"
+                      }`}
+                    >
+                      <GripVertical size={15} className="cursor-grab text-d-fg4" />
+                      <span className="font-mono text-xs font-semibold text-d-cyan">
+                        {String(index + 1).padStart(2, "0")}
+                      </span>
+                      <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-line bg-d-panel2 text-d-fg3">
+                        <Icon size={17} />
+                      </span>
+                      <span className="min-w-0">
+                        <span className="block truncate text-sm font-semibold text-d-fg" style={{ fontFamily: "'Sora', sans-serif" }}>
+                          {SECTION_TYPES[type].label}
+                        </span>
+                        <span className="mt-0.5 block truncate text-xs text-d-fg4">
+                          {SECTION_TYPE_DESCRIPTIONS[type]}
+                        </span>
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => moveBlock(entry.id, -1)}
+                          disabled={index === 0}
+                          className="rounded-md border border-line p-1 text-d-pink transition-colors hover:bg-d-pink/10 disabled:opacity-20"
+                          title="Monter"
+                        >
+                          <ChevronUp size={13} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => moveBlock(entry.id, 1)}
+                          disabled={index === active.length - 1}
+                          className="rounded-md border border-line p-1 text-d-pink transition-colors hover:bg-d-pink/10 disabled:opacity-20"
+                          title="Descendre"
+                        >
+                          <ChevronDown size={13} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => removeBlock(entry.id)}
+                          className="rounded-md border border-line p-1 text-d-fg4 transition-colors hover:bg-red-950/20 hover:text-red-300"
+                          title="Retirer"
+                        >
+                          <X size={13} />
+                        </button>
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </main>
+
+        <aside className="overflow-hidden rounded-2xl border border-line bg-d-panel">
+          <div className="border-b border-line p-4">
+            <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-d-fg3">
+              Réglages par défaut
+            </div>
+            <div className="divide-y divide-line">
+              <PresetSettingRow
+                icon={Type}
+                title="Contenu d'exemple"
+                hint="Blocs préremplis avec du dummy text."
+                checked={includeDefaultContent}
+                onChange={(checked) => {
+                  setIncludeDefaultContent(checked);
+                  setSaved(false);
+                }}
+              />
+              <PresetSettingRow
+                icon={List}
+                title="Numérotation des blocs"
+                hint="Affiche 01, 02, 03… en marge."
+                checked={showSectionNumbers}
+                onChange={(checked) => {
+                  setShowSectionNumbers(checked);
+                  setSaved(false);
+                }}
+              />
+              <PresetSettingRow
+                icon={Palette}
+                title="Fond clair"
+                hint="Email clair avec logo sombre."
+                checked={themeVariant === "light"}
+                onChange={(checked) => {
+                  setThemeVariant(checked ? "light" : "dark");
+                  setSaved(false);
+                }}
+              />
+              <PresetSettingRow
+                icon={Calendar}
+                title="Date d'en-tête"
+                hint="Date préremplie à la création."
+                checked={includeIssueDate}
+                onChange={(checked) => {
+                  setIncludeIssueDate(checked);
+                  setSaved(false);
+                }}
+                last
+              />
+            </div>
+          </div>
+
+          <div className="p-4">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-d-fg3">
+                  Aperçu
+                </div>
+                <span className="rounded border border-d-cyan/40 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.12em] text-d-cyan">
+                  Live
+                </span>
+              </div>
+              <div className="flex items-center gap-1 font-mono text-[10px] text-d-fg4">
+                <Eye size={12} />
+                720 × auto
+              </div>
+            </div>
+            <TemplatePresetPreview
+              sections={active}
+              light={themeVariant === "light"}
+              showNumbers={showSectionNumbers}
+              showDate={includeIssueDate}
+            />
+          </div>
+        </aside>
       </div>
     </section>
+  );
+}
+
+function PresetSettingRow({ icon: Icon, title, hint, checked, onChange }) {
+  return (
+    <label className="flex cursor-pointer items-center gap-3 py-3">
+      <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md border border-line bg-d-panel2 text-d-fg3">
+        <Icon size={14} />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-xs font-medium text-d-fg">{title}</span>
+        <span className="mt-0.5 block text-[11px] leading-relaxed text-d-fg4">{hint}</span>
+      </span>
+      <span className="relative inline-flex h-6 w-11 flex-shrink-0 items-center">
+        <input
+          type="checkbox"
+          checked={checked}
+          onChange={(event) => onChange(event.target.checked)}
+          className="peer sr-only"
+        />
+        <span className="absolute inset-0 rounded-full border border-line bg-d-panel2 transition-colors peer-checked:border-d-pink peer-checked:bg-d-pink/25" />
+        <span className="relative ml-1 h-4 w-4 rounded-full bg-d-fg4 transition-transform peer-checked:translate-x-5 peer-checked:bg-d-pink" />
+      </span>
+    </label>
+  );
+}
+
+function TemplatePresetPreview({ sections, light, showNumbers, showDate }) {
+  const previewBg = light ? "#F1F2F5" : "#1A1A1D";
+  const cardBg = light ? "#FFFFFF" : "#26262B";
+  const textColor = light ? "#15151A" : "#F1F2F5";
+  const mutedColor = light ? "#7A8494" : "#8C8F98";
+  const borderColor = light ? "rgba(21,21,26,0.10)" : "rgba(255,255,255,0.08)";
+
+  return (
+    <div
+      className="overflow-hidden rounded-xl border"
+      style={{ background: previewBg, borderColor }}
+    >
+      <div
+        className="flex items-center justify-between gap-3 border-b px-3 py-2"
+        style={{ borderColor }}
+      >
+        <div className="flex items-center gap-2">
+          <div className="h-4 w-4 rounded bg-gradient-to-br from-d-cyan via-d-blue to-d-pink" />
+          <span className="font-sora text-[10px] font-bold" style={{ color: textColor }}>
+            Decrypto
+          </span>
+        </div>
+        {showDate && (
+          <span className="font-mono text-[9px]" style={{ color: mutedColor }}>
+            15 / 05 / 2026
+          </span>
+        )}
+      </div>
+
+      <div className="max-h-[430px] overflow-auto p-3">
+        {sections.length === 0 ? (
+          <div className="py-16 text-center text-[11px] italic" style={{ color: mutedColor }}>
+            Aperçu vide.
+          </div>
+        ) : (
+          <div className="flex flex-col gap-2">
+            {sections.map((entry, index) => {
+              const type = SECTION_TYPES[entry.type];
+              const Icon = SECTION_ICON_MAP[entry.type] ?? Newspaper;
+              return (
+                <div
+                  key={`${entry.id}-${index}`}
+                  className="rounded-lg border p-2"
+                  style={{ background: cardBg, borderColor }}
+                >
+                  <div className="mb-2 flex items-center gap-2">
+                    {showNumbers && (
+                      <span className="font-mono text-[9px] font-semibold text-d-cyan">
+                        {String(index + 1).padStart(2, "0")}
+                      </span>
+                    )}
+                    <Icon size={12} style={{ color: mutedColor }} />
+                    <span className="truncate text-[10px] font-semibold" style={{ color: textColor }}>
+                      {type?.label || entry.type}
+                    </span>
+                  </div>
+                  <MiniPreviewLines type={entry.type} light={light} />
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function MiniPreviewLines({ type, light }) {
+  const base = light ? "#D8DDE6" : "#3D3F45";
+  const strong = light ? "#15151A" : "#F1F2F5";
+  const accent = light ? "#4141FF" : "#00FFFF";
+  const line = (width, color = base) => (
+    <span className="block h-1 rounded-full" style={{ width, background: color }} />
+  );
+
+  if (type === "chart") {
+    return (
+      <div className="space-y-1">
+        {line("35%", strong)}
+        <svg viewBox="0 0 100 24" className="h-6 w-full">
+          <polyline points="0,18 18,13 35,15 53,8 72,11 100,5" fill="none" stroke={accent} strokeWidth="2" />
+        </svg>
+      </div>
+    );
+  }
+
+  if (type === "image_block") {
+    return <div className="h-10 rounded-md bg-gradient-to-br from-d-blue/30 via-d-pink/30 to-d-orange/30" />;
+  }
+
+  if (type === "focus") {
+    return (
+      <div className="flex gap-2">
+        <div className="h-10 w-14 rounded-md bg-gradient-to-br from-d-blue/25 to-d-pink/25" />
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
+          {line("85%", strong)}
+          {line("95%")}
+          {line("62%")}
+        </div>
+      </div>
+    );
+  }
+
+  if (type === "divider") {
+    return <div className="h-px w-full" style={{ background: base }} />;
+  }
+
+  return (
+    <div className="flex flex-col gap-1">
+      {line("72%", strong)}
+      {line("94%")}
+      {line("64%")}
+    </div>
   );
 }
 
