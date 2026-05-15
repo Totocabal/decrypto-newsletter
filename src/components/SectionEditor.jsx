@@ -1279,7 +1279,7 @@ function FocusEditor({ data, set }) {
                     <div className="text-[10px] uppercase tracking-[0.15em] font-semibold text-d-fg4 mb-1.5">
                       Bouton secondaire (outline) — <span className="normal-case font-normal">optionnel, à droite</span>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-2">
                       <Field label="Texte">
                         <Input value={item.secondary_label || ""} onChange={(e) => updateItem(item.id, { secondary_label: e.target.value })} placeholder="Laisser vide pour masquer" />
                       </Field>
@@ -1287,6 +1287,16 @@ function FocusEditor({ data, set }) {
                         <Input value={item.secondary_url || ""} onChange={(e) => updateItem(item.id, { secondary_url: e.target.value })} />
                       </Field>
                     </div>
+                    {item.secondary_label && (
+                      <button
+                        type="button"
+                        onClick={() => updateItem(item.id, { secondary_arrow: !item.secondary_arrow })}
+                        title="Flèche →"
+                        className={`px-3 py-1.5 text-[13px] font-semibold rounded-lg border transition-colors ${item.secondary_arrow ? "bg-d-fg3 border-d-fg3 text-d-bg" : "border-line text-d-fg3 hover:border-line2"}`}
+                      >
+                        →
+                      </button>
+                    )}
                   </div>
                 </>
               )}
