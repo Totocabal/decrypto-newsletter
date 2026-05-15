@@ -384,7 +384,7 @@ function RichTextElement({ attributes, children, element }) {
       );
     case "paragraph":
     default:
-      return <p {...attributes} className="my-0">{children}</p>;
+      return <p {...attributes} className="my-0 text-sm">{children}</p>;
   }
 }
 
