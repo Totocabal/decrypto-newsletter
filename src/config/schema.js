@@ -157,6 +157,19 @@ export const SECTION_TYPES = {
       ],
     }),
   },
+  commented_number: {
+    label: "Chiffre commenté",
+    icon: "Hash",
+    factory: () => ({
+      kicker: "LE CHIFFRE",
+      value: "+1,2",
+      unit: "Md $",
+      caption: "Flux ETF spot · 7 jours",
+      title: "Les allocations institutionnelles reprennent leur place.",
+      body:
+        "Premier flux net hebdo positif depuis trois semaines. BlackRock et Fidelity captent à eux deux <strong>62 %</strong> du volume — la concentration s'accentue.",
+    }),
+  },
   event: {
     label: "Évènement",
     icon: "Calendar",

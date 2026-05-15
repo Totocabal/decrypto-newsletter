@@ -341,6 +341,18 @@ function sectionBottomBorder(isLastSection) {
   return isLastSection ? "" : ` border-bottom:1px solid ${EMAIL_THEME.border};`;
 }
 
+function plainTextFromRichText(text = "") {
+  return decodeStoredTextEntities(String(text).replace(/<[^>]*>/g, "")).trim();
+}
+
+function initialsFromName(name = "") {
+  const words = plainTextFromRichText(name)
+    .split(/[·—-]/)[0]
+    .split(/\s+/)
+    .filter(Boolean);
+  return (words.length ? words.slice(0, 2).map((word) => word[0]).join("") : "CH").toUpperCase();
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Rendu de chaque type de section
 // ─────────────────────────────────────────────────────────────────────────────
@@ -623,13 +635,58 @@ function renderMacroBars(data, isLastSection = false) {
     </tr>`;
 }
 
+function renderCommentedNumber(data, anchor = "", isLastSection = false) {
+  const unit = String(data.unit || "").trim();
+  return `
+    <tr>
+      <td class="em-px" style="padding:36px;${sectionBottomBorder(isLastSection)}">
+        ${anchor}
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:${EMAIL_THEME === EMAIL_THEMES.light ? "#F7F8FA" : "#101018"}; border:1px solid ${EMAIL_THEME.borderSubtle}; border-radius:14px;">
+          <tr>
+            <td style="padding:4px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td class="em-stack em-stack-pad" valign="middle" width="200" style="padding:24px; background-color:${EMAIL_THEME.positiveBg}; border-right:1px solid ${EMAIL_THEME.borderSubtle}; border-radius:12px 0 0 12px;">
+                    <p style="margin:0; font-family:${FONTS.body}; font-size:10px; letter-spacing:0.22em; text-transform:uppercase; color:${EMAIL_THEME.textDim}; font-weight:600;">${escapeHtml(data.kicker || "Le chiffre")}</p>
+                    <p style="margin:6px 0 0; font-family:${FONTS.heading}; font-weight:700; font-size:56px; line-height:0.95; letter-spacing:-0.045em; color:${EMAIL_THEME.positive};">${escapeHtml(data.value)}${unit ? ` <span style="font-size:22px; color:${EMAIL_THEME.textMuted}; font-weight:500; letter-spacing:0;">${escapeHtml(unit)}</span>` : ""}</p>
+                    ${data.caption ? `<p style="margin:8px 0 0; font-family:${FONTS.body}; font-size:12px; color:${EMAIL_THEME.textMuted}; letter-spacing:0.02em;">${escapeHtml(data.caption)}</p>` : ""}
+                  </td>
+                  <td class="em-stack" valign="middle" style="padding:24px 28px;">
+                    ${data.title ? `<p style="margin:0 0 8px; font-family:${FONTS.heading}; font-weight:600; font-size:17px; line-height:1.25; letter-spacing:-0.015em; color:${EMAIL_THEME.textPrimary};">${escapeHtml(data.title)}</p>` : ""}
+                    <p style="margin:0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:13.5px; line-height:1.55; color:${EMAIL_THEME.textMuted};">${sanitizeRichText(data.body)}</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>`;
+}
+
 function renderMacro(data, number, anchor = "", isLastSection = false) {
+  const authorParts = String(data.quote_author || "").split(" · ");
+  const authorName = authorParts.shift() || "";
+  const authorDetails = authorParts.join(" · ");
   const quoteBlock = data.quote ? `
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#1a0c2e; background-image:linear-gradient(135deg, rgba(135,1,255,0.18), rgba(255,0,170,0.10)); border:0; border-radius:14px;">
-      <tr><td style="padding:24px 24px;">
-        <p style="margin:0; font-family:${FONTS.heading}; font-weight:${RICH_TEXT_WEIGHT}; font-size:18px; line-height:1.4; letter-spacing:-0.01em; color:#FFFFFF;">«&nbsp;${sanitizeRichText(data.quote)}&nbsp;»</p>
-        <p style="margin:14px 0 0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:12px; color:#C9D0DC; letter-spacing:0.04em;">${sanitizeRichText(data.quote_author)}</p>
-      </td></tr>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#1a0c2e; background-image:linear-gradient(135deg, rgba(135,1,255,0.22), rgba(255,0,170,0.12) 60%, rgba(255,75,40,0.08) 100%); border:1px solid rgba(255,255,255,0.08); border-radius:16px;">
+      <tr>
+        <td style="padding:32px 32px 28px;">
+          <p style="margin:0; font-family:${FONTS.heading}; font-weight:800; font-size:80px; line-height:0.6; color:#FF00AA; letter-spacing:-0.05em;">&quot;</p>
+          <p style="margin:16px 0 0; font-family:${FONTS.heading}; font-weight:500; font-size:24px; line-height:1.32; letter-spacing:-0.015em; color:#ffffff;">${sanitizeRichText(data.quote)}</p>
+          ${data.quote_author ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:22px;">
+            <tr>
+              <td style="padding-right:12px;">
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td width="32" height="32" align="center" valign="middle" style="background:rgba(255,255,255,0.12); border-radius:99px; color:#ffffff; font-family:${FONTS.heading}; font-size:12px; font-weight:700; line-height:32px; letter-spacing:0.04em;">${escapeHtml(initialsFromName(authorName || data.quote_author))}</td></tr></table>
+              </td>
+              <td valign="middle">
+                <p style="margin:0; font-family:${FONTS.heading}; font-weight:600; font-size:13px; color:#ffffff; letter-spacing:-0.005em;">${sanitizeRichText(authorName || data.quote_author)}</p>
+                ${authorDetails ? `<p style="margin:2px 0 0; font-family:${FONTS.body}; font-size:11px; color:#C7CAD1; letter-spacing:0.06em;">${sanitizeRichText(authorDetails)}</p>` : ""}
+              </td>
+            </tr>
+          </table>` : ""}
+        </td>
+      </tr>
     </table>` : "";
 
   return `
@@ -778,6 +835,34 @@ function renderFocusItem(item) {
                 ${secondaryBtn}
               </tr>
             </table>
+          </td>
+        </tr>
+      </table>`;
+  }
+  if (item.type === "callout") {
+    const hasBody = plainTextFromRichText(item.body);
+    if (!hasBody) return "";
+    const footerText = String(item.footer || "").trim();
+    const footer = footerText
+      ? `<p style="margin:14px 0 0; padding-top:12px; border-top:1px solid rgba(0,255,255,0.16); font-family:${FONTS.mono || "'JetBrains Mono', monospace"}; font-size:11px; color:${EMAIL_THEME.textDim}; letter-spacing:0.02em;">${
+          item.footer_url
+            ? `<a href="${escapeAttr(item.footer_url)}" style="color:#00FFFF; text-decoration:none; border-bottom:1px solid rgba(0,255,255,0.4); padding-bottom:1px;">${escapeHtml(footerText)}</a>`
+            : escapeHtml(footerText)
+        }</p>`
+      : "";
+    return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:26px; background-color:rgba(0,255,255,0.04); border:1px solid rgba(0,255,255,0.22); border-radius:12px;">
+        <tr>
+          <td style="padding:22px 24px;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:12px;">
+              <tr>
+                <td valign="middle" style="padding-right:12px;">
+                  <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td width="30" height="30" align="center" valign="middle" style="background:rgba(0,255,255,0.16); border:1px solid rgba(0,255,255,0.32); border-radius:8px; color:#00FFFF; font-family:${FONTS.heading}; font-size:14px; font-weight:700; line-height:30px;">i</td></tr></table>
+                </td>
+                <td valign="middle" style="font-family:${FONTS.body}; font-size:11px; letter-spacing:0.2em; text-transform:uppercase; font-weight:600; color:#00FFFF;">${escapeHtml(item.label || "Note de la rédac")}</td>
+              </tr>
+            </table>
+            <p style="margin:0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:14px; line-height:1.6; color:${EMAIL_THEME === EMAIL_THEMES.light ? "#303641" : "#D8DDE6"};">${sanitizeRichText(item.body)}</p>
+            ${footer}
           </td>
         </tr>
       </table>`;
@@ -941,6 +1026,7 @@ function renderSection(sec, allSections, assetMode, showSectionNumbers = true, i
     case "signals":    return renderSignals(sec.data, number, anchor, isLastSection);
     case "macro":      return renderMacro(sec.data, number, anchor, isLastSection);
     case "macro_bars": return renderMacroBars(sec.data, isLastSection);
+    case "commented_number": return renderCommentedNumber(sec.data, anchor, isLastSection);
     case "event":      return renderEvent(sec.data, anchor, isLastSection);
     case "focus":      return renderFocus(sec.data, number, anchor, isLastSection);
     case "image_block": return renderImageBlock(sec.data, isLastSection);

@@ -24,6 +24,7 @@ export function SectionEditor({ type, data, onChange, sections = [] }) {
     case "signals":    return <SignalsEditor data={data} set={set} />;
     case "macro":      return <MacroEditor data={data} set={set} />;
     case "macro_bars": return <MacroBarsEditor data={data} set={set} />;
+    case "commented_number": return <CommentedNumberEditor data={data} set={set} />;
     case "event":      return <EventEditor data={data} set={set} />;
     case "focus":      return <FocusEditor data={data} set={set} />;
     case "image_block": return <ImageBlockEditor data={data} set={set} />;
@@ -1071,6 +1072,44 @@ function MacroBarsEditor({ data, set }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// CHIFFRE COMMENTÉ
+// ─────────────────────────────────────────────────────────────────────────────
+
+function CommentedNumberEditor({ data, set }) {
+  return (
+    <>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <Field label="Libellé">
+          <Input value={data.kicker || ""} onChange={(e) => set({ kicker: e.target.value })} />
+        </Field>
+        <Field label="Légende">
+          <Input value={data.caption || ""} onChange={(e) => set({ caption: e.target.value })} />
+        </Field>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_120px] gap-3">
+        <Field label="Chiffre">
+          <Input value={data.value || ""} onChange={(e) => set({ value: e.target.value })} />
+        </Field>
+        <Field label="Unité">
+          <Input value={data.unit || ""} onChange={(e) => set({ unit: e.target.value })} />
+        </Field>
+      </div>
+      <Field label="Titre">
+        <Input value={data.title || ""} onChange={(e) => set({ title: e.target.value })} />
+      </Field>
+      <Field label="Commentaire" hint="Éditeur riche">
+        <TextArea
+          showCount
+          rows={4}
+          value={data.body || ""}
+          onChange={(e) => set({ body: e.target.value })}
+        />
+      </Field>
+    </>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // ÉVÈNEMENT
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -1218,6 +1257,7 @@ function FocusEditor({ data, set }) {
     let item;
     if (type === "text") item = { id, type: "text", body: "" };
     else if (type === "image") item = { id, type: "image", image_url: "", image_path: "", image_alt: "Visuel d'illustration" };
+    else if (type === "callout") item = { id, type: "callout", label: "Note de la rédac", body: "", footer: "", footer_url: "" };
     else item = { id, type: "cta", label: "", url: "", arrow: false, centered: false, secondary_label: "", secondary_url: "" };
     setItems([...items, item]);
   };
@@ -1247,7 +1287,7 @@ function FocusEditor({ data, set }) {
           <div key={item.id} className="bg-d-panel2 border border-line rounded-xl overflow-hidden">
             <div className="flex items-center justify-between px-3 py-2" style={{ borderBottom: "1px solid var(--d-line)" }}>
               <span className="text-[10px] uppercase tracking-[0.15em] font-semibold text-d-fg4">
-                {item.type === "text" ? "Texte" : item.type === "image" ? "Image" : "CTA"}
+                {item.type === "text" ? "Texte" : item.type === "image" ? "Image" : item.type === "callout" ? "Encadré" : "CTA"}
               </span>
               <div className="flex items-center gap-0.5">
                 <button type="button" onClick={() => moveItem(item.id, -1)} disabled={i === 0} className="p-1 text-d-fg4 hover:text-d-fg2 hover:bg-d-panel3 rounded-lg disabled:opacity-20">
@@ -1359,13 +1399,48 @@ function FocusEditor({ data, set }) {
                   </div>
                 </>
               )}
+              {item.type === "callout" && (
+                <>
+                  <Field label="Libellé">
+                    <Input
+                      value={item.label || ""}
+                      onChange={(e) => updateItem(item.id, { label: e.target.value })}
+                      placeholder="Note de la rédac"
+                    />
+                  </Field>
+                  <Field label="Texte" hint="Éditeur riche">
+                    <TextArea
+                      showCount
+                      rows={5}
+                      value={item.body || ""}
+                      onChange={(e) => updateItem(item.id, { body: e.target.value })}
+                    />
+                  </Field>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <Field label="Ligne de bas" hint="Optionnelle">
+                      <Input
+                        value={item.footer || ""}
+                        onChange={(e) => updateItem(item.id, { footer: e.target.value })}
+                        placeholder="→ 4 lectures disponibles"
+                      />
+                    </Field>
+                    <Field label="Lien">
+                      <Input
+                        value={item.footer_url || ""}
+                        onChange={(e) => updateItem(item.id, { footer_url: e.target.value })}
+                        placeholder="https://..."
+                      />
+                    </Field>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         ))}
       </div>
 
       <div className="flex gap-2 mt-3">
-        {[["text", "Texte"], ["image", "Image"], ["cta", "CTA"]].map(([type, label]) => (
+        {[["text", "Texte"], ["image", "Image"], ["cta", "CTA"], ["callout", "Encadré"]].map(([type, label]) => (
           <button
             key={type}
             type="button"
