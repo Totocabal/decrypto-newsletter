@@ -680,6 +680,7 @@ function renderFocusItem(item) {
   }
   if (item.type === "cta") {
     if (!item.label) return "";
+    const ctaText = escapeHtml(item.label) + (item.arrow ? " →" : "");
     if (item.style === "secondary") {
       return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:16px;">
         <tr>
@@ -687,7 +688,7 @@ function renderFocusItem(item) {
             <table role="presentation" cellpadding="0" cellspacing="0" border="0">
               <tr>
                 <td style="border:1px solid rgba(255,255,255,0.22); border-radius:99px;">
-                  <a href="${escapeAttr(item.url || "#")}" style="display:inline-block; padding:12px 20px; font-family:${FONTS.heading}; font-weight:500; font-size:13px; color:#E9EEF2; text-decoration:none; border-radius:99px; letter-spacing:0.01em;">${escapeHtml(item.label)}</a>
+                  <a href="${escapeAttr(item.url || "#")}" style="display:inline-block; padding:12px 20px; font-family:${FONTS.heading}; font-weight:500; font-size:13px; color:#E9EEF2; text-decoration:none; border-radius:99px; letter-spacing:0.01em;">${ctaText}</a>
                 </td>
               </tr>
             </table>
@@ -701,14 +702,14 @@ function renderFocusItem(item) {
             <!--[if mso]>
             <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${escapeAttr(item.url || "#")}" style="height:46px; v-text-anchor:middle; width:260px;" arcsize="50%" stroke="f" fillcolor="${EMAIL_THEME.accentTertiary}">
               <w:anchorlock/>
-              <center style="color:#ffffff; font-family:Arial, sans-serif; font-size:13px; font-weight:bold;">${escapeHtml(item.label)}</center>
+              <center style="color:#ffffff; font-family:Arial, sans-serif; font-size:13px; font-weight:bold;">${ctaText}</center>
             </v:roundrect>
             <![endif]-->
             <!--[if !mso]><!-->
             <table role="presentation" cellpadding="0" cellspacing="0" border="0">
               <tr>
                 <td bgcolor="${EMAIL_THEME.accentTertiary}" style="border-radius:99px; background-color:${EMAIL_THEME.accentTertiary}; background-image:linear-gradient(90deg, ${EMAIL_THEME.accentSecondary} 0%, ${EMAIL_THEME.accentTertiary} 50%, ${EMAIL_THEME.accentPrimary} 100%);">
-                  <a href="${escapeAttr(item.url || "#")}" style="display:inline-block; padding:13px 22px; font-family:${FONTS.heading}; font-weight:600; font-size:13px; color:#ffffff; text-decoration:none; border-radius:99px; letter-spacing:0.01em;">${escapeHtml(item.label)}</a>
+                  <a href="${escapeAttr(item.url || "#")}" style="display:inline-block; padding:13px 22px; font-family:${FONTS.heading}; font-weight:600; font-size:13px; color:#ffffff; text-decoration:none; border-radius:99px; letter-spacing:0.01em;">${ctaText}</a>
                 </td>
               </tr>
             </table>

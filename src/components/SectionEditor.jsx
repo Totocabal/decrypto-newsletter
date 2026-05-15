@@ -1268,6 +1268,13 @@ function FocusEditor({ data, set }) {
                     >
                       Outline
                     </button>
+                    <button
+                      type="button"
+                      onClick={() => updateItem(item.id, { arrow: !item.arrow })}
+                      className={`px-3 py-1.5 text-[13px] font-semibold rounded-lg border transition-colors ${item.arrow ? "bg-d-fg3 border-d-fg3 text-d-bg" : "border-line text-d-fg3 hover:border-line2"}`}
+                    >
+                      →
+                    </button>
                   </div>
                 </>
               )}
