@@ -404,8 +404,8 @@ function renderIndex(data, allSections) {
 
   return `
     <tr>
-      <td class="em-px" style="padding:0 36px;">
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-top:1px solid ${EMAIL_THEME.borderSubtle}; border-bottom:1px solid ${EMAIL_THEME.borderSubtle};">
+      <td class="em-px" style="padding:0 36px; border-bottom:1px solid ${EMAIL_THEME.border};">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-top:1px solid ${EMAIL_THEME.borderSubtle};">
           <tr>
             <td style="padding:28px 0 18px;">
               <p style="margin:0; font-family:${FONTS.body}; font-size:11px; letter-spacing:0.18em; text-transform:uppercase; color:${EMAIL_THEME.textDim}; font-weight:500;">${escapeHtml(data.label)}</p>
