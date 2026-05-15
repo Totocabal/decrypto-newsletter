@@ -102,15 +102,6 @@ export function Toolbar({
 
             <div className="hidden h-5 w-px sm:block" style={{ background: "var(--d-line2)" }} />
 
-            {/* Copier HTML */}
-            <button
-              onClick={onCopy}
-              className="flex flex-shrink-0 items-center gap-1.5 rounded-full border border-line2 px-3 py-2 text-[11px] uppercase tracking-[0.14em] font-medium text-d-fg2 transition-colors hover:bg-d-panel2"
-            >
-              {copied ? <Check size={12} /> : <Copy size={12} />}
-              {copied ? "Copié" : "Copier HTML"}
-            </button>
-
             {/* Enregistrer comme preset */}
             {onSaveAsPreset && (
               <Tooltip
