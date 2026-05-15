@@ -47,7 +47,7 @@ function sectionTitle(sec) {
 function buildIndexItems(sections) {
   let counter = 0;
   return sections
-    .filter((s) => !UNNUMBERED_TYPES.has(s.type))
+    .filter((s) => s.counts_for_numbering ?? !UNNUMBERED_TYPES.has(s.type))
     .map((s) => {
       counter++;
       return {
@@ -139,6 +139,14 @@ export function EditorPanel({ state, setState }) {
       ...s,
       sections: s.sections.map((sec) =>
         sec.id === id ? { ...sec, data: nextData } : sec
+      ),
+    }));
+
+  const updateSectionMeta = (id, patch) =>
+    setState((s) => ({
+      ...s,
+      sections: s.sections.map((sec) =>
+        sec.id === id ? { ...sec, ...patch } : sec
       ),
     }));
 
@@ -399,6 +407,7 @@ export function EditorPanel({ state, setState }) {
               allSections={state.sections}
               isDragOver={dragOverId === sec.id}
               onUpdate={(data) => setSection(sec.id, data)}
+              onUpdateMeta={(patch) => updateSectionMeta(sec.id, patch)}
               onMoveUp={() => moveSection(sec.id, -1)}
               onMoveDown={() => moveSection(sec.id, 1)}
               onDuplicate={() => duplicateSection(sec.id)}
@@ -495,6 +504,7 @@ function SectionCard({
   allSections,
   isDragOver,
   onUpdate,
+  onUpdateMeta,
   onMoveUp,
   onMoveDown,
   onDuplicate,
@@ -510,6 +520,7 @@ function SectionCard({
   const [open, setOpen] = useState(false);
   const type = SECTION_TYPES[section.type];
   const label = type?.label || section.type;
+  const countsForNumbering = section.counts_for_numbering ?? !UNNUMBERED_TYPES.has(section.type);
 
   const preview = (() => {
     const d = section.data || {};
@@ -641,6 +652,26 @@ function SectionCard({
             onChange={onUpdate}
             sections={allSections}
           />
+          <div className="mt-4 border-t border-line pt-4">
+            <label className="flex items-center justify-between gap-4 rounded-xl border border-line bg-d-panel2 px-3 py-2.5 text-xs text-d-fg3 cursor-pointer">
+              <span className="min-w-0">
+                <span className="block font-semibold text-d-fg2">Compte pour la numérotation</span>
+                <span className="mt-0.5 block text-[11px] leading-relaxed text-d-fg4">
+                  {countsForNumbering ? "Ce bloc reçoit un numéro et apparaît dans le sommaire auto." : "Ce bloc reste sans numéro et hors sommaire auto."}
+                </span>
+              </span>
+              <span className="relative inline-flex h-6 w-11 flex-shrink-0 items-center">
+                <input
+                  type="checkbox"
+                  checked={countsForNumbering}
+                  onChange={(event) => onUpdateMeta({ counts_for_numbering: event.target.checked })}
+                  className="peer sr-only"
+                />
+                <span className="absolute inset-0 rounded-full border border-line bg-d-panel transition-colors peer-checked:border-d-pink peer-checked:bg-d-pink/25" />
+                <span className="relative ml-1 h-4 w-4 rounded-full bg-d-fg4 transition-transform peer-checked:translate-x-5 peer-checked:bg-d-pink" />
+              </span>
+            </label>
+          </div>
         </div>
       )}
     </div>

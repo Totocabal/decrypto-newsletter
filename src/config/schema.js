@@ -584,7 +584,8 @@ export const UNNUMBERED_TYPES = new Set(["hero", "index", "chart", "macro_bars",
 export function computeSectionNumber(sections, sectionId) {
   let counter = 0;
   for (const s of sections) {
-    if (UNNUMBERED_TYPES.has(s.type)) continue;
+    const countsForNumbering = s.counts_for_numbering ?? !UNNUMBERED_TYPES.has(s.type);
+    if (!countsForNumbering) continue;
     counter++;
     if (s.id === sectionId) return String(counter).padStart(2, "0");
   }
