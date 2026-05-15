@@ -18,6 +18,10 @@ import {
 
 // Densité PNG : 2× pour les écrans Retina + une marge de sécurité pour le zoom
 const PIXEL_RATIO = 2;
+const GRADIENT_HEADER_FILENAME = "gradient-header.png";
+const GRADIENT_HEADER_URL = "https://decrypto-newsletter.vercel.app/gradient-header.png";
+const EVENT_BG_FILENAME = "event-bg.png";
+const EVENT_BG_URL = "https://decrypto-newsletter.vercel.app/event-bg.png";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SVG → PNG côté navigateur
@@ -115,6 +119,29 @@ async function buildPngAssets(state) {
   if (needGauge) {
     const gaugeSvg = getGaugeSvgFull(gaugeValue, { themeVariant: state.theme_variant });
     assets["gauge.png"] = await svgToPngBlob(gaugeSvg, 200, 120);
+  }
+
+  try {
+    const resp = await fetch(GRADIENT_HEADER_URL);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    assets[GRADIENT_HEADER_FILENAME] = await resp.blob();
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.warn("[export] gradient-header.png non récupéré :", e);
+  }
+
+  const needEventBg = (state.sections || []).some(
+    (sec) => sec.type === "event" && !String(sec.data?.bg_image_url || "").trim()
+  );
+  if (needEventBg) {
+    try {
+      const resp = await fetch(EVENT_BG_URL);
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      assets[EVENT_BG_FILENAME] = await resp.blob();
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.warn("[export] event-bg.png non récupéré :", e);
+    }
   }
 
   // Télécharge chaque image de bloc focus/image
