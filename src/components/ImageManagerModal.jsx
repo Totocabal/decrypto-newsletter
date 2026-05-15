@@ -729,15 +729,13 @@ function ImageDetailsModal({ image, canSelect, selected, onClose, onSelect, onDe
               {image.name}
             </h2>
           </div>
-          <Tooltip label="Fermer" align="right">
-            <button
-              type="button"
-              onClick={onClose}
-              className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg border border-line text-d-fg3 transition-colors hover:border-line2 hover:text-d-fg"
-            >
-              <X size={16} />
-            </button>
-          </Tooltip>
+          <button
+            type="button"
+            onClick={onClose}
+            className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg border border-line text-d-fg3 transition-colors hover:border-line2 hover:text-d-fg"
+          >
+            <X size={16} />
+          </button>
         </div>
 
         <div className="grid min-h-0 flex-1 grid-cols-1 overflow-y-auto lg:grid-cols-[minmax(0,1fr)_320px] lg:overflow-hidden">

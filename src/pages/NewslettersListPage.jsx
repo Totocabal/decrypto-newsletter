@@ -16,6 +16,7 @@ import {
   Settings,
   ChevronRight,
   Search,
+  Tag,
   X,
   ArrowUpDown,
 } from "lucide-react";
@@ -26,6 +27,7 @@ import { listTemplatePresets } from "../lib/templatePresets.js";
 import { Wordmark } from "../components/Wordmark.jsx";
 import { ImageManagerModal } from "../components/ImageManagerModal.jsx";
 import { Tooltip } from "../components/Tooltip.jsx";
+import { useLabels, assignLabel, removeLabel } from "../lib/useLabels.js";
 
 export function NewslettersListPage({ onOpen, onOpenAdmin }) {
   const { profile, signOut } = useAuth();
@@ -40,11 +42,15 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
   const [imageManagerOpen, setImageManagerOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("updated_desc");
+  const { labels } = useLabels();
+  const [nlLabels, setNlLabels] = useState({});
+  const [labelFilter, setLabelFilter] = useState([]);
+  const [labelPickerOpen, setLabelPickerOpen] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [{ data: nls, error: nlsError }, { data: lks, error: locksError }] =
+      const [{ data: nls, error: nlsError }, { data: lks, error: locksError }, { data: nlbs }] =
         await Promise.all([
           supabase
             .from("newsletters")
@@ -57,6 +63,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
             .from("locks")
             .select("*")
             .gt("expires_at", new Date().toISOString()),
+          supabase.from("newsletter_labels").select("newsletter_id, label_id"),
         ]);
 
       if (nlsError) throw nlsError;
@@ -71,6 +78,12 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
         if (l?.newsletter_id) map[l.newsletter_id] = l;
       });
       setLocks(map);
+      const nlbsMap = {};
+      (Array.isArray(nlbs) ? nlbs : []).forEach(({ newsletter_id, label_id }) => {
+        if (!nlbsMap[newsletter_id]) nlbsMap[newsletter_id] = [];
+        nlbsMap[newsletter_id].push(label_id);
+      });
+      setNlLabels(nlbsMap);
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error("[newsletters] chargement impossible:", error);
@@ -167,6 +180,12 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
       alert("Erreur à la duplication : " + error.message);
       return;
     }
+    const labelIds = nlLabels[nl.id] || [];
+    if (labelIds.length > 0 && data?.id) {
+      await supabase.from("newsletter_labels").insert(
+        labelIds.map((lid) => ({ newsletter_id: data.id, label_id: lid, assigned_by: profile.id }))
+      );
+    }
     load();
   };
 
@@ -221,6 +240,12 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
         )
       : [...newsletters];
 
+    if (labelFilter.length > 0) {
+      list = list.filter((nl) =>
+        labelFilter.every((lid) => (nlLabels[nl.id] || []).includes(lid))
+      );
+    }
+
     if (sortBy === "updated_asc") list.sort((a, b) => new Date(a.updated_at) - new Date(b.updated_at));
     else if (sortBy === "updated_desc") list.sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
     else if (sortBy === "title_asc") list.sort((a, b) => normalize(a.title).localeCompare(normalize(b.title)));
@@ -228,7 +253,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
 
     return list;
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [newsletters, search, sortBy]);
+  }, [newsletters, search, sortBy, labelFilter, nlLabels]);
 
   return (
     <div className="min-h-screen bg-d-bg">
@@ -304,38 +329,75 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
 
         {/* Barre recherche + tri */}
         {newsletters.length > 0 && (
-          <div className="mb-5 flex flex-col gap-3 sm:flex-row">
-            <div className="relative flex-1">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-d-fg4 pointer-events-none" />
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Rechercher par titre ou texte de prévisualisation…"
-                className="w-full pl-9 pr-8 py-2.5 bg-d-panel border border-line rounded-xl text-sm text-d-fg placeholder:text-d-fg4 focus:outline-none focus:border-line2 transition-colors"
-              />
-              {search && (
-                <button
-                  onClick={() => setSearch("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-d-fg4 hover:text-d-fg2 transition-colors"
+          <div className="mb-5 flex flex-col gap-3">
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <div className="relative flex-1">
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-d-fg4 pointer-events-none" />
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Rechercher par titre ou texte de prévisualisation…"
+                  className="w-full pl-9 pr-8 py-2.5 bg-d-panel border border-line rounded-xl text-sm text-d-fg placeholder:text-d-fg4 focus:outline-none focus:border-line2 transition-colors"
+                />
+                {search && (
+                  <button
+                    onClick={() => setSearch("")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-d-fg4 hover:text-d-fg2 transition-colors"
+                  >
+                    <X size={13} />
+                  </button>
+                )}
+              </div>
+              <div className="relative">
+                <ArrowUpDown size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-d-fg4 pointer-events-none" />
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="pl-8 pr-4 py-2.5 bg-d-panel border border-line rounded-xl text-sm text-d-fg focus:outline-none focus:border-line2 transition-colors appearance-none cursor-pointer"
                 >
-                  <X size={13} />
-                </button>
-              )}
+                  <option value="updated_desc">Plus récent</option>
+                  <option value="updated_asc">Plus ancien</option>
+                  <option value="title_asc">Titre A → Z</option>
+                  <option value="title_desc">Titre Z → A</option>
+                </select>
+              </div>
             </div>
-            <div className="relative">
-              <ArrowUpDown size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-d-fg4 pointer-events-none" />
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="pl-8 pr-4 py-2.5 bg-d-panel border border-line rounded-xl text-sm text-d-fg focus:outline-none focus:border-line2 transition-colors appearance-none cursor-pointer"
-              >
-                <option value="updated_desc">Plus récent</option>
-                <option value="updated_asc">Plus ancien</option>
-                <option value="title_asc">Titre A → Z</option>
-                <option value="title_desc">Titre Z → A</option>
-              </select>
-            </div>
+            {labels.length > 0 && (
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-[10px] uppercase tracking-[0.18em] text-d-fg4 font-medium flex-shrink-0">Labels :</span>
+                {labels.map((label) => {
+                  const active = labelFilter.includes(label.id);
+                  return (
+                    <button
+                      key={label.id}
+                      onClick={() =>
+                        setLabelFilter((f) =>
+                          active ? f.filter((id) => id !== label.id) : [...f, label.id]
+                        )
+                      }
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-[0.12em] border transition-all"
+                      style={{
+                        background: active ? label.color + "33" : "transparent",
+                        borderColor: active ? label.color + "88" : label.color + "44",
+                        color: active ? label.color : label.color + "99",
+                      }}
+                    >
+                      <span className="h-1.5 w-1.5 rounded-full flex-shrink-0" style={{ background: label.color }} />
+                      {label.name}
+                    </button>
+                  );
+                })}
+                {labelFilter.length > 0 && (
+                  <button
+                    onClick={() => setLabelFilter([])}
+                    className="text-[10px] uppercase tracking-[0.18em] text-d-fg4 hover:text-d-fg2 transition-colors"
+                  >
+                    <X size={11} />
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         )}
 
@@ -370,10 +432,14 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
         {filteredNewsletters.length > 0 && (
           <div
             className="bg-d-panel rounded-2xl overflow-hidden border border-line"
+            onClick={() => setLabelPickerOpen(null)}
           >
             {filteredNewsletters.map((nl, i, arr) => {
               const lock = locks[nl.id];
               const lockedByOther = lock && lock.user_id !== profile?.id;
+              const cardLabelIds = nlLabels[nl.id] || [];
+              const cardLabels = labels.filter((l) => cardLabelIds.includes(l.id));
+              const pickerOpen = labelPickerOpen === nl.id;
               return (
                 <div key={nl.id}>
                   <div
@@ -412,6 +478,19 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                             {lock.user_full_name || lock.user_email}
                           </span>
                         )}
+                        {cardLabels.map((label) => (
+                          <span
+                            key={label.id}
+                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-[0.12em]"
+                            style={{
+                              background: label.color + "22",
+                              border: `1px solid ${label.color}55`,
+                              color: label.color,
+                            }}
+                          >
+                            {label.name}
+                          </span>
+                        ))}
                       </div>
                       <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-d-fg3">
                         <span className="flex items-center gap-1">
@@ -429,6 +508,64 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                     </div>
 
                     <div className="flex flex-shrink-0 items-center gap-1 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
+                      {labels.length > 0 && (
+                        <div className="relative">
+                          <Tooltip label="Labels" side="left">
+                            <button
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                setLabelPickerOpen((id) => (id === nl.id ? null : nl.id));
+                              }}
+                              className={`p-2 rounded-lg transition-colors ${pickerOpen ? "text-d-fg2 bg-d-panel3" : "text-d-fg4 hover:text-d-fg2 hover:bg-d-panel3"}`}
+                            >
+                              <Tag size={14} />
+                            </button>
+                          </Tooltip>
+                          {pickerOpen && (
+                            <div
+                              className="absolute right-0 top-full z-50 mt-1 min-w-[160px] rounded-xl border border-line bg-d-panel shadow-xl"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {labels.map((label) => {
+                                const checked = cardLabelIds.includes(label.id);
+                                return (
+                                  <button
+                                    key={label.id}
+                                    onClick={async (e) => {
+                                      e.stopPropagation();
+                                      if (checked) {
+                                        await removeLabel(nl.id, label.id);
+                                        setNlLabels((m) => ({
+                                          ...m,
+                                          [nl.id]: (m[nl.id] || []).filter((id) => id !== label.id),
+                                        }));
+                                      } else {
+                                        await assignLabel(nl.id, label.id, profile?.id);
+                                        setNlLabels((m) => ({
+                                          ...m,
+                                          [nl.id]: [...(m[nl.id] || []), label.id],
+                                        }));
+                                      }
+                                    }}
+                                    className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-xs transition-colors first:rounded-t-xl last:rounded-b-xl hover:bg-d-panel2"
+                                  >
+                                    <span
+                                      className="h-3 w-3 flex-shrink-0 rounded-full border-2 transition-all"
+                                      style={{
+                                        background: checked ? label.color : "transparent",
+                                        borderColor: label.color,
+                                      }}
+                                    />
+                                    <span style={{ color: label.color }} className="font-semibold uppercase tracking-[0.1em] text-[10px]">
+                                      {label.name}
+                                    </span>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      )}
                       <Tooltip label="Dupliquer" side="left">
                         <button
                           onClick={(event) => {
