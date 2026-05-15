@@ -873,6 +873,11 @@ function renderFocusItem(item) {
     const bodyColor = isLightTheme ? "#303641" : "#D8DDE6";
     const footerBorder = isLightTheme ? "#CAD4FF" : "rgba(0,255,255,0.16)";
     const footerColor = isLightTheme ? "#68717E" : EMAIL_THEME.textDim;
+    const iconHtml = item.show_icon === false
+      ? ""
+      : `<td valign="middle" style="padding-right:12px;">
+                  <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:separate !important; border-spacing:0 !important;"><tr><td width="30" height="30" align="center" valign="middle" style="background:${iconBg}; border:1px solid ${iconBorder}; border-radius:8px; color:${iconColor}; font-family:${FONTS.heading}; font-size:14px; font-weight:700; line-height:30px;">i</td></tr></table>
+                </td>`;
     const footerText = String(item.footer || "").trim();
     const footer = footerText
       ? `<p style="margin:14px 0 0; padding-top:12px; border-top:1px solid ${footerBorder}; font-family:${FONTS.mono || "'JetBrains Mono', monospace"}; font-size:11px; color:${footerColor}; letter-spacing:0.02em;">${
@@ -886,9 +891,7 @@ function renderFocusItem(item) {
           <td style="padding:22px 24px;">
             <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:12px;">
               <tr>
-                <td valign="middle" style="padding-right:12px;">
-                  <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:separate !important; border-spacing:0 !important;"><tr><td width="30" height="30" align="center" valign="middle" style="background:${iconBg}; border:1px solid ${iconBorder}; border-radius:8px; color:${iconColor}; font-family:${FONTS.heading}; font-size:14px; font-weight:700; line-height:30px;">i</td></tr></table>
-                </td>
+                ${iconHtml}
                 <td valign="middle" style="font-family:${FONTS.body}; font-size:11px; letter-spacing:0.2em; text-transform:uppercase; font-weight:600; color:${calloutAccent};">${escapeHtml(item.label || "Note de la rédac")}</td>
               </tr>
             </table>

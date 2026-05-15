@@ -1315,7 +1315,7 @@ function FocusEditor({ data, set }) {
     let item;
     if (type === "text") item = { id, type: "text", body: "" };
     else if (type === "image") item = { id, type: "image", image_url: "", image_path: "", image_alt: "Visuel d'illustration" };
-    else if (type === "callout") item = { id, type: "callout", label: "Note de la rédac", body: "", footer: "", footer_url: "" };
+    else if (type === "callout") item = { id, type: "callout", label: "Note de la rédac", body: "", footer: "", footer_url: "", show_icon: true };
     else item = { id, type: "cta", label: "", url: "", arrow: false, centered: false, secondary_label: "", secondary_url: "" };
     setItems([...items, item]);
   };
@@ -1459,6 +1459,15 @@ function FocusEditor({ data, set }) {
               )}
               {item.type === "callout" && (
                 <>
+                  <label className="mb-3 flex items-center justify-between gap-4 rounded-xl border border-line bg-d-panel px-3 py-2.5 text-xs text-d-fg3 cursor-pointer">
+                    <span className="font-semibold text-d-fg">Afficher le picto</span>
+                    <input
+                      type="checkbox"
+                      checked={item.show_icon !== false}
+                      onChange={(e) => updateItem(item.id, { show_icon: e.target.checked })}
+                      className="h-4 w-4 accent-d-pink"
+                    />
+                  </label>
                   <Field label="Libellé">
                     <Input
                       value={item.label || ""}
