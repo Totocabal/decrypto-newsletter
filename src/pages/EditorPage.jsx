@@ -3,7 +3,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, History, Loader2, CloudOff, Cloud, Tag, Undo2, Redo2, X } from "lucide-react";
+import { ArrowLeft, History, Loader2, CloudOff, Cloud, Tag, Undo2, Redo2, X, BookMarked, Check } from "lucide-react";
 import { Toolbar } from "../components/Toolbar.jsx";
 import { PreviewPanel } from "../components/PreviewPanel.jsx";
 import { EditorPanel } from "../components/EditorPanel.jsx";
@@ -18,6 +18,7 @@ import { useAuth } from "../contexts/AuthContext.jsx";
 import { copyHtmlToClipboard } from "../utils/exportImport.js";
 import { exportAssetPack, exportBrazeHtml } from "../utils/exportAssetPack.js";
 import { useLabels, useNewsletterLabels } from "../lib/useLabels.js";
+import { createTemplatePreset } from "../lib/templatePresets.js";
 
 export function EditorPage({ newsletterId, onBack }) {
   const { profile } = useAuth();
@@ -43,6 +44,10 @@ export function EditorPage({ newsletterId, onBack }) {
   const [savedFlash, setSavedFlash] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [exportingBraze, setExportingBraze] = useState(false);
+  const [presetModalOpen, setPresetModalOpen] = useState(false);
+  const [presetName, setPresetName] = useState("");
+  const [savingPreset, setSavingPreset] = useState(false);
+  const [presetSaved, setPresetSaved] = useState(false);
   const [leaving, setLeaving] = useState(false);
   const [undoCount, setUndoCount] = useState(0);
   const [redoCount, setRedoCount] = useState(0);
@@ -204,6 +209,33 @@ export function EditorPage({ newsletterId, onBack }) {
       alert("Erreur à l'export : " + (e.message || e));
     } finally {
       setExporting(false);
+    }
+  };
+
+  const handleOpenPresetModal = () => {
+    if (!state || !profile?.is_admin) return;
+    setPresetName(newsletter?.title || "");
+    setPresetSaved(false);
+    setPresetModalOpen(true);
+  };
+
+  const handleSaveAsPreset = async () => {
+    if (!state || !presetName.trim()) return;
+    setSavingPreset(true);
+    try {
+      await createTemplatePreset({
+        name: presetName.trim(),
+        sections: state.sections || [],
+        includeDefaultContent: true,
+        showSectionNumbers: state.show_section_numbers !== false,
+        themeVariant: state.theme_variant || "dark",
+      });
+      setPresetSaved(true);
+      setTimeout(() => setPresetModalOpen(false), 1200);
+    } catch (e) {
+      alert("Erreur lors de l'enregistrement du preset : " + (e.message || e));
+    } finally {
+      setSavingPreset(false);
     }
   };
 
@@ -402,6 +434,7 @@ export function EditorPage({ newsletterId, onBack }) {
         onCopy={handleCopy}
         onExportZip={handleExportZip}
         onExportBraze={profile?.is_admin ? handleExportBraze : null}
+        onSaveAsPreset={profile?.is_admin ? handleOpenPresetModal : null}
         copied={copied}
         saved={savedFlash}
         exporting={exporting}
@@ -433,6 +466,65 @@ export function EditorPage({ newsletterId, onBack }) {
           onRestore={(restoredState) => setStateWithHistory(restoredState)}
           onClose={() => setShowVersions(false)}
         />
+      )}
+
+      {/* Modal — Enregistrer comme preset */}
+      {presetModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: "rgba(0,0,0,0.6)" }}
+          onClick={() => !savingPreset && setPresetModalOpen(false)}
+        >
+          <div
+            className="w-full max-w-sm rounded-2xl border border-line bg-d-panel p-6 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-4 flex items-center gap-2">
+              <BookMarked size={16} className="text-d-fg3" />
+              <h3
+                className="text-sm font-semibold text-d-fg"
+                style={{ fontFamily: "'Sora', sans-serif" }}
+              >
+                Enregistrer comme preset
+              </h3>
+            </div>
+            <p className="mb-4 text-xs text-d-fg3">
+              Le contenu actuel (sections et données) sera conservé dans le preset.
+            </p>
+            <input
+              type="text"
+              value={presetName}
+              onChange={(e) => setPresetName(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && !savingPreset && handleSaveAsPreset()}
+              placeholder="Nom du preset…"
+              autoFocus
+              className="mb-4 w-full rounded-xl border border-line bg-d-panel2 px-3 py-2.5 text-sm text-d-fg placeholder:text-d-fg4 focus:border-line2 focus:outline-none transition-colors"
+            />
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setPresetModalOpen(false)}
+                disabled={savingPreset}
+                className="rounded-full border border-line px-4 py-2 text-[11px] uppercase tracking-[0.14em] font-medium text-d-fg3 hover:bg-d-panel2 transition-colors disabled:opacity-40"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleSaveAsPreset}
+                disabled={savingPreset || !presetName.trim()}
+                className="flex items-center gap-1.5 rounded-full px-4 py-2 text-[11px] uppercase tracking-[0.14em] font-semibold text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                style={{ background: presetSaved ? "#03FFCF" : "#4141FF", color: presetSaved ? "#15151A" : "#fff" }}
+              >
+                {savingPreset ? (
+                  <><Loader2 size={12} className="animate-spin" /> Enregistrement…</>
+                ) : presetSaved ? (
+                  <><Check size={12} /> Enregistré</>
+                ) : (
+                  <><BookMarked size={12} /> Enregistrer</>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -11,6 +11,7 @@ import {
   Package,
   UploadCloud,
   Loader2,
+  BookMarked,
 } from "lucide-react";
 import { Tooltip } from "./Tooltip.jsx";
 
@@ -22,6 +23,7 @@ export function Toolbar({
   onCopy,
   onExportZip,
   onExportBraze,
+  onSaveAsPreset,
   copied,
   saved,
   exporting,
@@ -127,6 +129,24 @@ export function Toolbar({
                 </>
               )}
             </button>
+            </Tooltip>
+          )}
+
+          {/* Enregistrer comme preset */}
+          {onSaveAsPreset && (
+            <Tooltip
+              className="flex-shrink-0"
+              side="bottom"
+              align="right"
+              label="Enregistrer le contenu actuel comme preset réutilisable."
+            >
+              <button
+                onClick={onSaveAsPreset}
+                className="flex flex-shrink-0 items-center gap-1.5 rounded-full border border-line2 px-3 py-2 text-[11px] uppercase tracking-[0.14em] font-medium text-d-fg2 transition-colors hover:bg-d-panel2"
+              >
+                <BookMarked size={12} />
+                Preset
+              </button>
             </Tooltip>
           )}
 
