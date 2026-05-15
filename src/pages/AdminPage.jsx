@@ -23,6 +23,7 @@ import {
   Type,
   ImageIcon,
   Minus,
+  Palette,
   Plus,
   RefreshCw,
   RotateCcw,
@@ -405,6 +406,9 @@ function DefaultSectionsEditor() {
   const [showSectionNumbers, setShowSectionNumbers] = useState(
     () => getDefaultNewsletterTemplate().showSectionNumbers
   );
+  const [themeVariant, setThemeVariant] = useState(
+    () => getDefaultNewsletterTemplate().themeVariant
+  );
   const [saved, setSaved] = useState(false);
   const [presets, setPresets] = useState([]);
   const [presetsLoading, setPresetsLoading] = useState(true);
@@ -483,7 +487,7 @@ function DefaultSectionsEditor() {
   const handleDragEnd = () => { draggedRef.current = null; setDragOverId(null); };
 
   const handleSaveDefault = () => {
-    saveDefaultSectionTypes(active, includeDefaultContent, showSectionNumbers);
+    saveDefaultSectionTypes(active, includeDefaultContent, showSectionNumbers, themeVariant);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
@@ -497,6 +501,7 @@ function DefaultSectionsEditor() {
         sections: active,
         includeDefaultContent,
         showSectionNumbers,
+        themeVariant,
       });
       setPresets((items) =>
         items.map((item) => (item.id === updated.id ? updated : item))
@@ -523,6 +528,7 @@ function DefaultSectionsEditor() {
         sections: active,
         includeDefaultContent,
         showSectionNumbers,
+        themeVariant,
       });
       setPresets((items) =>
         [...items, preset].sort((a, b) => a.name.localeCompare(b.name))
@@ -541,6 +547,7 @@ function DefaultSectionsEditor() {
     setActive(preset.sections);
     setIncludeDefaultContent(preset.includeDefaultContent);
     setShowSectionNumbers(preset.showSectionNumbers);
+    setThemeVariant(preset.themeVariant);
     setEditingPresetId(preset.id);
     setSaved(false);
   };
@@ -561,6 +568,7 @@ function DefaultSectionsEditor() {
     setActive(INITIAL_SECTION_TEMPLATE.map((entry) => ({ ...entry })));
     setIncludeDefaultContent(true);
     setShowSectionNumbers(true);
+    setThemeVariant("dark");
     setEditingPresetId(null);
     setSaved(false);
   };
@@ -639,7 +647,7 @@ function DefaultSectionsEditor() {
         </div>
       )}
 
-      <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <div className="mb-4 grid grid-cols-1 gap-3 lg:grid-cols-3">
         <label className="flex items-center justify-between gap-4 rounded-2xl border border-line bg-d-panel p-4 cursor-pointer">
           <span className="min-w-0">
             <span className="block text-xs font-semibold text-d-fg mb-1" style={{ fontFamily: "'Sora', sans-serif" }}>
@@ -679,6 +687,31 @@ function DefaultSectionsEditor() {
               checked={showSectionNumbers}
               onChange={(event) => {
                 setShowSectionNumbers(event.target.checked);
+                setSaved(false);
+              }}
+              className="peer sr-only"
+            />
+            <span className="absolute inset-0 rounded-full border border-line bg-d-panel2 transition-colors peer-checked:border-d-pink peer-checked:bg-d-pink/25" />
+            <span className="relative ml-1 h-4 w-4 rounded-full bg-d-fg4 transition-transform peer-checked:translate-x-5 peer-checked:bg-d-pink" />
+          </span>
+        </label>
+
+        <label className="flex items-center justify-between gap-4 rounded-2xl border border-line bg-d-panel p-4 cursor-pointer">
+          <span className="min-w-0">
+            <span className="flex items-center gap-2 text-xs font-semibold text-d-fg mb-1" style={{ fontFamily: "'Sora', sans-serif" }}>
+              <Palette size={13} />
+              Fond blanc
+            </span>
+            <span className="block text-[11px] leading-relaxed text-d-fg4">
+              {themeVariant === "light" ? "Email clair avec logo noir." : "Email sombre avec logo clair."}
+            </span>
+          </span>
+          <span className="relative inline-flex h-6 w-11 flex-shrink-0 items-center">
+            <input
+              type="checkbox"
+              checked={themeVariant === "light"}
+              onChange={(event) => {
+                setThemeVariant(event.target.checked ? "light" : "dark");
                 setSaved(false);
               }}
               className="peer sr-only"
@@ -839,7 +872,7 @@ function DefaultSectionsEditor() {
                     {preset.name}
                   </div>
                   <div className="mt-1 text-[11px] text-d-fg4">
-                    {preset.sections.length} bloc{preset.sections.length > 1 ? "s" : ""} · {preset.includeDefaultContent ? "avec contenu d'exemple" : "structure vide"} · {preset.showSectionNumbers ? "numéroté" : "sans numérotation"}
+                    {preset.sections.length} bloc{preset.sections.length > 1 ? "s" : ""} · {preset.includeDefaultContent ? "avec contenu d'exemple" : "structure vide"} · {preset.showSectionNumbers ? "numéroté" : "sans numérotation"} · {preset.themeVariant === "light" ? "fond blanc" : "fond sombre"}
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-2">

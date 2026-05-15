@@ -22,6 +22,7 @@ import {
   Megaphone,
   Minus,
   Newspaper,
+  Palette,
   Quote,
   Square,
   TrendingUp,
@@ -300,6 +301,22 @@ export function EditorPanel({ state, setState }) {
             onChange={(e) => update({ preview_text: e.target.value })}
           />
         </Field>
+        <label className="flex items-center justify-between gap-4 rounded-xl border border-line bg-d-panel2 px-3 py-2.5 text-xs text-d-fg3 cursor-pointer">
+          <span className="flex items-center gap-2">
+            <Palette size={14} />
+            Fond blanc
+          </span>
+          <span className="relative inline-flex h-6 w-11 flex-shrink-0 items-center">
+            <input
+              type="checkbox"
+              checked={state.theme_variant === "light"}
+              onChange={(event) => update({ theme_variant: event.target.checked ? "light" : "dark" })}
+              className="peer sr-only"
+            />
+            <span className="absolute inset-0 rounded-full border border-line bg-d-panel transition-colors peer-checked:border-d-pink peer-checked:bg-d-pink/25" />
+            <span className="relative ml-1 h-4 w-4 rounded-full bg-d-fg4 transition-transform peer-checked:translate-x-5 peer-checked:bg-d-pink" />
+          </span>
+        </label>
       </Section>
 
       {/* ── SECTIONS MODULAIRES ─────────────────────────────────────────── */}

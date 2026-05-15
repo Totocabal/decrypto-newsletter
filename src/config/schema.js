@@ -253,6 +253,7 @@ export const INITIAL_STATE = {
   preview_text:
     "Le marché reprend son souffle — F&G à 72, ETF +1,2 Md$, FED qui tempère.",
   show_section_numbers: true,
+  theme_variant: "dark",
 
   // ── Sections modulaires ───────────────────────────────────────────────
   sections: [
@@ -291,6 +292,7 @@ export function migrateLegacyState(oldState) {
     return {
       ...oldState,
       show_section_numbers: oldState.show_section_numbers !== false,
+      theme_variant: oldState.theme_variant === "light" ? "light" : "dark",
     };
   }
   if (!oldState) return INITIAL_STATE;
@@ -425,6 +427,7 @@ export function migrateLegacyState(oldState) {
     issue_date: o.issue_date ?? "",
     preview_text: o.preview_text ?? "",
     show_section_numbers: o.show_section_numbers !== false,
+    theme_variant: o.theme_variant === "light" ? "light" : "dark",
     sections,
     footer: {
       links: o.footer_links ?? [],
@@ -523,6 +526,7 @@ export function getDefaultNewsletterTemplate() {
             ? parsed.includeDefaultContent
             : DEFAULT_TEMPLATE_USES_CONTENT,
         showSectionNumbers: parsed?.showSectionNumbers !== false,
+        themeVariant: parsed?.themeVariant === "light" ? "light" : "dark",
       };
     }
   } catch {
@@ -532,6 +536,7 @@ export function getDefaultNewsletterTemplate() {
     sections: INITIAL_SECTION_TEMPLATE.map((entry) => ({ ...entry })),
     includeDefaultContent: DEFAULT_TEMPLATE_USES_CONTENT,
     showSectionNumbers: true,
+    themeVariant: "dark",
   };
 }
 
@@ -542,7 +547,8 @@ export function getDefaultSectionTypes() {
 export function saveDefaultSectionTypes(
   sections,
   includeDefaultContent = DEFAULT_TEMPLATE_USES_CONTENT,
-  showSectionNumbers = true
+  showSectionNumbers = true,
+  themeVariant = "dark"
 ) {
   try {
     localStorage.setItem(
@@ -551,6 +557,7 @@ export function saveDefaultSectionTypes(
         sections: normalizeTemplateSections(sections),
         includeDefaultContent,
         showSectionNumbers: showSectionNumbers !== false,
+        themeVariant: themeVariant === "light" ? "light" : "dark",
       })
     );
   } catch {
@@ -561,10 +568,12 @@ export function saveDefaultSectionTypes(
 export function buildInitialStateFromTypes(types, options = {}) {
   const includeDefaultContent = options.includeDefaultContent !== false;
   const showSectionNumbers = options.showSectionNumbers !== false;
+  const themeVariant = options.themeVariant === "light" ? "light" : "dark";
   const sections = normalizeTemplateSections(types);
   return {
     ...INITIAL_STATE,
     show_section_numbers: showSectionNumbers,
+    theme_variant: themeVariant,
     sections: sections.map(({ type }) =>
       section(type, includeDefaultContent ? {} : emptySectionData(type))
     ),

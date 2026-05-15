@@ -89,6 +89,7 @@ create table if not exists public.template_presets (
   sections jsonb not null default '[]'::jsonb,
   include_default_content boolean not null default true,
   show_section_numbers boolean not null default true,
+  theme_variant text not null default 'dark' check (theme_variant in ('dark', 'light')),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   created_by uuid references public.profiles(id) on delete set null,

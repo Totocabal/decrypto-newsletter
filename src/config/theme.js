@@ -35,6 +35,39 @@ export const THEME = {
   borderSubtle: "rgba(255,255,255,0.08)",
 };
 
+export const LIGHT_THEME = {
+  ...THEME,
+
+  // Couleurs de fond (light theme)
+  bgPage: "#F3F4F6",
+  bgEmail: "#FFFFFF",
+  bgSection: "#F7F8FA",
+  bgFooter: "#F5F6F8",
+  bgEventCard: "#15151A",
+
+  // Couleurs de texte
+  textPrimary: "#15151A",
+  textSecondary: "#303540",
+  textMuted: "#596273",
+  textDim: "#7A8494",
+  textFaint: "#929BA8",
+
+  // Bordures adaptées au fond blanc
+  border: "rgba(21,21,26,0.10)",
+  borderStrong: "rgba(21,21,26,0.22)",
+  borderSubtle: "rgba(21,21,26,0.12)",
+};
+
+export const EMAIL_THEMES = {
+  dark: THEME,
+  light: LIGHT_THEME,
+};
+
+export const BRAND_LOGOS = {
+  dark: "https://cdn.braze.eu/appboy/communication/assets/image_assets/images/6a032aec37800e0085f8e2ac/original.png?1778592492",
+  light: "https://cdn.braze.eu/appboy/communication/assets/image_assets/images/6a071eb591a04e0087d29621/original.png?1778851509",
+};
+
 // Polices web utilisées dans l'email
 // Coinhouse fournit les fontes Sora hostées sur le CDN Braze. Elles sont
 // déclarées sous les noms 'Sora' et 'DM Sans' pour rester compatibles avec

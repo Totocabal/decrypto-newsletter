@@ -95,7 +95,10 @@ async function buildPngAssets(state) {
   }
 
   if (needChart) {
-    const chartSvg = getChartSvgFull(chartPoints, chartYAxisLabels).replace(
+    const chartSvg = getChartSvgFull(chartPoints, {
+      ...chartYAxisLabels,
+      themeVariant: state.theme_variant,
+    }).replace(
       /width="[^"]*"/,
       'width="1120"'
     );
@@ -103,7 +106,7 @@ async function buildPngAssets(state) {
   }
 
   if (needGauge) {
-    const gaugeSvg = getGaugeSvgFull(gaugeValue);
+    const gaugeSvg = getGaugeSvgFull(gaugeValue, { themeVariant: state.theme_variant });
     assets["gauge.png"] = await svgToPngBlob(gaugeSvg, 200, 120);
   }
 
