@@ -343,12 +343,24 @@ function sectionTitleSpaced(title) {
 
 function renderHero(data) {
   const kicker = String(data.kicker || "").trim();
-  const chips = (data.chips || []).map((c, i, arr) => `
+  const chips = (data.chips || []).map((c, i, arr) => {
+    let labelHtml;
+    if (c.type === "fear_greed" && c.label.includes(" · ")) {
+      const [p1, p2] = c.label.split(" · ");
+      labelHtml = `${escapeHtml(p1)}<br />${escapeHtml(p2)}`;
+    } else {
+      const sp = c.label.indexOf(" ");
+      labelHtml = sp > -1
+        ? `${escapeHtml(c.label.slice(0, sp))}<br />${escapeHtml(c.label.slice(sp + 1))}`
+        : escapeHtml(c.label);
+    }
+    return `
     <td style="${i < arr.length - 1 ? "padding-right:8px;" : ""}">
       <table role="presentation" cellpadding="0" cellspacing="0" border="0">
-        <tr><td style="border:1px solid ${EMAIL_THEME.borderStrong}; border-radius:99px; padding:8px 14px; font-family:${FONTS.body}; font-size:12px; font-weight:500; color:${EMAIL_THEME.textSecondary};">${escapeHtml(c.label)}</td></tr>
+        <tr><td style="border:1px solid ${EMAIL_THEME.borderStrong}; border-radius:12px; padding:8px 14px; font-family:${FONTS.body}; font-size:12px; font-weight:500; color:${EMAIL_THEME.textSecondary}; text-align:center; white-space:nowrap;">${labelHtml}</td></tr>
       </table>
-    </td>`).join("");
+    </td>`;
+  }).join("");
 
   return `
     <tr>
