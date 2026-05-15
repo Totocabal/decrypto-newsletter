@@ -954,7 +954,7 @@ function renderHeader(state, assetMode) {
   const logoUrl = BRAND_LOGOS[getEmailThemeVariant(state)] || BRAND_LOGOS.dark;
   return `
     <tr>
-      <td style="height:4px; line-height:4px; font-size:1px; background-color:${EMAIL_THEME.accentTertiary}; background-image:linear-gradient(90deg, ${EMAIL_THEME.accentSecondary} 0%, ${EMAIL_THEME.accentTertiary} 30%, ${EMAIL_THEME.accentPrimary} 60%, ${EMAIL_THEME.accentWarm} 100%);">&nbsp;</td>
+      <td style="height:4px; line-height:4px; font-size:1px; padding:0; border:0;"><img src="https://decrypto-newsletter.vercel.app/gradient-header.png" width="640" height="4" alt="" style="display:block; width:100%; height:4px; border:0; line-height:4px;" /></td>
     </tr>
     <tr>
       <td class="em-px" style="padding:22px 36px; border-bottom:1px solid ${EMAIL_THEME.border};">
