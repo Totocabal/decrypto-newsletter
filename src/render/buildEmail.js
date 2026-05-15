@@ -649,10 +649,10 @@ function renderCommentedNumber(data, anchor = "", isLastSection = false) {
     <tr>
       <td class="em-px" style="padding:36px;${sectionBottomBorder(isLastSection)}">
         ${anchor}
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:${cardBg}; border:1px solid ${cardBorder}; border-radius:14px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:${cardBg}; border:1px solid ${cardBorder}; border-radius:14px; border-collapse:separate !important; border-spacing:0 !important; overflow:hidden;">
           <tr>
             <td style="padding:4px;">
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:separate !important; border-spacing:0 !important;">
                 <tr>
                   <td class="em-stack em-stack-pad" valign="middle" width="200" style="padding:24px; background-color:${numberPanelBg}; border-right:1px solid ${dividerColor}; border-radius:12px 0 0 12px;">
                     <p style="margin:0; font-family:${FONTS.body}; font-size:10px; letter-spacing:0.22em; text-transform:uppercase; color:${EMAIL_THEME.textDim}; font-weight:600;">${escapeHtml(data.kicker || "Le chiffre")}</p>
@@ -881,13 +881,13 @@ function renderFocusItem(item) {
             : escapeHtml(footerText)
         }</p>`
       : "";
-    return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:26px; background-color:${calloutBg}; border:1px solid ${calloutBorder}; border-radius:12px;">
+    return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:26px; background-color:${calloutBg}; border:1px solid ${calloutBorder}; border-radius:12px; border-collapse:separate !important; border-spacing:0 !important; overflow:hidden;">
         <tr>
           <td style="padding:22px 24px;">
             <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:12px;">
               <tr>
                 <td valign="middle" style="padding-right:12px;">
-                  <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td width="30" height="30" align="center" valign="middle" style="background:${iconBg}; border:1px solid ${iconBorder}; border-radius:8px; color:${iconColor}; font-family:${FONTS.heading}; font-size:14px; font-weight:700; line-height:30px;">i</td></tr></table>
+                  <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:separate !important; border-spacing:0 !important;"><tr><td width="30" height="30" align="center" valign="middle" style="background:${iconBg}; border:1px solid ${iconBorder}; border-radius:8px; color:${iconColor}; font-family:${FONTS.heading}; font-size:14px; font-weight:700; line-height:30px;">i</td></tr></table>
                 </td>
                 <td valign="middle" style="font-family:${FONTS.body}; font-size:11px; letter-spacing:0.2em; text-transform:uppercase; font-weight:600; color:${calloutAccent};">${escapeHtml(item.label || "Note de la rédac")}</td>
               </tr>
