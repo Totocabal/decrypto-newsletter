@@ -398,6 +398,12 @@ function RichTextLeaf({ attributes, children, leaf }) {
 }
 
 function handleRichTextHotkeys(event, editor) {
+  if (event.key === "Enter" && event.shiftKey) {
+    event.preventDefault();
+    Editor.insertText(editor, "\n");
+    return;
+  }
+
   if (!(event.metaKey || event.ctrlKey)) return;
 
   const key = event.key.toLowerCase();
