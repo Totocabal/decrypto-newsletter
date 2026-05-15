@@ -364,7 +364,7 @@ function renderHero(data) {
 
   return `
     <tr>
-      <td class="em-px" style="padding:56px 36px 40px;">
+      <td class="em-px" style="padding:56px 36px 40px; border-bottom:1px solid ${EMAIL_THEME.border};">
         ${kicker ? `<p style="margin:0 0 28px; font-family:${FONTS.body}; font-size:11px; letter-spacing:0.2em; color:${EMAIL_THEME.accentPrimary}; font-weight:600; text-transform:uppercase;">${escapeHtml(kicker)}</p>` : ""}
         <h1 class="em-h1" style="margin:0; font-family:${FONTS.heading}; font-weight:700; font-size:60px; line-height:0.98; letter-spacing:-0.035em; color:${EMAIL_THEME.textPrimary};">
           ${escapeHtml(data.title_part1)}<br />
@@ -647,7 +647,7 @@ function renderEvent(data, anchor = "") {
   const eventTextMuted = "#A8AEB8";
   return `
     <tr>
-      <td class="em-px" style="padding:36px;">
+      <td class="em-px" style="padding:36px; border-bottom:1px solid ${EMAIL_THEME.border};">
         ${anchor}
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:${EMAIL_THEME.bgEventCard}; background-image:radial-gradient(ellipse at 0% 100%, ${EMAIL_THEME.accentSecondary} 0%, transparent 60%), radial-gradient(ellipse at 100% 0%, ${EMAIL_THEME.accentPrimary} 0%, transparent 50%); border-radius:18px;" bgcolor="${EMAIL_THEME.bgEventCard}">
           <tr><td>
