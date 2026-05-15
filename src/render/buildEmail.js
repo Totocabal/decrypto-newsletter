@@ -110,7 +110,7 @@ function toneColor(tone) {
 
 function fgClassificationColor(cls = "") {
   const c = cls.toUpperCase();
-  if (c.includes("EXTREME GREED")) return EMAIL_THEME.positive;
+  if (c.includes("EXTREME GREED")) return EMAIL_THEME.positiveSoft;
   if (c.includes("GREED")) return EMAIL_THEME.positive;
   if (c.includes("NEUTRAL")) return EMAIL_THEME.textDim;
   if (c.includes("EXTREME FEAR")) return EMAIL_THEME.negative;
