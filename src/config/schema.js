@@ -144,6 +144,8 @@ export const SECTION_TYPES = {
       quote:
         "Nous avons besoin de plus de confiance que l'inflation se rapproche durablement de notre cible avant d'envisager un assouplissement.",
       quote_author: "Jerome Powell · Conférence du 1<sup>er</sup> mai",
+      bg_image_url: "",
+      bg_image_path: "",
     }),
   },
   macro_bars: {

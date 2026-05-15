@@ -637,18 +637,20 @@ function renderMacroBars(data, isLastSection = false) {
 
 function renderCommentedNumber(data, anchor = "", isLastSection = false) {
   const unit = String(data.unit || "").trim();
+  const isLightTheme = EMAIL_THEME === EMAIL_THEMES.light;
+  const numberColor = isLightTheme ? EMAIL_THEME.accentPrimary : EMAIL_THEME.positive;
   return `
     <tr>
       <td class="em-px" style="padding:36px;${sectionBottomBorder(isLastSection)}">
         ${anchor}
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:${EMAIL_THEME === EMAIL_THEMES.light ? "#F7F8FA" : "#101018"}; border:1px solid ${EMAIL_THEME.borderSubtle}; border-radius:14px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:${isLightTheme ? "#F7F8FA" : "#101018"}; border:0; border-radius:14px;">
           <tr>
             <td style="padding:4px;">
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                 <tr>
                   <td class="em-stack em-stack-pad" valign="middle" width="200" style="padding:24px; background-color:${EMAIL_THEME.positiveBg}; border-right:1px solid ${EMAIL_THEME.borderSubtle}; border-radius:12px 0 0 12px;">
                     <p style="margin:0; font-family:${FONTS.body}; font-size:10px; letter-spacing:0.22em; text-transform:uppercase; color:${EMAIL_THEME.textDim}; font-weight:600;">${escapeHtml(data.kicker || "Le chiffre")}</p>
-                    <p style="margin:6px 0 0; font-family:${FONTS.heading}; font-weight:700; font-size:56px; line-height:0.95; letter-spacing:-0.045em; color:${EMAIL_THEME.positive};">${escapeHtml(data.value)}${unit ? ` <span style="font-size:22px; color:${EMAIL_THEME.textMuted}; font-weight:500; letter-spacing:0;">${escapeHtml(unit)}</span>` : ""}</p>
+                    <p style="margin:6px 0 0; font-family:${FONTS.heading}; font-weight:700; font-size:56px; line-height:0.95; letter-spacing:-0.045em; color:${numberColor};">${escapeHtml(data.value)}${unit ? ` <span style="font-size:22px; color:${EMAIL_THEME.textMuted}; font-weight:500; letter-spacing:0;">${escapeHtml(unit)}</span>` : ""}</p>
                     ${data.caption ? `<p style="margin:8px 0 0; font-family:${FONTS.body}; font-size:12px; color:${EMAIL_THEME.textMuted}; letter-spacing:0.02em;">${escapeHtml(data.caption)}</p>` : ""}
                   </td>
                   <td class="em-stack" valign="middle" style="padding:24px 28px;">
@@ -664,12 +666,22 @@ function renderCommentedNumber(data, anchor = "", isLastSection = false) {
     </tr>`;
 }
 
-function renderMacro(data, number, anchor = "", isLastSection = false) {
+function renderMacro(data, number, assetMode, anchor = "", isLastSection = false) {
   const authorParts = String(data.quote_author || "").split(" · ");
   const authorName = authorParts.shift() || "";
   const authorDetails = authorParts.join(" · ");
+  const bgImg = String(data.bg_image_url || "").trim();
+  const effectiveBgImg = bgImg || (assetMode === "external"
+    ? "assets/macro-quote-bg.png"
+    : "https://decrypto-newsletter.vercel.app/macro-quote-bg.png");
   const quoteBlock = data.quote ? `
+    <!--[if mso]>
+    <v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false" style="width:568px; border-radius:16px;">
+      <v:fill type="frame" src="${escapeAttr(effectiveBgImg)}" color="#1a0c2e" />
+      <v:textbox inset="0,0,0,0"><![endif]-->
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#1a0c2e; background-image:linear-gradient(135deg, rgba(135,1,255,0.22), rgba(255,0,170,0.12) 60%, rgba(255,75,40,0.08) 100%); border:1px solid rgba(255,255,255,0.08); border-radius:16px;">
+      <tr><td background="${escapeAttr(effectiveBgImg)}" style="background-image:url('${escapeAttr(effectiveBgImg)}'); background-size:cover; background-position:center; border-radius:16px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
       <tr>
         <td style="padding:32px 32px 28px;">
           <p style="margin:0; font-family:${FONTS.heading}; font-weight:800; font-size:80px; line-height:0.6; color:#FF00AA; letter-spacing:-0.05em;">&quot;</p>
@@ -687,7 +699,10 @@ function renderMacro(data, number, anchor = "", isLastSection = false) {
           </table>` : ""}
         </td>
       </tr>
-    </table>` : "";
+    </table>
+      </td></tr>
+    </table>
+    <!--[if mso]></v:textbox></v:rect><![endif]-->` : "";
 
   return `
     <tr>
@@ -1024,7 +1039,7 @@ function renderSection(sec, allSections, assetMode, showSectionNumbers = true, i
     case "chart":      return renderChart(sec.data, assetMode, isLastSection);
     case "fear_greed": return renderFearGreed(sec.data, number, assetMode, anchor, isLastSection);
     case "signals":    return renderSignals(sec.data, number, anchor, isLastSection);
-    case "macro":      return renderMacro(sec.data, number, anchor, isLastSection);
+    case "macro":      return renderMacro(sec.data, number, assetMode, anchor, isLastSection);
     case "macro_bars": return renderMacroBars(sec.data, isLastSection);
     case "commented_number": return renderCommentedNumber(sec.data, anchor, isLastSection);
     case "event":      return renderEvent(sec.data, anchor, isLastSection);

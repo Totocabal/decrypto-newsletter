@@ -22,6 +22,8 @@ const GRADIENT_HEADER_FILENAME = "gradient-header.png";
 const GRADIENT_HEADER_URL = "https://decrypto-newsletter.vercel.app/gradient-header.png";
 const EVENT_BG_FILENAME = "event-bg.png";
 const EVENT_BG_URL = "https://decrypto-newsletter.vercel.app/event-bg.png";
+const MACRO_QUOTE_BG_FILENAME = "macro-quote-bg.png";
+const MACRO_QUOTE_BG_URL = "https://decrypto-newsletter.vercel.app/macro-quote-bg.png";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SVG → PNG côté navigateur
@@ -86,6 +88,10 @@ async function buildPngAssets(state) {
       needGauge = true;
       gaugeValue = sec.data.value;
     }
+    if (sec.type === "macro" && sec.data.bg_image_url) {
+      const ext = guessImageExtension(sec.data.bg_image_url);
+      focusImages.push({ sectionId: sec.id, kind: "macro_bg", originalUrl: sec.data.bg_image_url, filename: `macro-bg-${sec.id}.${ext}` });
+    }
     if (sec.type === "image_block" && sec.data.image_url) {
       const ext = guessImageExtension(sec.data.image_url);
       focusImages.push({ sectionId: sec.id, originalUrl: sec.data.image_url, filename: `image_block-${sec.id}.${ext}` });
@@ -144,6 +150,20 @@ async function buildPngAssets(state) {
     }
   }
 
+  const needMacroQuoteBg = (state.sections || []).some(
+    (sec) => sec.type === "macro" && !String(sec.data?.bg_image_url || "").trim()
+  );
+  if (needMacroQuoteBg) {
+    try {
+      const resp = await fetch(MACRO_QUOTE_BG_URL);
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      assets[MACRO_QUOTE_BG_FILENAME] = await resp.blob();
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.warn("[export] macro-quote-bg.png non récupéré :", e);
+    }
+  }
+
   // Télécharge chaque image de bloc focus/image
   for (const fi of focusImages) {
     try {
@@ -169,6 +189,12 @@ function buildExternalAssetState(state, focusImages, assets, assetUrlMap = {}) {
         const fi = focusImages.find((f) => f.sectionId === sec.id && !f.itemId);
         if (fi && assets[fi.filename]) {
           return { ...sec, data: { ...sec.data, image_url: assetUrlMap[fi.filename] || `assets/${fi.filename}` } };
+        }
+      }
+      if (sec.type === "macro" && sec.data.bg_image_url) {
+        const fi = focusImages.find((f) => f.sectionId === sec.id && f.kind === "macro_bg");
+        if (fi && assets[fi.filename]) {
+          return { ...sec, data: { ...sec.data, bg_image_url: assetUrlMap[fi.filename] || `assets/${fi.filename}` } };
         }
       }
       if (sec.type === "focus") {
