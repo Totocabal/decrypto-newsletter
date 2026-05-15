@@ -21,14 +21,35 @@ function isMissingThemeColumn(error) {
   return isMissingColumn(error, "theme_variant");
 }
 
+function normalizeThemeVariant(value) {
+  return value === "light" ? "light" : "dark";
+}
+
+function getSectionsValue(value) {
+  if (Array.isArray(value)) return value;
+  if (Array.isArray(value?.sections)) return value.sections;
+  return [];
+}
+
+function getThemeVariantValue(row) {
+  return normalizeThemeVariant(row.sections?.themeVariant || row.theme_variant);
+}
+
+function sectionsWithThemeFallback(sections, themeVariant) {
+  return {
+    sections,
+    themeVariant: normalizeThemeVariant(themeVariant),
+  };
+}
+
 function normalizePreset(row) {
   return {
     id: row.id,
     name: row.name || "Preset sans nom",
-    sections: Array.isArray(row.sections) ? row.sections : [],
+    sections: getSectionsValue(row.sections),
     includeDefaultContent: row.include_default_content !== false,
     showSectionNumbers: row.show_section_numbers !== false,
-    themeVariant: row.theme_variant === "light" ? "light" : "dark",
+    themeVariant: getThemeVariantValue(row),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -90,11 +111,12 @@ export async function createTemplatePreset({
     .single();
 
   if (isMissingThemeColumn(error)) {
+    const fallbackSections = sectionsWithThemeFallback(sections, themeVariant);
     const withoutTheme = await supabase
       .from(TABLE)
       .insert({
         name,
-        sections,
+        sections: fallbackSections,
         include_default_content: includeDefaultContent !== false,
         show_section_numbers: showSectionNumbers !== false,
       })
@@ -105,7 +127,7 @@ export async function createTemplatePreset({
         .from(TABLE)
         .insert({
           name,
-          sections,
+          sections: fallbackSections,
           include_default_content: includeDefaultContent !== false,
         })
         .select(SELECT_LEGACY)
@@ -122,11 +144,12 @@ export async function createTemplatePreset({
   }
 
   if (isMissingNumberingColumn(error)) {
+    const fallbackSections = sectionsWithThemeFallback(sections, themeVariant);
     const legacy = await supabase
       .from(TABLE)
       .insert({
         name,
-        sections,
+        sections: fallbackSections,
         include_default_content: includeDefaultContent !== false,
       })
       .select(SELECT_LEGACY)
@@ -166,8 +189,9 @@ export async function updateTemplatePreset(id, {
     .single();
 
   if (isMissingThemeColumn(error)) {
+    const fallbackSections = sectionsWithThemeFallback(sections, themeVariant);
     const withoutThemePatch = {
-      sections,
+      sections: fallbackSections,
       include_default_content: includeDefaultContent !== false,
       show_section_numbers: showSectionNumbers !== false,
     };
@@ -180,7 +204,7 @@ export async function updateTemplatePreset(id, {
       .single();
     if (isMissingNumberingColumn(withoutTheme.error)) {
       const legacyPatch = {
-        sections,
+        sections: fallbackSections,
         include_default_content: includeDefaultContent !== false,
       };
       if (typeof name === "string") legacyPatch.name = name;
@@ -202,8 +226,9 @@ export async function updateTemplatePreset(id, {
   }
 
   if (isMissingNumberingColumn(error)) {
+    const fallbackSections = sectionsWithThemeFallback(sections, themeVariant);
     const legacyPatch = {
-      sections,
+      sections: fallbackSections,
       include_default_content: includeDefaultContent !== false,
     };
     if (typeof name === "string") legacyPatch.name = name;
