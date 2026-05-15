@@ -367,11 +367,11 @@ function LinkButton() {
 function RichTextElement({ attributes, children, element }) {
   switch (element.type) {
     case "bulleted-list":
-      return <ul {...attributes} className="list-disc pl-5 my-1 text-inherit text-sm leading-relaxed">{children}</ul>;
+      return <ul {...attributes} className="list-disc pl-5 my-1">{children}</ul>;
     case "numbered-list":
-      return <ol {...attributes} className="list-decimal pl-5 my-1 text-inherit text-sm leading-relaxed">{children}</ol>;
+      return <ol {...attributes} className="list-decimal pl-5 my-1">{children}</ol>;
     case "list-item":
-      return <li {...attributes} className="my-0.5 text-inherit text-sm leading-relaxed">{children}</li>;
+      return <li {...attributes} className="my-0.5">{children}</li>;
     case "link":
       return (
         <a
@@ -384,7 +384,7 @@ function RichTextElement({ attributes, children, element }) {
       );
     case "paragraph":
     default:
-      return <p {...attributes} className="my-0 text-sm">{children}</p>;
+      return <p {...attributes} className="my-0">{children}</p>;
   }
 }
 
@@ -398,7 +398,13 @@ function RichTextLeaf({ attributes, children, leaf }) {
 }
 
 function handleRichTextHotkeys(event, editor) {
-  if (event.key === "Enter" && event.shiftKey) {
+  if (event.key === "Enter") {
+    const inList = LIST_TYPES.some((type) => isBlockActive(editor, type));
+    if (inList && !event.shiftKey) {
+      // Slate gère nativement : nouvel item, ou sortie de liste si item vide
+      return;
+    }
+    // Shift+Enter dans une liste, ou Enter hors liste → retour à la ligne simple
     event.preventDefault();
     Editor.insertText(editor, "\n");
     return;
@@ -407,11 +413,7 @@ function handleRichTextHotkeys(event, editor) {
   if (!(event.metaKey || event.ctrlKey)) return;
 
   const key = event.key.toLowerCase();
-  const shortcutMarks = {
-    b: "bold",
-    i: "italic",
-    u: "underline",
-  };
+  const shortcutMarks = { b: "bold", i: "italic", u: "underline" };
   const mark = shortcutMarks[key];
   if (!mark) return;
 
