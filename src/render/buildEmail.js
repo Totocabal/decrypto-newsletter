@@ -668,21 +668,20 @@ function renderEvent(data, anchor = "") {
               </tr>
             </table>`;
 
-  const cardTable = bgImg
-    ? `<!--[if mso]>
-        <v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false" style="width:568px; border-radius:18px;">
-          <v:fill type="frame" src="${escapeAttr(bgImg)}" color="${EMAIL_THEME.bgEventCard}" />
-          <v:textbox inset="0,0,0,0"><![endif]-->
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
-          bgcolor="${EMAIL_THEME.bgEventCard}"
-          background="${escapeAttr(bgImg)}"
-          style="background-color:${EMAIL_THEME.bgEventCard}; background-image:url('${escapeAttr(bgImg)}'); background-size:cover; background-position:center; border-radius:18px;">
-          <tr><td>${cardInner}</td></tr>
-        </table>
-        <!--[if mso]></v:textbox></v:rect><![endif]-->`
-    : `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:${EMAIL_THEME.bgEventCard}; background-image:radial-gradient(ellipse at 0% 100%, ${EMAIL_THEME.accentSecondary} 0%, transparent 60%), radial-gradient(ellipse at 100% 0%, ${EMAIL_THEME.accentPrimary} 0%, transparent 50%); border-radius:18px;" bgcolor="${EMAIL_THEME.bgEventCard}">
-          <tr><td>${cardInner}</td></tr>
-        </table>`;
+  const effectiveBgImg = bgImg || "https://decrypto-newsletter.vercel.app/event-bg.png";
+  const cardTable = `<!--[if mso]>
+      <v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false" style="width:568px; border-radius:18px;">
+        <v:fill type="frame" src="${escapeAttr(effectiveBgImg)}" color="${EMAIL_THEME.bgEventCard}" />
+        <v:textbox inset="0,0,0,0"><![endif]-->
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+        class="em-event-bg"
+        bgcolor="${EMAIL_THEME.bgEventCard}"
+        background="${escapeAttr(effectiveBgImg)}"
+        style="background-color:${EMAIL_THEME.bgEventCard}; background-image:url('${escapeAttr(effectiveBgImg)}'); background-size:cover; background-position:center; border-radius:18px;">
+        <tr><td>${cardInner}</td></tr>
+      </table>
+      <!--[if mso]></v:textbox></v:rect><![endif]-->`;
+
 
   return `
     <tr>
@@ -1048,6 +1047,7 @@ ${renderEmailFontFaces()}
     .em-signal-col { display: block !important; width: 100% !important; box-sizing: border-box !important; border-right: none !important; border-bottom: 1px solid ${EMAIL_THEME.border} !important; }
     .em-event-text { word-break: break-word !important; overflow-wrap: break-word !important; }
   }
+  .em-event-bg { background-image: url('https://decrypto-newsletter.vercel.app/event-bg.png') !important; background-size: cover !important; background-position: center !important; }
 </style>
 </head>
 <body style="margin:0; padding:0; background-color:${EMAIL_THEME.bgPage}; font-family:${FONTS.body};">
