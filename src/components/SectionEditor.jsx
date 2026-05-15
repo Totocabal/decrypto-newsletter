@@ -1306,6 +1306,12 @@ function migrateFocusItems(data) {
 function FocusEditor({ data, set }) {
   const { profile } = useAuth();
   const [imageManagerOpen, setImageManagerOpen] = useState(null); // item id or null
+  const [collapsed, setCollapsed] = useState(new Set());
+  const toggleCollapse = (id) => setCollapsed((prev) => {
+    const next = new Set(prev);
+    next.has(id) ? next.delete(id) : next.add(id);
+    return next;
+  });
 
   const items = data.items ?? migrateFocusItems(data);
   const setItems = (nextItems) => set({ ...data, items: nextItems });
@@ -1343,23 +1349,30 @@ function FocusEditor({ data, set }) {
       <div className="mt-2 space-y-3">
         {items.map((item, i) => (
           <div key={item.id} className="bg-d-panel2 border border-line rounded-xl overflow-hidden">
-            <div className="flex items-center justify-between px-3 py-2" style={{ borderBottom: "1px solid var(--d-line)" }}>
-              <span className="text-[10px] uppercase tracking-[0.15em] font-semibold text-d-fg4">
-                {item.type === "text" ? "Texte" : item.type === "image" ? "Image" : item.type === "callout" ? "Encadré" : "CTA"}
-              </span>
-              <div className="flex items-center gap-0.5">
-                <button type="button" onClick={() => moveItem(item.id, -1)} disabled={i === 0} className="p-1 text-d-fg4 hover:text-d-fg2 hover:bg-d-panel3 rounded-lg disabled:opacity-20">
-                  <ChevronUp size={12} />
+            <div
+              className="flex items-center justify-between px-3 py-2 cursor-pointer select-none"
+              style={{ borderBottom: collapsed.has(item.id) ? "none" : "1px solid var(--d-line)" }}
+              onClick={() => toggleCollapse(item.id)}
+            >
+              <div className="flex items-center gap-2">
+                <ChevronDown size={14} className="text-d-fg3 transition-transform" style={{ transform: collapsed.has(item.id) ? "rotate(-90deg)" : "rotate(0deg)" }} />
+                <span className="text-xs uppercase tracking-[0.15em] font-bold text-d-fg2">
+                  {item.type === "text" ? "Texte" : item.type === "image" ? "Image" : item.type === "callout" ? "Encadré" : "CTA"}
+                </span>
+              </div>
+              <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                <button type="button" onClick={() => moveItem(item.id, -1)} disabled={i === 0} className="p-1.5 text-d-fg2 bg-d-panel3 border border-line hover:bg-d-panel hover:text-d-fg rounded-lg disabled:opacity-20 disabled:cursor-not-allowed">
+                  <ChevronUp size={14} />
                 </button>
-                <button type="button" onClick={() => moveItem(item.id, 1)} disabled={i === items.length - 1} className="p-1 text-d-fg4 hover:text-d-fg2 hover:bg-d-panel3 rounded-lg disabled:opacity-20">
-                  <ChevronDown size={12} />
+                <button type="button" onClick={() => moveItem(item.id, 1)} disabled={i === items.length - 1} className="p-1.5 text-d-fg2 bg-d-panel3 border border-line hover:bg-d-panel hover:text-d-fg rounded-lg disabled:opacity-20 disabled:cursor-not-allowed">
+                  <ChevronDown size={14} />
                 </button>
-                <button type="button" onClick={() => removeItem(item.id)} className="p-1 text-d-fg4 hover:text-red-400 hover:bg-red-900/20 rounded-lg">
-                  <Trash2 size={12} />
+                <button type="button" onClick={() => removeItem(item.id)} className="p-1.5 text-d-fg3 hover:text-red-400 hover:bg-red-900/20 rounded-lg">
+                  <Trash2 size={14} />
                 </button>
               </div>
             </div>
-            <div className="p-3">
+            {!collapsed.has(item.id) && <div className="p-3">
               {item.type === "text" && (
                 <Field hint="Éditeur riche : gras, italique, souligné, rayé, lien et listes">
                   <TextArea
@@ -1501,7 +1514,7 @@ function FocusEditor({ data, set }) {
                   </div>
                 </>
               )}
-            </div>
+            </div>}
           </div>
         ))}
       </div>
