@@ -13,7 +13,7 @@ export function PreviewPanel({ html, view, previewDevice, setPreviewDevice }) {
     >
       {view === "preview" && (
         <div className="flex items-center justify-center gap-1 border-b border-line px-3 py-2">
-          <div className="flex max-w-full items-center overflow-x-auto rounded-full border border-line bg-d-panel2 p-1">
+          <div className="flex items-center rounded-full border border-line bg-d-panel2 p-1">
             <Tooltip label="Aperçu desktop">
               <button
                 onClick={() => setPreviewDevice("desktop")}
