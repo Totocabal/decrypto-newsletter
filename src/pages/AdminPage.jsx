@@ -567,16 +567,16 @@ function DefaultSectionsEditor() {
 
   return (
     <section>
-      <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0 max-w-xl">
+      <div className="mb-5 space-y-4">
+        <div className="min-w-0">
           <h2 className="text-sm font-semibold text-d-fg mb-1" style={{ fontFamily: "'Sora', sans-serif" }}>
-            Template nouvelle newsletter
+            Template newsletter
           </h2>
-          <p className="max-w-md text-xs text-d-fg4 leading-relaxed">
+          <p className="text-xs text-d-fg4 leading-relaxed">
             Configure la disposition proposée lors de la création.
           </p>
         </div>
-        <div className="flex flex-wrap gap-2 sm:flex-shrink-0">
+        <div className="flex flex-wrap gap-2">
           <button
             onClick={handleReset}
             className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] font-medium text-d-fg3 hover:text-d-fg border border-line hover:border-line2 px-3 py-1.5 rounded-full transition-colors"
