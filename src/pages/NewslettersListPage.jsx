@@ -431,7 +431,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
 
         {filteredNewsletters.length > 0 && (
           <div
-            className="bg-d-panel rounded-2xl overflow-hidden border border-line"
+            className="bg-d-panel rounded-2xl border border-line"
             onClick={() => setLabelPickerOpen(null)}
           >
             {filteredNewsletters.map((nl, i, arr) => {
@@ -440,6 +440,8 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
               const cardLabelIds = nlLabels[nl.id] || [];
               const cardLabels = labels.filter((l) => cardLabelIds.includes(l.id));
               const pickerOpen = labelPickerOpen === nl.id;
+              const isFirst = i === 0;
+              const isLast = i === arr.length - 1;
               return (
                 <div key={nl.id}>
                   <div
@@ -452,7 +454,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                         onOpen(nl.id);
                       }
                     }}
-                    className="group flex cursor-pointer items-start gap-3 px-4 py-4 transition-colors hover:bg-d-panel2 focus:bg-d-panel2 focus:outline-none sm:items-center sm:gap-4 sm:px-5"
+                    className={`group flex cursor-pointer items-start gap-3 px-4 py-4 transition-colors hover:bg-d-panel2 focus:bg-d-panel2 focus:outline-none sm:items-center sm:gap-4 sm:px-5 ${isFirst ? "rounded-t-2xl" : ""} ${isLast ? "rounded-b-2xl" : ""}`}
                   >
                     {/* Icon */}
                     <div
@@ -510,17 +512,15 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                     <div className="flex flex-shrink-0 items-center gap-1 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
                       {labels.length > 0 && (
                         <div className="relative">
-                          <Tooltip label="Labels" side="left">
-                            <button
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                setLabelPickerOpen((id) => (id === nl.id ? null : nl.id));
-                              }}
-                              className={`p-2 rounded-lg transition-colors ${pickerOpen ? "text-d-fg2 bg-d-panel3" : "text-d-fg4 hover:text-d-fg2 hover:bg-d-panel3"}`}
-                            >
-                              <Tag size={14} />
-                            </button>
-                          </Tooltip>
+                          <button
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              setLabelPickerOpen((id) => (id === nl.id ? null : nl.id));
+                            }}
+                            className={`p-2 rounded-lg transition-colors ${pickerOpen ? "text-d-fg2 bg-d-panel3" : "text-d-fg4 hover:text-d-fg2 hover:bg-d-panel3"}`}
+                          >
+                            <Tag size={14} />
+                          </button>
                           {pickerOpen && (
                             <div
                               className="absolute right-0 top-full z-50 mt-1 min-w-[160px] rounded-xl border border-line bg-d-panel shadow-xl"
