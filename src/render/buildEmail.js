@@ -940,7 +940,7 @@ function renderHeader(state, assetMode) {
 function renderFooter(footer, assetMode) {
   const logoUrl = BRAND_LOGOS[EMAIL_THEME === EMAIL_THEMES.light ? "light" : "dark"] || BRAND_LOGOS.dark;
   const links = (footer.links || []).filter(l => l.label && l.url).map(l => `
-    <td style="padding:0 11px;">
+    <td align="center" style="padding:0 11px;">
       <a href="${escapeAttr(l.url)}" style="font-family:${FONTS.body}; font-size:12px; color:${EMAIL_THEME.textMuted}; letter-spacing:0.04em; text-decoration:none;">${escapeHtml(l.label)}</a>
     </td>`).join("");
 
