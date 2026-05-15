@@ -510,17 +510,15 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                     <div className="flex flex-shrink-0 items-center gap-1 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
                       {labels.length > 0 && (
                         <div className="relative">
-                          <Tooltip label="Labels" side="left">
-                            <button
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                setLabelPickerOpen((id) => (id === nl.id ? null : nl.id));
-                              }}
-                              className={`p-2 rounded-lg transition-colors ${pickerOpen ? "text-d-fg2 bg-d-panel3" : "text-d-fg4 hover:text-d-fg2 hover:bg-d-panel3"}`}
-                            >
-                              <Tag size={14} />
-                            </button>
-                          </Tooltip>
+                          <button
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              setLabelPickerOpen((id) => (id === nl.id ? null : nl.id));
+                            }}
+                            className={`p-2 rounded-lg transition-colors ${pickerOpen ? "text-d-fg2 bg-d-panel3" : "text-d-fg4 hover:text-d-fg2 hover:bg-d-panel3"}`}
+                          >
+                            <Tag size={14} />
+                          </button>
                           {pickerOpen && (
                             <div
                               className="absolute right-0 top-full z-50 mt-1 min-w-[160px] rounded-xl border border-line bg-d-panel shadow-xl"
