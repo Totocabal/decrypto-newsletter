@@ -690,8 +690,8 @@ function renderFocusItem(item) {
           <td align="${align}" valign="middle">
             <table role="presentation" cellpadding="0" cellspacing="0" border="0">
               <tr>
-                <td style="border:1px solid rgba(255,255,255,0.22); border-radius:99px;">
-                  <a href="${escapeAttr(item.url || "#")}" style="display:inline-block; padding:12px 20px; font-family:${FONTS.heading}; font-weight:500; font-size:13px; color:#E9EEF2; text-decoration:none; border-radius:99px; letter-spacing:0.01em;">${ctaText}</a>
+                <td style="border:1px solid ${EMAIL_THEME.borderStrong}; border-radius:99px;">
+                  <a href="${escapeAttr(item.url || "#")}" style="display:inline-block; padding:12px 20px; font-family:${FONTS.heading}; font-weight:500; font-size:13px; color:${EMAIL_THEME.textSecondary}; text-decoration:none; border-radius:99px; letter-spacing:0.01em;">${ctaText}</a>
                 </td>
               </tr>
             </table>
@@ -716,12 +716,15 @@ function renderFocusItem(item) {
             </table>
             <!--<![endif]-->`;
 
-    const secondaryBtn = item.secondary_label
+    const secondaryText = item.secondary_label
+      ? escapeHtml(item.secondary_label) + (item.secondary_arrow ? " →" : "")
+      : "";
+    const secondaryBtn = secondaryText
       ? `<td valign="middle" style="padding-left:10px;">
             <table role="presentation" cellpadding="0" cellspacing="0" border="0">
               <tr>
-                <td style="border:1px solid rgba(255,255,255,0.22); border-radius:99px;">
-                  <a href="${escapeAttr(item.secondary_url || "#")}" style="display:inline-block; padding:12px 20px; font-family:${FONTS.heading}; font-weight:500; font-size:13px; color:#E9EEF2; text-decoration:none; border-radius:99px; letter-spacing:0.01em;">${escapeHtml(item.secondary_label)}</a>
+                <td style="border:1px solid ${EMAIL_THEME.borderStrong}; border-radius:99px;">
+                  <a href="${escapeAttr(item.secondary_url || "#")}" style="display:inline-block; padding:12px 20px; font-family:${FONTS.heading}; font-weight:500; font-size:13px; color:${EMAIL_THEME.textSecondary}; text-decoration:none; border-radius:99px; letter-spacing:0.01em;">${secondaryText}</a>
                 </td>
               </tr>
             </table>
