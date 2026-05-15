@@ -11,6 +11,7 @@ import { MAX_IMAGE_FILE_SIZE_LABEL } from "../lib/imageUpload.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import { ImageManagerModal } from "./ImageManagerModal.jsx";
 import { Tooltip } from "./Tooltip.jsx";
+import { CALLOUT_PICTOS, CALLOUT_PICTOS_MAP, DEFAULT_PICTO_ID, buildPictoSvgHtml } from "../config/calloutPictos.js";
 
 export function SectionEditor({ type, data, onChange, sections = [] }) {
   const set = (patch) => onChange({ ...data, ...patch });
@@ -1321,7 +1322,7 @@ function FocusEditor({ data, set }) {
     let item;
     if (type === "text") item = { id, type: "text", body: "" };
     else if (type === "image") item = { id, type: "image", image_url: "", image_path: "", image_alt: "Visuel d'illustration" };
-    else if (type === "callout") item = { id, type: "callout", label: "Note de la rédac", body: "", footer: "", footer_url: "", show_icon: true };
+    else if (type === "callout") item = { id, type: "callout", label: "Note de la rédac", body: "", footer: "", footer_url: "", show_icon: true, picto: DEFAULT_PICTO_ID };
     else item = { id, type: "cta", label: "", url: "", arrow: false, centered: false, secondary_label: "", secondary_url: "" };
     setItems([...items, item]);
   };
@@ -1481,6 +1482,33 @@ function FocusEditor({ data, set }) {
                       className="h-4 w-4 accent-d-pink"
                     />
                   </label>
+                  {item.show_icon !== false && (
+                    <div className="mb-3">
+                      <div className="text-[10px] uppercase tracking-[0.15em] font-semibold text-d-fg4 mb-2">Pictogramme</div>
+                      <div className="grid grid-cols-5 gap-1.5">
+                        {CALLOUT_PICTOS.map((p) => {
+                          const isSelected = (item.picto || DEFAULT_PICTO_ID) === p.id;
+                          return (
+                            <Tooltip key={p.id} label={`${p.num} — ${p.label}`}>
+                              <button
+                                type="button"
+                                onClick={() => updateItem(item.id, { picto: p.id })}
+                                className={`w-full aspect-square rounded-lg border flex items-center justify-center transition-all ${
+                                  isSelected ? "opacity-100 scale-105" : "border-line bg-d-panel3 opacity-40 hover:opacity-70"
+                                }`}
+                                style={isSelected ? {
+                                  background: `rgba(${p.bgRgb},0.16)`,
+                                  borderColor: `rgba(${p.bgRgb},0.4)`,
+                                } : {}}
+                              >
+                                <span dangerouslySetInnerHTML={{ __html: buildPictoSvgHtml(p.svgInner, p.color, 14) }} />
+                              </button>
+                            </Tooltip>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                   <Field label="Libellé">
                     <Input
                       value={item.label || ""}

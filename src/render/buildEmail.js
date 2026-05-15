@@ -4,6 +4,7 @@
 
 import { THEME, EMAIL_THEMES, BRAND_LOGOS, FONTS } from "../config/theme.js";
 import { computeSectionNumber } from "../config/schema.js";
+import { CALLOUT_PICTOS_MAP, DEFAULT_PICTO_ID, buildPictoSvgHtml } from "../config/calloutPictos.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
@@ -864,19 +865,20 @@ function renderFocusItem(item) {
     const hasBody = plainTextFromRichText(item.body);
     if (!hasBody) return "";
     const isLightTheme = EMAIL_THEME === EMAIL_THEMES.light;
-    const calloutBg = isLightTheme ? "#F3FCFC" : "rgba(0,255,255,0.04)";
-    const calloutBorder = isLightTheme ? "#C8D2FF" : "rgba(0,255,255,0.22)";
-    const calloutAccent = isLightTheme ? "#4141FF" : "#00FFFF";
-    const iconBg = isLightTheme ? "#4141FF" : "rgba(0,255,255,0.16)";
-    const iconBorder = isLightTheme ? "#4141FF" : "rgba(0,255,255,0.32)";
-    const iconColor = isLightTheme ? "#FFFFFF" : "#00FFFF";
+    const picto = CALLOUT_PICTOS_MAP[item.picto || DEFAULT_PICTO_ID] || CALLOUT_PICTOS_MAP[DEFAULT_PICTO_ID];
+    const calloutBg = isLightTheme ? "#F3FCFC" : `rgba(${picto.bgRgb},0.04)`;
+    const calloutBorder = isLightTheme ? "#C8D2FF" : `rgba(${picto.bgRgb},0.22)`;
+    const calloutAccent = isLightTheme ? "#4141FF" : picto.color;
+    const iconBg = isLightTheme ? "#4141FF" : `rgba(${picto.bgRgb},0.16)`;
+    const iconBorder = isLightTheme ? "#4141FF" : `rgba(${picto.bgRgb},0.32)`;
+    const iconStroke = isLightTheme ? "#FFFFFF" : picto.color;
     const bodyColor = isLightTheme ? "#303641" : "#D8DDE6";
-    const footerBorder = isLightTheme ? "#CAD4FF" : "rgba(0,255,255,0.16)";
+    const footerBorder = isLightTheme ? "#CAD4FF" : `rgba(${picto.bgRgb},0.16)`;
     const footerColor = isLightTheme ? "#68717E" : EMAIL_THEME.textDim;
     const iconHtml = item.show_icon === false
       ? ""
       : `<td valign="middle" style="padding-right:12px;">
-                  <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:separate !important; border-spacing:0 !important;"><tr><td width="30" height="30" align="center" valign="middle" style="background:${iconBg}; border:1px solid ${iconBorder}; border-radius:8px; color:${iconColor}; font-family:${FONTS.heading}; font-size:14px; font-weight:700; line-height:30px;">i</td></tr></table>
+                  <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:separate !important; border-spacing:0 !important;"><tr><td width="30" height="30" align="center" valign="middle" style="background:${iconBg}; border:1px solid ${iconBorder}; border-radius:8px;">${buildPictoSvgHtml(picto.svgInner, iconStroke, 16)}</td></tr></table>
                 </td>`;
     const footerText = String(item.footer || "").trim();
     const footer = footerText
