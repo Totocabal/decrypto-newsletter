@@ -464,7 +464,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                     </div>
 
                     <div className="flex-1 min-w-0">
-                      <div className="mb-1 flex min-w-0 flex-wrap items-center gap-2">
+                      <div className="mb-1 flex min-w-0 items-center gap-2">
                         <div
                           className="text-sm font-semibold text-d-fg truncate text-left"
                           style={{ fontFamily: "'Sora', sans-serif" }}
@@ -473,26 +473,13 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                         </div>
                         {lockedByOther && (
                           <span
-                            className="inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.14em] font-semibold px-2 py-0.5 rounded-full"
+                            className="inline-flex flex-shrink-0 items-center gap-1 text-[10px] uppercase tracking-[0.14em] font-semibold px-2 py-0.5 rounded-full"
                             style={{ background: "rgba(255,75,40,0.12)", color: "#FF8466" }}
                           >
                             <Lock size={10} />
                             {lock.user_full_name || lock.user_email}
                           </span>
                         )}
-                        {cardLabels.map((label) => (
-                          <span
-                            key={label.id}
-                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-[0.12em]"
-                            style={{
-                              background: label.color + "22",
-                              border: `1px solid ${label.color}55`,
-                              color: label.color,
-                            }}
-                          >
-                            {label.name}
-                          </span>
-                        ))}
                       </div>
                       <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-d-fg3">
                         <span className="flex items-center gap-1">
@@ -507,6 +494,23 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                           {getPreviewText(nl)}
                         </span>
                       </div>
+                      {cardLabels.length > 0 && (
+                        <div className="mt-1.5 flex flex-wrap gap-1">
+                          {cardLabels.map((label) => (
+                            <span
+                              key={label.id}
+                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-[0.12em]"
+                              style={{
+                                background: label.color + "22",
+                                border: `1px solid ${label.color}55`,
+                                color: label.color,
+                              }}
+                            >
+                              {label.name}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
 
                     <div className="flex flex-shrink-0 items-center gap-1 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
