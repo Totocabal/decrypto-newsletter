@@ -3,7 +3,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, History, Loader2, CloudOff, Cloud, Undo2, Redo2 } from "lucide-react";
+import { ArrowLeft, History, Loader2, CloudOff, Cloud, Tag, Undo2, Redo2, X } from "lucide-react";
 import { Toolbar } from "../components/Toolbar.jsx";
 import { PreviewPanel } from "../components/PreviewPanel.jsx";
 import { EditorPanel } from "../components/EditorPanel.jsx";
@@ -17,6 +17,7 @@ import { useNewsletter } from "../lib/useNewsletter.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import { copyHtmlToClipboard } from "../utils/exportImport.js";
 import { exportAssetPack, exportBrazeHtml } from "../utils/exportAssetPack.js";
+import { useLabels, useNewsletterLabels } from "../lib/useLabels.js";
 
 export function EditorPage({ newsletterId, onBack }) {
   const { profile } = useAuth();
@@ -46,6 +47,9 @@ export function EditorPage({ newsletterId, onBack }) {
   const [undoCount, setUndoCount] = useState(0);
   const [redoCount, setRedoCount] = useState(0);
   const [dirtySinceVersion, setDirtySinceVersion] = useState(false);
+  const [labelPickerOpen, setLabelPickerOpen] = useState(false);
+  const { labels } = useLabels();
+  const { labelIds, toggle: toggleLabel } = useNewsletterLabels(newsletterId);
   const undoStackRef = useRef([]);
   const redoStackRef = useRef([]);
   const lastStateRef = useRef(null);
@@ -303,6 +307,55 @@ export function EditorPage({ newsletterId, onBack }) {
                 style={{ fontFamily: "'Sora', sans-serif" }}
               />
             </Tooltip>
+            {labels.length > 0 && (
+              <div className="relative flex flex-shrink-0 items-center gap-1.5">
+                {labels.filter((l) => labelIds.includes(l.id)).map((label) => (
+                  <span
+                    key={label.id}
+                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-[0.12em]"
+                    style={{
+                      background: label.color + "22",
+                      border: `1px solid ${label.color}55`,
+                      color: label.color,
+                    }}
+                  >
+                    {label.name}
+                  </span>
+                ))}
+                <button
+                  onClick={() => setLabelPickerOpen((o) => !o)}
+                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[10px] uppercase tracking-[0.14em] font-medium border border-line transition-colors ${labelPickerOpen ? "bg-d-panel2 text-d-fg2" : "text-d-fg4 hover:text-d-fg2 hover:bg-d-panel2"}`}
+                >
+                  <Tag size={11} />
+                  Labels
+                </button>
+                {labelPickerOpen && (
+                  <div className="absolute left-0 top-full z-50 mt-1 min-w-[160px] rounded-xl border border-line bg-d-panel shadow-xl">
+                    {labels.map((label) => {
+                      const checked = labelIds.includes(label.id);
+                      return (
+                        <button
+                          key={label.id}
+                          onClick={() => toggleLabel(label.id, profile?.id)}
+                          className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left transition-colors first:rounded-t-xl last:rounded-b-xl hover:bg-d-panel2"
+                        >
+                          <span
+                            className="h-3 w-3 flex-shrink-0 rounded-full border-2 transition-all"
+                            style={{
+                              background: checked ? label.color : "transparent",
+                              borderColor: label.color,
+                            }}
+                          />
+                          <span style={{ color: label.color }} className="font-semibold uppercase tracking-[0.1em] text-[10px]">
+                            {label.name}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
           <div className="flex flex-wrap items-center gap-2 sm:gap-3 xl:flex-shrink-0 xl:justify-end">
             <SaveIndicator

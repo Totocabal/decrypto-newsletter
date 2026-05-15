@@ -24,11 +24,13 @@ import {
   ImageIcon,
   Minus,
   Palette,
+  Pencil,
   Plus,
   RefreshCw,
   RotateCcw,
   Save,
   ShieldCheck,
+  Tag,
   Users,
   LayoutTemplate,
   UserPlus,
@@ -37,6 +39,7 @@ import {
 import { useRef } from "react";
 import { supabase } from "../lib/supabase.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
+import { useLabels, createLabel, updateLabel, deleteLabel, LABEL_COLORS } from "../lib/useLabels.js";
 import {
   createTemplatePreset,
   deleteTemplatePreset,
@@ -157,6 +160,7 @@ export function AdminPage({ onBack }) {
   const tabs = [
     { id: "accounts", label: "Gestion des comptes", icon: Users },
     { id: "template", label: "Template newsletter", icon: LayoutTemplate },
+    { id: "labels", label: "Labels", icon: Tag },
   ];
 
   return (
@@ -371,6 +375,11 @@ export function AdminPage({ onBack }) {
         {/* ── Onglet Template newsletter ── */}
         <div className={tab !== "template" ? "hidden" : ""}>
           <DefaultSectionsEditor />
+        </div>
+
+        {/* ── Onglet Labels ── */}
+        <div className={tab !== "labels" ? "hidden" : ""}>
+          <LabelsEditor />
         </div>
       </main>
     </div>
@@ -891,6 +900,215 @@ function DefaultSectionsEditor() {
                     Supprimer
                   </button>
                 </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// LabelsEditor
+// ─────────────────────────────────────────────────────────────────────────────
+
+function LabelsEditor() {
+  const { profile } = useAuth();
+  const { labels, loading, reload } = useLabels();
+  const [form, setForm] = useState({ name: "", color: LABEL_COLORS[0] });
+  const [saving, setSaving] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [editForm, setEditForm] = useState({ name: "", color: "" });
+
+  const handleCreate = async (e) => {
+    e.preventDefault();
+    if (!form.name.trim() || !profile?.id) return;
+    setSaving(true);
+    try {
+      await createLabel({ name: form.name.trim(), color: form.color, userId: profile.id });
+      setForm({ name: "", color: LABEL_COLORS[0] });
+      await reload();
+    } catch (err) {
+      alert("Erreur : " + err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const startEdit = (label) => {
+    setEditingId(label.id);
+    setEditForm({ name: label.name, color: label.color });
+  };
+
+  const handleUpdate = async (id) => {
+    if (!editForm.name.trim() || !profile?.id) return;
+    setSaving(true);
+    try {
+      await updateLabel(id, { name: editForm.name.trim(), color: editForm.color, userId: profile.id });
+      setEditingId(null);
+      await reload();
+    } catch (err) {
+      alert("Erreur : " + err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async (label) => {
+    if (!confirm(`Supprimer le label « ${label.name} » ? Il sera retiré de toutes les newsletters.`)) return;
+    try {
+      await deleteLabel(label.id);
+      await reload();
+    } catch (err) {
+      alert("Erreur : " + err.message);
+    }
+  };
+
+  return (
+    <section className="space-y-6">
+      <div>
+        <h2 className="text-sm font-semibold text-d-fg mb-1" style={{ fontFamily: "'Sora', sans-serif" }}>
+          Labels
+        </h2>
+        <p className="text-xs text-d-fg4 leading-relaxed">
+          Les labels permettent de catégoriser les newsletters. Seuls les admins peuvent les créer ou les modifier.
+        </p>
+      </div>
+
+      {/* Création */}
+      <div className="bg-d-panel border border-line rounded-2xl p-4">
+        <div className="text-[10px] uppercase tracking-[0.18em] text-d-fg3 font-medium mb-3">Nouveau label</div>
+        <form onSubmit={handleCreate} className="flex flex-col gap-3 sm:flex-row sm:items-end">
+          <div className="flex-1">
+            <label className="text-[10px] uppercase tracking-[0.18em] text-d-fg3 font-medium block mb-2">Nom</label>
+            <input
+              type="text"
+              required
+              value={form.name}
+              onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+              placeholder="Ex. : Marché, Macro, Régulation…"
+              className="w-full px-3 py-2.5 border border-line rounded-xl text-sm focus:outline-none focus:border-line2 bg-d-panel2 text-d-fg placeholder:text-d-fg4 transition-colors"
+              disabled={saving}
+            />
+          </div>
+          <div>
+            <label className="text-[10px] uppercase tracking-[0.18em] text-d-fg3 font-medium block mb-2">Couleur</label>
+            <div className="flex flex-wrap gap-1.5">
+              {LABEL_COLORS.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => setForm((f) => ({ ...f, color: c }))}
+                  className="h-6 w-6 rounded-full border-2 transition-transform hover:scale-110"
+                  style={{
+                    background: c,
+                    borderColor: form.color === c ? "#fff" : "transparent",
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+          <button
+            type="submit"
+            disabled={saving || !form.name.trim()}
+            className="flex items-center justify-center gap-2 text-[10px] uppercase tracking-[0.18em] font-semibold text-[#15151A] bg-white hover:bg-d-fg2 px-4 py-2.5 rounded-full disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            {saving ? <Loader2 size={12} className="animate-spin" /> : <Plus size={12} />}
+            Créer
+          </button>
+        </form>
+      </div>
+
+      {/* Liste */}
+      <div>
+        <div className="flex items-center gap-2 mb-3">
+          <h3 className="text-[10px] uppercase tracking-[0.18em] text-d-fg3 font-medium">Labels existants</h3>
+          <span className="text-[10px] bg-d-panel2 text-d-fg3 px-2 py-0.5 rounded-full font-medium border border-line">
+            {labels.length}
+          </span>
+        </div>
+
+        {loading ? (
+          <div className="text-xs text-d-fg4 flex items-center gap-2 p-4">
+            <Loader2 size={14} className="animate-spin" />Chargement…
+          </div>
+        ) : labels.length === 0 ? (
+          <div className="border border-dashed border-line rounded-2xl p-8 text-center text-xs text-d-fg4">
+            Aucun label créé pour le moment.
+          </div>
+        ) : (
+          <div className="bg-d-panel border border-line rounded-2xl divide-y" style={{ borderColor: "var(--d-line)" }}>
+            {labels.map((label) => (
+              <div key={label.id} className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:gap-4">
+                {editingId === label.id ? (
+                  <>
+                    <div className="flex-1 flex flex-col gap-3 sm:flex-row sm:items-center">
+                      <input
+                        type="text"
+                        value={editForm.name}
+                        onChange={(e) => setEditForm((f) => ({ ...f, name: e.target.value }))}
+                        className="flex-1 px-3 py-2 border border-line rounded-xl text-sm focus:outline-none focus:border-line2 bg-d-panel2 text-d-fg transition-colors"
+                        disabled={saving}
+                      />
+                      <div className="flex flex-wrap gap-1.5">
+                        {LABEL_COLORS.map((c) => (
+                          <button
+                            key={c}
+                            type="button"
+                            onClick={() => setEditForm((f) => ({ ...f, color: c }))}
+                            className="h-5 w-5 rounded-full border-2 transition-transform hover:scale-110"
+                            style={{
+                              background: c,
+                              borderColor: editForm.color === c ? "#fff" : "transparent",
+                            }}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleUpdate(label.id)}
+                        disabled={saving || !editForm.name.trim()}
+                        className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] font-semibold px-3 py-1.5 rounded-full disabled:opacity-50 transition-colors"
+                        style={{ background: "#FFFFFF", color: "#15151A" }}
+                      >
+                        {saving ? <Loader2 size={11} className="animate-spin" /> : <Check size={11} />}
+                        Sauver
+                      </button>
+                      <button
+                        onClick={() => setEditingId(null)}
+                        className="text-[10px] uppercase tracking-[0.18em] font-medium text-d-fg3 hover:text-d-fg px-3 py-1.5 border border-line hover:border-line2 rounded-full transition-colors"
+                      >
+                        Annuler
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex flex-1 min-w-0 items-center gap-3">
+                      <span className="h-4 w-4 flex-shrink-0 rounded-full" style={{ background: label.color }} />
+                      <span className="text-sm text-d-fg font-medium">{label.name}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => startEdit(label)}
+                        className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] font-medium text-d-fg3 hover:text-d-fg px-3 py-1.5 border border-line hover:border-line2 rounded-full transition-colors"
+                      >
+                        <Pencil size={11} />
+                        Modifier
+                      </button>
+                      <button
+                        onClick={() => handleDelete(label)}
+                        className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] font-medium px-3 py-1.5 border rounded-full transition-colors"
+                        style={{ color: "#FF8466", borderColor: "rgba(255,75,40,0.25)" }}
+                      >
+                        <X size={11} />
+                        Supprimer
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
             ))}
           </div>
