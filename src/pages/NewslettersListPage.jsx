@@ -566,29 +566,25 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                           )}
                         </div>
                       )}
-                      <Tooltip label="Dupliquer" side="left">
+                      <button
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          handleDuplicate(nl);
+                        }}
+                        className="p-2 text-d-fg4 hover:text-d-fg2 hover:bg-d-panel3 rounded-lg transition-colors"
+                      >
+                        <Copy size={14} />
+                      </button>
+                      {profile?.is_admin && (
                         <button
                           onClick={(event) => {
                             event.stopPropagation();
-                            handleDuplicate(nl);
+                            handleDelete(nl);
                           }}
-                          className="p-2 text-d-fg4 hover:text-d-fg2 hover:bg-d-panel3 rounded-lg transition-colors"
+                          className="p-2 text-d-fg4 hover:text-red-400 hover:bg-red-900/20 rounded-lg transition-colors"
                         >
-                          <Copy size={14} />
+                          <Trash2 size={14} />
                         </button>
-                      </Tooltip>
-                      {profile?.is_admin && (
-                        <Tooltip label="Supprimer" side="left">
-                          <button
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              handleDelete(nl);
-                            }}
-                            className="p-2 text-d-fg4 hover:text-red-400 hover:bg-red-900/20 rounded-lg transition-colors"
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                        </Tooltip>
                       )}
                     </div>
 
