@@ -638,24 +638,30 @@ function renderMacroBars(data, isLastSection = false) {
 function renderCommentedNumber(data, anchor = "", isLastSection = false) {
   const unit = String(data.unit || "").trim();
   const isLightTheme = EMAIL_THEME === EMAIL_THEMES.light;
-  const numberColor = isLightTheme ? EMAIL_THEME.accentPrimary : EMAIL_THEME.positive;
+  const cardBg = isLightTheme ? "#FBF8F2" : "#101018";
+  const cardBorder = isLightTheme ? "#E6E0D4" : EMAIL_THEME.borderSubtle;
+  const numberPanelBg = isLightTheme ? "#EEF2EC" : EMAIL_THEME.positiveBg;
+  const dividerColor = isLightTheme ? "#E0DCD3" : EMAIL_THEME.borderSubtle;
+  const numberColor = isLightTheme ? "#63C3A2" : EMAIL_THEME.positive;
+  const titleColor = isLightTheme ? "#111318" : EMAIL_THEME.textPrimary;
+  const bodyColor = isLightTheme ? "#555E6E" : EMAIL_THEME.textMuted;
   return `
     <tr>
       <td class="em-px" style="padding:36px;${sectionBottomBorder(isLastSection)}">
         ${anchor}
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:${isLightTheme ? "#F7F8FA" : "#101018"}; border:0; border-radius:14px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:${cardBg}; border:1px solid ${cardBorder}; border-radius:14px;">
           <tr>
             <td style="padding:4px;">
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                 <tr>
-                  <td class="em-stack em-stack-pad" valign="middle" width="200" style="padding:24px; background-color:${EMAIL_THEME.positiveBg}; border-right:1px solid ${EMAIL_THEME.borderSubtle}; border-radius:12px 0 0 12px;">
+                  <td class="em-stack em-stack-pad" valign="middle" width="200" style="padding:24px; background-color:${numberPanelBg}; border-right:1px solid ${dividerColor}; border-radius:12px 0 0 12px;">
                     <p style="margin:0; font-family:${FONTS.body}; font-size:10px; letter-spacing:0.22em; text-transform:uppercase; color:${EMAIL_THEME.textDim}; font-weight:600;">${escapeHtml(data.kicker || "Le chiffre")}</p>
                     <p style="margin:6px 0 0; font-family:${FONTS.heading}; font-weight:700; font-size:56px; line-height:0.95; letter-spacing:-0.045em; color:${numberColor};">${escapeHtml(data.value)}${unit ? ` <span style="font-size:22px; color:${EMAIL_THEME.textMuted}; font-weight:500; letter-spacing:0;">${escapeHtml(unit)}</span>` : ""}</p>
                     ${data.caption ? `<p style="margin:8px 0 0; font-family:${FONTS.body}; font-size:12px; color:${EMAIL_THEME.textMuted}; letter-spacing:0.02em;">${escapeHtml(data.caption)}</p>` : ""}
                   </td>
                   <td class="em-stack" valign="middle" style="padding:24px 28px;">
-                    ${data.title ? `<p style="margin:0 0 8px; font-family:${FONTS.heading}; font-weight:600; font-size:17px; line-height:1.25; letter-spacing:-0.015em; color:${EMAIL_THEME.textPrimary};">${escapeHtml(data.title)}</p>` : ""}
-                    <p style="margin:0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:13.5px; line-height:1.55; color:${EMAIL_THEME.textMuted};">${sanitizeRichText(data.body)}</p>
+                    ${data.title ? `<p style="margin:0 0 8px; font-family:${FONTS.heading}; font-weight:600; font-size:17px; line-height:1.25; letter-spacing:-0.015em; color:${titleColor};">${escapeHtml(data.title)}</p>` : ""}
+                    <p style="margin:0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:13.5px; line-height:1.55; color:${bodyColor};">${sanitizeRichText(data.body)}</p>
                   </td>
                 </tr>
               </table>
@@ -857,26 +863,36 @@ function renderFocusItem(item) {
   if (item.type === "callout") {
     const hasBody = plainTextFromRichText(item.body);
     if (!hasBody) return "";
+    const isLightTheme = EMAIL_THEME === EMAIL_THEMES.light;
+    const calloutBg = isLightTheme ? "#F3FCFC" : "rgba(0,255,255,0.04)";
+    const calloutBorder = isLightTheme ? "#C8D2FF" : "rgba(0,255,255,0.22)";
+    const calloutAccent = isLightTheme ? "#4141FF" : "#00FFFF";
+    const iconBg = isLightTheme ? "#4141FF" : "rgba(0,255,255,0.16)";
+    const iconBorder = isLightTheme ? "#4141FF" : "rgba(0,255,255,0.32)";
+    const iconColor = isLightTheme ? "#FFFFFF" : "#00FFFF";
+    const bodyColor = isLightTheme ? "#303641" : "#D8DDE6";
+    const footerBorder = isLightTheme ? "#CAD4FF" : "rgba(0,255,255,0.16)";
+    const footerColor = isLightTheme ? "#68717E" : EMAIL_THEME.textDim;
     const footerText = String(item.footer || "").trim();
     const footer = footerText
-      ? `<p style="margin:14px 0 0; padding-top:12px; border-top:1px solid rgba(0,255,255,0.16); font-family:${FONTS.mono || "'JetBrains Mono', monospace"}; font-size:11px; color:${EMAIL_THEME.textDim}; letter-spacing:0.02em;">${
+      ? `<p style="margin:14px 0 0; padding-top:12px; border-top:1px solid ${footerBorder}; font-family:${FONTS.mono || "'JetBrains Mono', monospace"}; font-size:11px; color:${footerColor}; letter-spacing:0.02em;">${
           item.footer_url
-            ? `<a href="${escapeAttr(item.footer_url)}" style="color:#00FFFF; text-decoration:none; border-bottom:1px solid rgba(0,255,255,0.4); padding-bottom:1px;">${escapeHtml(footerText)}</a>`
+            ? `<a href="${escapeAttr(item.footer_url)}" style="color:${calloutAccent}; text-decoration:none; border-bottom:1px solid ${isLightTheme ? "#AAB6FF" : "rgba(0,255,255,0.4)"}; padding-bottom:1px;">${escapeHtml(footerText)}</a>`
             : escapeHtml(footerText)
         }</p>`
       : "";
-    return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:26px; background-color:rgba(0,255,255,0.04); border:1px solid rgba(0,255,255,0.22); border-radius:12px;">
+    return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:26px; background-color:${calloutBg}; border:1px solid ${calloutBorder}; border-radius:12px;">
         <tr>
           <td style="padding:22px 24px;">
             <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:12px;">
               <tr>
                 <td valign="middle" style="padding-right:12px;">
-                  <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td width="30" height="30" align="center" valign="middle" style="background:rgba(0,255,255,0.16); border:1px solid rgba(0,255,255,0.32); border-radius:8px; color:#00FFFF; font-family:${FONTS.heading}; font-size:14px; font-weight:700; line-height:30px;">i</td></tr></table>
+                  <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td width="30" height="30" align="center" valign="middle" style="background:${iconBg}; border:1px solid ${iconBorder}; border-radius:8px; color:${iconColor}; font-family:${FONTS.heading}; font-size:14px; font-weight:700; line-height:30px;">i</td></tr></table>
                 </td>
-                <td valign="middle" style="font-family:${FONTS.body}; font-size:11px; letter-spacing:0.2em; text-transform:uppercase; font-weight:600; color:#00FFFF;">${escapeHtml(item.label || "Note de la rédac")}</td>
+                <td valign="middle" style="font-family:${FONTS.body}; font-size:11px; letter-spacing:0.2em; text-transform:uppercase; font-weight:600; color:${calloutAccent};">${escapeHtml(item.label || "Note de la rédac")}</td>
               </tr>
             </table>
-            <p style="margin:0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:14px; line-height:1.6; color:${EMAIL_THEME === EMAIL_THEMES.light ? "#303641" : "#D8DDE6"};">${sanitizeRichText(item.body)}</p>
+            <p style="margin:0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:14px; line-height:1.6; color:${bodyColor};">${sanitizeRichText(item.body)}</p>
             ${footer}
           </td>
         </tr>
