@@ -296,7 +296,7 @@ function buildFgGauge(value, assetMode) {
 
   // Segment boundaries: 0 | 24 | 44 | 54 | 74 | 100
   const bounds = [0, 24, 44, 54, 74, 100];
-  const colors = ["#FF4B28", "#FF8B28", "#75808B", "#00BB97", "#03FFCF"];
+  const colors = ["#FF4B28", "#FF8B28", "#75808B", "#00BB97", EMAIL_THEME.positiveSoft];
   const segments = colors.map((c, i) =>
     `<path d="M ${pt(bounds[i])} A ${r} ${r} 0 0 1 ${pt(bounds[i + 1])}" fill="none" stroke="${c}" stroke-width="14"/>`
   ).join("\n    ");
@@ -304,8 +304,8 @@ function buildFgGauge(value, assetMode) {
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 120" width="200" height="120">
     ${segments}
     <g transform="rotate(${needleAngle.toFixed(2)} ${cx} ${cy})">
-      <line x1="${cx}" y1="${cy}" x2="${cx}" y2="26" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/>
-      <circle cx="${cx}" cy="${cy}" r="6" fill="#ffffff"/>
+      <line x1="${cx}" y1="${cy}" x2="${cx}" y2="26" stroke="${EMAIL_THEME.gaugeNeedle}" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="${cx}" cy="${cy}" r="6" fill="${EMAIL_THEME.gaugeNeedle}"/>
     </g>
   </svg>`;
 }
@@ -487,7 +487,7 @@ function renderFearGreed(data, number, assetMode, anchor = "") {
     { color: "#FF8B28", range: "25–44", label: "Fear" },
     { color: "#75808B", range: "45–54", label: "Neutral" },
     { color: "#00BB97", range: "55–74", label: "Greed" },
-    { color: "#03FFCF", range: "75–100", label: "Extreme Greed" },
+    { color: EMAIL_THEME.positiveSoft, range: "75–100", label: "Extreme Greed" },
   ].map(r => `<tr>
     <td width="18" style="padding:2px 0;"><span style="display:inline-block; width:8px; height:8px; background:${r.color}; border-radius:99px; vertical-align:middle;"></span></td>
     <td width="62" style="padding:2px 12px 2px 0; font-family:${FONTS.body}; font-size:12px; color:${EMAIL_THEME.textDim}; white-space:nowrap;">${r.range}</td>
@@ -524,7 +524,7 @@ function renderSignals(data, number, anchor = "") {
     const cellOf = (s, position) => {
       if (!s) return `<td class="em-signal-col" width="50%"></td>`;
       const arrowUp = s.direction === "up";
-      const bg = arrowUp ? "rgba(3,255,207,0.12)" : "rgba(255,75,40,0.14)";
+      const bg = arrowUp ? EMAIL_THEME.positiveBg : "rgba(255,75,40,0.14)";
       const fg = arrowUp ? EMAIL_THEME.positive : EMAIL_THEME.warning;
       const arrow = arrowUp ? "↗" : "↘";
       let borders = "";
@@ -576,9 +576,9 @@ function buildBarsHtml(bars) {
             <td align="right" style="font-family:${FONTS.heading}; font-weight:600; font-size:15px; color:${EMAIL_THEME.textPrimary};">${escapeHtml(b.value)}</td>
           </tr>
         </table>
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:6px; height:6px; background-color:rgba(255,255,255,0.08); border-radius:99px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:6px; height:6px; background-color:${EMAIL_THEME.barTrack}; border-radius:99px;">
           <tr><td style="font-size:1px; line-height:1px;">
-            <table role="presentation" width="${pct}%" cellpadding="0" cellspacing="0" border="0" style="height:6px; background-color:${EMAIL_THEME.accentSecondary}; background-image:linear-gradient(90deg, ${EMAIL_THEME.accentSecondary}, #00FFFF); border-radius:99px;">
+            <table role="presentation" width="${pct}%" cellpadding="0" cellspacing="0" border="0" style="height:6px; background-color:${EMAIL_THEME.accentSecondary}; background-image:linear-gradient(90deg, ${EMAIL_THEME.accentSecondary}, ${EMAIL_THEME.positive}); border-radius:99px;">
               <tr><td style="height:6px; line-height:6px; font-size:1px;">&nbsp;</td></tr>
             </table>
           </td></tr>

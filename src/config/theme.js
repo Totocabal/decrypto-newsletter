@@ -12,6 +12,8 @@ export const THEME = {
 
   // Couleurs sémantiques crypto (perf positive / négative / neutre)
   positive: "#03FFCF",  // Cyan — gains
+  positiveSoft: "#03FFCF",
+  positiveBg: "rgba(3,255,207,0.12)",
   negative: "#FF4B28",  // Rouge — pertes
   warning: "#FF8B28",   // Orange — neutre / attention
 
@@ -33,6 +35,8 @@ export const THEME = {
   border: "rgba(255,255,255,0.06)",
   borderStrong: "rgba(255,255,255,0.16)",
   borderSubtle: "rgba(255,255,255,0.08)",
+  barTrack: "rgba(255,255,255,0.08)",
+  gaugeNeedle: "#FFFFFF",
 };
 
 export const LIGHT_THEME = {
@@ -56,6 +60,11 @@ export const LIGHT_THEME = {
   border: "rgba(21,21,26,0.10)",
   borderStrong: "rgba(21,21,26,0.22)",
   borderSubtle: "rgba(21,21,26,0.12)",
+  positive: "#00BB97",
+  positiveSoft: "#00BB97",
+  positiveBg: "rgba(0,187,151,0.12)",
+  barTrack: "#D9E0E8",
+  gaugeNeedle: "#15151A",
 };
 
 export const EMAIL_THEMES = {
