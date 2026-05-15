@@ -337,11 +337,15 @@ function sectionTitleSpaced(title) {
   return `<h2 class="em-h2" style="margin:12px 0 22px; font-family:${FONTS.heading}; font-weight:600; font-size:30px; line-height:1.1; letter-spacing:-0.025em; color:${EMAIL_THEME.textPrimary};">${escapeHtml(title)}</h2>`;
 }
 
+function sectionBottomBorder(isLastSection) {
+  return isLastSection ? "" : ` border-bottom:1px solid ${EMAIL_THEME.border};`;
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Rendu de chaque type de section
 // ─────────────────────────────────────────────────────────────────────────────
 
-function renderHero(data) {
+function renderHero(data, isLastSection = false) {
   const kicker = String(data.kicker || "").trim();
   const chips = (data.chips || []).map((c, i, arr) => {
     let labelHtml;
@@ -364,7 +368,7 @@ function renderHero(data) {
 
   return `
     <tr>
-      <td class="em-px" style="padding:56px 36px 40px; border-bottom:1px solid ${EMAIL_THEME.border};">
+      <td class="em-px" style="padding:56px 36px 40px;${sectionBottomBorder(isLastSection)}">
         ${kicker ? `<p style="margin:0 0 28px; font-family:${FONTS.body}; font-size:11px; letter-spacing:0.2em; color:${EMAIL_THEME.accentPrimary}; font-weight:600; text-transform:uppercase;">${escapeHtml(kicker)}</p>` : ""}
         <h1 class="em-h1" style="margin:0; font-family:${FONTS.heading}; font-weight:700; font-size:60px; line-height:0.98; letter-spacing:-0.035em; color:${EMAIL_THEME.textPrimary};">
           ${escapeHtml(data.title_part1)}<br />
@@ -378,7 +382,7 @@ function renderHero(data) {
     </tr>`;
 }
 
-function renderIndex(data, allSections) {
+function renderIndex(data, allSections, isLastSection = false) {
   const rows = (data.items || []).map((item, i, arr) => {
     const padding = i === arr.length - 1 ? "8px 0 28px" : "8px 0";
     const href = indexHref(item, allSections);
@@ -404,7 +408,7 @@ function renderIndex(data, allSections) {
 
   return `
     <tr>
-      <td class="em-px" style="padding:0 36px; border-bottom:1px solid ${EMAIL_THEME.border};">
+      <td class="em-px" style="padding:0 36px;${sectionBottomBorder(isLastSection)}">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
           <tr>
             <td style="padding:28px 0 18px;">
@@ -417,7 +421,7 @@ function renderIndex(data, allSections) {
     </tr>`;
 }
 
-function renderEdito(data, number, anchor = "") {
+function renderEdito(data, number, anchor = "", isLastSection = false) {
   const kpis = data.kpis || [];
   const cells = kpis.map((k, i) => {
     const isLast = i === kpis.length - 1;
@@ -437,7 +441,7 @@ function renderEdito(data, number, anchor = "") {
 
   return `
     <tr>
-      <td class="em-px" style="padding:44px 36px; border-bottom:1px solid ${EMAIL_THEME.border};">
+      <td class="em-px" style="padding:44px 36px;${sectionBottomBorder(isLastSection)}">
         ${anchor}
         ${sectionHeader(number, data.kicker)}
         ${sectionTitle(data.title)}
@@ -449,7 +453,7 @@ function renderEdito(data, number, anchor = "") {
     </tr>`;
 }
 
-function renderChart(data, assetMode) {
+function renderChart(data, assetMode, isLastSection = false) {
   // Pour N points espacés à stepX = 100%/(N-1), les labels s'alignent avec
   // les points en donnant une demi-largeur aux cellules extrêmes.
   const arr = data.x_labels || [];
@@ -466,7 +470,7 @@ function renderChart(data, assetMode) {
 
   return `
     <tr>
-      <td class="em-px" style="padding:36px 36px 28px; background-color:${EMAIL_THEME.bgSection}; border-bottom:1px solid ${EMAIL_THEME.border};">
+      <td class="em-px" style="padding:36px 36px 28px; background-color:${EMAIL_THEME.bgSection};${sectionBottomBorder(isLastSection)}">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
           <tr>
             <td valign="bottom">
@@ -498,7 +502,7 @@ function renderChart(data, assetMode) {
     </tr>`;
 }
 
-function renderFearGreed(data, number, assetMode, anchor = "") {
+function renderFearGreed(data, number, assetMode, anchor = "", isLastSection = false) {
   const fgColor = fgClassificationColor(data.classification);
   const legend = [
     { color: "#FF4B28", range: "0–24", label: "Extreme Fear" },
@@ -514,7 +518,7 @@ function renderFearGreed(data, number, assetMode, anchor = "") {
 
   return `
     <tr>
-      <td class="em-px" style="padding:44px 36px; border-bottom:1px solid ${EMAIL_THEME.border};">
+      <td class="em-px" style="padding:44px 36px;${sectionBottomBorder(isLastSection)}">
         ${anchor}
         ${sectionHeader(number, data.kicker)}
         ${sectionTitleSpaced(data.title)}
@@ -533,7 +537,7 @@ function renderFearGreed(data, number, assetMode, anchor = "") {
     </tr>`;
 }
 
-function renderSignals(data, number, anchor = "") {
+function renderSignals(data, number, anchor = "", isLastSection = false) {
   const items = data.signals || [];
   const rows = [];
   for (let i = 0; i < items.length; i += 2) {
@@ -573,7 +577,7 @@ function renderSignals(data, number, anchor = "") {
 
   return `
     <tr>
-      <td class="em-px" style="padding:44px 36px; border-bottom:1px solid ${EMAIL_THEME.border};">
+      <td class="em-px" style="padding:44px 36px;${sectionBottomBorder(isLastSection)}">
         ${anchor}
         ${sectionHeader(number, data.kicker)}
         ${sectionTitleSpaced(data.title)}
@@ -608,18 +612,18 @@ function buildBarsHtml(bars) {
   return rows ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${rows}</table>` : "";
 }
 
-function renderMacroBars(data) {
+function renderMacroBars(data, isLastSection = false) {
   const content = buildBarsHtml(data.bars);
   if (!content) return "";
   return `
     <tr>
-      <td class="em-px" style="padding:28px 36px; background-color:${EMAIL_THEME.bgSection}; border-bottom:1px solid ${EMAIL_THEME.border};">
+      <td class="em-px" style="padding:28px 36px; background-color:${EMAIL_THEME.bgSection};${sectionBottomBorder(isLastSection)}">
         ${content}
       </td>
     </tr>`;
 }
 
-function renderMacro(data, number, anchor = "") {
+function renderMacro(data, number, anchor = "", isLastSection = false) {
   const quoteBlock = data.quote ? `
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#1a0c2e; background-image:linear-gradient(135deg, rgba(135,1,255,0.18), rgba(255,0,170,0.10)); border:0; border-radius:14px;">
       <tr><td style="padding:24px 24px;">
@@ -630,7 +634,7 @@ function renderMacro(data, number, anchor = "") {
 
   return `
     <tr>
-      <td class="em-px" style="padding:44px 36px; border-bottom:1px solid ${EMAIL_THEME.border};">
+      <td class="em-px" style="padding:44px 36px;${sectionBottomBorder(isLastSection)}">
         ${anchor}
         ${sectionHeader(number, data.kicker)}
         ${sectionTitleSpaced(data.title)}
@@ -640,7 +644,7 @@ function renderMacro(data, number, anchor = "") {
     </tr>`;
 }
 
-function renderEvent(data, anchor = "") {
+function renderEvent(data, anchor = "", isLastSection = false) {
   const kicker = String(data.kicker || "").trim();
   const eventTextPrimary = "#FFFFFF";
   const eventTextSecondary = "#D8DDE6";
@@ -685,7 +689,7 @@ function renderEvent(data, anchor = "") {
 
   return `
     <tr>
-      <td class="em-px" style="padding:36px; border-bottom:1px solid ${EMAIL_THEME.border};">
+      <td class="em-px" style="padding:36px;${sectionBottomBorder(isLastSection)}">
         ${anchor}
         ${cardTable}
       </td>
@@ -781,13 +785,13 @@ function renderFocusItem(item) {
   return "";
 }
 
-function renderFocus(data, number, anchor = "") {
+function renderFocus(data, number, anchor = "", isLastSection = false) {
   // Items-based rendering (new format)
   if (data.items) {
     const renderedItems = data.items.map(renderFocusItem).join("\n");
     return `
     <tr>
-      <td class="em-px" style="padding:44px 36px; border-bottom:1px solid ${EMAIL_THEME.border};">
+      <td class="em-px" style="padding:44px 36px;${sectionBottomBorder(isLastSection)}">
         ${anchor}
         ${sectionHeader(number, data.kicker)}
         ${sectionTitleSpaced(data.title)}
@@ -852,7 +856,7 @@ function renderFocus(data, number, anchor = "") {
 
   return `
     <tr>
-      <td class="em-px" style="padding:44px 36px; border-bottom:1px solid ${EMAIL_THEME.border};">
+      <td class="em-px" style="padding:44px 36px;${sectionBottomBorder(isLastSection)}">
         ${anchor}
         ${sectionHeader(number, data.kicker)}
         ${sectionTitleSpaced(data.title)}
@@ -863,7 +867,7 @@ function renderFocus(data, number, anchor = "") {
     </tr>`;
 }
 
-function renderImageBlock(data) {
+function renderImageBlock(data, isLastSection = false) {
   const imgUrl =
     data.image_url ||
     "https://placehold.co/568x280/1a0c2e/ffffff?text=VISUEL+%C2%B7+568+%C3%97+280";
@@ -875,7 +879,7 @@ function renderImageBlock(data) {
 
   return `
     <tr>
-      <td class="em-px" style="padding:36px; border-bottom:1px solid ${EMAIL_THEME.border};">
+      <td class="em-px" style="padding:36px;${sectionBottomBorder(isLastSection)}">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
           <tr>
             <td>
@@ -887,7 +891,7 @@ function renderImageBlock(data) {
     </tr>`;
 }
 
-function renderTextBlock(data, number, anchor = "") {
+function renderTextBlock(data, number, anchor = "", isLastSection = false) {
   const ctaBtn = data.cta_label
     ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:28px;">
         <tr>
@@ -900,7 +904,7 @@ function renderTextBlock(data, number, anchor = "") {
 
   return `
     <tr>
-      <td class="em-px" style="padding:44px 36px; border-bottom:1px solid ${EMAIL_THEME.border};">
+      <td class="em-px" style="padding:44px 36px;${sectionBottomBorder(isLastSection)}">
         ${anchor}
         ${sectionHeader(number, data.kicker)}
         ${sectionTitle(data.title)}
@@ -910,7 +914,8 @@ function renderTextBlock(data, number, anchor = "") {
     </tr>`;
 }
 
-function renderDivider(data) {
+function renderDivider(data, isLastSection = false) {
+  if (isLastSection) return "";
   if (data.style === "gradient") {
     return `<tr><td style="height:3px; line-height:3px; font-size:1px; background-color:${EMAIL_THEME.accentTertiary}; background-image:linear-gradient(90deg, ${EMAIL_THEME.accentSecondary} 0%, ${EMAIL_THEME.accentTertiary} 50%, ${EMAIL_THEME.accentPrimary} 100%);">&nbsp;</td></tr>`;
   }
@@ -922,25 +927,25 @@ function renderDivider(data) {
 // Dispatcher : section → fonction de rendu
 // ─────────────────────────────────────────────────────────────────────────────
 
-function renderSection(sec, allSections, assetMode, showSectionNumbers = true) {
+function renderSection(sec, allSections, assetMode, showSectionNumbers = true, isLastSection = false) {
   const number = showSectionNumbers === false
     ? null
     : computeSectionNumber(allSections, sec.id);
   const anchor = number ? sectionAnchor(sec.id) : "";
   switch (sec.type) {
-    case "hero":       return renderHero(sec.data);
-    case "index":      return renderIndex(sec.data, allSections);
-    case "edito":      return renderEdito(sec.data, number, anchor);
-    case "chart":      return renderChart(sec.data, assetMode);
-    case "fear_greed": return renderFearGreed(sec.data, number, assetMode, anchor);
-    case "signals":    return renderSignals(sec.data, number, anchor);
-    case "macro":      return renderMacro(sec.data, number, anchor);
-    case "macro_bars": return renderMacroBars(sec.data);
-    case "event":      return renderEvent(sec.data, anchor);
-    case "focus":      return renderFocus(sec.data, number, anchor);
-    case "image_block": return renderImageBlock(sec.data);
-    case "text_block": return renderTextBlock(sec.data, number, anchor);
-    case "divider":    return renderDivider(sec.data);
+    case "hero":       return renderHero(sec.data, isLastSection);
+    case "index":      return renderIndex(sec.data, allSections, isLastSection);
+    case "edito":      return renderEdito(sec.data, number, anchor, isLastSection);
+    case "chart":      return renderChart(sec.data, assetMode, isLastSection);
+    case "fear_greed": return renderFearGreed(sec.data, number, assetMode, anchor, isLastSection);
+    case "signals":    return renderSignals(sec.data, number, anchor, isLastSection);
+    case "macro":      return renderMacro(sec.data, number, anchor, isLastSection);
+    case "macro_bars": return renderMacroBars(sec.data, isLastSection);
+    case "event":      return renderEvent(sec.data, anchor, isLastSection);
+    case "focus":      return renderFocus(sec.data, number, anchor, isLastSection);
+    case "image_block": return renderImageBlock(sec.data, isLastSection);
+    case "text_block": return renderTextBlock(sec.data, number, anchor, isLastSection);
+    case "divider":    return renderDivider(sec.data, isLastSection);
     default:           return `<tr><td>Type inconnu : ${escapeHtml(sec.type)}</td></tr>`;
   }
 }
@@ -1005,8 +1010,22 @@ export function buildEmailHtml(state, options = {}) {
   const showSectionNumbers = state.show_section_numbers !== false;
   const themeVariant = getEmailThemeVariant(state);
   const emailColorScheme = themeVariant === "light" ? "light" : "dark";
-  const sectionsHtml = (state.sections || [])
-    .map(s => renderSection(s, state.sections, assetMode, showSectionNumbers))
+  const sections = state.sections || [];
+  const renderedSections = sections
+    .map((section, index) => ({ section, index }))
+    .map(({ section, index }) => ({
+      section,
+      index,
+      html: renderSection(section, sections, assetMode, showSectionNumbers, false),
+    }))
+    .filter(({ html, section }) => section.type !== "divider" && String(html || "").trim());
+  const lastRenderedSectionIndex = renderedSections.length
+    ? renderedSections[renderedSections.length - 1].index
+    : -1;
+  const sectionsHtml = sections
+    .map((section, index) =>
+      renderSection(section, sections, assetMode, showSectionNumbers, index === lastRenderedSectionIndex)
+    )
     .join("");
 
   return `<!doctype html>
