@@ -326,9 +326,15 @@ function sectionHeader(number, kicker) {
 }
 
 function sectionTitle(title) {
+  if (!String(title || "").trim()) return "";
   return `<h2 class="em-h2" style="margin:12px 0 0; font-family:${FONTS.heading}; font-weight:600; font-size:30px; line-height:1.1; letter-spacing:-0.025em; color:${EMAIL_THEME.textPrimary};">
     ${escapeHtml(title)}
   </h2>`;
+}
+
+function sectionTitleSpaced(title) {
+  if (!String(title || "").trim()) return "";
+  return `<h2 class="em-h2" style="margin:12px 0 22px; font-family:${FONTS.heading}; font-weight:600; font-size:30px; line-height:1.1; letter-spacing:-0.025em; color:${EMAIL_THEME.textPrimary};">${escapeHtml(title)}</h2>`;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -499,7 +505,7 @@ function renderFearGreed(data, number, assetMode, anchor = "") {
       <td class="em-px" style="padding:44px 36px; border-bottom:1px solid ${EMAIL_THEME.border};">
         ${anchor}
         ${sectionHeader(number, data.kicker)}
-        <h2 class="em-h2" style="margin:12px 0 22px; font-family:${FONTS.heading}; font-weight:600; font-size:30px; line-height:1.1; letter-spacing:-0.025em; color:${EMAIL_THEME.textPrimary};">${escapeHtml(data.title)}</h2>
+        ${sectionTitleSpaced(data.title)}
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
           <tr>
             <td class="em-stack em-stack-pad" valign="top" width="220" style="padding-right:24px;">${buildFgGauge(data.value, assetMode)}</td>
@@ -558,7 +564,7 @@ function renderSignals(data, number, anchor = "") {
       <td class="em-px" style="padding:44px 36px; border-bottom:1px solid ${EMAIL_THEME.border};">
         ${anchor}
         ${sectionHeader(number, data.kicker)}
-        <h2 class="em-h2" style="margin:12px 0 22px; font-family:${FONTS.heading}; font-weight:600; font-size:30px; line-height:1.1; letter-spacing:-0.025em; color:${EMAIL_THEME.textPrimary};">${escapeHtml(data.title)}</h2>
+        ${sectionTitleSpaced(data.title)}
         ${grid}
       </td>
     </tr>`;
@@ -615,7 +621,7 @@ function renderMacro(data, number, anchor = "") {
       <td class="em-px" style="padding:44px 36px; border-bottom:1px solid ${EMAIL_THEME.border};">
         ${anchor}
         ${sectionHeader(number, data.kicker)}
-        <h2 class="em-h2" style="margin:12px 0 22px; font-family:${FONTS.heading}; font-weight:600; font-size:30px; line-height:1.1; letter-spacing:-0.025em; color:${EMAIL_THEME.textPrimary};">${escapeHtml(data.title)}</h2>
+        ${sectionTitleSpaced(data.title)}
         <p style="margin:0 0 22px; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:15px; line-height:1.65; color:${EMAIL_THEME.textSecondary};">${sanitizeRichText(data.body)}</p>
         ${quoteBlock}
       </td>
@@ -642,7 +648,7 @@ function renderEvent(data, anchor = "") {
                 </td>
                 <td class="em-stack em-event-text" valign="middle" style="padding:32px 28px;">
                   ${kicker ? `<p style="margin:0 0 12px; font-family:${FONTS.body}; font-size:11px; letter-spacing:0.2em; text-transform:uppercase; font-weight:600; color:${EMAIL_THEME.positive};">${escapeHtml(kicker)}</p>` : ""}
-                  <h3 style="margin:0; font-family:${FONTS.heading}; font-weight:700; font-size:28px; letter-spacing:-0.025em; line-height:1.05; color:${eventTextPrimary};">${escapeHtml(data.title)}</h3>
+                  ${String(data.title || "").trim() ? `<h3 style="margin:0; font-family:${FONTS.heading}; font-weight:700; font-size:28px; letter-spacing:-0.025em; line-height:1.05; color:${eventTextPrimary};">${escapeHtml(data.title)}</h3>` : ""}
                   <p style="margin:12px 0 0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:13px; line-height:1.5; color:${eventTextSecondary};">${sanitizeRichText(data.description)}</p>
                   <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:18px;">
                     <tr><td bgcolor="#ffffff" style="border-radius:99px;">
@@ -756,7 +762,7 @@ function renderFocus(data, number, anchor = "") {
       <td class="em-px" style="padding:44px 36px; border-bottom:1px solid ${EMAIL_THEME.border};">
         ${anchor}
         ${sectionHeader(number, data.kicker)}
-        <h2 class="em-h2" style="margin:12px 0 22px; font-family:${FONTS.heading}; font-weight:600; font-size:30px; line-height:1.1; letter-spacing:-0.025em; color:${EMAIL_THEME.textPrimary};">${escapeHtml(data.title)}</h2>
+        ${sectionTitleSpaced(data.title)}
         ${renderedItems}
       </td>
     </tr>`;
@@ -821,7 +827,7 @@ function renderFocus(data, number, anchor = "") {
       <td class="em-px" style="padding:44px 36px; border-bottom:1px solid ${EMAIL_THEME.border};">
         ${anchor}
         ${sectionHeader(number, data.kicker)}
-        <h2 class="em-h2" style="margin:12px 0 22px; font-family:${FONTS.heading}; font-weight:600; font-size:30px; line-height:1.1; letter-spacing:-0.025em; color:${EMAIL_THEME.textPrimary};">${escapeHtml(data.title)}</h2>
+        ${sectionTitleSpaced(data.title)}
         ${imageBlock}
         ${textBlock}
         ${ctaRow}
@@ -928,9 +934,7 @@ function renderHeader(state, assetMode) {
             <td align="left" valign="middle">
               <img src="${logoUrl}" width="180" alt="Coinhouse" style="display:inline-block; vertical-align:middle; border:0; max-width:180px; height:auto;" />
             </td>
-            <td align="right" valign="middle" style="font-family:${FONTS.body}; font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:${EMAIL_THEME.textMuted};">
-              ${escapeHtml(state.issue_date)}
-            </td>
+            ${String(state.issue_date || "").trim() ? `<td align="right" valign="middle" style="font-family:${FONTS.body}; font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:${EMAIL_THEME.textMuted};">${escapeHtml(state.issue_date)}</td>` : "<td></td>"}
           </tr>
         </table>
       </td>
