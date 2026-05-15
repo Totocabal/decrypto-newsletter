@@ -978,7 +978,9 @@ function renderHeader(state, assetMode) {
 }
 
 function renderFooter(footer, assetMode) {
-  const logoUrl = BRAND_LOGOS[EMAIL_THEME === EMAIL_THEMES.light ? "light" : "dark"] || BRAND_LOGOS.dark;
+  const isLightTheme = EMAIL_THEME === EMAIL_THEMES.light;
+  const logoUrl = BRAND_LOGOS[isLightTheme ? "light" : "dark"] || BRAND_LOGOS.dark;
+  const footerTopBorder = isLightTheme ? "" : ` border-top:1px solid ${EMAIL_THEME.borderSubtle};`;
   const links = (footer.links || []).filter(l => l.label && l.url).map(l => `
     <td align="center" style="padding:0 11px;">
       <a href="${escapeAttr(l.url)}" style="font-family:${FONTS.body}; font-size:12px; color:${EMAIL_THEME.textMuted}; letter-spacing:0.04em; text-decoration:none;">${escapeHtml(l.label)}</a>
@@ -986,7 +988,7 @@ function renderFooter(footer, assetMode) {
 
   return `
     <tr>
-      <td bgcolor="${EMAIL_THEME.bgFooter}" style="background-color:${EMAIL_THEME.bgFooter}; padding:40px 36px 32px; border-top:1px solid ${EMAIL_THEME.borderSubtle};" align="center">
+      <td bgcolor="${EMAIL_THEME.bgFooter}" style="background-color:${EMAIL_THEME.bgFooter}; padding:40px 36px 32px;${footerTopBorder}" align="center">
         <div style="margin-bottom:10px;"><img src="${logoUrl}" width="180" alt="Coinhouse" style="display:block; margin:0 auto; border:0; max-width:180px; height:auto;" /></div>
         ${links ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:24px;" align="center"><tr>${links}</tr></table>` : ""}
         <p style="margin:0; font-family:${FONTS.body}; font-size:11px; color:${EMAIL_THEME.textDim}; line-height:1.6; letter-spacing:0.02em;">
