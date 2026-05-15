@@ -1124,147 +1124,179 @@ function EventEditor({ data, set }) {
 // FOCUS — image uploadable + texte long + 2 CTA
 // ─────────────────────────────────────────────────────────────────────────────
 
+function focusNewId() {
+  return (typeof crypto !== "undefined" && crypto.randomUUID)
+    ? crypto.randomUUID()
+    : Math.random().toString(36).slice(2);
+}
+
+function migrateFocusItems(data) {
+  const items = [];
+  if (data.image_url) {
+    items.push({ id: focusNewId(), type: "image", image_url: data.image_url, image_path: data.image_path || "", image_alt: data.image_alt || "Visuel d'illustration" });
+  }
+  if (data.body) {
+    items.push({ id: focusNewId(), type: "text", body: data.body });
+  }
+  if (data.cta_primary_label) {
+    items.push({ id: focusNewId(), type: "cta", label: data.cta_primary_label, url: data.cta_primary_url || "", style: "primary" });
+  }
+  if (data.cta_secondary_label) {
+    items.push({ id: focusNewId(), type: "cta", label: data.cta_secondary_label, url: data.cta_secondary_url || "", style: "secondary" });
+  }
+  return items;
+}
+
 function FocusEditor({ data, set }) {
   const { profile } = useAuth();
-  const [uploadError, setUploadError] = useState(null);
-  const [imageManagerOpen, setImageManagerOpen] = useState(false);
+  const [imageManagerOpen, setImageManagerOpen] = useState(null); // item id or null
 
-  const handleRemoveImage = () => {
-    set({ ...data, image_url: "", image_path: "" });
+  const items = data.items ?? migrateFocusItems(data);
+  const setItems = (nextItems) => set({ ...data, items: nextItems });
+
+  const addItem = (type) => {
+    const id = focusNewId();
+    let item;
+    if (type === "text") item = { id, type: "text", body: "" };
+    else if (type === "image") item = { id, type: "image", image_url: "", image_path: "", image_alt: "Visuel d'illustration" };
+    else item = { id, type: "cta", label: "", url: "", style: "primary" };
+    setItems([...items, item]);
   };
 
-  const handleSelectImage = ({ url, path }) => {
-    set({ ...data, image_url: url, image_path: path });
-    setImageManagerOpen(false);
-    setUploadError(null);
+  const updateItem = (id, patch) => setItems(items.map((it) => it.id === id ? { ...it, ...patch } : it));
+  const removeItem = (id) => setItems(items.filter((it) => it.id !== id));
+  const moveItem = (id, dir) => {
+    const i = items.findIndex((it) => it.id === id);
+    const j = i + dir;
+    if (j < 0 || j >= items.length) return;
+    const arr = [...items];
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+    setItems(arr);
   };
 
   return (
     <>
       <Field label="Kicker">
-        <Input value={data.kicker} onChange={(e) => set({ ...data, kicker: e.target.value })} />
+        <Input value={data.kicker || ""} onChange={(e) => set({ ...data, kicker: e.target.value })} />
       </Field>
       <Field label="Titre">
-        <Input value={data.title} onChange={(e) => set({ ...data, title: e.target.value })} />
+        <Input value={data.title || ""} onChange={(e) => set({ ...data, title: e.target.value })} />
       </Field>
 
-      <div className="text-[10px] uppercase tracking-[0.18em] font-semibold text-d-fg3 mb-1.5">
-        Image optionnelle (568×280 conseillé, max {MAX_IMAGE_FILE_SIZE_LABEL})
-      </div>
-      {data.image_url ? (
-        <div className="mb-4 bg-d-panel2 border border-line rounded-xl p-3">
-          <div className="relative mb-2">
-            <img
-              src={data.image_url}
-              alt={data.image_alt || ""}
-              className="w-full h-auto rounded-xl border border-line"
-            />
-            <Tooltip label="Retirer du bloc" align="right" className="absolute top-2 right-2">
-              <button
-                type="button"
-                onClick={handleRemoveImage}
-                className="p-1.5 bg-d-panel2 border border-line rounded-lg hover:bg-red-900/20 hover:border-red-500/30 text-d-fg3 hover:text-red-400 shadow-sm"
-              >
-                <X size={14} />
-              </button>
-            </Tooltip>
+      <div className="mt-2 space-y-3">
+        {items.map((item, i) => (
+          <div key={item.id} className="bg-d-panel2 border border-line rounded-xl overflow-hidden">
+            <div className="flex items-center justify-between px-3 py-2" style={{ borderBottom: "1px solid var(--d-line)" }}>
+              <span className="text-[10px] uppercase tracking-[0.15em] font-semibold text-d-fg4">
+                {item.type === "text" ? "Texte" : item.type === "image" ? "Image" : "CTA"}
+              </span>
+              <div className="flex items-center gap-0.5">
+                <button type="button" onClick={() => moveItem(item.id, -1)} disabled={i === 0} className="p-1 text-d-fg4 hover:text-d-fg2 hover:bg-d-panel3 rounded-lg disabled:opacity-20">
+                  <ChevronUp size={12} />
+                </button>
+                <button type="button" onClick={() => moveItem(item.id, 1)} disabled={i === items.length - 1} className="p-1 text-d-fg4 hover:text-d-fg2 hover:bg-d-panel3 rounded-lg disabled:opacity-20">
+                  <ChevronDown size={12} />
+                </button>
+                <button type="button" onClick={() => removeItem(item.id)} className="p-1 text-d-fg4 hover:text-red-400 hover:bg-red-900/20 rounded-lg">
+                  <Trash2 size={12} />
+                </button>
+              </div>
+            </div>
+            <div className="p-3">
+              {item.type === "text" && (
+                <Field hint="Éditeur riche : gras, italique, souligné, rayé, lien et listes">
+                  <TextArea
+                    showCount
+                    rows={6}
+                    value={item.body || ""}
+                    onChange={(e) => updateItem(item.id, { body: e.target.value })}
+                  />
+                </Field>
+              )}
+              {item.type === "image" && (
+                <>
+                  {item.image_url ? (
+                    <div className="mb-2">
+                      <div className="relative mb-2">
+                        <img src={item.image_url} alt={item.image_alt || ""} className="w-full h-auto rounded-xl border border-line" />
+                        <Tooltip label="Retirer l'image" align="right" className="absolute top-2 right-2">
+                          <button type="button" onClick={() => updateItem(item.id, { image_url: "", image_path: "" })} className="p-1.5 bg-d-panel2 border border-line rounded-lg hover:bg-red-900/20 hover:border-red-500/30 text-d-fg3 hover:text-red-400 shadow-sm">
+                            <X size={14} />
+                          </button>
+                        </Tooltip>
+                      </div>
+                      <button type="button" onClick={() => setImageManagerOpen(item.id)} className="w-full flex items-center justify-center gap-2 px-3 py-2 border border-line text-d-fg3 rounded-xl text-[10px] uppercase tracking-[0.18em] hover:bg-d-panel3 transition-colors">
+                        <Upload size={12} />
+                        Changer l'image
+                      </button>
+                    </div>
+                  ) : (
+                    <button type="button" onClick={() => setImageManagerOpen(item.id)} className="w-full flex items-center justify-center gap-2 px-4 py-6 border border-dashed border-line text-d-fg3 hover:border-line2 hover:bg-d-panel3 rounded-xl text-[10px] uppercase tracking-[0.18em] transition-colors">
+                      <Upload size={14} />
+                      Ouvrir le gestionnaire d'images
+                    </button>
+                  )}
+                  {item.image_url && (
+                    <Field label="Texte alternatif (alt)" hint="Pour les lecteurs d'écran">
+                      <Input value={item.image_alt || ""} onChange={(e) => updateItem(item.id, { image_alt: e.target.value })} />
+                    </Field>
+                  )}
+                </>
+              )}
+              {item.type === "cta" && (
+                <>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                    <Field label="Texte">
+                      <Input value={item.label || ""} onChange={(e) => updateItem(item.id, { label: e.target.value })} />
+                    </Field>
+                    <Field label="Lien">
+                      <Input value={item.url || ""} onChange={(e) => updateItem(item.id, { url: e.target.value })} />
+                    </Field>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => updateItem(item.id, { style: "primary" })}
+                      className={`flex-1 py-1.5 text-[10px] uppercase tracking-[0.15em] font-semibold rounded-lg border transition-colors ${item.style !== "secondary" ? "bg-d-fg3 border-d-fg3 text-d-bg" : "border-line text-d-fg3 hover:border-line2"}`}
+                    >
+                      Gradient
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => updateItem(item.id, { style: "secondary" })}
+                      className={`flex-1 py-1.5 text-[10px] uppercase tracking-[0.15em] font-semibold rounded-lg border transition-colors ${item.style === "secondary" ? "bg-d-fg3 border-d-fg3 text-d-bg" : "border-line text-d-fg3 hover:border-line2"}`}
+                    >
+                      Outline
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={() => setImageManagerOpen(true)}
-              className="w-full flex items-center justify-center gap-2 px-3 py-2 border border-line text-d-fg3 rounded-xl text-[10px] uppercase tracking-[0.18em] hover:bg-d-panel3 transition-colors"
-            >
-              <Upload size={12} />
-              Gestionnaire
-            </button>
-            <button
-              type="button"
-              onClick={handleRemoveImage}
-              className="w-full flex items-center justify-center gap-2 px-3 py-2 border border-line text-d-fg3 rounded-xl text-[10px] uppercase tracking-[0.18em] hover:bg-red-900/20 hover:border-red-500/30 hover:text-red-400 transition-colors"
-            >
-              <X size={12} />
-              Retirer
-            </button>
-          </div>
-        </div>
-      ) : (
-        <button
-          type="button"
-          onClick={() => setImageManagerOpen(true)}
-          className="w-full mb-4 flex items-center justify-center gap-2 px-4 py-6 border border-dashed border-line text-d-fg3 hover:border-line2 hover:bg-d-panel2 rounded-xl text-[10px] uppercase tracking-[0.18em] transition-colors disabled:opacity-50"
-        >
-          <Upload size={14} />
-          Ouvrir le gestionnaire d'images
-        </button>
-      )}
-      {uploadError && (
-        <div className="rounded-xl p-2 mb-3 text-[11px]" style={{ background: "rgba(255,75,40,0.10)", border: "1px solid rgba(255,75,40,0.20)", color: "#FF8466" }}>
-          {uploadError}
-        </div>
-      )}
-
-      {data.image_url && (
-        <Field label="Texte alternatif (alt)" hint="Pour les lecteurs d'écran et si l'image ne charge pas">
-          <Input
-            value={data.image_alt}
-            onChange={(e) => set({ ...data, image_alt: e.target.value })}
-          />
-        </Field>
-      )}
-
-      <Field
-        label="Texte optionnel"
-        hint="Laisse vide pour ne pas afficher de paragraphe. Éditeur riche : gras, italique, souligné, rayé, lien et listes"
-      >
-        <TextArea
-          showCount
-          rows={8}
-          value={data.body}
-          onChange={(e) => set({ ...data, body: e.target.value })}
-        />
-      </Field>
-
-      <div className="text-[10px] uppercase tracking-[0.18em] font-semibold text-d-fg3 mb-2 mt-2">
-        Bouton principal (gradient) — <span className="normal-case font-normal text-d-fg4">laisse vide pour ne pas l'afficher</span>
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-2">
-        <Field label="Texte">
-          <Input
-            value={data.cta_primary_label}
-            onChange={(e) => set({ ...data, cta_primary_label: e.target.value })}
-          />
-        </Field>
-        <Field label="Lien">
-          <Input
-            value={data.cta_primary_url}
-            onChange={(e) => set({ ...data, cta_primary_url: e.target.value })}
-          />
-        </Field>
+        ))}
       </div>
 
-      <div className="text-[10px] uppercase tracking-[0.18em] font-semibold text-d-fg3 mb-2">
-        Bouton secondaire (outline) — <span className="normal-case font-normal text-d-fg4">laisse vide pour ne pas l'afficher</span>
+      <div className="flex gap-2 mt-3">
+        {[["text", "Texte"], ["image", "Image"], ["cta", "CTA"]].map(([type, label]) => (
+          <button
+            key={type}
+            type="button"
+            onClick={() => addItem(type)}
+            className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 border border-dashed border-line text-d-fg3 hover:border-line2 hover:text-d-fg2 rounded-xl text-[10px] uppercase tracking-[0.18em] transition-colors"
+          >
+            <Plus size={12} /> {label}
+          </button>
+        ))}
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <Field label="Texte">
-          <Input
-            value={data.cta_secondary_label}
-            onChange={(e) => set({ ...data, cta_secondary_label: e.target.value })}
-          />
-        </Field>
-        <Field label="Lien">
-          <Input
-            value={data.cta_secondary_url}
-            onChange={(e) => set({ ...data, cta_secondary_url: e.target.value })}
-          />
-        </Field>
-      </div>
+
       {imageManagerOpen && (
         <ImageManagerModal
-          currentPath={data.image_path}
-          onClose={() => setImageManagerOpen(false)}
-          onSelect={handleSelectImage}
+          currentPath={items.find((it) => it.id === imageManagerOpen)?.image_path}
+          onClose={() => setImageManagerOpen(null)}
+          onSelect={({ url, path }) => {
+            updateItem(imageManagerOpen, { image_url: url, image_path: path });
+            setImageManagerOpen(null);
+          }}
           userId={profile?.id}
         />
       )}

@@ -658,7 +658,84 @@ function renderEvent(data, anchor = "") {
     </tr>`;
 }
 
+function renderFocusItem(item) {
+  if (item.type === "image") {
+    const imgUrl = String(item.image_url || "").trim();
+    if (!imgUrl) return "";
+    const altText = item.image_alt || "Visuel d'illustration";
+    return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:26px;">
+        <tr>
+          <td>
+            <img src="${escapeAttr(imgUrl)}" width="568" height="280" alt="${escapeAttr(altText)}" style="display:block; width:100%; max-width:568px; height:auto; border-radius:14px; border:1px solid ${EMAIL_THEME.borderSubtle};" />
+          </td>
+        </tr>
+      </table>`;
+  }
+  if (item.type === "text") {
+    const hasBody = String(item.body || "").replace(/<[^>]*>/g, "").trim();
+    if (!hasBody) return "";
+    return `<p style="margin:0 0 26px; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:15px; line-height:1.65; color:${EMAIL_THEME.textSecondary};">
+        ${sanitizeRichText(item.body)}
+      </p>`;
+  }
+  if (item.type === "cta") {
+    if (!item.label) return "";
+    if (item.style === "secondary") {
+      return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:16px;">
+        <tr>
+          <td valign="middle">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td style="border:1px solid rgba(255,255,255,0.22); border-radius:99px;">
+                  <a href="${escapeAttr(item.url || "#")}" style="display:inline-block; padding:12px 20px; font-family:${FONTS.heading}; font-weight:500; font-size:13px; color:#E9EEF2; text-decoration:none; border-radius:99px; letter-spacing:0.01em;">${escapeHtml(item.label)}</a>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>`;
+    }
+    return `<table role="presentation" class="em-cta-row" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:16px;">
+        <tr>
+          <td valign="middle">
+            <!--[if mso]>
+            <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${escapeAttr(item.url || "#")}" style="height:46px; v-text-anchor:middle; width:260px;" arcsize="50%" stroke="f" fillcolor="${EMAIL_THEME.accentTertiary}">
+              <w:anchorlock/>
+              <center style="color:#ffffff; font-family:Arial, sans-serif; font-size:13px; font-weight:bold;">${escapeHtml(item.label)}</center>
+            </v:roundrect>
+            <![endif]-->
+            <!--[if !mso]><!-->
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td bgcolor="${EMAIL_THEME.accentTertiary}" style="border-radius:99px; background-color:${EMAIL_THEME.accentTertiary}; background-image:linear-gradient(90deg, ${EMAIL_THEME.accentSecondary} 0%, ${EMAIL_THEME.accentTertiary} 50%, ${EMAIL_THEME.accentPrimary} 100%);">
+                  <a href="${escapeAttr(item.url || "#")}" style="display:inline-block; padding:13px 22px; font-family:${FONTS.heading}; font-weight:600; font-size:13px; color:#ffffff; text-decoration:none; border-radius:99px; letter-spacing:0.01em;">${escapeHtml(item.label)}</a>
+                </td>
+              </tr>
+            </table>
+            <!--<![endif]-->
+          </td>
+        </tr>
+      </table>`;
+  }
+  return "";
+}
+
 function renderFocus(data, number, anchor = "") {
+  // Items-based rendering (new format)
+  if (data.items) {
+    const renderedItems = data.items.map(renderFocusItem).join("\n");
+    return `
+    <tr>
+      <td class="em-px" style="padding:44px 36px; border-bottom:1px solid ${EMAIL_THEME.border};">
+        ${anchor}
+        ${sectionHeader(number, data.kicker)}
+        <h2 class="em-h2" style="margin:12px 0 22px; font-family:${FONTS.heading}; font-weight:600; font-size:30px; line-height:1.1; letter-spacing:-0.025em; color:${EMAIL_THEME.textPrimary};">${escapeHtml(data.title)}</h2>
+        ${renderedItems}
+      </td>
+    </tr>`;
+  }
+
+  // Legacy flat format (backward compatibility)
   const imgUrl = String(data.image_url || "").trim();
   const altText = data.image_alt || "Visuel d'illustration";
   const hasBody = String(data.body || "").replace(/<[^>]*>/g, "").trim();
@@ -676,8 +753,6 @@ function renderFocus(data, number, anchor = "") {
         ${sanitizeRichText(data.body)}
       </p>`
     : "";
-
-  // CTA primaire (gradient) — version bulletproof avec fallback Outlook VML
   const primaryBtn = data.cta_primary_label
     ? `<td valign="middle" style="padding-right:10px;">
         <!--[if mso]>
@@ -697,8 +772,6 @@ function renderFocus(data, number, anchor = "") {
         <!--<![endif]-->
       </td>`
     : "";
-
-  // CTA secondaire (outline)
   const secondaryBtn = data.cta_secondary_label
     ? `<td valign="middle">
         <table role="presentation" cellpadding="0" cellspacing="0" border="0">
@@ -710,7 +783,6 @@ function renderFocus(data, number, anchor = "") {
         </table>
       </td>`
     : "";
-
   const ctaRow = (primaryBtn || secondaryBtn)
     ? `<table role="presentation" class="em-cta-row" cellpadding="0" cellspacing="0" border="0" style="${textBlock || imageBlock ? "margin-top:26px;" : ""}">
         <tr>${primaryBtn}${secondaryBtn}</tr>
@@ -723,7 +795,6 @@ function renderFocus(data, number, anchor = "") {
         ${anchor}
         ${sectionHeader(number, data.kicker)}
         <h2 class="em-h2" style="margin:12px 0 22px; font-family:${FONTS.heading}; font-weight:600; font-size:30px; line-height:1.1; letter-spacing:-0.025em; color:${EMAIL_THEME.textPrimary};">${escapeHtml(data.title)}</h2>
-
         ${imageBlock}
         ${textBlock}
         ${ctaRow}

@@ -82,15 +82,22 @@ async function buildPngAssets(state) {
       needGauge = true;
       gaugeValue = sec.data.value;
     }
-    if ((sec.type === "focus" || sec.type === "image_block") && sec.data.image_url) {
-      // On télécharge l'image et on la met dans assets/ avec un nom unique
+    if (sec.type === "image_block" && sec.data.image_url) {
       const ext = guessImageExtension(sec.data.image_url);
-      const filename = `${sec.type}-${sec.id}.${ext}`;
-      focusImages.push({
-        sectionId: sec.id,
-        originalUrl: sec.data.image_url,
-        filename,
-      });
+      focusImages.push({ sectionId: sec.id, originalUrl: sec.data.image_url, filename: `image_block-${sec.id}.${ext}` });
+    }
+    if (sec.type === "focus") {
+      if (sec.data.items) {
+        // New items-based format
+        sec.data.items.filter((it) => it.type === "image" && it.image_url).forEach((it, idx) => {
+          const ext = guessImageExtension(it.image_url);
+          focusImages.push({ sectionId: sec.id, itemId: it.id, originalUrl: it.image_url, filename: `focus-${sec.id}-${idx}.${ext}` });
+        });
+      } else if (sec.data.image_url) {
+        // Legacy flat format
+        const ext = guessImageExtension(sec.data.image_url);
+        focusImages.push({ sectionId: sec.id, originalUrl: sec.data.image_url, filename: `focus-${sec.id}.${ext}` });
+      }
     }
   }
 
@@ -131,16 +138,28 @@ function buildExternalAssetState(state, focusImages, assets, assetUrlMap = {}) {
   return {
     ...state,
     sections: (state.sections || []).map((sec) => {
-      if ((sec.type === "focus" || sec.type === "image_block") && sec.data.image_url) {
-        const fi = focusImages.find((f) => f.sectionId === sec.id);
+      if (sec.type === "image_block" && sec.data.image_url) {
+        const fi = focusImages.find((f) => f.sectionId === sec.id && !f.itemId);
         if (fi && assets[fi.filename]) {
-          return {
-            ...sec,
-            data: {
-              ...sec.data,
-              image_url: assetUrlMap[fi.filename] || `assets/${fi.filename}`,
-            },
-          };
+          return { ...sec, data: { ...sec.data, image_url: assetUrlMap[fi.filename] || `assets/${fi.filename}` } };
+        }
+      }
+      if (sec.type === "focus") {
+        if (sec.data.items) {
+          const nextItems = sec.data.items.map((it) => {
+            if (it.type !== "image" || !it.image_url) return it;
+            const fi = focusImages.find((f) => f.sectionId === sec.id && f.itemId === it.id);
+            if (fi && assets[fi.filename]) {
+              return { ...it, image_url: assetUrlMap[fi.filename] || `assets/${fi.filename}` };
+            }
+            return it;
+          });
+          return { ...sec, data: { ...sec.data, items: nextItems } };
+        } else if (sec.data.image_url) {
+          const fi = focusImages.find((f) => f.sectionId === sec.id && !f.itemId);
+          if (fi && assets[fi.filename]) {
+            return { ...sec, data: { ...sec.data, image_url: assetUrlMap[fi.filename] || `assets/${fi.filename}` } };
+          }
         }
       }
       return sec;

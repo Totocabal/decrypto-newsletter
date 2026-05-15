@@ -190,16 +190,13 @@ export const SECTION_TYPES = {
     factory: () => ({
       kicker: "FOCUS",
       title: "Confier ses crypto à des experts, sans renoncer au contrôle",
-      // image_url et image_path remplis quand l'utilisateur upload
-      image_url: "",
-      image_path: "", // chemin Supabase Storage (pour suppression)
-      image_alt: "Visuel d'illustration",
-      body:
-        "Sur un marché qui mûrit, beaucoup d'investisseurs nous posent la même question : <strong>comment intégrer la crypto dans une stratégie patrimoniale long terme, sans y consacrer ses week-ends ?</strong> La réponse Coinhouse tient en trois principes. <strong>D'abord la sécurité :</strong> nos actifs sont conservés en cold storage chez des dépositaires régulés en Europe, avec une assurance dédiée. <strong>Ensuite la transparence :</strong> chaque arbitrage est documenté, chaque frais explicite. <strong>Enfin l'accompagnement :</strong> un conseiller dédié, joignable, qui connaît votre allocation globale et ajuste l'exposition crypto au fil des cycles.",
-      cta_primary_label: "",
-      cta_primary_url: "",
-      cta_secondary_label: "",
-      cta_secondary_url: "",
+      items: [
+        {
+          id: (typeof crypto !== "undefined" && crypto.randomUUID) ? crypto.randomUUID() : Math.random().toString(36).slice(2),
+          type: "text",
+          body: "Sur un marché qui mûrit, beaucoup d'investisseurs nous posent la même question : <strong>comment intégrer la crypto dans une stratégie patrimoniale long terme, sans y consacrer ses week-ends ?</strong> La réponse Coinhouse tient en trois principes. <strong>D'abord la sécurité :</strong> nos actifs sont conservés en cold storage chez des dépositaires régulés en Europe, avec une assurance dédiée. <strong>Ensuite la transparence :</strong> chaque arbitrage est documenté, chaque frais explicite. <strong>Enfin l'accompagnement :</strong> un conseiller dédié, joignable, qui connaît votre allocation globale et ajuste l'exposition crypto au fil des cycles.",
+        },
+      ],
     }),
   },
   image_block: {
