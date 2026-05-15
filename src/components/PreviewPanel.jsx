@@ -17,7 +17,7 @@ export function PreviewPanel({ html, view, previewDevice, setPreviewDevice }) {
             <Tooltip label="Aperçu desktop">
               <button
                 onClick={() => setPreviewDevice("desktop")}
-                className={`flex flex-shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] uppercase tracking-[0.14em] font-semibold transition-colors ${
+                className={`flex flex-shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] uppercase tracking-[0.14em] font-semibold transition-colors outline-none ${
                   previewDevice === "desktop"
                     ? "bg-white text-[#15151A]"
                     : "text-d-fg3 hover:text-d-fg2"
@@ -29,7 +29,7 @@ export function PreviewPanel({ html, view, previewDevice, setPreviewDevice }) {
             <Tooltip label="Aperçu mobile">
               <button
                 onClick={() => setPreviewDevice("mobile")}
-                className={`flex flex-shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] uppercase tracking-[0.14em] font-semibold transition-colors ${
+                className={`flex flex-shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] uppercase tracking-[0.14em] font-semibold transition-colors outline-none ${
                   previewDevice === "mobile"
                     ? "bg-white text-[#15151A]"
                     : "text-d-fg3 hover:text-d-fg2"
