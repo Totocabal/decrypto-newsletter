@@ -1306,7 +1306,7 @@ function migrateFocusItems(data) {
 function FocusEditor({ data, set }) {
   const { profile } = useAuth();
   const [imageManagerOpen, setImageManagerOpen] = useState(null); // item id or null
-  const [collapsed, setCollapsed] = useState(new Set());
+  const [collapsed, setCollapsed] = useState(() => new Set((data.items ?? migrateFocusItems(data)).map((it) => it.id)));
   const toggleCollapse = (id) => setCollapsed((prev) => {
     const next = new Set(prev);
     next.has(id) ? next.delete(id) : next.add(id);
@@ -1356,7 +1356,7 @@ function FocusEditor({ data, set }) {
             >
               <div className="flex items-center gap-2">
                 <ChevronDown size={14} className="text-d-fg3 transition-transform" style={{ transform: collapsed.has(item.id) ? "rotate(-90deg)" : "rotate(0deg)" }} />
-                <span className="text-xs uppercase tracking-[0.15em] font-bold text-d-fg2">
+                <span className="text-[10px] uppercase tracking-[0.15em] font-bold text-d-fg2">
                   {item.type === "text" ? "Texte" : item.type === "image" ? "Image" : item.type === "callout" ? "Encadré" : "CTA"}
                 </span>
               </div>
