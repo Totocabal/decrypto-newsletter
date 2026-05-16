@@ -108,52 +108,21 @@ export function EditorPanel({ state, setState }) {
 
   // ── Drag & drop ──
   const draggedId = useRef(null);
-  const lastDragTargetId = useRef(null);
   const [dragOverId, setDragOverId] = useState(null);
-  const [desktopDraggingId, setDesktopDraggingId] = useState(null);
   const [selectedMobileSectionId, setSelectedMobileSectionId] = useState(null);
 
-  const handleDragStart = (id, event) => {
-    event.stopPropagation();
-    draggedId.current = id;
-    lastDragTargetId.current = null;
-    setDesktopDraggingId(id);
-    event.dataTransfer.effectAllowed = "move";
-    event.dataTransfer.setData("text/plain", id);
-    if (event.dataTransfer?.setDragImage) {
-      const transparentPixel = new Image();
-      transparentPixel.src =
-        "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==";
-      event.dataTransfer.setDragImage(transparentPixel, 0, 0);
-    }
-  };
-  const handleDragOver = (e, id) => {
-    e.preventDefault();
-    const fromId = draggedId.current;
-    if (!fromId || id === fromId) return;
-    setDragOverId(null);
-    if (lastDragTargetId.current === id) return;
-    lastDragTargetId.current = id;
-    moveSectionToTarget(fromId, id);
-  };
+  const handleDragStart = (id) => { draggedId.current = id; };
+  const handleDragOver = (e, id) => { e.preventDefault(); setDragOverId(id); };
+  const handleDragLeave = () => setDragOverId(null);
   const handleDrop = (e, targetId) => {
     e.preventDefault();
     e.stopPropagation();
     const fromId = draggedId.current;
-    if (fromId && fromId !== targetId) {
-      moveSectionToTarget(fromId, targetId);
-    }
+    if (fromId && fromId !== targetId) moveSectionToTarget(fromId, targetId);
     draggedId.current = null;
-    lastDragTargetId.current = null;
-    setDesktopDraggingId(null);
     setDragOverId(null);
   };
-  const handleDragEnd = () => {
-    draggedId.current = null;
-    lastDragTargetId.current = null;
-    setDesktopDraggingId(null);
-    setDragOverId(null);
-  };
+  const handleDragEnd = () => { draggedId.current = null; setDragOverId(null); };
 
   const moveSectionToTarget = (fromId, targetId) => {
     setState((s) => {
@@ -467,11 +436,11 @@ export function EditorPanel({ state, setState }) {
               onMoveDown={() => moveSection(sec.id, 1)}
               onDuplicate={() => duplicateSection(sec.id)}
               onDelete={() => removeSection(sec.id)}
-              onDragStart={(e) => handleDragStart(sec.id, e)}
+              onDragStart={() => handleDragStart(sec.id)}
               onDragOver={(e) => handleDragOver(e, sec.id)}
+              onDragLeave={handleDragLeave}
               onDrop={(e) => handleDrop(e, sec.id)}
               onDragEnd={handleDragEnd}
-              desktopDragging={desktopDraggingId === sec.id}
               selectedMobile={selectedMobileSectionId === sec.id}
               onSelectMobile={() => setSelectedMobileSectionId(sec.id)}
             />
@@ -566,9 +535,9 @@ function SectionCard({
   onDelete,
   onDragStart,
   onDragOver,
+  onDragLeave,
   onDrop,
   onDragEnd,
-  desktopDragging,
   selectedMobile,
   onSelectMobile,
 }) {
@@ -589,6 +558,7 @@ function SectionCard({
     <div
       data-section-card={section.id}
       onDragOver={onDragOver}
+      onDragLeave={onDragLeave}
       onDrop={onDrop}
       onDragEnd={onDragEnd}
       onClick={onSelectMobile}
@@ -597,10 +567,8 @@ function SectionCard({
       }`}
       style={{
         background: "#1E1E22",
-        border: desktopDragging || isDragOver
-          ? "1px solid #FF00AA"
-          : "1px solid var(--d-line2)",
-        boxShadow: desktopDragging || isDragOver ? "0 0 0 2px rgba(255,0,170,0.15)" : "none",
+        border: isDragOver ? "1px solid #FF00AA" : "1px solid var(--d-line2)",
+        boxShadow: isDragOver ? "0 0 0 2px rgba(255,0,170,0.15)" : "none",
       }}
     >
       {/* Barre de titre */}
