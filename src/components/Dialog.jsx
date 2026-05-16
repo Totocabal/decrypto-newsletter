@@ -1,13 +1,15 @@
-import { createContext, useContext, useState, useCallback, useRef } from "react";
+import { createContext, useContext, useState, useCallback, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { X, AlertTriangle, CheckCircle, Info } from "lucide-react";
 
 const ToastCtx = createContext(null);
 const ConfirmCtx = createContext(null);
+const PromptCtx = createContext(null);
 
 export function DialogProvider({ children }) {
   const [toasts, setToasts] = useState([]);
   const [confirmState, setConfirmState] = useState(null);
+  const [promptState, setPromptState] = useState(null);
   const resolveRef = useRef(null);
 
   const addToast = useCallback((message, type = "error") => {
@@ -27,25 +29,40 @@ export function DialogProvider({ children }) {
     });
   }, []);
 
+  const prompt = useCallback((message, opts = {}) => {
+    return new Promise((resolve) => {
+      resolveRef.current = resolve;
+      setPromptState({ message, defaultValue: "", ...opts });
+    });
+  }, []);
+
   const handleConfirm = () => { resolveRef.current?.(true); setConfirmState(null); };
   const handleCancel = () => { resolveRef.current?.(false); setConfirmState(null); };
+  const handlePromptSubmit = (value) => { resolveRef.current?.(value); setPromptState(null); };
+  const handlePromptCancel = () => { resolveRef.current?.(null); setPromptState(null); };
 
   return (
     <ToastCtx.Provider value={addToast}>
       <ConfirmCtx.Provider value={confirm}>
-        {children}
-        {createPortal(
-          <div style={{ position: "fixed", bottom: 24, right: 24, zIndex: 9999, display: "flex", flexDirection: "column-reverse", gap: 8, alignItems: "flex-end" }}>
-            {toasts.map((t) => (
-              <ToastItem key={t.id} toast={t} onRemove={removeToast} />
-            ))}
-          </div>,
-          document.body
-        )}
-        {confirmState && createPortal(
-          <ConfirmModal {...confirmState} onConfirm={handleConfirm} onCancel={handleCancel} />,
-          document.body
-        )}
+        <PromptCtx.Provider value={prompt}>
+          {children}
+          {createPortal(
+            <div style={{ position: "fixed", bottom: 24, right: 24, zIndex: 9999, display: "flex", flexDirection: "column-reverse", gap: 8, alignItems: "flex-end" }}>
+              {toasts.map((t) => (
+                <ToastItem key={t.id} toast={t} onRemove={removeToast} />
+              ))}
+            </div>,
+            document.body
+          )}
+          {confirmState && createPortal(
+            <ConfirmModal {...confirmState} onConfirm={handleConfirm} onCancel={handleCancel} />,
+            document.body
+          )}
+          {promptState && createPortal(
+            <PromptModal {...promptState} onSubmit={handlePromptSubmit} onCancel={handlePromptCancel} />,
+            document.body
+          )}
+        </PromptCtx.Provider>
       </ConfirmCtx.Provider>
     </ToastCtx.Provider>
   );
@@ -53,6 +70,7 @@ export function DialogProvider({ children }) {
 
 export function useToast() { return useContext(ToastCtx); }
 export function useConfirm() { return useContext(ConfirmCtx); }
+export function usePrompt() { return useContext(PromptCtx); }
 
 function ToastItem({ toast, onRemove }) {
   const { id, message, type } = toast;
@@ -86,6 +104,15 @@ function ToastItem({ toast, onRemove }) {
 }
 
 function ConfirmModal({ message, title = "Confirmation", confirmLabel = "Confirmer", cancelLabel = "Annuler", danger = false, onConfirm, onCancel }) {
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === "Enter") { e.preventDefault(); onConfirm(); }
+      if (e.key === "Escape") onCancel();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onConfirm, onCancel]);
+
   return (
     <div
       style={{ position: "fixed", inset: 0, zIndex: 9998, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.65)", backdropFilter: "blur(4px)" }}
@@ -102,6 +129,53 @@ function ConfirmModal({ message, title = "Confirmation", confirmLabel = "Confirm
             {confirmLabel}
           </button>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function PromptModal({ message, title = "Commentaire", defaultValue = "", confirmLabel = "OK", cancelLabel = "Annuler", onSubmit, onCancel }) {
+  const [value, setValue] = useState(defaultValue);
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
+
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === "Escape") onCancel();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onCancel]);
+
+  return (
+    <div
+      style={{ position: "fixed", inset: 0, zIndex: 9998, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.65)", backdropFilter: "blur(4px)" }}
+      onClick={(e) => { if (e.target === e.currentTarget) onCancel(); }}
+    >
+      <div style={{ background: "#1E1E22", border: "1px solid #333", borderRadius: 18, width: "100%", maxWidth: 420, padding: "28px 28px 24px", boxShadow: "0 8px 48px rgba(0,0,0,0.6)", margin: 16 }}>
+        <h2 style={{ fontFamily: "'Sora', sans-serif", fontSize: 16, fontWeight: 600, color: "#f0f0f0", marginBottom: 10 }}>{title}</h2>
+        <p style={{ fontSize: 14, color: "#999", lineHeight: 1.55, marginBottom: 14 }}>{message}</p>
+        <form onSubmit={(e) => { e.preventDefault(); onSubmit(value); }}>
+          <input
+            ref={inputRef}
+            type="text"
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            placeholder="Optionnel…"
+            style={{ width: "100%", boxSizing: "border-box", background: "#2a2a2e", border: "1px solid #3a3a3a", borderRadius: 10, padding: "9px 12px", fontSize: 13, color: "#e0e0e0", marginBottom: 20, outline: "none" }}
+          />
+          <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
+            <button type="button" onClick={onCancel} style={{ padding: "8px 18px", borderRadius: 10, border: "1px solid #3a3a3a", background: "transparent", color: "#999", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+              {cancelLabel}
+            </button>
+            <button type="submit" style={{ padding: "8px 18px", borderRadius: 10, border: "none", background: "#FF00AA", color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+              {confirmLabel}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

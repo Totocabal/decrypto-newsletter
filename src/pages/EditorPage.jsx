@@ -15,7 +15,7 @@ import { buildEmailHtml } from "../render/buildEmail.js";
 import { supabase } from "../lib/supabase.js";
 import { useNewsletter } from "../lib/useNewsletter.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
-import { useToast, useConfirm } from "../components/Dialog.jsx";
+import { useToast, useConfirm, usePrompt } from "../components/Dialog.jsx";
 import { copyHtmlToClipboard } from "../utils/exportImport.js";
 import { exportAssetPack, exportBrazeHtml } from "../utils/exportAssetPack.js";
 import { useLabels, useNewsletterLabels } from "../lib/useLabels.js";
@@ -25,6 +25,7 @@ export function EditorPage({ newsletterId, onBack }) {
   const { profile } = useAuth();
   const addToast = useToast();
   const confirm = useConfirm();
+  const prompt = usePrompt();
   const {
     newsletter,
     state,
@@ -133,9 +134,9 @@ export function EditorPage({ newsletterId, onBack }) {
   };
 
   const handleSave = async () => {
-    const comment = window.prompt(
+    const comment = await prompt(
       "La version sera numérotée automatiquement. Commentaire optionnel :",
-      ""
+      { title: "Sauvegarder une version" }
     );
     if (comment === null) return;
     const { error } = await saveVersion(comment.trim() || null);
@@ -161,9 +162,9 @@ export function EditorPage({ newsletterId, onBack }) {
       return;
     }
 
-    const comment = window.prompt(
+    const comment = await prompt(
       "La version sera numérotée automatiquement. Commentaire optionnel :",
-      ""
+      { title: "Sauvegarder une version" }
     );
     if (comment === null) return;
 
