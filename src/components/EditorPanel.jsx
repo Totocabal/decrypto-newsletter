@@ -115,7 +115,9 @@ export function EditorPanel({ state, setState }) {
   const handleDragStart = (e, id) => {
     draggedId.current = id;
     const card = e.currentTarget.closest("[data-section-card]");
-    if (card) e.dataTransfer.setDragImage(card, card.offsetWidth / 2, 24);
+    const header = card?.querySelector("[data-drag-header]");
+    const ghost = header || card;
+    if (ghost) e.dataTransfer.setDragImage(ghost, ghost.offsetWidth / 2, ghost.offsetHeight / 2);
   };
   const handleDragOver = (e, id) => {
     e.preventDefault();
@@ -577,23 +579,16 @@ function SectionCard({
       onDrop={onDrop}
       onDragEnd={onDragEnd}
       onClick={onSelectMobile}
-      className={`overflow-hidden rounded-xl transition-all ${
-        selectedMobile ? "mobile-section-card-selected" : ""
-      }`}
-      style={{
-        position: "relative",
-        background: "#1E1E22",
-        border: "1px solid var(--d-line2)",
-      }}
+      style={{ position: "relative" }}
     >
-      {/* Insertion line indicator */}
+      {/* Insertion line indicator — outside overflow-hidden inner card */}
       {isDragOver && dragOverHalf && (
         <div
           style={{
             position: "absolute",
             left: 0,
             right: 0,
-            [dragOverHalf === "top" ? "top" : "bottom"]: -3,
+            [dragOverHalf === "top" ? "top" : "bottom"]: -2,
             height: 3,
             background: "#FF00AA",
             borderRadius: 2,
@@ -602,8 +597,17 @@ function SectionCard({
           }}
         />
       )}
+      <div
+        className={`overflow-hidden rounded-xl transition-all ${
+          selectedMobile ? "mobile-section-card-selected" : ""
+        }`}
+        style={{
+          background: "#1E1E22",
+          border: "1px solid var(--d-line2)",
+        }}
+      >
       {/* Barre de titre */}
-      <div className="flex items-center gap-2 px-2 py-2">
+      <div data-drag-header className="flex items-center gap-2 px-2 py-2">
         <Tooltip label="Glisser pour déplacer" className="hidden sm:inline-flex">
           <button
             type="button"
@@ -728,6 +732,7 @@ function SectionCard({
           </div>
         </div>
       )}
+      </div> {/* end inner overflow-hidden card */}
     </div>
   );
 }
