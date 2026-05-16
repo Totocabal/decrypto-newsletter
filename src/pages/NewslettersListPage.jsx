@@ -36,6 +36,11 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [createChoiceOpen, setCreateChoiceOpen] = useState(false);
+  const [createNameOpen, setCreateNameOpen] = useState(false);
+  const [pendingMode, setPendingMode] = useState(null);
+  const [pendingPreset, setPendingPreset] = useState(null);
+  const [newTitle, setNewTitle] = useState("");
+  const [newPreviewText, setNewPreviewText] = useState("");
   const [templatePresets, setTemplatePresets] = useState([]);
   const [templatePresetsLoading, setTemplatePresetsLoading] = useState(false);
   const [templatePresetsError, setTemplatePresetsError] = useState(null);
@@ -117,32 +122,42 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
     if (createChoiceOpen) loadTemplatePresets();
   }, [createChoiceOpen, loadTemplatePresets]);
 
-  const handleCreate = async (mode = "template", preset = null) => {
-    if (!profile?.id) return;
+  const openCreateName = (mode, preset = null) => {
+    setPendingMode(mode);
+    setPendingPreset(preset);
+    setNewTitle("");
+    setNewPreviewText("");
+    setCreateNameOpen(true);
+  };
+
+  const handleCreate = async () => {
+    const mode = pendingMode;
+    const preset = pendingPreset;
+    if (!profile?.id || !newTitle.trim()) return;
     setCreating(true);
     const initialState =
       mode === "blank"
-        ? { ...INITIAL_STATE, sections: [] }
+        ? { ...INITIAL_STATE, sections: [], preview_text: newPreviewText }
         : mode === "preset" && preset
-          ? buildInitialStateFromTypes(preset.sections, {
+          ? { ...buildInitialStateFromTypes(preset.sections, {
               includeDefaultContent: preset.includeDefaultContent,
               showSectionNumbers: preset.showSectionNumbers,
               themeVariant: preset.themeVariant,
               includeIssueDate: preset.includeIssueDate,
-            })
+            }), preview_text: newPreviewText }
         : (() => {
             const template = getDefaultNewsletterTemplate();
-            return buildInitialStateFromTypes(template.sections, {
+            return { ...buildInitialStateFromTypes(template.sections, {
               includeDefaultContent: template.includeDefaultContent,
               showSectionNumbers: template.showSectionNumbers,
               themeVariant: template.themeVariant,
               includeIssueDate: template.includeIssueDate,
-            });
+            }), preview_text: newPreviewText };
           })();
     const { data, error } = await supabase
       .from("newsletters")
       .insert({
-        title: `Décrypto N°${INITIAL_STATE.issue_number}`,
+        title: newTitle.trim(),
         issue_number: INITIAL_STATE.issue_number,
         current_state: initialState,
         created_by: profile.id,
@@ -156,6 +171,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
       return;
     }
     setCreateChoiceOpen(false);
+    setCreateNameOpen(false);
     onOpen(data.id);
   };
 
@@ -636,7 +652,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
               <div className="grid grid-cols-1 gap-3 p-6 sm:grid-cols-2">
                 <button
                   type="button"
-                  onClick={() => handleCreate("template")}
+                  onClick={() => openCreateName("template")}
                   disabled={creating}
                   className="text-left rounded-2xl border border-line bg-d-panel2 p-5 hover:border-line2 hover:bg-d-panel3 transition-colors disabled:opacity-50"
                 >
@@ -650,7 +666,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                 </button>
                 <button
                   type="button"
-                  onClick={() => handleCreate("blank")}
+                  onClick={() => openCreateName("blank")}
                   disabled={creating}
                   className="text-left rounded-2xl border border-line bg-d-panel2 p-5 hover:border-line2 hover:bg-d-panel3 transition-colors disabled:opacity-50"
                 >
@@ -693,7 +709,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                       <button
                         key={preset.id}
                         type="button"
-                        onClick={() => handleCreate("preset", preset)}
+                        onClick={() => openCreateName("preset", preset)}
                         disabled={creating}
                         className="text-left rounded-xl border border-line bg-d-panel2 px-4 py-3 transition-colors hover:border-d-pink/70 hover:bg-d-panel3 disabled:opacity-50"
                       >
@@ -715,6 +731,74 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                 Création…
               </div>
             )}
+          </div>
+        </div>
+      )}
+      {createNameOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-2xl border border-line bg-d-panel shadow-2xl">
+            <div className="flex items-center justify-between border-b border-line px-6 py-4">
+              <h2 className="text-xl font-semibold text-d-fg tracking-tight" style={{ fontFamily: "'Sora', sans-serif" }}>
+                Nommer la newsletter
+              </h2>
+              <button
+                type="button"
+                onClick={() => setCreateNameOpen(false)}
+                disabled={creating}
+                className="h-8 w-8 inline-flex items-center justify-center text-d-fg4 hover:text-d-fg2 hover:bg-d-panel2 rounded-lg transition-colors disabled:opacity-50"
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <form
+              onSubmit={(e) => { e.preventDefault(); handleCreate(); }}
+              className="flex flex-col gap-4 p-6"
+            >
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[10px] uppercase tracking-[0.15em] font-semibold text-d-fg4">
+                  Nom <span className="text-d-pink">*</span>
+                </label>
+                <input
+                  type="text"
+                  autoFocus
+                  required
+                  value={newTitle}
+                  onChange={(e) => setNewTitle(e.target.value)}
+                  placeholder="Décrypto N°42"
+                  className="w-full rounded-xl border border-line bg-d-panel2 px-3 py-2.5 text-sm text-d-fg placeholder:text-d-fg4 focus:outline-none focus:border-line2"
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[10px] uppercase tracking-[0.15em] font-semibold text-d-fg4">
+                  Texte de prévisualisation
+                </label>
+                <input
+                  type="text"
+                  value={newPreviewText}
+                  onChange={(e) => setNewPreviewText(e.target.value)}
+                  placeholder="Le marché reprend son souffle…"
+                  className="w-full rounded-xl border border-line bg-d-panel2 px-3 py-2.5 text-sm text-d-fg placeholder:text-d-fg4 focus:outline-none focus:border-line2"
+                />
+                <p className="text-[10px] text-d-fg4">Affiché sous l'objet dans la boîte de réception. Facultatif.</p>
+              </div>
+              <div className="flex justify-end gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setCreateNameOpen(false)}
+                  disabled={creating}
+                  className="rounded-xl border border-line px-4 py-2 text-xs font-semibold text-d-fg3 hover:text-d-fg hover:border-line2 transition-colors disabled:opacity-50"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  disabled={creating || !newTitle.trim()}
+                  className="rounded-xl bg-d-pink px-4 py-2 text-xs font-semibold text-white hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  {creating ? "Création…" : "Créer"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
