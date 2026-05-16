@@ -1290,7 +1290,7 @@ function focusNewId() {
 function migrateFocusItems(data) {
   const items = [];
   if (data.image_url) {
-    items.push({ id: focusNewId(), type: "image", image_url: data.image_url, image_path: data.image_path || "", image_alt: data.image_alt || "Visuel d'illustration" });
+    items.push({ id: focusNewId(), type: "image", image_url: data.image_url, image_path: data.image_path || "", image_alt: data.image_alt || "Visuel d'illustration", link_url: "" });
   }
   if (data.body) {
     items.push({ id: focusNewId(), type: "text", body: data.body });
@@ -1321,7 +1321,7 @@ function FocusEditor({ data, set }) {
     const id = focusNewId();
     let item;
     if (type === "text") item = { id, type: "text", body: "" };
-    else if (type === "image") item = { id, type: "image", image_url: "", image_path: "", image_alt: "Visuel d'illustration" };
+    else if (type === "image") item = { id, type: "image", image_url: "", image_path: "", image_alt: "Visuel d'illustration", link_url: "" };
     else if (type === "callout") item = { id, type: "callout", label: "Note de la rédac", body: "", footer: "", footer_url: "", show_icon: true, picto: DEFAULT_PICTO_ID, callout_color: DEFAULT_CALLOUT_COLOR };
     else item = { id, type: "cta", label: "", url: "", arrow: false, centered: false, secondary_label: "", secondary_url: "" };
     setItems([...items, item]);
@@ -1408,9 +1408,14 @@ function FocusEditor({ data, set }) {
                     </button>
                   )}
                   {item.image_url && (
-                    <Field label="Texte alternatif (alt)" hint="Pour les lecteurs d'écran">
-                      <Input value={item.image_alt || ""} onChange={(e) => updateItem(item.id, { image_alt: e.target.value })} />
-                    </Field>
+                    <>
+                      <Field label="Texte alternatif (alt)" hint="Pour les lecteurs d'écran">
+                        <Input value={item.image_alt || ""} onChange={(e) => updateItem(item.id, { image_alt: e.target.value })} />
+                      </Field>
+                      <Field label="Lien (optionnel)" hint="L'image devient cliquable">
+                        <Input value={item.link_url || ""} onChange={(e) => updateItem(item.id, { link_url: e.target.value })} placeholder="https://…" />
+                      </Field>
+                    </>
                   )}
                 </>
               )}

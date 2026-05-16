@@ -780,11 +780,14 @@ function renderFocusItem(item) {
     const imgUrl = String(item.image_url || "").trim();
     if (!imgUrl) return "";
     const altText = item.image_alt || "Visuel d'illustration";
+    const linkUrl = String(item.link_url || "").trim();
+    const img = `<img src="${escapeAttr(imgUrl)}" width="568" height="280" alt="${escapeAttr(altText)}" style="display:block; width:100%; max-width:568px; height:auto; border-radius:14px; border:1px solid ${EMAIL_THEME.borderSubtle};" />`;
+    const inner = linkUrl
+      ? `<a href="${escapeAttr(linkUrl)}" target="_blank" style="display:block; text-decoration:none;">${img}</a>`
+      : img;
     return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:26px;">
         <tr>
-          <td>
-            <img src="${escapeAttr(imgUrl)}" width="568" height="280" alt="${escapeAttr(altText)}" style="display:block; width:100%; max-width:568px; height:auto; border-radius:14px; border:1px solid ${EMAIL_THEME.borderSubtle};" />
-          </td>
+          <td>${inner}</td>
         </tr>
       </table>`;
   }

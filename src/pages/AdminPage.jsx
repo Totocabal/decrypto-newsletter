@@ -12,6 +12,8 @@ import {
   Eye,
   GripVertical,
   Loader2,
+  Lock,
+  LockOpen,
   Megaphone,
   Newspaper,
   List,
@@ -91,6 +93,8 @@ export function AdminPage({ onBack }) {
     isAdmin: false,
   });
   const [createdAccount, setCreatedAccount] = useState(null);
+  const [locks, setLocks] = useState([]);
+  const [locksLoading, setLocksLoading] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -102,9 +106,29 @@ export function AdminPage({ onBack }) {
     setLoading(false);
   }, []);
 
+  const loadLocks = useCallback(async () => {
+    setLocksLoading(true);
+    const { data } = await supabase
+      .from("locks")
+      .select("newsletter_id, user_full_name, user_email, acquired_at, expires_at, newsletters(title)")
+      .order("acquired_at", { ascending: false });
+    setLocks(data || []);
+    setLocksLoading(false);
+  }, []);
+
   useEffect(() => {
     load();
-  }, [load]);
+    loadLocks();
+  }, [load, loadLocks]);
+
+  const releaseLock = async (newsletterId) => {
+    const { error } = await supabase.from("locks").delete().eq("newsletter_id", newsletterId);
+    if (error) {
+      alert("Erreur : " + error.message);
+      return;
+    }
+    loadLocks();
+  };
 
   const updateProfile = async (id, patch) => {
     const { error } = await supabase
@@ -377,6 +401,85 @@ export function AdminPage({ onBack }) {
                     </div>
                   );
                 })}
+              </div>
+            </section>
+
+            {/* Verrous actifs */}
+            <section>
+              <div className="flex items-center gap-2 mb-3">
+                <h2 className="text-[10px] uppercase tracking-[0.18em] text-d-fg3 font-medium">
+                  Verrous actifs
+                </h2>
+                {locks.length > 0 && (
+                  <span className="text-[10px] bg-d-panel2 text-d-fg3 px-2 py-0.5 rounded-full font-medium border border-line">
+                    {locks.length}
+                  </span>
+                )}
+                <button
+                  type="button"
+                  onClick={loadLocks}
+                  disabled={locksLoading}
+                  className="ml-auto flex items-center gap-1 text-[10px] text-d-fg4 hover:text-d-fg transition-colors"
+                >
+                  <RefreshCw size={11} className={locksLoading ? "animate-spin" : ""} />
+                  Rafraîchir
+                </button>
+              </div>
+              <div className="bg-d-panel border border-line rounded-2xl overflow-hidden">
+                {locksLoading ? (
+                  <div className="flex items-center justify-center gap-2 p-6 text-xs text-d-fg4">
+                    <Loader2 size={13} className="animate-spin" />
+                    Chargement…
+                  </div>
+                ) : locks.length === 0 ? (
+                  <div className="flex items-center gap-2 p-4 text-xs text-d-fg4">
+                    <LockOpen size={13} />
+                    Aucun verrou actif.
+                  </div>
+                ) : (
+                  <div className="divide-y" style={{ borderColor: "var(--d-line)" }}>
+                    {locks.map((lock) => {
+                      const isExpired = new Date(lock.expires_at) < new Date();
+                      return (
+                        <div key={lock.newsletter_id} className="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:gap-4">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex min-w-0 flex-wrap items-center gap-2">
+                              <Lock size={12} className="shrink-0 text-d-fg4" />
+                              <span className="text-sm text-d-fg truncate">
+                                {lock.newsletters?.title || lock.newsletter_id}
+                              </span>
+                              {isExpired && (
+                                <span
+                                  className="text-[10px] uppercase tracking-[0.12em] font-semibold px-2 py-0.5 rounded-full"
+                                  style={{ background: "rgba(255,75,40,0.12)", color: "#FF8466" }}
+                                >
+                                  Expiré
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-[11px] text-d-fg4 mt-0.5">
+                              {lock.user_full_name || lock.user_email}
+                              {lock.user_full_name && lock.user_email && ` · ${lock.user_email}`}
+                              {" · "}
+                              Expire {new Date(lock.expires_at).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
+                            </div>
+                          </div>
+                          <button
+                            onClick={() =>
+                              confirm(`Forcer la libération du verrou sur "${lock.newsletters?.title || lock.newsletter_id}" ?`) &&
+                              releaseLock(lock.newsletter_id)
+                            }
+                            className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] font-medium px-3 py-1.5 border rounded-full transition-colors shrink-0"
+                            style={{ color: "#FF8466", borderColor: "rgba(255,75,40,0.25)" }}
+                          >
+                            <LockOpen size={11} />
+                            Déverrouiller
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             </section>
         </div>
