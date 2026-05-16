@@ -18,30 +18,26 @@ Cliquez sur l'icône ⚙ (engrenage) en haut à droite de la liste des newslette
 
 ## 2. Gestion des comptes
 
-### Approuver un compte
+L'accès à l'éditeur est entièrement géré par les admins — il n'y a pas de flux d'auto-inscription. Les comptes sont créés directement depuis l'interface admin.
 
-Quand un utilisateur se connecte pour la première fois via magic link, son compte apparaît dans la liste **En attente d'approbation**. Cliquez **Approuver** — il accède à l'éditeur dans les secondes qui suivent.
+### Créer un compte
+
+1. Saisissez l'**email** et le **nom affiché**
+2. Cochez **Admin** si ce compte doit avoir les droits administrateur
+3. Cliquez **Créer** — un **mot de passe temporaire** est affiché, copiez-le via le bouton dédié
+4. Transmettez l'email et le mot de passe à l'utilisateur — il se connecte immédiatement
+
+> Cette méthode ne dépend pas de l'envoi d'emails Supabase.
 
 ### Révoquer un accès
 
-Cliquez sur **Révoquer** sur un compte approuvé. L'utilisateur est immédiatement déconnecté et ne peut plus se reconnecter.
+Cliquez sur **Révoquer** sur un compte dans la liste **Comptes approuvés**. L'utilisateur est immédiatement déconnecté et ne peut plus se reconnecter.
 
 ### Promouvoir / rétrograder admin
 
-Le bouton **Admin** sur chaque compte bascule le statut administrateur. Un admin peut accéder à l'onglet Admin et utiliser l'Export Braze.
+Le bouton **Promouvoir admin** / **Retirer admin** sur chaque compte bascule le statut. Un admin peut accéder à l'onglet Admin et utiliser l'Export Braze.
 
 > Ne pas révoquer son propre compte admin — il n'y a pas de récupération depuis l'interface.
-
-### Créer un compte directement
-
-Sans attendre qu'un utilisateur se connecte lui-même, créez un compte depuis **Admin → Créer un compte** :
-
-1. Saisissez l'**email** et le **nom affiché**
-2. Cochez **Admin** si ce compte doit avoir les droits admin
-3. L'outil génère un **mot de passe temporaire** — transmettez-le à l'utilisateur
-4. L'utilisateur se connecte avec email + mot de passe temporaire, puis peut modifier son mot de passe
-
-> Cette méthode ne dépend pas de l'envoi d'emails Supabase.
 
 ---
 
