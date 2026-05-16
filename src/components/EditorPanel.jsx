@@ -109,29 +109,42 @@ export function EditorPanel({ state, setState }) {
   // ── Drag & drop ──
   const draggedId = useRef(null);
   const [dragOverId, setDragOverId] = useState(null);
+  const [dragOverHalf, setDragOverHalf] = useState(null); // 'top' | 'bottom'
   const [selectedMobileSectionId, setSelectedMobileSectionId] = useState(null);
 
-  const handleDragStart = (id) => { draggedId.current = id; };
-  const handleDragOver = (e, id) => { e.preventDefault(); setDragOverId(id); };
-  const handleDragLeave = () => setDragOverId(null);
+  const handleDragStart = (e, id) => {
+    draggedId.current = id;
+    const card = e.currentTarget.closest("[data-section-card]");
+    if (card) e.dataTransfer.setDragImage(card, card.offsetWidth / 2, 24);
+  };
+  const handleDragOver = (e, id) => {
+    e.preventDefault();
+    const rect = e.currentTarget.getBoundingClientRect();
+    const half = e.clientY < rect.top + rect.height / 2 ? "top" : "bottom";
+    setDragOverId(id);
+    setDragOverHalf(half);
+  };
+  const handleDragLeave = () => { setDragOverId(null); setDragOverHalf(null); };
   const handleDrop = (e, targetId) => {
     e.preventDefault();
     e.stopPropagation();
     const fromId = draggedId.current;
-    if (fromId && fromId !== targetId) moveSectionToTarget(fromId, targetId);
+    if (fromId && fromId !== targetId) moveSectionToTarget(fromId, targetId, dragOverHalf);
     draggedId.current = null;
     setDragOverId(null);
+    setDragOverHalf(null);
   };
-  const handleDragEnd = () => { draggedId.current = null; setDragOverId(null); };
+  const handleDragEnd = () => { draggedId.current = null; setDragOverId(null); setDragOverHalf(null); };
 
-  const moveSectionToTarget = (fromId, targetId) => {
+  const moveSectionToTarget = (fromId, targetId, half = "top") => {
     setState((s) => {
       const sections = [...s.sections];
       const fromIdx = sections.findIndex((x) => x.id === fromId);
       const toIdx = sections.findIndex((x) => x.id === targetId);
       if (fromIdx === -1 || toIdx === -1 || fromIdx === toIdx) return s;
       const [removed] = sections.splice(fromIdx, 1);
-      sections.splice(toIdx, 0, removed);
+      const newToIdx = sections.findIndex((x) => x.id === targetId);
+      sections.splice(half === "bottom" ? newToIdx + 1 : newToIdx, 0, removed);
       return { ...s, sections };
     });
   };
@@ -430,13 +443,14 @@ export function EditorPanel({ state, setState }) {
               number={state.show_section_numbers === false ? null : computeSectionNumber(state.sections, sec.id)}
               allSections={state.sections}
               isDragOver={dragOverId === sec.id}
+              dragOverHalf={dragOverId === sec.id ? dragOverHalf : null}
               onUpdate={(data) => setSection(sec.id, data)}
               onUpdateMeta={(patch) => updateSectionMeta(sec.id, patch)}
               onMoveUp={() => moveSection(sec.id, -1)}
               onMoveDown={() => moveSection(sec.id, 1)}
               onDuplicate={() => duplicateSection(sec.id)}
               onDelete={() => removeSection(sec.id)}
-              onDragStart={() => handleDragStart(sec.id)}
+              onDragStart={(e) => handleDragStart(e, sec.id)}
               onDragOver={(e) => handleDragOver(e, sec.id)}
               onDragLeave={handleDragLeave}
               onDrop={(e) => handleDrop(e, sec.id)}
@@ -527,6 +541,7 @@ function SectionCard({
   number,
   allSections,
   isDragOver,
+  dragOverHalf,
   onUpdate,
   onUpdateMeta,
   onMoveUp,
@@ -566,11 +581,27 @@ function SectionCard({
         selectedMobile ? "mobile-section-card-selected" : ""
       }`}
       style={{
+        position: "relative",
         background: "#1E1E22",
-        border: isDragOver ? "1px solid #FF00AA" : "1px solid var(--d-line2)",
-        boxShadow: isDragOver ? "0 0 0 2px rgba(255,0,170,0.15)" : "none",
+        border: "1px solid var(--d-line2)",
       }}
     >
+      {/* Insertion line indicator */}
+      {isDragOver && dragOverHalf && (
+        <div
+          style={{
+            position: "absolute",
+            left: 0,
+            right: 0,
+            [dragOverHalf === "top" ? "top" : "bottom"]: -3,
+            height: 3,
+            background: "#FF00AA",
+            borderRadius: 2,
+            zIndex: 20,
+            pointerEvents: "none",
+          }}
+        />
+      )}
       {/* Barre de titre */}
       <div className="flex items-center gap-2 px-2 py-2">
         <Tooltip label="Glisser pour déplacer" className="hidden sm:inline-flex">
