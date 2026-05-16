@@ -11,13 +11,32 @@ import {
   Link,
   List,
   ListOrdered,
+  Loader2,
+  Sparkles,
   ChevronUp,
   ChevronDown,
 } from "lucide-react";
 import { createEditor, Editor, Element as SlateElement, Text, Transforms } from "slate";
 import { withHistory } from "slate-history";
 import { Editable, Slate, useSlate, withReact } from "slate-react";
+import { supabase } from "../lib/supabase.js";
 import { Tooltip } from "./Tooltip.jsx";
+
+async function callCorrectText(html) {
+  const { data: { session } } = await supabase.auth.getSession();
+  const token = session?.access_token;
+  const res = await fetch("/api/correct-text", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify({ html }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Erreur serveur");
+  return data.html;
+}
 
 export function Field({ label, children, hint, action }) {
   return (
@@ -499,6 +518,8 @@ function RichTextEditor({ showCount, onChange, value = "", ...props }) {
   const [plainTextCount, setPlainTextCount] = useState(() =>
     plainTextLength(deserializeHtml(value))
   );
+  const [correcting, setCorrecting] = useState(false);
+  const [correctError, setCorrectError] = useState(null);
   const htmlValue = String(value ?? "");
   const { rows = 3, ...editorProps } = props;
 
@@ -534,6 +555,26 @@ function RichTextEditor({ showCount, onChange, value = "", ...props }) {
     emitChange(nextValue);
   };
 
+  const handleCorrect = async () => {
+    if (!htmlValue.trim() || correcting) return;
+    setCorrecting(true);
+    setCorrectError(null);
+    try {
+      const corrected = await callCorrectText(htmlValue);
+      const nextNodes = deserializeHtml(corrected);
+      editor.children = nextNodes;
+      editor.selection = null;
+      lastEmittedRef.current = corrected;
+      setPlainTextCount(plainTextLength(nextNodes));
+      editor.onChange();
+      onChange?.({ target: { value: corrected } });
+    } catch (err) {
+      setCorrectError(err.message);
+    } finally {
+      setCorrecting(false);
+    }
+  };
+
   const el = (
     <div className="border border-line rounded-xl bg-d-panel2 focus-within:border-line2 transition-colors overflow-hidden">
       <Slate
@@ -561,6 +602,22 @@ function RichTextEditor({ showCount, onChange, value = "", ...props }) {
           <BlockButton format="numbered-list" title="Liste numérotée">
             <ListOrdered size={13} />
           </BlockButton>
+          <div className="ml-auto pl-1 border-l border-line flex-shrink-0">
+            <Tooltip label="Corriger l'orthographe et la grammaire avec l'IA">
+              <button
+                type="button"
+                onMouseDown={(e) => { e.preventDefault(); handleCorrect(); }}
+                disabled={correcting}
+                className="h-7 inline-flex items-center gap-1 px-2 rounded-lg border transition-colors disabled:opacity-40 text-[10px] font-semibold tracking-[0.1em] uppercase"
+                style={{ color: "#03FFCF", borderColor: "rgba(3,255,207,0.25)", background: "rgba(3,255,207,0.06)" }}
+              >
+                {correcting
+                  ? <Loader2 size={11} className="animate-spin" />
+                  : <Sparkles size={11} />}
+                Corriger
+              </button>
+            </Tooltip>
+          </div>
         </div>
         <Editable
           {...editorProps}
@@ -578,12 +635,19 @@ function RichTextEditor({ showCount, onChange, value = "", ...props }) {
     </div>
   );
 
-  if (!showCount) return el;
+  const errorEl = correctError && (
+    <div className="mt-1 text-[11px] leading-relaxed" style={{ color: "#FF8466" }}>
+      {correctError}
+    </div>
+  );
+
+  if (!showCount) return <>{el}{errorEl}</>;
 
   return (
     <div>
       {el}
       <div className="text-right text-[10px] text-d-fg4 mt-0.5 tabular-nums">{plainTextCount} car.</div>
+      {errorEl}
     </div>
   );
 }
