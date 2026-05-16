@@ -310,17 +310,17 @@ export function EditorPage({ newsletterId, onBack }) {
       )}
 
       {/* Topbar : logo + titre + statut + actions */}
-      <div
-        className="border-b border-line px-4 py-3 sm:px-6"
-        style={{ background: "#1E1E22" }}
+      <header
+        className="border-b border-line px-4 sm:px-6"
+        style={{ background: "#1E1E22", height: "52px" }}
       >
-        <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-          <div className="flex min-w-0 flex-wrap items-center gap-3 sm:gap-4 xl:flex-1 xl:flex-nowrap">
+        <div className="flex h-full items-center gap-2 sm:gap-3">
+          <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
             <button type="button" onClick={handleBack} disabled={leaving} className="shrink-0 opacity-90 hover:opacity-100 transition-opacity">
-              <Wordmark size={17} />
+              <Wordmark size={18} />
             </button>
             <div
-              className="hidden h-6 w-px sm:block"
+              className="hidden h-5 w-px sm:block"
               style={{ background: "var(--d-line2)", flexShrink: 0 }}
             />
             <button
@@ -331,7 +331,7 @@ export function EditorPage({ newsletterId, onBack }) {
               {leaving ? <Loader2 size={12} className="animate-spin" /> : <ArrowLeft size={12} />}
               {leaving ? "Sauvegarde…" : "Retour"}
             </button>
-            <Tooltip label="Cliquer pour renommer cette newsletter" side="bottom" className="order-last w-full min-w-0 sm:order-none sm:flex-1 xl:max-w-md">
+            <Tooltip label="Cliquer pour renommer cette newsletter" side="bottom" className="flex-1 min-w-0 max-w-xs hidden sm:flex">
               <input
                 type="text"
                 value={newsletter?.title || ""}
@@ -391,7 +391,7 @@ export function EditorPage({ newsletterId, onBack }) {
               </div>
             )}
           </div>
-          <div className="flex flex-wrap items-center gap-2 sm:gap-3 xl:flex-shrink-0 xl:justify-end">
+          <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
             <SaveIndicator
               saving={saving}
               lastSavedAt={lastSavedAt}
@@ -423,7 +423,7 @@ export function EditorPage({ newsletterId, onBack }) {
             </Tooltip>
           </div>
         </div>
-      </div>
+      </header>
 
       <Toolbar
         brandName={state.brand_name}

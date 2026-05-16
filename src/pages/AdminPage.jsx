@@ -199,17 +199,17 @@ export function AdminPage({ onBack }) {
   return (
     <div className="min-h-screen bg-d-bg">
       <header
-        className="border-b border-line px-4 py-3 sm:px-6"
-        style={{ background: "#1E1E22" }}
+        className="border-b border-line px-4 sm:px-6"
+        style={{ background: "#1E1E22", height: "52px" }}
       >
-        <div className="mx-auto flex w-full max-w-none flex-wrap items-center gap-3 sm:gap-4">
+        <div className="flex h-full items-center gap-3 sm:gap-4">
           <button type="button" onClick={onBack} className="shrink-0 opacity-90 hover:opacity-100 transition-opacity">
-            <Wordmark size={17} />
+            <Wordmark size={18} />
           </button>
-          <div className="hidden h-6 w-px sm:block" style={{ background: "var(--d-line2)", flexShrink: 0 }} />
+          <div className="hidden h-5 w-px sm:block" style={{ background: "var(--d-line2)", flexShrink: 0 }} />
           <button
             onClick={onBack}
-            className="flex items-center gap-2 text-[10px] uppercase tracking-[0.18em] font-medium text-d-fg3 hover:text-d-fg px-3 py-1.5 border border-line hover:border-line2 rounded-full transition-colors"
+            className="flex shrink-0 items-center gap-2 text-[10px] uppercase tracking-[0.18em] font-medium text-d-fg3 hover:text-d-fg px-3 py-1.5 border border-line hover:border-line2 rounded-full transition-colors"
           >
             <ArrowLeft size={12} />
             Retour
@@ -219,13 +219,13 @@ export function AdminPage({ onBack }) {
           </div>
 
           {/* Onglets */}
-          <div className="order-last flex max-w-full items-center overflow-x-auto rounded-full border border-line bg-d-panel2 p-1 sm:order-none sm:ml-auto">
+          <div className="ml-auto flex shrink-0 items-center rounded-full border border-line bg-d-panel2 p-0.5">
             {tabs.map(({ id, label, icon: Icon }) => (
               <button
                 key={id}
                 type="button"
                 onClick={() => setTab(id)}
-                className={`flex flex-shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] uppercase tracking-[0.14em] font-semibold transition-colors ${
+                className={`flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.14em] font-semibold transition-colors ${
                   tab === id
                     ? "bg-white text-[#15151A]"
                     : "text-d-fg3 hover:text-d-fg2"

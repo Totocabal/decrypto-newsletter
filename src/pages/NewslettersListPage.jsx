@@ -277,16 +277,17 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
     <div className="min-h-screen bg-d-bg">
       {/* Header */}
       <header
-        className="border-b border-line bg-d-panel px-4 py-3 sm:px-6"
+        className="border-b border-line px-4 sm:px-6"
+        style={{ background: "#1E1E22", height: "52px" }}
       >
-        <div className="mx-auto flex w-full max-w-none flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex h-full items-center gap-3 sm:gap-4">
           <Wordmark size={18} />
 
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:justify-end sm:overflow-visible sm:pb-0">
+          <div className="ml-auto flex shrink-0 items-center gap-2">
             {profile?.is_admin && (
               <button
                 onClick={onOpenAdmin}
-                className="flex flex-shrink-0 items-center gap-2 rounded-full border border-line2 px-3 py-1.5 text-[11px] uppercase tracking-[0.18em] text-d-fg2 font-medium transition-colors hover:bg-d-panel2"
+                className="flex shrink-0 items-center gap-2 rounded-full border border-line2 px-3 py-1.5 text-[11px] uppercase tracking-[0.18em] text-d-fg2 font-medium transition-colors hover:bg-d-panel2"
               >
                 <Settings size={12} />
                 Admin
@@ -294,7 +295,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
             )}
             <button
               onClick={() => setImageManagerOpen(true)}
-              className="flex flex-shrink-0 items-center gap-2 rounded-full border border-line2 px-3 py-1.5 text-[11px] uppercase tracking-[0.18em] text-d-fg2 font-medium transition-colors hover:bg-d-panel2"
+              className="flex shrink-0 items-center gap-2 rounded-full border border-line2 px-3 py-1.5 text-[11px] uppercase tracking-[0.18em] text-d-fg2 font-medium transition-colors hover:bg-d-panel2"
             >
               <ImageIcon size={12} />
               Images
@@ -307,7 +308,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
             </div>
             <button
               onClick={signOut}
-              className="flex flex-shrink-0 items-center gap-2 rounded-full border border-line2 px-3 py-1.5 text-[11px] uppercase tracking-[0.18em] text-d-fg2 font-medium transition-colors hover:bg-d-panel2"
+              className="flex shrink-0 items-center gap-2 rounded-full border border-line2 px-3 py-1.5 text-[11px] uppercase tracking-[0.18em] text-d-fg2 font-medium transition-colors hover:bg-d-panel2"
             >
               <LogOut size={12} />
               Déconnexion
