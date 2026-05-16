@@ -116,8 +116,23 @@ export function EditorPanel({ state, setState }) {
     draggedId.current = id;
     const card = e.currentTarget.closest("[data-section-card]");
     const header = card?.querySelector("[data-drag-header]");
-    const ghost = header || card;
-    if (ghost) e.dataTransfer.setDragImage(ghost, ghost.offsetWidth / 2, ghost.offsetHeight / 2);
+    const src = header || card;
+    if (src) {
+      const clone = src.cloneNode(true);
+      Object.assign(clone.style, {
+        position: "fixed",
+        top: "-9999px",
+        left: "0",
+        width: src.offsetWidth + "px",
+        background: "#1E1E22",
+        borderRadius: "10px",
+        border: "1px solid #333",
+        pointerEvents: "none",
+      });
+      document.body.appendChild(clone);
+      e.dataTransfer.setDragImage(clone, clone.offsetWidth / 2, clone.offsetHeight / 2);
+      requestAnimationFrame(() => document.body.removeChild(clone));
+    }
   };
   const handleDragOver = (e, id) => {
     e.preventDefault();
