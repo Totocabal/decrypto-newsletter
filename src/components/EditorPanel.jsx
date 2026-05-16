@@ -130,7 +130,8 @@ export function EditorPanel({ state, setState }) {
         pointerEvents: "none",
       });
       document.body.appendChild(clone);
-      e.dataTransfer.setDragImage(clone, src.offsetWidth / 2, src.offsetHeight / 2);
+      const rect = src.getBoundingClientRect();
+      e.dataTransfer.setDragImage(clone, e.clientX - rect.left, e.clientY - rect.top);
       requestAnimationFrame(() => document.body.removeChild(clone));
     }
   };
