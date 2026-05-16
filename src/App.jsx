@@ -13,6 +13,7 @@
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { AuthProvider, useAuth } from "./contexts/AuthContext.jsx";
+import { DialogProvider } from "./components/Dialog.jsx";
 import { LoginPage } from "./pages/LoginPage.jsx";
 import { SetPasswordPage } from "./pages/SetPasswordPage.jsx";
 import { PendingApprovalPage } from "./pages/PendingApprovalPage.jsx";
@@ -56,7 +57,9 @@ export default function App() {
   }
   return (
     <AuthProvider>
-      <Router />
+      <DialogProvider>
+        <Router />
+      </DialogProvider>
     </AuthProvider>
   );
 }

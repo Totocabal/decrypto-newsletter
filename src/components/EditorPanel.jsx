@@ -3,6 +3,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState, useRef } from "react";
+import { useConfirm } from "./Dialog.jsx";
 import {
   ChevronUp,
   ChevronDown,
@@ -576,6 +577,7 @@ function SectionCard({
   selectedMobile,
   onSelectMobile,
 }) {
+  const confirm = useConfirm();
   const [open, setOpen] = useState(false);
   const type = SECTION_TYPES[section.type];
   const label = type?.label || section.type;
@@ -702,8 +704,8 @@ function SectionCard({
           </Tooltip>
           <Tooltip label="Supprimer">
             <button
-              onClick={() => {
-                if (confirm(`Supprimer la section « ${label} » ?`)) onDelete();
+              onClick={async () => {
+                if (await confirm(`Supprimer la section « ${label} » ?`, { danger: true, confirmLabel: "Supprimer" })) onDelete();
               }}
               className="p-1.5 text-d-fg4 hover:text-red-400 hover:bg-red-900/20 rounded-lg transition-colors"
             >

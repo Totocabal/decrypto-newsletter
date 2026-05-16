@@ -44,6 +44,7 @@ import {
 import { useRef } from "react";
 import { supabase } from "../lib/supabase.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
+import { useToast, useConfirm } from "../components/Dialog.jsx";
 import { useLabels, createLabel, updateLabel, deleteLabel, LABEL_COLORS } from "../lib/useLabels.js";
 import {
   createTemplatePreset,
@@ -82,6 +83,8 @@ function getAdminCreateErrorMessage(error) {
 
 export function AdminPage({ onBack }) {
   const { profile: currentProfile } = useAuth();
+  const addToast = useToast();
+  const confirm = useConfirm();
   const [tab, setTab] = useState("accounts");
   const [profiles, setProfiles] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -123,7 +126,7 @@ export function AdminPage({ onBack }) {
   const releaseLock = async (newsletterId) => {
     const { error } = await supabase.from("locks").delete().eq("newsletter_id", newsletterId);
     if (error) {
-      alert("Erreur : " + error.message);
+      addToast("Erreur : " + error.message);
       return;
     }
     loadLocks();
@@ -135,7 +138,7 @@ export function AdminPage({ onBack }) {
       .update(patch)
       .eq("id", id);
     if (error) {
-      alert("Erreur : " + error.message);
+      addToast("Erreur : " + error.message);
       return;
     }
     load();
@@ -161,7 +164,7 @@ export function AdminPage({ onBack }) {
     setCreating(false);
 
     if (error) {
-      alert("Erreur : " + getAdminCreateErrorMessage(error));
+      addToast("Erreur : " + getAdminCreateErrorMessage(error));
       return;
     }
 
@@ -387,10 +390,10 @@ export function AdminPage({ onBack }) {
                             {p.is_admin ? "Retirer admin" : "Promouvoir admin"}
                           </button>
                           <button
-                            onClick={() =>
-                              confirm(`Révoquer l'accès de ${p.email} ?`) &&
-                              updateProfile(p.id, { approved: false, is_admin: false })
-                            }
+                            onClick={async () => {
+                              if (await confirm(`Révoquer l'accès de ${p.email} ?`, { danger: true, confirmLabel: "Révoquer" }))
+                                updateProfile(p.id, { approved: false, is_admin: false });
+                            }}
                             className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] font-medium px-3 py-1.5 border rounded-full transition-colors"
                             style={{ color: "#FF8466", borderColor: "rgba(255,75,40,0.25)" }}
                           >
@@ -466,10 +469,10 @@ export function AdminPage({ onBack }) {
                             </div>
                           </div>
                           <button
-                            onClick={() =>
-                              confirm(`Forcer la libération du verrou sur "${lock.newsletters?.title || lock.newsletter_id}" ?`) &&
-                              releaseLock(lock.newsletter_id)
-                            }
+                            onClick={async () => {
+                              if (await confirm(`Forcer la libération du verrou sur "${lock.newsletters?.title || lock.newsletter_id}" ?`, { danger: true, confirmLabel: "Libérer" }))
+                                releaseLock(lock.newsletter_id);
+                            }}
                             className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] font-medium px-3 py-1.5 border rounded-full transition-colors shrink-0"
                             style={{ color: "#FF8466", borderColor: "rgba(255,75,40,0.25)" }}
                           >
@@ -538,6 +541,7 @@ const SECTION_TYPE_DESCRIPTIONS = {
 };
 
 function DefaultSectionsEditor() {
+  const confirm = useConfirm();
   const allTypes = Object.keys(SECTION_TYPES);
   const [blockSearch, setBlockSearch] = useState("");
   const [active, setActive] = useState(() => getDefaultNewsletterTemplate().sections);
@@ -589,8 +593,8 @@ function DefaultSectionsEditor() {
     setSaved(false);
   };
 
-  const clearBlocks = () => {
-    if (active.length && !confirm("Vider tous les blocs de cette disposition ?")) return;
+  const clearBlocks = async () => {
+    if (active.length && !await confirm("Vider tous les blocs de cette disposition ?", { danger: true, confirmLabel: "Vider" })) return;
     setActive([]);
     setSaved(false);
   };
@@ -704,7 +708,7 @@ function DefaultSectionsEditor() {
   };
 
   const handleDeletePreset = async (preset) => {
-    if (!confirm(`Supprimer le preset « ${preset.name} » ?`)) return;
+    if (!await confirm(`Supprimer le preset « ${preset.name} » ?`, { danger: true, confirmLabel: "Supprimer" })) return;
     setPresetsError(null);
     try {
       await deleteTemplatePreset(preset.id);
@@ -1237,6 +1241,8 @@ function DefaultContentEditorModal({ onClose }) {
 
 function LabelsEditor() {
   const { profile } = useAuth();
+  const addToast = useToast();
+  const confirm = useConfirm();
   const { labels, loading, reload } = useLabels();
   const [form, setForm] = useState({ name: "", color: LABEL_COLORS[0] });
   const [saving, setSaving] = useState(false);
@@ -1252,7 +1258,7 @@ function LabelsEditor() {
       setForm({ name: "", color: LABEL_COLORS[0] });
       await reload();
     } catch (err) {
-      alert("Erreur : " + err.message);
+      addToast("Erreur : " + err.message);
     } finally {
       setSaving(false);
     }
@@ -1271,19 +1277,19 @@ function LabelsEditor() {
       setEditingId(null);
       await reload();
     } catch (err) {
-      alert("Erreur : " + err.message);
+      addToast("Erreur : " + err.message);
     } finally {
       setSaving(false);
     }
   };
 
   const handleDelete = async (label) => {
-    if (!confirm(`Supprimer le label « ${label.name} » ? Il sera retiré de toutes les newsletters.`)) return;
+    if (!await confirm(`Supprimer le label « ${label.name} » ? Il sera retiré de toutes les newsletters.`, { danger: true, confirmLabel: "Supprimer" })) return;
     try {
       await deleteLabel(label.id);
       await reload();
     } catch (err) {
-      alert("Erreur : " + err.message);
+      addToast("Erreur : " + err.message);
     }
   };
 

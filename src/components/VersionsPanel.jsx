@@ -6,8 +6,10 @@ import { useEffect, useState } from "react";
 import { X, RotateCcw, User, Clock, Loader2 } from "lucide-react";
 import { supabase } from "../lib/supabase.js";
 import { Tooltip } from "./Tooltip.jsx";
+import { useConfirm } from "./Dialog.jsx";
 
 export function VersionsPanel({ newsletterId, onRestore, onClose }) {
+  const confirm = useConfirm();
   const [versions, setVersions] = useState([]);
   const [totalVersions, setTotalVersions] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -37,8 +39,9 @@ export function VersionsPanel({ newsletterId, onRestore, onClose }) {
 
   const handleRestore = async (versionId) => {
     if (
-      !confirm(
-        "Restaurer cette version remplacera l'état courant de la newsletter. Continuer ?"
+      !await confirm(
+        "Restaurer cette version remplacera l'état courant de la newsletter. Continuer ?",
+        { danger: true, confirmLabel: "Restaurer" }
       )
     )
       return;

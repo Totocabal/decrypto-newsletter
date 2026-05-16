@@ -3,8 +3,10 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { Lock, AlertTriangle } from "lucide-react";
+import { useConfirm } from "./Dialog.jsx";
 
 export function LockBanner({ lockInfo, onTakeOver, onBack }) {
+  const confirm = useConfirm();
   const minutes = lockInfo
     ? Math.max(
         0,
@@ -12,12 +14,11 @@ export function LockBanner({ lockInfo, onTakeOver, onBack }) {
       )
     : 0;
 
-  const handleTakeOver = () => {
+  const handleTakeOver = async () => {
     if (
-      !confirm(
-        `Forcer la prise de contrôle ?\n\n${
-          lockInfo?.user_full_name || lockInfo?.user_email
-        } est en train d'éditer cette newsletter. En forçant, ses modifications non sauvegardées risquent d'être écrasées.`
+      !await confirm(
+        `${lockInfo?.user_full_name || lockInfo?.user_email} est en train d'éditer cette newsletter. En forçant, ses modifications non sauvegardées risquent d'être écrasées.`,
+        { title: "Forcer la prise de contrôle ?", danger: true, confirmLabel: "Forcer" }
       )
     )
       return;

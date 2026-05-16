@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { supabase } from "../lib/supabase.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
+import { useToast, useConfirm } from "../components/Dialog.jsx";
 import { INITIAL_STATE, getDefaultNewsletterTemplate, buildInitialStateFromTypes } from "../config/schema.js";
 import { listTemplatePresets } from "../lib/templatePresets.js";
 import { Wordmark } from "../components/Wordmark.jsx";
@@ -33,6 +34,8 @@ import { useLabels, assignLabel, removeLabel } from "../lib/useLabels.js";
 
 export function NewslettersListPage({ onOpen, onOpenAdmin }) {
   const { profile, signOut } = useAuth();
+  const addToast = useToast();
+  const confirm = useConfirm();
   const [newsletters, setNewsletters] = useState([]);
   const [locks, setLocks] = useState({});
   const [loading, setLoading] = useState(true);
@@ -196,7 +199,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
       .single();
     setCreating(false);
     if (error) {
-      alert("Erreur à la création : " + error.message);
+      addToast("Erreur à la création : " + error.message);
       return;
     }
     setCreateChoiceOpen(false);
@@ -224,7 +227,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
       .select()
       .single();
     if (error) {
-      alert("Erreur à la duplication : " + error.message);
+      addToast("Erreur à la duplication : " + error.message);
       return;
     }
     const labelIds = nlLabels[nl.id] || [];
@@ -238,14 +241,14 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
 
   const handleDelete = async (nl) => {
     if (!profile?.is_admin) {
-      alert("Seuls les administrateurs peuvent supprimer une newsletter.");
+      addToast("Seuls les administrateurs peuvent supprimer une newsletter.", "info");
       return;
     }
     if (!nl?.id) return;
-    if (!confirm(`Supprimer définitivement « ${nl.title || "cette newsletter"} » ?`)) return;
+    if (!await confirm(`Supprimer définitivement « ${nl.title || "cette newsletter"} » ?`, { danger: true, confirmLabel: "Supprimer" })) return;
     const { error } = await supabase.from("newsletters").delete().eq("id", nl.id);
     if (error) {
-      alert("Erreur : " + error.message);
+      addToast("Erreur : " + error.message);
       return;
     }
     load();

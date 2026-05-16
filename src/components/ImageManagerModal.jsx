@@ -23,6 +23,7 @@ import {
   uploadImage,
 } from "../lib/imageUpload.js";
 import { Tooltip } from "./Tooltip.jsx";
+import { useConfirm } from "./Dialog.jsx";
 
 function formatBytes(bytes = 0) {
   if (!bytes) return "Taille inconnue";
@@ -105,6 +106,7 @@ async function compressImage(file, options = {}) {
 }
 
 export function ImageManagerModal({ currentPath, onClose, onSelect, userId }) {
+  const confirm = useConfirm();
   const inputRef = useRef(null);
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -189,7 +191,7 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId }) {
 
   const handleDelete = async (image) => {
     if (!image?.path) return;
-    if (!confirm(`Supprimer "${image.name}" du gestionnaire d'images ?`)) return;
+    if (!await confirm(`Supprimer "${image.name}" du gestionnaire d'images ?`, { danger: true, confirmLabel: "Supprimer" })) return;
     setError(null);
     try {
       await deleteImage(image.path);
@@ -203,7 +205,7 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId }) {
 
   const handleDeleteSelected = async () => {
     if (!selectedPaths.length) return;
-    if (!confirm(`Supprimer ${selectedPaths.length} image(s) du gestionnaire ?`)) return;
+    if (!await confirm(`Supprimer ${selectedPaths.length} image(s) du gestionnaire ?`, { danger: true, confirmLabel: "Supprimer" })) return;
     setError(null);
     try {
       await Promise.all(selectedPaths.map((path) => deleteImage(path)));

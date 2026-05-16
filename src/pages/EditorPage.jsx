@@ -15,6 +15,7 @@ import { buildEmailHtml } from "../render/buildEmail.js";
 import { supabase } from "../lib/supabase.js";
 import { useNewsletter } from "../lib/useNewsletter.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
+import { useToast, useConfirm } from "../components/Dialog.jsx";
 import { copyHtmlToClipboard } from "../utils/exportImport.js";
 import { exportAssetPack, exportBrazeHtml } from "../utils/exportAssetPack.js";
 import { useLabels, useNewsletterLabels } from "../lib/useLabels.js";
@@ -22,6 +23,8 @@ import { createTemplatePreset } from "../lib/templatePresets.js";
 
 export function EditorPage({ newsletterId, onBack }) {
   const { profile } = useAuth();
+  const addToast = useToast();
+  const confirm = useConfirm();
   const {
     newsletter,
     state,
@@ -136,7 +139,7 @@ export function EditorPage({ newsletterId, onBack }) {
     );
     if (comment === null) return;
     const { error } = await saveVersion(comment.trim() || null);
-    if (error) alert("Erreur : " + error);
+    if (error) addToast("Erreur : " + error);
     else {
       setDirtySinceVersion(false);
       setSavedFlash(true);
@@ -150,7 +153,7 @@ export function EditorPage({ newsletterId, onBack }) {
       return;
     }
 
-    const shouldSave = window.confirm(
+    const shouldSave = await confirm(
       "Créer une version avant de quitter cette newsletter ?"
     );
     if (!shouldSave) {
@@ -168,7 +171,7 @@ export function EditorPage({ newsletterId, onBack }) {
     const { error } = await saveVersion(comment.trim() || null);
     setLeaving(false);
     if (error) {
-      alert("Erreur : " + error);
+      addToast("Erreur : " + error);
       return;
     }
     setDirtySinceVersion(false);
@@ -206,7 +209,7 @@ export function EditorPage({ newsletterId, onBack }) {
     } catch (e) {
       // eslint-disable-next-line no-console
       console.error("[export] erreur :", e);
-      alert("Erreur à l'export : " + (e.message || e));
+      addToast("Erreur à l'export : " + (e.message || e));
     } finally {
       setExporting(false);
     }
@@ -233,7 +236,7 @@ export function EditorPage({ newsletterId, onBack }) {
       setPresetSaved(true);
       setTimeout(() => setPresetModalOpen(false), 1200);
     } catch (e) {
-      alert("Erreur lors de l'enregistrement du preset : " + (e.message || e));
+      addToast("Erreur lors de l'enregistrement du preset : " + (e.message || e));
     } finally {
       setSavingPreset(false);
     }
@@ -252,13 +255,14 @@ export function EditorPage({ newsletterId, onBack }) {
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, "-");
       const result = await exportBrazeHtml(state, `${safe}-braze.html`, accessToken);
-      alert(
-        `Export Braze terminé : ${Object.keys(result.assets).length} image(s) uploadée(s).`
+      addToast(
+        `Export Braze terminé : ${Object.keys(result.assets).length} image(s) uploadée(s).`,
+        "success"
       );
     } catch (e) {
       // eslint-disable-next-line no-console
       console.error("[export braze] erreur :", e);
-      alert("Erreur à l'export Braze : " + (e.message || e));
+      addToast("Erreur à l'export Braze : " + (e.message || e));
     } finally {
       setExportingBraze(false);
     }
