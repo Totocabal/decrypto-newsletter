@@ -19,6 +19,8 @@ import {
   Tag,
   X,
   ArrowUpDown,
+  Sparkles,
+  Loader2,
 } from "lucide-react";
 import { supabase } from "../lib/supabase.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
@@ -45,6 +47,8 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
   const [templatePresetsLoading, setTemplatePresetsLoading] = useState(false);
   const [templatePresetsError, setTemplatePresetsError] = useState(null);
   const [imageManagerOpen, setImageManagerOpen] = useState(false);
+  const [previewGenerating, setPreviewGenerating] = useState(false);
+  const [previewGenError, setPreviewGenError] = useState(null);
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("updated_desc");
   const { labels } = useLabels();
@@ -127,7 +131,50 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
     setPendingPreset(preset);
     setNewTitle("");
     setNewPreviewText("");
+    setPreviewGenError(null);
     setCreateNameOpen(true);
+  };
+
+  const handleGeneratePreviewTextForCreate = async () => {
+    setPreviewGenerating(true);
+    setPreviewGenError(null);
+    try {
+      const initialState =
+        pendingMode === "blank"
+          ? { ...INITIAL_STATE, sections: [] }
+          : pendingMode === "preset" && pendingPreset
+            ? buildInitialStateFromTypes(pendingPreset.sections, {
+                includeDefaultContent: pendingPreset.includeDefaultContent,
+                showSectionNumbers: pendingPreset.showSectionNumbers,
+                themeVariant: pendingPreset.themeVariant,
+                includeIssueDate: pendingPreset.includeIssueDate,
+              })
+            : (() => {
+                const template = getDefaultNewsletterTemplate();
+                return buildInitialStateFromTypes(template.sections, {
+                  includeDefaultContent: template.includeDefaultContent,
+                  showSectionNumbers: template.showSectionNumbers,
+                  themeVariant: template.themeVariant,
+                  includeIssueDate: template.includeIssueDate,
+                });
+              })();
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch("/api/generate-preview-text", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session?.access_token || ""}`,
+        },
+        body: JSON.stringify({ state: initialState }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Erreur inconnue");
+      setNewPreviewText(json.text || "");
+    } catch (err) {
+      setPreviewGenError(err.message);
+    } finally {
+      setPreviewGenerating(false);
+    }
   };
 
   const handleCreate = async () => {
@@ -770,9 +817,23 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                 />
               </div>
               <div className="flex flex-col gap-1.5">
-                <label className="text-[10px] uppercase tracking-[0.15em] font-semibold text-d-fg4">
-                  Texte de prévisualisation
-                </label>
+                <div className="flex items-center justify-between gap-2">
+                  <label className="text-[10px] uppercase tracking-[0.15em] font-semibold text-d-fg4">
+                    Texte de prévisualisation
+                  </label>
+                  {pendingMode !== "blank" && (
+                    <button
+                      type="button"
+                      onClick={handleGeneratePreviewTextForCreate}
+                      disabled={previewGenerating}
+                      className="flex items-center gap-1 text-[10px] uppercase tracking-[0.14em] font-semibold px-2 py-1 rounded-full border transition-colors disabled:opacity-50"
+                      style={{ color: "#03FFCF", borderColor: "rgba(3,255,207,0.25)", background: "rgba(3,255,207,0.06)" }}
+                    >
+                      {previewGenerating ? <Loader2 size={10} className="animate-spin" /> : <Sparkles size={10} />}
+                      Générer
+                    </button>
+                  )}
+                </div>
                 <input
                   type="text"
                   value={newPreviewText}
@@ -780,6 +841,9 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                   placeholder="Le marché reprend son souffle…"
                   className="w-full rounded-xl border border-line bg-d-panel2 px-3 py-2.5 text-sm text-d-fg placeholder:text-d-fg4 focus:outline-none focus:border-line2"
                 />
+                {previewGenError && (
+                  <p className="text-[10px]" style={{ color: "#FF8466" }}>{previewGenError}</p>
+                )}
                 <p className="text-[10px] text-d-fg4">Affiché sous l'objet dans la boîte de réception. Facultatif.</p>
               </div>
               <div className="flex justify-end gap-2 pt-1">

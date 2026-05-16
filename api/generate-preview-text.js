@@ -111,7 +111,7 @@ export default async function handler(req, res) {
 À partir du contenu ci-dessous, génère un texte de prévisualisation d'email (preheader) en français.
 
 Règles :
-- Entre 90 et 130 caractères
+- Entre 40 et 100 caractères
 - Accrocheur et informatif, donne envie d'ouvrir l'email
 - Ton professionnel mais accessible, adapté à une audience crypto institutionnelle
 - Ne commence pas par "Dans ce numéro" ou "Au programme"

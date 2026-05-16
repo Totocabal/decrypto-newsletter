@@ -357,7 +357,7 @@ export function EditorPanel({ state, setState }) {
       </div>
 
       {/* ── EN-TÊTE FIXE ────────────────────────────────────────────────── */}
-      <Section title="En-tête">
+      <Section title="En-tête" defaultOpen={false}>
         <Field label="Nom de la marque">
           <Input
             value={state.brand_name}
