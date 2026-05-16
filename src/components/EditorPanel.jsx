@@ -132,7 +132,7 @@ export function EditorPanel({ state, setState }) {
       document.body.appendChild(clone);
       const rect = src.getBoundingClientRect();
       const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top + rect.height;
+      const y = e.clientY - rect.top + rect.height * 1.5;
       e.dataTransfer.setDragImage(clone, x, y);
       requestAnimationFrame(() => document.body.removeChild(clone));
     }
