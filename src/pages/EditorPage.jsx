@@ -316,7 +316,9 @@ export function EditorPage({ newsletterId, onBack }) {
       >
         <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
           <div className="flex min-w-0 flex-wrap items-center gap-3 sm:gap-4 xl:flex-1 xl:flex-nowrap">
-            <Wordmark size={17} />
+            <button type="button" onClick={handleBack} disabled={leaving} className="shrink-0 opacity-90 hover:opacity-100 transition-opacity">
+              <Wordmark size={17} />
+            </button>
             <div
               className="hidden h-6 w-px sm:block"
               style={{ background: "var(--d-line2)", flexShrink: 0 }}

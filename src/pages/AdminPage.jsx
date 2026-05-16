@@ -203,7 +203,9 @@ export function AdminPage({ onBack }) {
         style={{ background: "#1E1E22" }}
       >
         <div className="mx-auto flex w-full max-w-none flex-wrap items-center gap-3 sm:gap-4">
-          <Wordmark size={17} />
+          <button type="button" onClick={onBack} className="shrink-0 opacity-90 hover:opacity-100 transition-opacity">
+            <Wordmark size={17} />
+          </button>
           <div className="hidden h-6 w-px sm:block" style={{ background: "var(--d-line2)", flexShrink: 0 }} />
           <button
             onClick={onBack}
