@@ -101,13 +101,27 @@ export default async function handler(req, res) {
     if (!apiKey) return json(res, 500, { error: "Clé Gemini non configurée (variable GEMINI_API_KEY manquante)." });
 
     const body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
-    const { state } = body || {};
-    if (!state) return json(res, 400, { error: "Champ 'state' manquant." });
+    const { state, draft } = body || {};
 
-    const context = buildContext(state);
-    if (!context.trim()) return json(res, 400, { error: "La newsletter ne contient pas encore assez de contenu." });
+    let prompt;
+    if (draft) {
+      const d = String(draft).trim();
+      if (!d) return json(res, 400, { error: "Le champ 'draft' est vide." });
+      prompt = `Tu es rédacteur expert pour la newsletter crypto Décrypto de Coinhouse.
+Reformule et améliore ce texte de prévisualisation d'email (preheader) en français :
+"${d}"
 
-    const prompt = `Tu es rédacteur expert pour la newsletter crypto Décrypto de Coinhouse.
+Règles :
+- Entre 40 et 100 caractères
+- Accrocheur et informatif, donne envie d'ouvrir l'email
+- Ton professionnel mais accessible, adapté à une audience crypto institutionnelle
+- Pas de guillemets, pas d'emoji
+- Réponds UNIQUEMENT avec le texte final, rien d'autre`;
+    } else {
+      if (!state) return json(res, 400, { error: "Champ 'state' ou 'draft' manquant." });
+      const context = buildContext(state);
+      if (!context.trim()) return json(res, 400, { error: "La newsletter ne contient pas encore assez de contenu." });
+      prompt = `Tu es rédacteur expert pour la newsletter crypto Décrypto de Coinhouse.
 À partir du contenu ci-dessous, génère un texte de prévisualisation d'email (preheader) en français.
 
 Règles :
@@ -121,6 +135,7 @@ Règles :
 
 Contenu de la newsletter :
 ${context}`;
+    }
 
     const geminiRes = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
       method: "POST",

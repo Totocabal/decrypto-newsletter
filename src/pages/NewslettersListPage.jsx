@@ -136,28 +136,10 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
   };
 
   const handleGeneratePreviewTextForCreate = async () => {
+    if (!newPreviewText.trim()) return;
     setPreviewGenerating(true);
     setPreviewGenError(null);
     try {
-      const initialState =
-        pendingMode === "blank"
-          ? { ...INITIAL_STATE, sections: [] }
-          : pendingMode === "preset" && pendingPreset
-            ? buildInitialStateFromTypes(pendingPreset.sections, {
-                includeDefaultContent: pendingPreset.includeDefaultContent,
-                showSectionNumbers: pendingPreset.showSectionNumbers,
-                themeVariant: pendingPreset.themeVariant,
-                includeIssueDate: pendingPreset.includeIssueDate,
-              })
-            : (() => {
-                const template = getDefaultNewsletterTemplate();
-                return buildInitialStateFromTypes(template.sections, {
-                  includeDefaultContent: template.includeDefaultContent,
-                  showSectionNumbers: template.showSectionNumbers,
-                  themeVariant: template.themeVariant,
-                  includeIssueDate: template.includeIssueDate,
-                });
-              })();
       const { data: { session } } = await supabase.auth.getSession();
       const res = await fetch("/api/generate-preview-text", {
         method: "POST",
@@ -165,7 +147,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
           "Content-Type": "application/json",
           Authorization: `Bearer ${session?.access_token || ""}`,
         },
-        body: JSON.stringify({ state: initialState }),
+        body: JSON.stringify({ draft: newPreviewText }),
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || "Erreur inconnue");
@@ -821,18 +803,17 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                   <label className="text-[10px] uppercase tracking-[0.15em] font-semibold text-d-fg4">
                     Texte de prévisualisation
                   </label>
-                  {pendingMode !== "blank" && (
-                    <button
-                      type="button"
-                      onClick={handleGeneratePreviewTextForCreate}
-                      disabled={previewGenerating}
-                      className="flex items-center gap-1 text-[10px] uppercase tracking-[0.14em] font-semibold px-2 py-1 rounded-full border transition-colors disabled:opacity-50"
-                      style={{ color: "#03FFCF", borderColor: "rgba(3,255,207,0.25)", background: "rgba(3,255,207,0.06)" }}
-                    >
-                      {previewGenerating ? <Loader2 size={10} className="animate-spin" /> : <Sparkles size={10} />}
-                      Générer
-                    </button>
-                  )}
+                  <button
+                    type="button"
+                    onClick={handleGeneratePreviewTextForCreate}
+                    disabled={previewGenerating || !newPreviewText.trim()}
+                    title="Reformule le texte saisi en preheader optimisé"
+                    className="flex items-center gap-1 text-[10px] uppercase tracking-[0.14em] font-semibold px-2 py-1 rounded-full border transition-colors disabled:opacity-40"
+                    style={{ color: "#03FFCF", borderColor: "rgba(3,255,207,0.25)", background: "rgba(3,255,207,0.06)" }}
+                  >
+                    {previewGenerating ? <Loader2 size={10} className="animate-spin" /> : <Sparkles size={10} />}
+                    Améliorer
+                  </button>
                 </div>
                 <input
                   type="text"
