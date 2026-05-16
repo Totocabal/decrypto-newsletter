@@ -397,29 +397,26 @@ export function EditorPage({ newsletterId, onBack }) {
             />
             <button
               onClick={() => setShowVersions(true)}
-              className="flex items-center gap-2 text-[10px] uppercase tracking-[0.18em] font-medium text-d-fg3 hover:text-d-fg px-3 py-1.5 border border-line hover:border-line2 rounded-full transition-colors"
+              className="flex items-center justify-center p-2 text-d-fg3 hover:text-d-fg border border-line hover:border-line2 rounded-full transition-colors"
             >
-              <History size={12} />
-              Versions
+              <History size={14} />
             </button>
             <Tooltip label="Annuler le dernier changement" side="bottom">
               <button
                 onClick={handleUndo}
                 disabled={!undoCount || lockedByOther}
-                className="flex items-center gap-2 text-[10px] uppercase tracking-[0.14em] font-medium text-d-fg3 hover:text-d-fg px-3 py-1.5 border border-line hover:border-line2 rounded-full disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                className="flex items-center justify-center p-2 text-d-fg3 hover:text-d-fg border border-line hover:border-line2 rounded-full disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
               >
-                <Undo2 size={12} />
-                Annuler
+                <Undo2 size={14} />
               </button>
             </Tooltip>
             <Tooltip label="Restaurer le dernier changement annulé" side="bottom" align="right">
               <button
                 onClick={handleRedo}
                 disabled={!redoCount || lockedByOther}
-                className="flex items-center gap-2 text-[10px] uppercase tracking-[0.14em] font-medium text-d-fg3 hover:text-d-fg px-3 py-1.5 border border-line hover:border-line2 rounded-full disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                className="flex items-center justify-center p-2 text-d-fg3 hover:text-d-fg border border-line hover:border-line2 rounded-full disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
               >
-                <Redo2 size={12} />
-                Restaurer
+                <Redo2 size={14} />
               </button>
             </Tooltip>
           </div>

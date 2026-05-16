@@ -286,22 +286,33 @@ export function EditorPanel({ state, setState }) {
 
   return (
     <>
-      <div className="mb-6 px-1">
-        <label className="flex items-center justify-between gap-4 rounded-xl border border-line bg-d-panel px-4 py-3 text-xs text-d-fg3 cursor-pointer">
-          <span className="min-w-0">
-            <span className="flex items-center gap-2 font-semibold text-d-fg">
-              <Palette size={14} />
-              Fond blanc
-            </span>
-            <span className="mt-1 block text-[11px] leading-relaxed text-d-fg4">
-              {state.theme_variant === "light" ? "Newsletter sur fond blanc." : "Newsletter sur fond sombre."}
-            </span>
+      <div className="mb-6 px-1 grid grid-cols-2 gap-2">
+        <label className="flex items-center justify-between gap-3 rounded-xl border border-line bg-d-panel px-3 py-2.5 cursor-pointer">
+          <span className="flex items-center gap-2 text-xs font-semibold text-d-fg">
+            <Palette size={13} />
+            Fond blanc
           </span>
           <span className="relative inline-flex h-6 w-11 flex-shrink-0 items-center">
             <input
               type="checkbox"
               checked={state.theme_variant === "light"}
               onChange={(event) => update({ theme_variant: event.target.checked ? "light" : "dark" })}
+              className="peer sr-only"
+            />
+            <span className="absolute inset-0 rounded-full border border-line bg-d-panel2 transition-colors peer-checked:border-d-pink peer-checked:bg-d-pink/25" />
+            <span className="relative ml-1 h-4 w-4 rounded-full bg-d-fg4 transition-transform peer-checked:translate-x-5 peer-checked:bg-d-pink" />
+          </span>
+        </label>
+        <label className="flex items-center justify-between gap-3 rounded-xl border border-line bg-d-panel px-3 py-2.5 cursor-pointer">
+          <span className="flex items-center gap-2 text-xs font-semibold text-d-fg">
+            <Hash size={13} />
+            Numérotation
+          </span>
+          <span className="relative inline-flex h-6 w-11 flex-shrink-0 items-center">
+            <input
+              type="checkbox"
+              checked={state.show_section_numbers !== false}
+              onChange={(event) => update({ show_section_numbers: event.target.checked })}
               className="peer sr-only"
             />
             <span className="absolute inset-0 rounded-full border border-line bg-d-panel2 transition-colors peer-checked:border-d-pink peer-checked:bg-d-pink/25" />
@@ -346,15 +357,6 @@ export function EditorPanel({ state, setState }) {
             Sections de la newsletter
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <label className="flex items-center gap-2 rounded-full border border-line px-3 py-1.5 text-[10px] uppercase tracking-[0.14em] font-semibold text-d-fg3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={state.show_section_numbers !== false}
-                onChange={(event) => update({ show_section_numbers: event.target.checked })}
-                className="h-3.5 w-3.5 accent-d-pink"
-              />
-              Numérotation
-            </label>
             <Tooltip
               side="bottom"
               align="right"
