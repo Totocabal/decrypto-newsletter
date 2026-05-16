@@ -455,7 +455,7 @@ export function createSection(type) {
   if (!SECTION_TYPES[type]) {
     throw new Error(`Type de section inconnu : ${type}`);
   }
-  return section(type);
+  return section(type, getDefaultSectionData(type));
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
