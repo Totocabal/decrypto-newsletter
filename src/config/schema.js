@@ -463,9 +463,45 @@ export function createSection(type) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 const STORAGE_KEY = "decrypto:default_sections";
+const SECTION_DEFAULTS_KEY = "decrypto:section_defaults";
 
 export const INITIAL_SECTION_TYPES = INITIAL_STATE.sections.map((s) => s.type);
 export const DEFAULT_TEMPLATE_USES_CONTENT = true;
+
+export function getAllDefaultSectionOverrides() {
+  try {
+    const raw = localStorage.getItem(SECTION_DEFAULTS_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
+export function getDefaultSectionData(type) {
+  const base = SECTION_TYPES[type]?.factory?.() ?? {};
+  const overrides = getAllDefaultSectionOverrides();
+  return overrides[type] ? { ...base, ...overrides[type] } : base;
+}
+
+export function saveDefaultSectionOverride(type, data) {
+  try {
+    const all = getAllDefaultSectionOverrides();
+    all[type] = data;
+    localStorage.setItem(SECTION_DEFAULTS_KEY, JSON.stringify(all));
+  } catch {
+    // Storage may be unavailable
+  }
+}
+
+export function resetDefaultSectionOverride(type) {
+  try {
+    const all = getAllDefaultSectionOverrides();
+    delete all[type];
+    localStorage.setItem(SECTION_DEFAULTS_KEY, JSON.stringify(all));
+  } catch {
+    // Storage may be unavailable
+  }
+}
 
 function templateEntry(type) {
   return {
@@ -593,7 +629,7 @@ export function buildInitialStateFromTypes(types, options = {}) {
     theme_variant: themeVariant,
     issue_date: includeIssueDate ? INITIAL_STATE.issue_date : "",
     sections: sections.map(({ type }) =>
-      section(type, includeDefaultContent ? {} : emptySectionData(type))
+      section(type, includeDefaultContent ? getDefaultSectionData(type) : emptySectionData(type))
     ),
   };
 }

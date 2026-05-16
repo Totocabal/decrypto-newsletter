@@ -38,6 +38,7 @@ import {
   LayoutTemplate,
   UserPlus,
   X,
+  FileEdit,
 } from "lucide-react";
 import { useRef } from "react";
 import { supabase } from "../lib/supabase.js";
@@ -50,12 +51,17 @@ import {
   updateTemplatePreset,
 } from "../lib/templatePresets.js";
 import { Wordmark } from "../components/Wordmark.jsx";
+import { SectionEditor } from "../components/SectionEditor.jsx";
 import {
   SECTION_TYPES,
   INITIAL_SECTION_TEMPLATE,
   createDefaultSectionTemplateEntry,
   getDefaultNewsletterTemplate,
   saveDefaultSectionTypes,
+  getDefaultSectionData,
+  saveDefaultSectionOverride,
+  resetDefaultSectionOverride,
+  getAllDefaultSectionOverrides,
 } from "../config/schema.js";
 
 function generateTemporaryPassword() {
@@ -444,6 +450,7 @@ function DefaultSectionsEditor() {
     () => getDefaultNewsletterTemplate().includeIssueDate
   );
   const [saved, setSaved] = useState(false);
+  const [defaultContentOpen, setDefaultContentOpen] = useState(false);
   const [presets, setPresets] = useState([]);
   const [presetsLoading, setPresetsLoading] = useState(true);
   const [presetsError, setPresetsError] = useState(null);
@@ -639,6 +646,13 @@ function DefaultSectionsEditor() {
           >
             <X size={11} />
             Vider les blocs
+          </button>
+          <button
+            onClick={() => setDefaultContentOpen(true)}
+            className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] font-medium text-d-fg3 hover:text-d-fg border border-line hover:border-line2 px-3 py-1.5 rounded-full transition-colors"
+          >
+            <FileEdit size={11} />
+            Contenus par défaut
           </button>
           <button
             onClick={handleSaveDefault}
@@ -983,6 +997,9 @@ function DefaultSectionsEditor() {
           </div>
         </aside>
       </div>
+      {defaultContentOpen && (
+        <DefaultContentEditorModal onClose={() => setDefaultContentOpen(false)} />
+      )}
     </section>
   );
 }
@@ -1008,6 +1025,127 @@ function PresetSettingRow({ icon: Icon, title, hint, checked, onChange }) {
         <span className="relative ml-1 h-4 w-4 rounded-full bg-d-fg4 transition-transform peer-checked:translate-x-5 peer-checked:bg-d-pink" />
       </span>
     </label>
+  );
+}
+
+function DefaultContentEditorModal({ onClose }) {
+  const allTypes = Object.keys(SECTION_TYPES);
+  const [selectedType, setSelectedType] = useState(allTypes[0]);
+  const [overrides, setOverrides] = useState(() => getAllDefaultSectionOverrides());
+  const [localData, setLocalData] = useState(() => getDefaultSectionData(allTypes[0]));
+  const [savedType, setSavedType] = useState(null);
+
+  const selectType = (type) => {
+    setSelectedType(type);
+    setLocalData(getDefaultSectionData(type));
+  };
+
+  const handleSave = () => {
+    saveDefaultSectionOverride(selectedType, localData);
+    setOverrides(getAllDefaultSectionOverrides());
+    setSavedType(selectedType);
+    setTimeout(() => setSavedType(null), 2000);
+  };
+
+  const handleReset = () => {
+    resetDefaultSectionOverride(selectedType);
+    setOverrides(getAllDefaultSectionOverrides());
+    setLocalData(SECTION_TYPES[selectedType].factory());
+  };
+
+  const hasOverride = (type) => Object.prototype.hasOwnProperty.call(overrides, type);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
+      <div className="flex w-full max-w-5xl h-[80vh] flex-col rounded-2xl border border-line bg-d-panel shadow-2xl overflow-hidden">
+        {/* Header */}
+        <div className="flex flex-shrink-0 items-center justify-between border-b border-line px-6 py-4">
+          <div>
+            <h2 className="text-base font-semibold text-d-fg" style={{ fontFamily: "'Sora', sans-serif" }}>
+              Contenus par défaut
+            </h2>
+            <p className="text-[11px] text-d-fg4 mt-0.5">
+              Ces textes sont utilisés à la création d'une newsletter (option "avec contenu").
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="h-8 w-8 inline-flex items-center justify-center text-d-fg4 hover:text-d-fg2 hover:bg-d-panel2 rounded-lg transition-colors"
+          >
+            <X size={16} />
+          </button>
+        </div>
+
+        {/* Body */}
+        <div className="flex flex-1 min-h-0">
+          {/* Left — type list */}
+          <div className="w-56 flex-shrink-0 overflow-y-auto border-r border-line bg-d-panel2 py-2">
+            {allTypes.map((type) => {
+              const Icon = SECTION_ICON_MAP[type] ?? Newspaper;
+              const isSelected = selectedType === type;
+              const modified = hasOverride(type);
+              return (
+                <button
+                  key={type}
+                  type="button"
+                  onClick={() => selectType(type)}
+                  className={`w-full flex items-center gap-2.5 px-4 py-2.5 text-left transition-colors ${
+                    isSelected
+                      ? "bg-d-panel3 text-d-fg"
+                      : "text-d-fg3 hover:text-d-fg hover:bg-d-panel3/50"
+                  }`}
+                >
+                  <Icon size={13} className={isSelected ? "text-d-pink" : "text-d-fg4"} />
+                  <span className="flex-1 min-w-0 text-xs font-medium truncate">
+                    {SECTION_TYPES[type].label}
+                  </span>
+                  {modified && (
+                    <span className="h-1.5 w-1.5 rounded-full bg-d-cyan flex-shrink-0" title="Contenu modifié" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Right — editor */}
+          <div className="flex flex-1 flex-col min-w-0 overflow-hidden">
+            <div className="flex-1 overflow-y-auto p-4">
+              <SectionEditor
+                type={selectedType}
+                data={localData}
+                onChange={setLocalData}
+                sections={[]}
+              />
+            </div>
+            {/* Footer */}
+            <div className="flex flex-shrink-0 items-center justify-between gap-3 border-t border-line px-4 py-3">
+              <button
+                type="button"
+                onClick={handleReset}
+                className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] font-medium text-d-fg3 hover:text-d-fg border border-line hover:border-line2 px-3 py-1.5 rounded-full transition-colors"
+              >
+                <RotateCcw size={11} />
+                Réinitialiser
+              </button>
+              <button
+                type="button"
+                onClick={handleSave}
+                className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] font-semibold px-4 py-1.5 rounded-full transition-colors"
+                style={
+                  savedType === selectedType
+                    ? { background: "rgba(3,255,207,0.15)", color: "#03FFCF", border: "1px solid rgba(3,255,207,0.25)" }
+                    : { background: "#FFFFFF", color: "#15151A" }
+                }
+              >
+                {savedType === selectedType ? <Check size={11} /> : <Save size={11} />}
+                {savedType === selectedType ? "Sauvegardé" : "Sauvegarder"}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
