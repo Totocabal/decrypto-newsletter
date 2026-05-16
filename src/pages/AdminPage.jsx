@@ -44,7 +44,7 @@ import {
 import { useRef } from "react";
 import { supabase } from "../lib/supabase.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
-import { useToast, useConfirm } from "../components/Dialog.jsx";
+import { useToast, useConfirm, usePrompt } from "../components/Dialog.jsx";
 import { useLabels, createLabel, updateLabel, deleteLabel, LABEL_COLORS } from "../lib/useLabels.js";
 import {
   createTemplatePreset,
@@ -542,6 +542,7 @@ const SECTION_TYPE_DESCRIPTIONS = {
 
 function DefaultSectionsEditor() {
   const confirm = useConfirm();
+  const prompt = usePrompt();
   const allTypes = Object.keys(SECTION_TYPES);
   const [blockSearch, setBlockSearch] = useState("");
   const [active, setActive] = useState(() => getDefaultNewsletterTemplate().sections);
@@ -669,7 +670,7 @@ function DefaultSectionsEditor() {
   };
 
   const handleCreatePreset = async () => {
-    const name = window.prompt("Nom du preset de template :", "");
+    const name = await prompt("Nom du preset :", { title: "Créer un preset de template", confirmLabel: "Créer" });
     if (name === null) return;
     const cleanName = name.trim();
     if (!cleanName) return;

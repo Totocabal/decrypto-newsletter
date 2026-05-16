@@ -3,6 +3,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { usePrompt } from "./Dialog.jsx";
 import {
   Bold,
   Italic,
@@ -287,8 +288,8 @@ function toggleBlock(editor, format) {
   }
 }
 
-function insertLink(editor) {
-  const url = window.prompt("URL du lien", "https://");
+async function insertLink(editor, promptFn) {
+  const url = await promptFn("URL du lien :", { title: "Insérer un lien", defaultValue: "https://", confirmLabel: "Insérer" });
   if (!url) return;
 
   const { selection } = editor;
@@ -371,12 +372,13 @@ function BlockButton({ format, title, children }) {
 
 function LinkButton() {
   const editor = useSlate();
+  const prompt = usePrompt();
   return (
     <HtmlButton
       title="Lien hypertexte"
       onMouseDown={(event) => {
         event.preventDefault();
-        insertLink(editor);
+        insertLink(editor, prompt);
       }}
     >
       <Link size={13} />
