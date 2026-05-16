@@ -11,7 +11,7 @@ import { MAX_IMAGE_FILE_SIZE_LABEL } from "../lib/imageUpload.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import { ImageManagerModal } from "./ImageManagerModal.jsx";
 import { Tooltip } from "./Tooltip.jsx";
-import { CALLOUT_PICTOS, CALLOUT_PICTOS_MAP, DEFAULT_PICTO_ID, buildPictoSvgHtml } from "../config/calloutPictos.js";
+import { CALLOUT_PICTOS, CALLOUT_PICTOS_MAP, DEFAULT_PICTO_ID, CALLOUT_COLORS, DEFAULT_CALLOUT_COLOR, hexToRgb, buildPictoSvgHtml } from "../config/calloutPictos.js";
 
 export function SectionEditor({ type, data, onChange, sections = [] }) {
   const set = (patch) => onChange({ ...data, ...patch });
@@ -1322,7 +1322,7 @@ function FocusEditor({ data, set }) {
     let item;
     if (type === "text") item = { id, type: "text", body: "" };
     else if (type === "image") item = { id, type: "image", image_url: "", image_path: "", image_alt: "Visuel d'illustration" };
-    else if (type === "callout") item = { id, type: "callout", label: "Note de la rédac", body: "", footer: "", footer_url: "", show_icon: true, picto: DEFAULT_PICTO_ID };
+    else if (type === "callout") item = { id, type: "callout", label: "Note de la rédac", body: "", footer: "", footer_url: "", show_icon: true, picto: DEFAULT_PICTO_ID, callout_color: DEFAULT_CALLOUT_COLOR };
     else item = { id, type: "cta", label: "", url: "", arrow: false, centered: false, secondary_label: "", secondary_url: "" };
     setItems([...items, item]);
   };
@@ -1473,20 +1473,54 @@ function FocusEditor({ data, set }) {
               )}
               {item.type === "callout" && (
                 <>
-                  <label className="mb-3 flex items-center justify-between gap-4 rounded-xl border border-line bg-d-panel px-3 py-2.5 text-xs text-d-fg3 cursor-pointer">
-                    <span className="font-semibold text-d-fg">Afficher le picto</span>
-                    <input
-                      type="checkbox"
-                      checked={item.show_icon !== false}
-                      onChange={(e) => updateItem(item.id, { show_icon: e.target.checked })}
-                      className="h-4 w-4 accent-d-pink"
-                    />
+                  {/* Couleur */}
+                  <div className="mb-3">
+                    <div className="text-[10px] uppercase tracking-[0.15em] font-semibold text-d-fg4 mb-2">Couleur</div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {CALLOUT_COLORS.map((c) => {
+                        const activeColor = item.callout_color || DEFAULT_CALLOUT_COLOR;
+                        const isSelected = activeColor.toUpperCase() === c.hex.toUpperCase();
+                        return (
+                          <Tooltip key={c.hex} label={c.label}>
+                            <button
+                              type="button"
+                              onClick={() => updateItem(item.id, { callout_color: c.hex })}
+                              className={`h-6 w-6 rounded-full border-2 transition-all ${isSelected ? "scale-110" : "opacity-50 hover:opacity-80"}`}
+                              style={{
+                                backgroundColor: c.hex,
+                                borderColor: isSelected ? c.hex : "transparent",
+                                boxShadow: isSelected ? `0 0 0 2px rgba(255,255,255,0.25)` : "none",
+                              }}
+                            />
+                          </Tooltip>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Toggle afficher le picto */}
+                  <label className="mb-3 flex items-center justify-between gap-4 rounded-xl border border-line bg-d-panel px-3 py-2.5 cursor-pointer">
+                    <span className="text-xs font-semibold text-d-fg">Afficher le picto</span>
+                    <span className="relative inline-flex h-6 w-11 flex-shrink-0 items-center">
+                      <input
+                        type="checkbox"
+                        checked={item.show_icon !== false}
+                        onChange={(e) => updateItem(item.id, { show_icon: e.target.checked })}
+                        className="peer sr-only"
+                      />
+                      <span className="absolute inset-0 rounded-full border border-line bg-d-panel transition-colors peer-checked:border-d-pink peer-checked:bg-d-pink/25" />
+                      <span className="relative ml-1 h-4 w-4 rounded-full bg-d-fg4 transition-transform peer-checked:translate-x-5 peer-checked:bg-d-pink" />
+                    </span>
                   </label>
+
+                  {/* Sélecteur de picto */}
                   {item.show_icon !== false && (
                     <div className="mb-3">
                       <div className="text-[10px] uppercase tracking-[0.15em] font-semibold text-d-fg4 mb-2">Pictogramme</div>
                       <div className="grid grid-cols-5 gap-1.5">
                         {CALLOUT_PICTOS.map((p) => {
+                          const activeColor = item.callout_color || DEFAULT_CALLOUT_COLOR;
+                          const rgb = hexToRgb(activeColor);
                           const isSelected = (item.picto || DEFAULT_PICTO_ID) === p.id;
                           return (
                             <Tooltip key={p.id} label={`${p.num} — ${p.label}`}>
@@ -1497,11 +1531,11 @@ function FocusEditor({ data, set }) {
                                   isSelected ? "opacity-100 scale-105" : "border-line bg-d-panel3 opacity-40 hover:opacity-70"
                                 }`}
                                 style={isSelected ? {
-                                  background: `rgba(${p.bgRgb},0.16)`,
-                                  borderColor: `rgba(${p.bgRgb},0.4)`,
+                                  background: `rgba(${rgb},0.16)`,
+                                  borderColor: `rgba(${rgb},0.4)`,
                                 } : {}}
                               >
-                                <span dangerouslySetInnerHTML={{ __html: buildPictoSvgHtml(p.svgInner, p.color, 14) }} />
+                                <span dangerouslySetInnerHTML={{ __html: buildPictoSvgHtml(p.svgInner, activeColor, 14) }} />
                               </button>
                             </Tooltip>
                           );

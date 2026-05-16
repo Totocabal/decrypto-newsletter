@@ -4,7 +4,7 @@
 
 import { THEME, EMAIL_THEMES, BRAND_LOGOS, FONTS } from "../config/theme.js";
 import { computeSectionNumber } from "../config/schema.js";
-import { CALLOUT_PICTOS_MAP, DEFAULT_PICTO_ID, buildPictoSvgHtml } from "../config/calloutPictos.js";
+import { CALLOUT_PICTOS_MAP, DEFAULT_PICTO_ID, DEFAULT_CALLOUT_COLOR, hexToRgb, buildPictoSvgHtml } from "../config/calloutPictos.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
@@ -866,14 +866,16 @@ function renderFocusItem(item) {
     if (!hasBody) return "";
     const isLightTheme = EMAIL_THEME === EMAIL_THEMES.light;
     const picto = CALLOUT_PICTOS_MAP[item.picto || DEFAULT_PICTO_ID] || CALLOUT_PICTOS_MAP[DEFAULT_PICTO_ID];
-    const calloutBg = isLightTheme ? "#F3FCFC" : `rgba(${picto.bgRgb},0.04)`;
-    const calloutBorder = isLightTheme ? "#C8D2FF" : `rgba(${picto.bgRgb},0.22)`;
-    const calloutAccent = isLightTheme ? "#4141FF" : picto.color;
-    const iconBg = isLightTheme ? "#4141FF" : `rgba(${picto.bgRgb},0.16)`;
-    const iconBorder = isLightTheme ? "#4141FF" : `rgba(${picto.bgRgb},0.32)`;
-    const iconStroke = isLightTheme ? "#FFFFFF" : picto.color;
+    const accentHex = item.callout_color || DEFAULT_CALLOUT_COLOR;
+    const accentRgb = hexToRgb(accentHex);
+    const calloutBg = isLightTheme ? `rgba(${accentRgb},0.06)` : `rgba(${accentRgb},0.04)`;
+    const calloutBorder = isLightTheme ? `rgba(${accentRgb},0.35)` : `rgba(${accentRgb},0.22)`;
+    const calloutAccent = accentHex;
+    const iconBg = isLightTheme ? `rgba(${accentRgb},0.12)` : `rgba(${accentRgb},0.16)`;
+    const iconBorder = isLightTheme ? `rgba(${accentRgb},0.4)` : `rgba(${accentRgb},0.32)`;
+    const iconStroke = accentHex;
     const bodyColor = isLightTheme ? "#303641" : "#D8DDE6";
-    const footerBorder = isLightTheme ? "#CAD4FF" : `rgba(${picto.bgRgb},0.16)`;
+    const footerBorder = `rgba(${accentRgb},0.2)`;
     const footerColor = isLightTheme ? "#68717E" : EMAIL_THEME.textDim;
     const iconHtml = item.show_icon === false
       ? ""
@@ -884,7 +886,7 @@ function renderFocusItem(item) {
     const footer = footerText
       ? `<p style="margin:14px 0 0; padding-top:12px; border-top:1px solid ${footerBorder}; font-family:${FONTS.mono || "'JetBrains Mono', monospace"}; font-size:11px; color:${footerColor}; letter-spacing:0.02em;">${
           item.footer_url
-            ? `<a href="${escapeAttr(item.footer_url)}" style="color:${calloutAccent}; text-decoration:none; border-bottom:1px solid ${isLightTheme ? "#AAB6FF" : "rgba(0,255,255,0.4)"}; padding-bottom:1px;">${escapeHtml(footerText)}</a>`
+            ? `<a href="${escapeAttr(item.footer_url)}" style="color:${calloutAccent}; text-decoration:none; border-bottom:1px solid ${footerBorder}; padding-bottom:1px;">${escapeHtml(footerText)}</a>`
             : escapeHtml(footerText)
         }</p>`
       : "";

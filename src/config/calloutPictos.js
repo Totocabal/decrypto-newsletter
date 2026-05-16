@@ -128,6 +128,27 @@ export const CALLOUT_PICTOS = [
 export const CALLOUT_PICTOS_MAP = Object.fromEntries(CALLOUT_PICTOS.map((p) => [p.id, p]));
 export const DEFAULT_PICTO_ID = "info";
 
+export const CALLOUT_COLORS = [
+  { hex: "#00FFFF", label: "Cyan" },
+  { hex: "#03FFCF", label: "Menthe" },
+  { hex: "#4141FF", label: "Bleu" },
+  { hex: "#FF00AA", label: "Rose" },
+  { hex: "#FF8B28", label: "Orange" },
+  { hex: "#FF4B28", label: "Corail" },
+  { hex: "#B36BFF", label: "Violet" },
+  { hex: "#FFE600", label: "Jaune" },
+  { hex: "#FFFFFF", label: "Blanc" },
+];
+
+export const DEFAULT_CALLOUT_COLOR = "#00FFFF";
+
+export function hexToRgb(hex) {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex || DEFAULT_CALLOUT_COLOR);
+  return result
+    ? `${parseInt(result[1], 16)},${parseInt(result[2], 16)},${parseInt(result[3], 16)}`
+    : "0,255,255";
+}
+
 export function buildPictoSvgHtml(svgInner, color, size = 16) {
   const inner = svgInner.replace(/currentColor/g, color);
   return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${inner}</svg>`;
