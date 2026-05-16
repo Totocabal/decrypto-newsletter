@@ -78,7 +78,6 @@ export function VersionsPanel({ newsletterId, onRestore, onClose }) {
               Versions sauvegardées
             </h2>
           </div>
-          <Tooltip label="Fermer" align="right">
             <button
               type="button"
               onClick={onClose}
@@ -86,7 +85,6 @@ export function VersionsPanel({ newsletterId, onRestore, onClose }) {
             >
               <X size={16} />
             </button>
-          </Tooltip>
         </div>
 
         <div className="overflow-y-auto flex-1">
