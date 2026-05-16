@@ -1,219 +1,148 @@
-# Décrypto — Newsletter Editor (collaboratif)
+# Décrypto — Newsletter Editor
 
-Éditeur collaboratif de newsletter HTML pour **Décrypto**, l'hebdo crypto
-Coinhouse. React + Vite côté front, **Supabase** (Postgres + Auth) côté
-backend.
+Éditeur collaboratif de newsletters HTML pour **Décrypto**, l'hebdo crypto Coinhouse. Construit avec React + Vite côté front, **Supabase** (Postgres + Auth) côté backend, déployé sur Vercel.
+
+---
 
 ## Fonctionnalités
 
 ### Éditeur
 
-- **Éditeur modulaire** : la newsletter est composée de blocs réorganisables.
-  Chaque bloc peut être monté/descendu/dupliqué/supprimé. Une palette de 10
-  types de blocs disponibles (hero, sommaire, édito+KPI, graphique, jauge F&G,
-  signaux, macro/citation, évènement, bloc texte libre, séparateur).
-- Header et footer **fixes** pour garantir la présence des mentions PSAN.
-- Numérotation automatique des sections selon leur position.
-- **Graphique** édité par **sliders** (un par jour), pas de saisie de chiffres
-  à la main.
-- Éditeur split (formulaires à gauche, aperçu temps réel à droite)
-- Aperçu Desktop / Mobile
-- Vue Code HTML brut
-- HTML email dark : tables imbriquées, inline CSS, fallbacks Outlook (mso),
-  SVG inline (chart, gauge, logos), VML pour la carte évènement
-- Preview text isolé (anti-aspiration Gmail)
-- Responsive via media queries (640px breakpoint)
+- **14 types de blocs** modulaires, réorganisables par glisser-déposer ou boutons ↑↓ :
+  - `hero` · `sommaire` · `édito + KPI` · `graphique` · `fear & greed` · `signaux` · `macro / citation` · `barres macro` · `chiffre commenté` · `évènement` · `texte` · `texte & media` · `image` · `séparateur`
+- Chaque bloc est **collapsible** ; actions de duplication et suppression dans l'en-tête
+- **Texte & Media** : composition libre d'items texte riche, image, encadré (15 pictos + 9 couleurs) et CTA
+- **Éditeur de texte riche** avec gras, italique, souligné, rayé, lien, liste à puces et liste numérotée
+- Header et footer **fixes** (mentions légales PSAN garanties)
+- Numérotation automatique des sections
+- **Thème sombre / clair** commutable depuis l'en-tête
+
+### Données auto
+
+- **CoinGecko** : graphiques synchronisés (7j / 30j, EUR / USD), chips BTC / ETH dans le hero
+- **Fear & Greed Index** : synchronisation en un clic
+- Bouton **Synchroniser** global + bouton individuel par bloc
+
+### Prévisualisation
+
+- Aperçu **temps réel** Desktop (600 px) et Mobile (430 px)
+- Vue **Code HTML** brut avec copie en un clic
+- Fidèle aux principaux clients email (Gmail, Apple Mail, Outlook, iOS Mail)
 
 ### Export
 
-- **Copier HTML** : copie le HTML inline (avec SVG) dans le presse-papiers
-- **Télécharger HTML** : un seul fichier `.html`, prêt à coller dans Mailjet
-- **Export ZIP (asset pack)** : un ZIP contenant :
-  - `email.html` avec des `<img src="assets/xxx.png">` au lieu des SVG inline
-  - `assets/chart.png`, `gauge.png` et les images des blocs focus nécessaires
-    (en qualité 2× pour Retina)
-  - `README.md` expliquant comment héberger les assets et adapter les chemins
-- **Export Braze** (admins uniquement) : upload des images générées dans la
-  Media Library Braze, puis téléchargement d'un HTML où les chemins `assets/...`
-  sont remplacés par les URLs CDN Braze.
+- **Export ZIP** : `newsletter.html` + dossier `assets/` avec les images en PNG — prêt CDN
+- **Export Braze** : upload automatique des images dans la Media Library Braze, HTML avec URLs CDN définitives
 
-### Collaboration (niveau 2 — asynchrone)
+### Collaboration
 
-- **Auth par magic link** (pas de mot de passe)
+- Auth par **magic link** (aucun mot de passe)
 - **Validation manuelle des comptes** par un admin
-- **Liste des newsletters** centrale, multi-éditions
-- **Verrou d'édition** : un seul éditeur actif à la fois sur une newsletter
-- **Bandeau de présence** : on voit qui édite et depuis quand
-- **Forçage de prise de contrôle** si quelqu'un a oublié de fermer son onglet
-- **TTL serveur 10 min** : le verrou expire automatiquement si l'éditeur ferme
-  brutalement
-- **Auto-save serveur** (debounce 2s) sur l'état courant
-- **Versions** : chaque "Sauvegarder" crée un snapshot avec auteur + commentaire
-- **Restauration d'une version** depuis l'historique
-- **Page admin** : approuver les comptes, promouvoir/révoquer
+- **Verrou d'édition** : un seul éditeur actif à la fois, TTL serveur 10 min
+- **Bandeau de présence** avec prise de contrôle forcée si verrou expiré
+- **Auto-save** serveur (debounce 2s)
+- **Versions** : snapshot nommé avec auteur + commentaire, restauration depuis l'historique (50 versions)
+- **Labels** colorés pour organiser la liste des newsletters
+- **Archivage** des éditions terminées
 
-## Setup — étape par étape
+### Admin
+
+- Approbation / révocation des comptes, création directe avec mot de passe temporaire
+- **Template newsletter** : configurer la disposition par défaut (blocs, numérotation, thème, date)
+- **Contenus par défaut** : éditer les textes initiaux de chaque type de bloc
+- **Presets** : sauvegarder des dispositions réutilisables par toute l'équipe
+
+---
+
+## Setup
 
 ### 1. Créer le projet Supabase
 
-1. Va sur [supabase.com](https://supabase.com), crée un compte, puis un projet.
-2. Choisis la région **eu-central-1** (Francfort) ou **eu-west-3** (Paris) pour
-   la conformité RGPD.
-3. Définis un mot de passe pour la base.
-4. Attends ~2 min que le projet soit prêt.
+1. Va sur [supabase.com](https://supabase.com), crée un projet.
+2. Région recommandée : **eu-central-1** (Francfort) pour la conformité RGPD.
 
 ### 2. Exécuter le schéma
 
-Ouvre **SQL Editor** dans le dashboard Supabase, et exécute le contenu de
-`supabase/schema.sql` (copier-coller). Cela crée :
+Dans **SQL Editor** du dashboard Supabase, exécute `supabase/schema.sql`. Cela crée :
 
-- les tables `profiles`, `newsletters`, `versions`, `locks`
-- les RLS policies (sécurité ligne par ligne)
-- les RPC `acquire_lock` / `release_lock`
-- les triggers (création de profil auto, touch updated_at)
+- Tables `profiles`, `newsletters`, `versions`, `locks`
+- RLS policies, RPC `acquire_lock` / `release_lock`, triggers
 
 ### 3. Récupérer les clés API
 
-Dans le dashboard Supabase → **Project Settings → API** :
-- copie **Project URL** → ce sera `VITE_SUPABASE_URL`
-- copie **anon public** key → ce sera `VITE_SUPABASE_ANON_KEY`
+Dans **Project Settings → API** :
+- `Project URL` → `VITE_SUPABASE_URL`
+- `anon public` key → `VITE_SUPABASE_ANON_KEY`
 
-### 4. Configurer en local
+### 4. Lancer en local
 
 ```bash
 cp .env.example .env
-# Édite .env avec les deux valeurs récupérées
+# Remplir .env avec les valeurs Supabase
 npm install
 npm run dev
 ```
 
-### 5. Créer le premier compte (admin)
+### 5. Créer le premier compte admin
 
-1. Va sur `http://localhost:5173`.
-2. Saisis ton email pro.
-3. Ouvre le magic link reçu par email — tu es connecté mais en attente.
-4. Dans Supabase → SQL Editor, exécute `supabase/bootstrap-admin.sql` après
-   avoir remplacé l'email par le tien. Cela t'approuve et te promeut admin.
-5. Reviens sur l'éditeur, clique "Rafraîchir" — tu accèdes à la liste.
+1. Ouvre `http://localhost:5173`, saisis ton email.
+2. Clique le magic link reçu — compte en attente.
+3. Dans Supabase → SQL Editor, exécute `supabase/bootstrap-admin.sql` avec ton email.
+4. Recharge la page — accès à la liste.
 
-### 6. Approuver les autres membres
+### 6. Créer un compte depuis l'admin (optionnel)
 
-Quand un collègue se connecte pour la première fois, son compte apparaît dans
-**Admin → En attente d'approbation**. Clique "Approuver" et il accède à
-l'éditeur dans les secondes qui suivent.
+Exécute `supabase/admin-create-user.sql` dans le SQL Editor, puis utilise **Admin → Créer un compte**.
 
-### 7. Créer un compte depuis l'admin
-
-Pour créer des comptes directement depuis l'outil, exécute aussi
-`supabase/admin-create-user.sql` dans le SQL Editor Supabase.
-
-Ensuite, dans **Admin → Créer un compte** :
-
-- saisis l'email et le nom affiché ;
-- coche **Admin** seulement si ce compte doit gérer les accès ;
-- l'outil génère un mot de passe temporaire à transmettre à l'utilisateur.
-
-Cette création ne dépend pas de l'envoi d'emails Supabase.
+---
 
 ## Déploiement Vercel
 
-1. Push sur GitHub (voir `.gitignore` qui exclut `.env` et `node_modules`).
-2. Sur Vercel : Import Project → ton repo.
-3. Dans **Settings → Environment Variables**, ajoute :
-   - `VITE_SUPABASE_URL`
-   - `VITE_SUPABASE_ANON_KEY`
-   - `VITE_AUTH_REDIRECT_URL` avec ton URL publique exacte
-   - `BRAZE_API_KEY` avec une clé serveur Braze limitée à
-     `media_library.create`
-   - `BRAZE_BASE_URL` avec le REST endpoint Braze, par exemple
-     `https://rest.fra-01.braze.eu`
-4. Deploy.
-5. **Important** : dans Supabase → **Authentication → URL Configuration**,
-   ajoute ton URL Vercel (et ton domaine custom) dans **Redirect URLs**.
-   Sinon les magic links renverront vers localhost.
-   - `Site URL` : `https://decrypto-newsletter.vercel.app/`
-   - `Redirect URLs` : `https://decrypto-newsletter.vercel.app/`
+1. Push sur GitHub.
+2. Import Project sur Vercel → ton repo.
+3. Ajoute dans **Settings → Environment Variables** :
 
-Le fichier `vercel.json` force aussi `index.html` en `no-store` pour éviter
-qu'un navigateur conserve une ancienne entrée HTML pointant vers de vieux
-bundles Vite.
+| Variable | Description |
+|---|---|
+| `VITE_SUPABASE_URL` | URL du projet Supabase |
+| `VITE_SUPABASE_ANON_KEY` | Clé anon public Supabase |
+| `VITE_AUTH_REDIRECT_URL` | URL publique exacte de l'app |
+| `BRAZE_API_KEY` | Clé serveur Braze (`media_library.create`) |
+| `BRAZE_BASE_URL` | REST endpoint Braze (ex. `https://rest.fra-01.braze.eu`) |
+| `SUPABASE_URL` | Idem VITE_SUPABASE_URL (pour le keepalive serveur) |
+| `SUPABASE_ANON_KEY` | Idem VITE_SUPABASE_ANON_KEY (pour le keepalive serveur) |
+
+4. Dans Supabase → **Authentication → URL Configuration**, ajoute l'URL Vercel dans **Redirect URLs**.
 
 ### Export Braze sécurisé
 
-La clé Braze ne doit jamais être exposée côté navigateur. Ne la mets donc pas
-dans une variable `VITE_*`. Le bouton **Export Braze** appelle la fonction
-serveur `/api/export-braze`, qui vérifie la session Supabase et le flag
-`profiles.is_admin` avant d'utiliser `BRAZE_API_KEY`.
-
-Dans Braze, crée une clé dédiée avec le minimum de permissions nécessaires :
-**Media Library → `media_library.create`**. Garde `BRAZE_BASE_URL` alignée sur
-ton instance Braze (`https://rest.fra-01.braze.eu` pour EU-01).
+La clé Braze est serveur uniquement (jamais `VITE_*`). Le bouton Export Braze appelle `/api/export-braze` qui vérifie la session Supabase et le flag `is_admin` avant d'utiliser `BRAZE_API_KEY`.
 
 ### Keepalive Supabase Free
 
-Les projets Supabase Free peuvent être mis en pause après 1 semaine
-d'inactivité. Le repo contient un Cron Vercel qui appelle une RPC très légère
-deux fois par semaine pour générer une activité minimale.
+Les projets Supabase Free se mettent en pause après 7 jours d'inactivité. Un Cron Vercel appelle une RPC légère deux fois par semaine.
 
-1. Dans Supabase → **SQL Editor**, exécute `supabase/keepalive.sql`.
-2. Dans Vercel → **Settings → Environment Variables**, vérifie que ces variables
-   existent côté serveur :
-   - `SUPABASE_URL` : l'URL du projet Supabase
-   - `SUPABASE_ANON_KEY` : la clé `anon public`
-3. Optionnel : ajoute `CRON_SECRET` pour protéger l'endpoint. Vercel l'enverra
-   dans le header `Authorization` des Cron Jobs.
-4. Après déploiement, teste `GET /api/supabase-keepalive` pour vérifier que la
-   RPC répond bien.
+1. Exécute `supabase/keepalive.sql` dans le SQL Editor.
+2. Ajoute `CRON_SECRET` dans les variables Vercel (optionnel mais recommandé).
+3. Teste `GET /api/supabase-keepalive` après déploiement.
 
-Le Cron ne lit ni n'écrit de données métier : il appelle seulement
-`public.keepalive()` via l'API REST Supabase.
-
-### Emails Supabase
-
-Si le lien magique affiche `Error sending confirmation email`, le problème vient
-du service email Supabase/Auth :
-
-- vérifie **Authentication → URL Configuration** : `Site URL` et `Redirect URLs`
-  doivent contenir l'URL de l'app ;
-- vérifie **Authentication → SMTP Settings** si le projet n'utilise pas l'envoi
-  email par défaut ou atteint ses limites ;
-- le bouton **Lien magique** ne crée plus de compte automatiquement : l'email
-  doit déjà correspondre à un utilisateur Supabase.
-
-## Workflow type
-
-1. **Anne** crée une newsletter dans la liste → "Nouvelle newsletter"
-2. Elle l'édite, le contenu est auto-sauvegardé toutes les 2s sur Supabase
-3. Quand elle a fini sa session, elle clique **Sauvegarder** → ça crée une
-   **version** avec un commentaire ("brouillon édito Anne")
-4. Elle ferme l'onglet → le verrou se libère
-5. **Bertrand** ouvre la même newsletter → il prend le verrou, voit l'état
-   laissé par Anne, ajuste les chiffres BTC, **Sauvegarde** ("relecture chiffres")
-6. **Camille** ouvre l'historique → vérifie les deux versions, tout est OK
-7. Camille **Copie HTML** et le colle dans Mailjet.
-
-## Limites & extensions possibles
-
-- **Pas d'édition simultanée temps réel** (par design — niveau 2). Si
-  besoin, migrer vers Liveblocks / Yjs / Partykit.
-- **Pas de notifications email** quand un compte est approuvé (l'utilisateur
-  doit recharger la page). Ajout possible avec une Edge Function Supabase.
-- **Pas de diff visuel** entre versions. Possible avec `jsondiffpatch`.
-- **Pas de système de rôles fins** (lecteur seul, etc.). On a juste
-  `approved` + `is_admin`.
+---
 
 ## Structure du projet
 
 ```
 src/
   config/
-    theme.js            ← palette, polices, marque
-    schema.js           ← structure du brouillon
+    theme.js              ← palette, polices, marque
+    schema.js             ← modèle de données + template par défaut
+    calloutPictos.js      ← 15 pictos + palette 9 couleurs pour les encadrés
   contexts/
-    AuthContext.jsx     ← session + profil
+    AuthContext.jsx        ← session + profil
   lib/
-    supabase.js         ← client Supabase
-    useNewsletter.js    ← hook : load + lock + save
+    supabase.js            ← client Supabase
+    useNewsletter.js       ← hook : load + lock + auto-save
+    templatePresets.js     ← presets de disposition admin
+    useLabels.js           ← labels colorés
   pages/
     LoginPage.jsx
     PendingApprovalPage.jsx
@@ -221,27 +150,33 @@ src/
     EditorPage.jsx
     AdminPage.jsx
   components/
+    EditorPanel.jsx        ← panneau gauche : liste des blocs + paramètres
+    SectionEditor.jsx      ← formulaires d'édition par type de bloc
+    PreviewPanel.jsx       ← prévisualisation temps réel
+    FormControls.jsx       ← éditeur de texte riche (Slate.js)
+    VersionsPanel.jsx      ← historique des versions
+    ImageManagerModal.jsx  ← gestionnaire d'images
     Toolbar.jsx
-    EditorPanel.jsx     ← formulaires d'édition
-    PreviewPanel.jsx
-    LockBanner.jsx
-    VersionsPanel.jsx
-    FormControls.jsx
+    Tooltip.jsx
+    Wordmark.jsx
   render/
-    buildEmail.js       ← génération HTML email
-  App.jsx               ← routeur
+    buildEmail.js          ← génération HTML email (tables, inline CSS, SVG)
+  App.jsx
   main.jsx
 supabase/
-  schema.sql            ← migration initiale
-  admin-create-user.sql ← RPC pour créer des comptes depuis l'admin
-  bootstrap-admin.sql   ← promouvoir le premier admin
+  schema.sql
+  admin-create-user.sql
+  bootstrap-admin.sql
+  keepalive.sql
+api/
+  export-braze.js          ← serverless function Vercel (upload images Braze)
+  supabase-keepalive.js    ← serverless function Vercel (cron ping)
 ```
 
 ## Scripts
 
 ```bash
-npm run dev      # dev server (http://localhost:5173)
+npm run dev      # serveur de développement (http://localhost:5173)
 npm run build    # build de production
 npm run preview  # prévisualiser le build
-node render.mjs ./out.html   # générer un HTML email standalone (sans backend)
 ```
