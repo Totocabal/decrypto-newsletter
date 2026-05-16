@@ -367,11 +367,11 @@ function LinkButton() {
 function RichTextElement({ attributes, children, element }) {
   switch (element.type) {
     case "bulleted-list":
-      return <ul {...attributes} className="list-disc pl-5 my-1">{children}</ul>;
+      return <ul {...attributes} className="list-disc pl-5 mt-0 mb-[1.6em] last:mb-0">{children}</ul>;
     case "numbered-list":
-      return <ol {...attributes} className="list-decimal pl-5 my-1">{children}</ol>;
+      return <ol {...attributes} className="list-decimal pl-5 mt-0 mb-[1.6em] last:mb-0">{children}</ol>;
     case "list-item":
-      return <li {...attributes} className="my-0.5">{children}</li>;
+      return <li {...attributes} className="mb-[6px] last:mb-0">{children}</li>;
     case "link":
       return (
         <a
@@ -384,7 +384,7 @@ function RichTextElement({ attributes, children, element }) {
       );
     case "paragraph":
     default:
-      return <p {...attributes} className="my-0">{children}</p>;
+      return <p {...attributes} className="mt-0 mb-[1.6em] last:mb-0">{children}</p>;
   }
 }
 
@@ -570,8 +570,8 @@ function RichTextEditor({ showCount, onChange, value = "", ...props }) {
             editorProps.onKeyDown?.(event);
           }}
           spellCheck
-          className="w-full px-3 py-2 bg-d-panel2 text-sm text-d-fg focus:outline-none leading-relaxed overflow-auto"
-          style={{ minHeight: `${Math.max(Number(rows) || 3, 2) * 1.6}rem`, fontFamily: "'DM Sans', sans-serif", fontWeight: 400 }}
+          className="w-full px-3 py-2 bg-d-panel2 text-d-fg focus:outline-none overflow-auto"
+          style={{ minHeight: `${Math.max(Number(rows) || 3, 2) * 1.6}rem`, fontFamily: "'DM Sans', sans-serif", fontWeight: 400, fontSize: "15px", lineHeight: 1.65 }}
         />
       </Slate>
     </div>
