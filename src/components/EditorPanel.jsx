@@ -25,10 +25,12 @@ import {
   Newspaper,
   Palette,
   Quote,
+  Sparkles,
   Square,
   TrendingUp,
   Type,
 } from "lucide-react";
+import { supabase } from "../lib/supabase.js";
 import { Field, Input, TextArea, Section } from "./FormControls.jsx";
 import { Tooltip } from "./Tooltip.jsx";
 import {
@@ -66,10 +68,41 @@ function chipLabelFromCoinGecko(cryptoId, result) {
   return `${symbol} ${sign} ${pct}`;
 }
 
+async function generatePreviewText(state) {
+  const { data: { session } } = await supabase.auth.getSession();
+  const token = session?.access_token;
+  const res = await fetch("/api/generate-preview-text", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify({ state }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Erreur serveur");
+  return data.text;
+}
+
 export function EditorPanel({ state, setState }) {
   const { fetch7d, error: syncError } = useCoinGecko();
   const [globalSyncing, setGlobalSyncing] = useState(false);
+  const [previewGenerating, setPreviewGenerating] = useState(false);
+  const [previewGenError, setPreviewGenError] = useState(null);
   const update = (patch) => setState((s) => ({ ...s, ...patch }));
+
+  const handleGeneratePreviewText = async () => {
+    setPreviewGenerating(true);
+    setPreviewGenError(null);
+    try {
+      const text = await generatePreviewText(state);
+      update({ preview_text: text });
+    } catch (err) {
+      setPreviewGenError(err.message);
+    } finally {
+      setPreviewGenerating(false);
+    }
+  };
   const updateFooter = (patch) =>
     setState((s) => ({ ...s, footer: { ...s.footer, ...patch } }));
 
@@ -338,12 +371,31 @@ export function EditorPanel({ state, setState }) {
         <Field
           label="Texte de prévisualisation"
           hint="Affiché dans la boîte mail avant ouverture"
+          action={
+            <button
+              type="button"
+              onClick={handleGeneratePreviewText}
+              disabled={previewGenerating}
+              className="flex items-center gap-1 text-[10px] uppercase tracking-[0.14em] font-semibold px-2 py-1 rounded-full border transition-colors disabled:opacity-50"
+              style={{ color: "#03FFCF", borderColor: "rgba(3,255,207,0.25)", background: "rgba(3,255,207,0.06)" }}
+            >
+              {previewGenerating
+                ? <Loader2 size={10} className="animate-spin" />
+                : <Sparkles size={10} />}
+              Générer
+            </button>
+          }
         >
           <TextArea
             rows={2}
             value={state.preview_text}
             onChange={(e) => update({ preview_text: e.target.value })}
           />
+          {previewGenError && (
+            <div className="mt-1.5 text-[11px] leading-relaxed" style={{ color: "#FF8466" }}>
+              {previewGenError}
+            </div>
+          )}
         </Field>
       </Section>
 

@@ -19,11 +19,12 @@ import { withHistory } from "slate-history";
 import { Editable, Slate, useSlate, withReact } from "slate-react";
 import { Tooltip } from "./Tooltip.jsx";
 
-export function Field({ label, children, hint }) {
+export function Field({ label, children, hint, action }) {
   return (
     <div className="block mb-4">
-      <div className="min-h-[28px] flex items-end text-[10px] uppercase tracking-[0.18em] font-medium text-d-fg3 mb-1.5 leading-tight">
-        {label}
+      <div className="min-h-[28px] flex items-center justify-between text-[10px] uppercase tracking-[0.18em] font-medium text-d-fg3 mb-1.5 leading-tight">
+        <span>{label}</span>
+        {action && <span>{action}</span>}
       </div>
       {children}
       {hint && (
