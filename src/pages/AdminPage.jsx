@@ -9,7 +9,6 @@ import {
   ChevronDown,
   ChevronUp,
   Copy,
-  Eye,
   GripVertical,
   Loader2,
   Lock,
@@ -852,76 +851,6 @@ function DefaultSectionsEditor() {
             </div>
           </div>
 
-          <div className="border-t border-line bg-d-panel2 p-4">
-            <div className="mb-3 flex items-center justify-between gap-3">
-              <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-d-fg3">
-                Presets partagés
-              </div>
-              <button
-                type="button"
-                onClick={loadPresets}
-                disabled={presetsLoading}
-                className="rounded-md p-1 text-d-fg4 transition-colors hover:bg-d-panel3 hover:text-d-fg2 disabled:opacity-50"
-                title="Rafraîchir"
-              >
-                <RefreshCw size={12} className={presetsLoading ? "animate-spin" : ""} />
-              </button>
-            </div>
-
-            {presetsError && (
-              <div className="mb-3 rounded-lg border border-red-500/20 bg-red-950/20 p-3 text-[11px] leading-relaxed text-red-300">
-                Presets indisponibles : {presetsError}. Exécute `supabase/template-presets.sql` si la table n'existe pas encore.
-              </div>
-            )}
-
-            {presetsLoading ? (
-              <div className="flex items-center gap-2 py-4 text-[11px] uppercase tracking-[0.18em] text-d-fg3">
-                <Loader2 size={13} className="animate-spin" />
-                Chargement…
-              </div>
-            ) : presets.length === 0 ? (
-              <div className="rounded-lg border border-dashed border-line p-4 text-center text-xs text-d-fg4">
-                Aucun preset partagé.
-              </div>
-            ) : (
-              <div className="flex max-h-56 flex-col gap-1.5 overflow-auto">
-                {presets.map((preset) => {
-                  const isActivePreset = editingPresetId === preset.id;
-                  return (
-                    <div
-                      key={preset.id}
-                      className={`grid grid-cols-[minmax(0,1fr)_26px] items-center gap-2 rounded-lg border px-2.5 py-2 ${
-                        isActivePreset
-                          ? "border-d-pink/40 bg-d-pink/10"
-                          : "border-transparent bg-transparent hover:bg-d-panel3"
-                      }`}
-                    >
-                      <button
-                        type="button"
-                        onClick={() => handleLoadPreset(preset)}
-                        className="min-w-0 text-left"
-                      >
-                        <span className={`block truncate text-xs font-semibold ${isActivePreset ? "text-d-pink" : "text-d-fg2"}`}>
-                          {preset.name}
-                        </span>
-                        <span className="mt-0.5 block truncate font-mono text-[10px] text-d-fg4">
-                          {preset.sections.length} blocs · {preset.themeVariant === "light" ? "clair" : "sombre"} · {preset.includeIssueDate ? "daté" : "sans date"}
-                        </span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleDeletePreset(preset)}
-                        className="rounded-md p-1 text-d-fg4 transition-colors hover:bg-red-950/20 hover:text-red-300"
-                        title="Supprimer"
-                      >
-                        <X size={13} />
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
         </aside>
 
         <main className="min-w-0 rounded-2xl border border-line bg-d-bg">
@@ -1078,27 +1007,75 @@ function DefaultSectionsEditor() {
             </div>
           </div>
 
-          <div className="p-4">
+          <div className="border-t border-line p-4">
             <div className="mb-3 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-d-fg3">
-                  Aperçu
-                </div>
-                <span className="rounded border border-d-cyan/40 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.12em] text-d-cyan">
-                  Live
-                </span>
+              <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-d-fg3">
+                Presets partagés
               </div>
-              <div className="flex items-center gap-1 font-mono text-[10px] text-d-fg4">
-                <Eye size={12} />
-                720 × auto
-              </div>
+              <button
+                type="button"
+                onClick={loadPresets}
+                disabled={presetsLoading}
+                className="rounded-md p-1 text-d-fg4 transition-colors hover:bg-d-panel3 hover:text-d-fg2 disabled:opacity-50"
+                title="Rafraîchir"
+              >
+                <RefreshCw size={12} className={presetsLoading ? "animate-spin" : ""} />
+              </button>
             </div>
-            <TemplatePresetPreview
-              sections={active}
-              light={themeVariant === "light"}
-              showNumbers={showSectionNumbers}
-              showDate={includeIssueDate}
-            />
+
+            {presetsError && (
+              <div className="mb-3 rounded-lg border border-red-500/20 bg-red-950/20 p-3 text-[11px] leading-relaxed text-red-300">
+                Presets indisponibles : {presetsError}. Exécute `supabase/template-presets.sql` si la table n'existe pas encore.
+              </div>
+            )}
+
+            {presetsLoading ? (
+              <div className="flex items-center gap-2 py-4 text-[11px] uppercase tracking-[0.18em] text-d-fg3">
+                <Loader2 size={13} className="animate-spin" />
+                Chargement…
+              </div>
+            ) : presets.length === 0 ? (
+              <div className="rounded-lg border border-dashed border-line p-4 text-center text-xs text-d-fg4">
+                Aucun preset partagé.
+              </div>
+            ) : (
+              <div className="flex flex-col gap-1.5">
+                {presets.map((preset) => {
+                  const isActivePreset = editingPresetId === preset.id;
+                  return (
+                    <div
+                      key={preset.id}
+                      className={`grid grid-cols-[minmax(0,1fr)_26px] items-center gap-2 rounded-lg border px-2.5 py-2 ${
+                        isActivePreset
+                          ? "border-d-pink/40 bg-d-pink/10"
+                          : "border-transparent bg-transparent hover:bg-d-panel3"
+                      }`}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => handleLoadPreset(preset)}
+                        className="min-w-0 text-left"
+                      >
+                        <span className={`block truncate text-xs font-semibold ${isActivePreset ? "text-d-pink" : "text-d-fg2"}`}>
+                          {preset.name}
+                        </span>
+                        <span className="mt-0.5 block truncate font-mono text-[10px] text-d-fg4">
+                          {preset.sections.length} blocs · {preset.themeVariant === "light" ? "clair" : "sombre"} · {preset.includeIssueDate ? "daté" : "sans date"}
+                        </span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeletePreset(preset)}
+                        className="rounded-md p-1 text-d-fg4 transition-colors hover:bg-red-950/20 hover:text-red-300"
+                        title="Supprimer"
+                      >
+                        <X size={13} />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </aside>
       </div>
@@ -1250,122 +1227,6 @@ function DefaultContentEditorModal({ onClose }) {
           </div>
         </div>
       </div>
-    </div>
-  );
-}
-
-function TemplatePresetPreview({ sections, light, showNumbers, showDate }) {
-  const previewBg = light ? "#F1F2F5" : "#1A1A1D";
-  const cardBg = light ? "#FFFFFF" : "#26262B";
-  const textColor = light ? "#15151A" : "#F1F2F5";
-  const mutedColor = light ? "#7A8494" : "#8C8F98";
-  const borderColor = light ? "rgba(21,21,26,0.10)" : "rgba(255,255,255,0.08)";
-
-  return (
-    <div
-      className="overflow-hidden rounded-xl border"
-      style={{ background: previewBg, borderColor }}
-    >
-      <div
-        className="flex items-center justify-between gap-3 border-b px-3 py-2"
-        style={{ borderColor }}
-      >
-        <div className="flex items-center gap-2">
-          <div className="h-4 w-4 rounded bg-gradient-to-br from-d-cyan via-d-blue to-d-pink" />
-          <span className="font-sora text-[10px] font-bold" style={{ color: textColor }}>
-            Decrypto
-          </span>
-        </div>
-        {showDate && (
-          <span className="font-mono text-[9px]" style={{ color: mutedColor }}>
-            15 / 05 / 2026
-          </span>
-        )}
-      </div>
-
-      <div className="max-h-[430px] overflow-auto p-3">
-        {sections.length === 0 ? (
-          <div className="py-16 text-center text-[11px] italic" style={{ color: mutedColor }}>
-            Aperçu vide.
-          </div>
-        ) : (
-          <div className="flex flex-col gap-2">
-            {sections.map((entry, index) => {
-              const type = SECTION_TYPES[entry.type];
-              const Icon = SECTION_ICON_MAP[entry.type] ?? Newspaper;
-              return (
-                <div
-                  key={`${entry.id}-${index}`}
-                  className="rounded-lg border p-2"
-                  style={{ background: cardBg, borderColor }}
-                >
-                  <div className="mb-2 flex items-center gap-2">
-                    {showNumbers && (
-                      <span className="font-mono text-[9px] font-semibold text-d-cyan">
-                        {String(index + 1).padStart(2, "0")}
-                      </span>
-                    )}
-                    <Icon size={12} style={{ color: mutedColor }} />
-                    <span className="truncate text-[10px] font-semibold" style={{ color: textColor }}>
-                      {type?.label || entry.type}
-                    </span>
-                  </div>
-                  <MiniPreviewLines type={entry.type} light={light} />
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function MiniPreviewLines({ type, light }) {
-  const base = light ? "#D8DDE6" : "#3D3F45";
-  const strong = light ? "#15151A" : "#F1F2F5";
-  const accent = light ? "#4141FF" : "#00FFFF";
-  const line = (width, color = base) => (
-    <span className="block h-1 rounded-full" style={{ width, background: color }} />
-  );
-
-  if (type === "chart") {
-    return (
-      <div className="space-y-1">
-        {line("35%", strong)}
-        <svg viewBox="0 0 100 24" className="h-6 w-full">
-          <polyline points="0,18 18,13 35,15 53,8 72,11 100,5" fill="none" stroke={accent} strokeWidth="2" />
-        </svg>
-      </div>
-    );
-  }
-
-  if (type === "image_block") {
-    return <div className="h-10 rounded-md bg-gradient-to-br from-d-blue/30 via-d-pink/30 to-d-orange/30" />;
-  }
-
-  if (type === "focus") {
-    return (
-      <div className="flex gap-2">
-        <div className="h-10 w-14 rounded-md bg-gradient-to-br from-d-blue/25 to-d-pink/25" />
-        <div className="flex min-w-0 flex-1 flex-col gap-1">
-          {line("85%", strong)}
-          {line("95%")}
-          {line("62%")}
-        </div>
-      </div>
-    );
-  }
-
-  if (type === "divider") {
-    return <div className="h-px w-full" style={{ background: base }} />;
-  }
-
-  return (
-    <div className="flex flex-col gap-1">
-      {line("72%", strong)}
-      {line("94%")}
-      {line("64%")}
     </div>
   );
 }
