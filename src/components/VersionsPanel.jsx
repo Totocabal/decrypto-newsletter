@@ -144,9 +144,10 @@ export function VersionsPanel({ newsletterId, onRestore, onClose }) {
                     <button
                       type="button"
                       onClick={() => handleRestore(v.id)}
-                      className="flex flex-shrink-0 items-center justify-center rounded-lg border border-line p-2 text-d-fg2 transition-colors hover:border-line2 hover:text-d-fg"
+                      className="flex flex-shrink-0 items-center justify-center gap-1.5 rounded-lg border border-line px-3 py-2 text-[10px] uppercase tracking-[0.18em] text-d-fg2 font-semibold transition-colors hover:border-line2 hover:text-d-fg sm:justify-start"
                     >
-                      <RotateCcw size={13} />
+                      <RotateCcw size={11} />
+                      Restaurer
                     </button>
                   </div>
                 </li>
