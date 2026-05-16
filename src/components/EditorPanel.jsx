@@ -118,8 +118,23 @@ export function EditorPanel({ state, setState }) {
     const header = card?.querySelector("[data-drag-header]");
     const src = header || card;
     if (src) {
+      const clone = src.cloneNode(true);
+      Object.assign(clone.style, {
+        position: "fixed",
+        top: "0",
+        left: "-9999px",
+        width: src.offsetWidth + "px",
+        background: "#1E1E22",
+        borderRadius: "10px",
+        border: "1px solid #333",
+        pointerEvents: "none",
+      });
+      document.body.appendChild(clone);
       const rect = src.getBoundingClientRect();
-      e.dataTransfer.setDragImage(src, e.clientX - rect.left, e.clientY - rect.top);
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top + rect.height;
+      e.dataTransfer.setDragImage(clone, x, y);
+      requestAnimationFrame(() => document.body.removeChild(clone));
     }
   };
   const handleDragOver = (e, id) => {
