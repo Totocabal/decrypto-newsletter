@@ -121,8 +121,8 @@ export function EditorPanel({ state, setState }) {
       const clone = src.cloneNode(true);
       Object.assign(clone.style, {
         position: "fixed",
-        top: "-9999px",
-        left: "0",
+        top: "0",
+        left: "-9999px",
         width: src.offsetWidth + "px",
         background: "#1E1E22",
         borderRadius: "10px",
