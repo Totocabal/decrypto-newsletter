@@ -124,11 +124,37 @@ function injectQuillCss() {
 // Helpers
 // ─────────────────────────────────────────────────────────────────────────────
 
+/**
+ * Nettoie le HTML interne de Quill v2 pour produire du HTML standard :
+ * - Supprime les <span class="ql-ui"> (puces/numéros injectés par Quill)
+ * - Supprime data-list et autres attributs Quill sur les <li>
+ * - Retourne "" si le contenu est vide (<p><br></p>)
+ */
+function cleanQuillHtml(html = "") {
+  const trimmed = (html || "").trim();
+  if (!trimmed || trimmed === "<p><br></p>") return "";
+  if (typeof document === "undefined") return trimmed;
+
+  const doc = new DOMParser().parseFromString(trimmed, "text/html");
+
+  // Supprimer les spans UI de Quill (puces / compteurs)
+  doc.querySelectorAll(".ql-ui").forEach((el) => el.remove());
+
+  // Nettoyer les <li> : supprimer data-list et class
+  doc.querySelectorAll("li[data-list]").forEach((li) => {
+    li.removeAttribute("data-list");
+    li.removeAttribute("class");
+  });
+
+  // Supprimer les classes Quill restantes sur les autres éléments
+  doc.querySelectorAll("[class^='ql-']").forEach((el) => el.removeAttribute("class"));
+
+  return doc.body.innerHTML;
+}
+
 /** Quill émet <p><br></p> quand l'éditeur est vide → on normalise vers "". */
 function normalizeQuillHtml(html = "") {
-  const trimmed = html.trim();
-  if (!trimmed || trimmed === "<p><br></p>") return "";
-  return trimmed;
+  return cleanQuillHtml(html);
 }
 
 function countPlainText(html = "") {
