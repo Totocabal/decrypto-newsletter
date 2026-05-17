@@ -974,10 +974,20 @@ function DefaultSectionsEditor() {
                   {activeDragId ? (() => {
                     const entry = active.find((e) => e.id === activeDragId);
                     if (!entry) return null;
+                    const Icon = SECTION_ICON_MAP[entry.type] ?? Newspaper;
+                    const idx = active.findIndex((e) => e.id === activeDragId);
                     return (
-                      <div style={{ background: "#1E1E22", border: "1px solid #444", borderRadius: 10, padding: "6px 10px", display: "flex", alignItems: "center", gap: 6, boxShadow: "0 4px 20px rgba(0,0,0,0.5)", cursor: "grabbing", opacity: 0.95 }}>
-                        <GripVertical size={14} style={{ color: "#555" }} />
-                        <span style={{ fontSize: 11, color: "#ccc" }}>{SECTION_TYPES[entry.type]?.label || entry.type}</span>
+                      <div style={{ background: "#1E1E22", border: "2px solid #FF00AA", boxShadow: "0 0 0 4px rgba(255,0,170,0.15), 0 8px 32px rgba(0,0,0,0.5)", borderRadius: 12, cursor: "grabbing" }}
+                        className="grid grid-cols-[20px_38px_38px_minmax(0,1fr)_auto] items-center gap-3 px-3 py-3"
+                      >
+                        <GripVertical size={15} style={{ color: "#FF00AA" }} />
+                        <span className="font-mono text-xs font-semibold text-d-cyan">{String(idx + 1).padStart(2, "0")}</span>
+                        <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-line bg-d-panel2 text-d-fg3">
+                          <Icon size={17} />
+                        </span>
+                        <span className="min-w-0">
+                          <span className="block truncate text-sm font-semibold text-d-fg" style={{ fontFamily: "'Sora', sans-serif" }}>{SECTION_TYPES[entry.type]?.label || entry.type}</span>
+                        </span>
                       </div>
                     );
                   })() : null}

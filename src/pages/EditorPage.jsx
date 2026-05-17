@@ -543,7 +543,7 @@ function SaveIndicator({ saving, lastSavedAt, lockedByOther }) {
     return (
       <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] text-d-fg4">
         <CloudOff size={12} />
-        Lecture seule
+        <span className="hidden sm:inline">Lecture seule</span>
       </div>
     );
   }
@@ -551,7 +551,7 @@ function SaveIndicator({ saving, lastSavedAt, lockedByOther }) {
     return (
       <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] text-d-fg3">
         <Loader2 size={12} className="animate-spin" />
-        Sauvegarde…
+        <span className="hidden sm:inline">Sauvegarde…</span>
       </div>
     );
   }
@@ -566,7 +566,7 @@ function SaveIndicator({ saving, lastSavedAt, lockedByOther }) {
         style={{ color: "#03FFCF" }}
       >
         <Cloud size={12} />
-        Sauvé · {time}
+        <span className="hidden sm:inline">Sauvé · {time}</span>
       </div>
     );
   }
