@@ -1183,14 +1183,14 @@ ${renderEmailFontFaces()}
   a { text-decoration: none; }
   body { background-color: ${EMAIL_THEME.bgPage}; }
   @media only screen and (max-width: 640px) {
-    .em-container { width: 100% !important; max-width: 350px !important; }
-    .em-px { padding-left: 16px !important; padding-right: 16px !important; }
+    .em-container { width: 100% !important; max-width: 100% !important; }
+    .em-px { padding-left: 24px !important; padding-right: 24px !important; }
     .em-stack { display: block !important; width: 100% !important; box-sizing: border-box !important; border-right: none !important; }
     .em-stack-pad { padding-bottom: 16px !important; border-bottom: 1px solid ${EMAIL_THEME.borderStrong} !important; }
-    .em-h1 { font-size: 32px !important; line-height: 1 !important; }
-    .em-h2 { font-size: 20px !important; }
-    .em-event-day { font-size: 44px !important; }
-    .em-chart-value { font-size: 22px !important; }
+    .em-h1 { font-size: 44px !important; line-height: 1 !important; }
+    .em-h2 { font-size: 24px !important; }
+    .em-event-day { font-size: 60px !important; }
+    .em-chart-value { font-size: 28px !important; }
     .em-kpi-grid td { display: block !important; width: 100% !important; box-sizing: border-box !important; border-right: none !important; border-bottom: 1px solid ${EMAIL_THEME.border} !important; }
     .em-signal-col { display: block !important; width: 100% !important; box-sizing: border-box !important; border-right: none !important; border-bottom: 1px solid ${EMAIL_THEME.border} !important; }
     .em-event-text { word-break: break-word !important; overflow-wrap: break-word !important; }
