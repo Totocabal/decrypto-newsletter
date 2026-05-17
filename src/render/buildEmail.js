@@ -1177,7 +1177,7 @@ export function buildEmailHtml(state, options = {}) {
 <style>
 ${renderEmailFontFaces()}
   html, body { margin: 0 !important; padding: 0 !important; height: 100% !important; width: 100% !important; }
-  * { -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; box-sizing: border-box; }
+  * { -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; }
   table, td { mso-table-lspace: 0pt !important; mso-table-rspace: 0pt !important; border-collapse: collapse !important; border-spacing: 0 !important; }
   img { -ms-interpolation-mode: bicubic; border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; display: block; max-width: 100%; }
   a { text-decoration: none; }
@@ -1185,7 +1185,7 @@ ${renderEmailFontFaces()}
   @media only screen and (max-width: 640px) {
     .em-container { width: 100% !important; max-width: 100% !important; overflow-x: hidden !important; }
     .em-px { padding-left: 12px !important; padding-right: 12px !important; }
-    .em-stack { display: block !important; width: 100% !important; box-sizing: border-box !important; border-right: none !important; }
+    .em-stack { display: block !important; width: 100% !important; max-width: 100% !important; border-right: none !important; }
     .em-stack-pad { padding-bottom: 16px !important; border-bottom: 1px solid ${EMAIL_THEME.borderStrong} !important; }
     .em-h1 { font-size: 36px !important; line-height: 1 !important; }
     .em-h2 { font-size: 22px !important; }
