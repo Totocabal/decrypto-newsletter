@@ -655,12 +655,12 @@ function renderCommentedNumber(data, anchor = "", isLastSection = false) {
             <td style="padding:4px;">
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:separate !important; border-spacing:0 !important;">
                 <tr>
-                  <td class="em-stack em-stack-pad em-cn-num" valign="middle" width="200" style="padding:24px; background-color:${numberPanelBg}; border-right:1px solid ${dividerColor}; border-radius:12px 0 0 12px;">
+                  <td class="em-stack em-cn-num" valign="middle" width="200" style="padding:24px; background-color:${numberPanelBg}; border-right:1px solid ${dividerColor}; border-radius:12px 0 0 12px; box-sizing:border-box;">
                     <p style="margin:0; font-family:${FONTS.body}; font-size:10px; letter-spacing:0.22em; text-transform:uppercase; color:${EMAIL_THEME.textDim}; font-weight:600;">${escapeHtml(data.kicker || "Le chiffre")}</p>
                     <p style="margin:6px 0 0; font-family:${FONTS.heading}; font-weight:700; font-size:56px; line-height:0.95; letter-spacing:-0.045em; color:${numberColor};">${escapeHtml(data.value)}${unit ? ` <span style="font-size:22px; color:${EMAIL_THEME.textMuted}; font-weight:500; letter-spacing:0;">${escapeHtml(unit)}</span>` : ""}</p>
                     ${data.caption ? `<p style="margin:8px 0 0; font-family:${FONTS.body}; font-size:12px; color:${EMAIL_THEME.textMuted}; letter-spacing:0.02em;">${escapeHtml(data.caption)}</p>` : ""}
                   </td>
-                  <td class="em-stack em-cn-text" valign="middle" style="padding:24px 28px;">
+                  <td class="em-stack em-cn-text" valign="middle" style="padding:24px 28px; box-sizing:border-box;">
                     ${data.title ? `<p style="margin:0 0 8px; font-family:${FONTS.heading}; font-weight:600; font-size:17px; line-height:1.25; letter-spacing:-0.015em; color:${titleColor};">${escapeHtml(data.title)}</p>` : ""}
                     <p style="margin:0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:13.5px; line-height:1.55; color:${bodyColor};">${sanitizeRichText(data.body)}</p>
                   </td>
@@ -1188,7 +1188,7 @@ ${renderEmailFontFaces()}
   @media only screen and (max-width: 640px) {
     .em-container { width: 100% !important; max-width: 100% !important; overflow-x: hidden !important; }
     .em-px { padding-left: 12px !important; padding-right: 12px !important; }
-    .em-stack { display: block !important; width: 100% !important; max-width: 100% !important; border-right: none !important; }
+    .em-stack { display: block !important; width: 100% !important; max-width: 100% !important; border-right: none !important; box-sizing: border-box !important; }
     .em-stack-pad { padding-bottom: 16px !important; border-bottom: 1px solid ${EMAIL_THEME.borderStrong} !important; }
     .em-h1 { font-size: 36px !important; line-height: 1 !important; }
     .em-h2 { font-size: 22px !important; }
@@ -1197,8 +1197,8 @@ ${renderEmailFontFaces()}
     .em-kpi-grid td { display: block !important; width: 100% !important; box-sizing: border-box !important; border-right: none !important; border-bottom: 1px solid ${EMAIL_THEME.border} !important; }
     .em-signal-col { display: block !important; width: 100% !important; box-sizing: border-box !important; border-right: none !important; border-bottom: 1px solid ${EMAIL_THEME.border} !important; }
     .em-event-text { word-break: break-word !important; overflow-wrap: break-word !important; }
-    .em-cn-num { border-radius: 12px 12px 0 0 !important; }
-    .em-cn-text { border-radius: 0 0 12px 12px !important; }
+    .em-cn-num { width: 100% !important; max-width: 100% !important; box-sizing: border-box !important; border-right: none !important; border-bottom: 1px solid ${EMAIL_THEME.borderStrong} !important; border-radius: 12px 12px 0 0 !important; }
+    .em-cn-text { width: 100% !important; max-width: 100% !important; box-sizing: border-box !important; padding: 24px !important; border-radius: 0 0 12px 12px !important; }
     p, h1, h2, h3, div { word-break: break-word !important; overflow-wrap: break-word !important; }
     .em-chart-label { white-space: nowrap !important; word-break: keep-all !important; overflow-wrap: normal !important; }
   }
