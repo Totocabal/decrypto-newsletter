@@ -1184,7 +1184,7 @@ ${renderEmailFontFaces()}
   body { background-color: ${EMAIL_THEME.bgPage}; }
   @media only screen and (max-width: 640px) {
     .em-container { width: 100% !important; max-width: 100% !important; }
-    .em-px { padding-left: 24px !important; padding-right: 24px !important; }
+    .em-px { padding-left: 12px !important; padding-right: 12px !important; }
     .em-stack { display: block !important; width: 100% !important; box-sizing: border-box !important; border-right: none !important; }
     .em-stack-pad { padding-bottom: 16px !important; border-bottom: 1px solid ${EMAIL_THEME.borderStrong} !important; }
     .em-h1 { font-size: 44px !important; line-height: 1 !important; }
