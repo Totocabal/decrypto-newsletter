@@ -46,6 +46,7 @@ export function PreviewPanel({ html, view, previewDevice, setPreviewDevice }) {
     if (!iframe?.contentDocument?.body) return;
     setExporting(true);
     try {
+      await iframe.contentDocument.fonts.ready;
       const body = iframe.contentDocument.body;
       const bgColor = iframe.contentDocument.documentElement.style.backgroundColor
         || iframe.contentDocument.body.style.backgroundColor
