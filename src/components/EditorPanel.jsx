@@ -2,7 +2,10 @@
 // EditorPanel — éditeur modulaire (header fixe, sections, footer fixe)
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useState, useRef } from "react";
+import { useState } from "react";
+import { DndContext, DragOverlay, PointerSensor, useSensor, useSensors, closestCenter } from "@dnd-kit/core";
+import { SortableContext, useSortable, verticalListSortingStrategy, arrayMove } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { useConfirm } from "./Dialog.jsx";
 import {
   ChevronUp,
@@ -108,66 +111,21 @@ export function EditorPanel({ state, setState }) {
     setState((s) => ({ ...s, footer: { ...s.footer, ...patch } }));
 
   // ── Drag & drop ──
-  const draggedId = useRef(null);
-  const [dragOverId, setDragOverId] = useState(null);
-  const [dragOverHalf, setDragOverHalf] = useState(null); // 'top' | 'bottom'
+  const [activeId, setActiveId] = useState(null);
   const [selectedMobileSectionId, setSelectedMobileSectionId] = useState(null);
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+  );
 
-  const handleDragStart = (e, id) => {
-    draggedId.current = id;
-    const card = e.currentTarget.closest("[data-section-card]");
-    const header = card?.querySelector("[data-drag-header]");
-    const src = header || card;
-    if (src) {
-      const clone = src.cloneNode(true);
-      Object.assign(clone.style, {
-        position: "fixed",
-        top: "0",
-        left: "-9999px",
-        width: src.offsetWidth + "px",
-        background: "#1E1E22",
-        borderRadius: "10px",
-        border: "1px solid #333",
-        pointerEvents: "none",
+  const handleDragEnd = ({ active, over }) => {
+    setActiveId(null);
+    if (over && active.id !== over.id) {
+      setState((s) => {
+        const oldIdx = s.sections.findIndex((x) => x.id === active.id);
+        const newIdx = s.sections.findIndex((x) => x.id === over.id);
+        return { ...s, sections: arrayMove(s.sections, oldIdx, newIdx) };
       });
-      document.body.appendChild(clone);
-      const rect = src.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top + rect.height * 1.25;
-      e.dataTransfer.setDragImage(clone, x, y);
-      requestAnimationFrame(() => document.body.removeChild(clone));
     }
-  };
-  const handleDragOver = (e, id) => {
-    e.preventDefault();
-    const rect = e.currentTarget.getBoundingClientRect();
-    const half = e.clientY < rect.top + rect.height / 2 ? "top" : "bottom";
-    setDragOverId(id);
-    setDragOverHalf(half);
-  };
-  const handleDragLeave = () => { setDragOverId(null); setDragOverHalf(null); };
-  const handleDrop = (e, targetId) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const fromId = draggedId.current;
-    if (fromId && fromId !== targetId) moveSectionToTarget(fromId, targetId, dragOverHalf);
-    draggedId.current = null;
-    setDragOverId(null);
-    setDragOverHalf(null);
-  };
-  const handleDragEnd = () => { draggedId.current = null; setDragOverId(null); setDragOverHalf(null); };
-
-  const moveSectionToTarget = (fromId, targetId, half = "top") => {
-    setState((s) => {
-      const sections = [...s.sections];
-      const fromIdx = sections.findIndex((x) => x.id === fromId);
-      const toIdx = sections.findIndex((x) => x.id === targetId);
-      if (fromIdx === -1 || toIdx === -1 || fromIdx === toIdx) return s;
-      const [removed] = sections.splice(fromIdx, 1);
-      const newToIdx = sections.findIndex((x) => x.id === targetId);
-      sections.splice(half === "bottom" ? newToIdx + 1 : newToIdx, 0, removed);
-      return { ...s, sections };
-    });
   };
 
   // ── Mutations sur la liste de sections ──
@@ -454,33 +412,51 @@ export function EditorPanel({ state, setState }) {
           </div>
         )}
 
-        <div className="space-y-2">
-          {state.sections.map((sec, i) => (
-            <SectionCard
-              key={sec.id}
-              section={sec}
-              index={i}
-              total={state.sections.length}
-              number={state.show_section_numbers === false ? null : computeSectionNumber(state.sections, sec.id)}
-              allSections={state.sections}
-              isDragOver={dragOverId === sec.id}
-              dragOverHalf={dragOverId === sec.id ? dragOverHalf : null}
-              onUpdate={(data) => setSection(sec.id, data)}
-              onUpdateMeta={(patch) => updateSectionMeta(sec.id, patch)}
-              onMoveUp={() => moveSection(sec.id, -1)}
-              onMoveDown={() => moveSection(sec.id, 1)}
-              onDuplicate={() => duplicateSection(sec.id)}
-              onDelete={() => removeSection(sec.id)}
-              onDragStart={(e) => handleDragStart(e, sec.id)}
-              onDragOver={(e) => handleDragOver(e, sec.id)}
-              onDragLeave={handleDragLeave}
-              onDrop={(e) => handleDrop(e, sec.id)}
-              onDragEnd={handleDragEnd}
-              selectedMobile={selectedMobileSectionId === sec.id}
-              onSelectMobile={() => setSelectedMobileSectionId(sec.id)}
-            />
-          ))}
-        </div>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragStart={({ active }) => setActiveId(active.id)}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext items={state.sections.map((s) => s.id)} strategy={verticalListSortingStrategy}>
+            <div className="space-y-2">
+              {state.sections.map((sec, i) => (
+                <SectionCard
+                  key={sec.id}
+                  section={sec}
+                  index={i}
+                  total={state.sections.length}
+                  number={state.show_section_numbers === false ? null : computeSectionNumber(state.sections, sec.id)}
+                  allSections={state.sections}
+                  onUpdate={(data) => setSection(sec.id, data)}
+                  onUpdateMeta={(patch) => updateSectionMeta(sec.id, patch)}
+                  onMoveUp={() => moveSection(sec.id, -1)}
+                  onMoveDown={() => moveSection(sec.id, 1)}
+                  onDuplicate={() => duplicateSection(sec.id)}
+                  onDelete={() => removeSection(sec.id)}
+                  selectedMobile={selectedMobileSectionId === sec.id}
+                  onSelectMobile={() => setSelectedMobileSectionId(sec.id)}
+                />
+              ))}
+            </div>
+          </SortableContext>
+          <DragOverlay dropAnimation={null}>
+            {activeId ? (() => {
+              const sec = state.sections.find((s) => s.id === activeId);
+              if (!sec) return null;
+              const type = SECTION_TYPES[sec.type];
+              const label = type?.label || sec.type;
+              const preview = (() => { const d = sec.data || {}; return d.title || d.label || d.kicker || ""; })();
+              return (
+                <div style={{ background: "#1E1E22", border: "1px solid #444", borderRadius: 10, padding: "8px 12px", display: "flex", alignItems: "center", gap: 8, boxShadow: "0 8px 32px rgba(0,0,0,0.5)", cursor: "grabbing", opacity: 0.95 }}>
+                  <GripVertical size={14} style={{ color: "#555", flexShrink: 0 }} />
+                  <span style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.18em", fontWeight: 600, color: "#888", flexShrink: 0 }}>{label}</span>
+                  {preview && <span style={{ fontSize: 11, color: "#666", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>{preview}</span>}
+                </div>
+              );
+            })() : null}
+          </DragOverlay>
+        </DndContext>
 
         <AddSectionButton onAdd={(type) => addSection(type)} />
       </div>
@@ -561,24 +537,18 @@ function SectionCard({
   total,
   number,
   allSections,
-  isDragOver,
-  dragOverHalf,
   onUpdate,
   onUpdateMeta,
   onMoveUp,
   onMoveDown,
   onDuplicate,
   onDelete,
-  onDragStart,
-  onDragOver,
-  onDragLeave,
-  onDrop,
-  onDragEnd,
   selectedMobile,
   onSelectMobile,
 }) {
   const confirm = useConfirm();
   const [open, setOpen] = useState(false);
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: section.id });
   const type = SECTION_TYPES[section.type];
   const label = type?.label || section.type;
   const countsForNumbering = section.counts_for_numbering ?? !UNNUMBERED_TYPES.has(section.type);
@@ -593,30 +563,16 @@ function SectionCard({
 
   return (
     <div
-      data-section-card={section.id}
-      onDragOver={onDragOver}
-      onDragLeave={onDragLeave}
-      onDrop={onDrop}
-      onDragEnd={onDragEnd}
+      ref={setNodeRef}
       onClick={onSelectMobile}
-      style={{ position: "relative" }}
+      style={{
+        position: "relative",
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0 : 1,
+        zIndex: isDragging ? 1 : undefined,
+      }}
     >
-      {/* Insertion line indicator — outside overflow-hidden inner card */}
-      {isDragOver && dragOverHalf && (
-        <div
-          style={{
-            position: "absolute",
-            left: 0,
-            right: 0,
-            [dragOverHalf === "top" ? "top" : "bottom"]: -2,
-            height: 3,
-            background: "#FF00AA",
-            borderRadius: 2,
-            zIndex: 20,
-            pointerEvents: "none",
-          }}
-        />
-      )}
       <div
         className={`overflow-hidden rounded-xl transition-all ${
           selectedMobile ? "mobile-section-card-selected" : ""
@@ -631,9 +587,8 @@ function SectionCard({
         <Tooltip label="Glisser pour déplacer" className="hidden sm:inline-flex">
           <button
             type="button"
-            draggable
-            onDragStart={onDragStart}
-            onDragEnd={onDragEnd}
+            {...listeners}
+            {...attributes}
             className="flex-shrink-0 rounded-lg p-1 text-d-fg4 cursor-grab transition-colors hover:text-d-fg2 active:cursor-grabbing"
           >
             <GripVertical size={14} />

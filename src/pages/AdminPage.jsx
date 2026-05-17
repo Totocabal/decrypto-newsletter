@@ -3,6 +3,9 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useState, useCallback } from "react";
+import { DndContext, DragOverlay, PointerSensor, useSensor, useSensors, closestCenter } from "@dnd-kit/core";
+import { SortableContext, useSortable, verticalListSortingStrategy, arrayMove } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import {
   ArrowLeft,
   Check,
@@ -41,7 +44,6 @@ import {
   X,
   FileEdit,
 } from "lucide-react";
-import { useRef } from "react";
 import { supabase } from "../lib/supabase.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import { useToast, useConfirm, usePrompt } from "../components/Dialog.jsx";
@@ -540,6 +542,69 @@ const SECTION_TYPE_DESCRIPTIONS = {
   divider: "Séparateur visuel entre deux blocs.",
 };
 
+function SortableActiveItem({ entry, index, total, onMoveUp, onMoveDown, onRemove }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: entry.id });
+  const type = entry.type;
+  const Icon = SECTION_ICON_MAP[type] ?? Newspaper;
+  return (
+    <div
+      ref={setNodeRef}
+      style={{
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0 : 1,
+      }}
+      className="grid grid-cols-[20px_38px_38px_minmax(0,1fr)_auto] items-center gap-3 rounded-xl border border-line bg-d-panel px-3 py-3 transition-all hover:border-line2"
+    >
+      <button type="button" {...listeners} {...attributes} className="cursor-grab text-d-fg4 hover:text-d-fg2 transition-colors p-0 flex items-center">
+        <GripVertical size={15} />
+      </button>
+      <span className="font-mono text-xs font-semibold text-d-cyan">
+        {String(index + 1).padStart(2, "0")}
+      </span>
+      <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-line bg-d-panel2 text-d-fg3">
+        <Icon size={17} />
+      </span>
+      <span className="min-w-0">
+        <span className="block truncate text-sm font-semibold text-d-fg" style={{ fontFamily: "'Sora', sans-serif" }}>
+          {SECTION_TYPES[type].label}
+        </span>
+        <span className="mt-0.5 block truncate text-xs text-d-fg4">
+          {SECTION_TYPE_DESCRIPTIONS[type]}
+        </span>
+      </span>
+      <span className="flex items-center gap-1">
+        <button
+          type="button"
+          onClick={onMoveUp}
+          disabled={index === 0}
+          className="rounded-md border border-line p-1 text-d-pink transition-colors hover:bg-d-pink/10 disabled:opacity-20"
+          title="Monter"
+        >
+          <ChevronUp size={13} />
+        </button>
+        <button
+          type="button"
+          onClick={onMoveDown}
+          disabled={index === total - 1}
+          className="rounded-md border border-line p-1 text-d-pink transition-colors hover:bg-d-pink/10 disabled:opacity-20"
+          title="Descendre"
+        >
+          <ChevronDown size={13} />
+        </button>
+        <button
+          type="button"
+          onClick={onRemove}
+          className="rounded-md border border-line p-1 text-d-fg4 transition-colors hover:bg-red-950/20 hover:text-red-300"
+          title="Retirer"
+        >
+          <X size={13} />
+        </button>
+      </span>
+    </div>
+  );
+}
+
 function DefaultSectionsEditor() {
   const confirm = useConfirm();
   const prompt = usePrompt();
@@ -565,8 +630,8 @@ function DefaultSectionsEditor() {
   const [presetsError, setPresetsError] = useState(null);
   const [presetSaving, setPresetSaving] = useState(false);
   const [editingPresetId, setEditingPresetId] = useState(null);
-  const draggedRef = useRef(null);
-  const [dragOverId, setDragOverId] = useState(null);
+  const [activeDragId, setActiveDragId] = useState(null);
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
   const editingPreset = presets.find((preset) => preset.id === editingPresetId) || null;
   const filteredTypes = allTypes.filter((type) =>
     SECTION_TYPES[type].label.toLowerCase().includes(blockSearch.trim().toLowerCase())
@@ -617,27 +682,17 @@ function DefaultSectionsEditor() {
     setSaved(false);
   };
 
-  const handleDragStart = (id) => { draggedRef.current = id; };
-  const handleDragOver = (e, id) => { e.preventDefault(); setDragOverId(id); };
-  const handleDragLeave = () => setDragOverId(null);
-  const handleDrop = (e, targetId) => {
-    e.preventDefault();
-    const from = draggedRef.current;
-    if (!from || from === targetId) { setDragOverId(null); return; }
-    setActive((prev) => {
-      const arr = [...prev];
-      const fi = arr.findIndex((entry) => entry.id === from);
-      const ti = arr.findIndex((entry) => entry.id === targetId);
-      if (fi === -1 || ti === -1) return prev;
-      const [removed] = arr.splice(fi, 1);
-      arr.splice(ti, 0, removed);
-      return arr;
-    });
-    draggedRef.current = null;
-    setDragOverId(null);
-    setSaved(false);
+  const handleDragEnd = ({ active, over }) => {
+    setActiveDragId(null);
+    if (over && active.id !== over.id) {
+      setActive((prev) => {
+        const oldIdx = prev.findIndex((e) => e.id === active.id);
+        const newIdx = prev.findIndex((e) => e.id === over.id);
+        setSaved(false);
+        return arrayMove(prev, oldIdx, newIdx);
+      });
+    }
   };
-  const handleDragEnd = () => { draggedRef.current = null; setDragOverId(null); };
 
   const handleSaveDefault = () => {
     saveDefaultSectionTypes(active, includeDefaultContent, showSectionNumbers, themeVariant, includeIssueDate);
@@ -891,73 +946,40 @@ function DefaultSectionsEditor() {
                 </button>
               </div>
             ) : (
-              <div className="flex flex-col gap-2">
-                {active.map((entry, index) => {
-                  const type = entry.type;
-                  const Icon = SECTION_ICON_MAP[type] ?? Newspaper;
-                  const isDragOver = dragOverId === entry.id;
-                  return (
-                    <div
-                      key={entry.id}
-                      draggable
-                      onDragStart={() => handleDragStart(entry.id)}
-                      onDragOver={(e) => handleDragOver(e, entry.id)}
-                      onDragLeave={handleDragLeave}
-                      onDrop={(e) => handleDrop(e, entry.id)}
-                      onDragEnd={handleDragEnd}
-                      className={`grid grid-cols-[20px_38px_38px_minmax(0,1fr)_auto] items-center gap-3 rounded-xl border px-3 py-3 transition-all ${
-                        isDragOver
-                          ? "border-d-pink bg-d-panel3 shadow-[0_0_0_2px_rgba(255,0,170,0.15)]"
-                          : "border-line bg-d-panel hover:border-line2"
-                      }`}
-                    >
-                      <GripVertical size={15} className="cursor-grab text-d-fg4" />
-                      <span className="font-mono text-xs font-semibold text-d-cyan">
-                        {String(index + 1).padStart(2, "0")}
-                      </span>
-                      <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-line bg-d-panel2 text-d-fg3">
-                        <Icon size={17} />
-                      </span>
-                      <span className="min-w-0">
-                        <span className="block truncate text-sm font-semibold text-d-fg" style={{ fontFamily: "'Sora', sans-serif" }}>
-                          {SECTION_TYPES[type].label}
-                        </span>
-                        <span className="mt-0.5 block truncate text-xs text-d-fg4">
-                          {SECTION_TYPE_DESCRIPTIONS[type]}
-                        </span>
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <button
-                          type="button"
-                          onClick={() => moveBlock(entry.id, -1)}
-                          disabled={index === 0}
-                          className="rounded-md border border-line p-1 text-d-pink transition-colors hover:bg-d-pink/10 disabled:opacity-20"
-                          title="Monter"
-                        >
-                          <ChevronUp size={13} />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => moveBlock(entry.id, 1)}
-                          disabled={index === active.length - 1}
-                          className="rounded-md border border-line p-1 text-d-pink transition-colors hover:bg-d-pink/10 disabled:opacity-20"
-                          title="Descendre"
-                        >
-                          <ChevronDown size={13} />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => removeBlock(entry.id)}
-                          className="rounded-md border border-line p-1 text-d-fg4 transition-colors hover:bg-red-950/20 hover:text-red-300"
-                          title="Retirer"
-                        >
-                          <X size={13} />
-                        </button>
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragStart={({ active }) => setActiveDragId(active.id)}
+                onDragEnd={handleDragEnd}
+              >
+                <SortableContext items={active.map((e) => e.id)} strategy={verticalListSortingStrategy}>
+                  <div className="flex flex-col gap-2">
+                    {active.map((entry, index) => (
+                      <SortableActiveItem
+                        key={entry.id}
+                        entry={entry}
+                        index={index}
+                        total={active.length}
+                        onMoveUp={() => { moveBlock(entry.id, -1); }}
+                        onMoveDown={() => { moveBlock(entry.id, 1); }}
+                        onRemove={() => removeBlock(entry.id)}
+                      />
+                    ))}
+                  </div>
+                </SortableContext>
+                <DragOverlay dropAnimation={null}>
+                  {activeDragId ? (() => {
+                    const entry = active.find((e) => e.id === activeDragId);
+                    if (!entry) return null;
+                    return (
+                      <div style={{ background: "#1E1E22", border: "1px solid #444", borderRadius: 10, padding: "6px 10px", display: "flex", alignItems: "center", gap: 6, boxShadow: "0 4px 20px rgba(0,0,0,0.5)", cursor: "grabbing", opacity: 0.95 }}>
+                        <GripVertical size={14} style={{ color: "#555" }} />
+                        <span style={{ fontSize: 11, color: "#ccc" }}>{SECTION_TYPES[entry.type]?.label || entry.type}</span>
+                      </div>
+                    );
+                  })() : null}
+                </DragOverlay>
+              </DndContext>
             )}
           </div>
         </main>
