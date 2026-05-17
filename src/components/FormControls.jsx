@@ -1,251 +1,134 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// Contrôles de formulaire réutilisables — rich text avec Editor.js
+// Contrôles de formulaire réutilisables — rich text avec Quill
 // ─────────────────────────────────────────────────────────────────────────────
 
-import React, { useEffect, useId, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Loader2, Sparkles, ChevronUp, ChevronDown } from "lucide-react";
-import EditorJS from "@editorjs/editorjs";
-import EditorList from "@editorjs/list";
-import Underline from "@editorjs/underline";
+import Quill from "quill";
+import "quill/dist/quill.snow.css";
 import { supabase } from "../lib/supabase.js";
 import { Tooltip } from "./Tooltip.jsx";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// CSS dark-theme overrides for Editor.js (injected once)
+// CSS dark-theme pour Quill (injecté une seule fois)
 // ─────────────────────────────────────────────────────────────────────────────
 
 let cssInjected = false;
-function injectEditorCss() {
+function injectQuillCss() {
   if (cssInjected || typeof document === "undefined") return;
   cssInjected = true;
   const style = document.createElement("style");
   style.textContent = `
-    /* Base */
-    .ejs-wrapper .codex-editor { font-family: 'DM Sans', sans-serif; color: #E4E4EC; font-size: 15px; line-height: 1.65; }
-    .ejs-wrapper .codex-editor__redactor { padding-bottom: 8px !important; }
-    .ejs-wrapper .ce-block__content { max-width: none !important; margin: 0 !important; }
+    /* Conteneur */
+    .ql-wrapper .ql-container.ql-snow {
+      border: none;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+    }
 
-    /* Paragraphes */
-    .ejs-wrapper .ce-paragraph { font-size: 15px; line-height: 1.65; color: #E4E4EC; padding: 2px 0; white-space: pre-wrap; }
-    .ejs-wrapper .ce-paragraph[data-placeholder]:empty::before { color: #555; }
-
-    /* Espacement entre blocs */
-    .ejs-wrapper .ce-block { padding: 0; }
-    .ejs-wrapper .ce-block + .ce-block { margin-top: 6px; }
+    /* Zone de saisie */
+    .ql-wrapper .ql-editor {
+      color: #E4E4EC;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      line-height: 1.65;
+      padding: 10px 12px;
+      min-height: var(--ql-min-height, 72px);
+    }
+    .ql-wrapper .ql-editor.ql-blank::before {
+      color: #555;
+      font-style: normal;
+      font-family: 'DM Sans', sans-serif;
+    }
+    .ql-wrapper .ql-editor p { margin: 0; }
+    .ql-wrapper .ql-editor p + p { margin-top: 6px; }
 
     /* Listes */
-    .ejs-wrapper .cdx-list { color: #E4E4EC; font-size: 15px; line-height: 1.65; --spacing-s: 5px; --spacing-xs: 3px; }
-    .ejs-wrapper .cdx-list__item { padding: 1px 0; }
-    .ejs-wrapper .cdx-list__item-content { color: #E4E4EC; font-size: 15px; line-height: 1.65; white-space: pre-wrap; }
-    .ejs-wrapper .cdx-list__item:before { color: #E4E4EC; }
+    .ql-wrapper .ql-editor ul,
+    .ql-wrapper .ql-editor ol { padding-left: 1.4em; margin: 4px 0; }
+    .ql-wrapper .ql-editor li { color: #E4E4EC; padding: 1px 0; line-height: 1.65; }
+    .ql-wrapper .ql-editor li::before { color: #888; }
 
-    /* Masquer la liste de tâches */
-    [title="Checklist"],
-    [data-tool="checklist"],
-    [data-item-name="checklist"],
-    .ce-popover-item[data-item-name="checklist"],
-    .ce-conversion-tool[data-tool="checklist"] { display: none !important; }
+    /* Toolbar */
+    .ql-wrapper .ql-toolbar.ql-snow {
+      border: none;
+      border-bottom: 1px solid #2E2E36;
+      background: transparent;
+      padding: 5px 8px;
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      flex-wrap: wrap;
+    }
+    .ql-wrapper .ql-toolbar.ql-snow .ql-formats { margin-right: 6px; }
+    .ql-wrapper .ql-toolbar.ql-snow button {
+      border-radius: 5px;
+      width: 26px;
+      height: 26px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s;
+    }
+    .ql-wrapper .ql-toolbar.ql-snow button:hover {
+      background: rgba(255,255,255,0.08) !important;
+    }
+    .ql-wrapper .ql-toolbar.ql-snow button.ql-active {
+      background: rgba(65,65,255,0.28) !important;
+    }
 
-    /* Toolbar principale */
-    .ejs-wrapper .ce-toolbar__plus { color: #666; }
-    .ejs-wrapper .ce-toolbar__plus:hover { color: #ccc; background: rgba(255,255,255,0.06); }
-    .ejs-wrapper .ce-toolbar__settings-btn { color: #666; }
-    .ejs-wrapper .ce-toolbar__settings-btn:hover { color: #ccc; background: rgba(255,255,255,0.06); }
-    .ejs-wrapper .ce-toolbox,
-    .ce-toolbox { background: #1E1E22 !important; border: 1px solid #3A3A44 !important; border-radius: 10px !important; box-shadow: 0 12px 36px rgba(0,0,0,0.55) !important; color: #E9EEF2 !important; }
-    .ejs-wrapper .ce-toolbox__button,
-    .ce-toolbox__button { color: #E9EEF2 !important; }
-    .ejs-wrapper .ce-toolbox__button:hover,
-    .ejs-wrapper .ce-toolbox__button--active,
-    .ce-toolbox__button:hover,
-    .ce-toolbox__button--active { background: rgba(255,0,170,0.14) !important; color: #fff !important; }
-    .ejs-wrapper .ce-settings,
-    .ce-settings { background: #1E1E22 !important; border: 1px solid #3A3A44 !important; border-radius: 10px !important; box-shadow: 0 12px 36px rgba(0,0,0,0.55) !important; color: #E9EEF2 !important; }
-    .ejs-wrapper .ce-settings__button,
-    .ce-settings__button { color: #D8DDE6 !important; }
-    .ejs-wrapper .ce-settings__button:hover,
-    .ce-settings__button:hover { background: rgba(255,0,170,0.14) !important; color: #fff !important; }
+    /* Icônes SVG */
+    .ql-wrapper .ql-toolbar.ql-snow .ql-stroke { stroke: #777; transition: stroke 0.15s; }
+    .ql-wrapper .ql-toolbar.ql-snow .ql-fill  { fill:   #777; transition: fill  0.15s; }
+    .ql-wrapper .ql-toolbar.ql-snow .ql-thin  { stroke: #777; }
+    .ql-wrapper .ql-toolbar.ql-snow button:hover .ql-stroke,
+    .ql-wrapper .ql-toolbar.ql-snow button.ql-active .ql-stroke { stroke: #E4E4EC; }
+    .ql-wrapper .ql-toolbar.ql-snow button:hover .ql-fill,
+    .ql-wrapper .ql-toolbar.ql-snow button.ql-active .ql-fill  { fill:   #E4E4EC; }
 
-    /* Toolbar inline (rendu hors wrapper, règles globales) */
-    .ejs-wrapper .ce-inline-toolbar,
-    .ce-inline-toolbar { background: #FFFFFF !important; border: 1px solid #D8DDE6 !important; border-radius: 10px !important; box-shadow: 0 12px 34px rgba(0,0,0,0.28) !important; color: #15151A !important; }
-    .ejs-wrapper .ce-inline-tool,
-    .ce-inline-tool { color: #3B3F48 !important; border-radius: 7px !important; }
-    .ejs-wrapper .ce-inline-tool:hover,
-    .ce-inline-tool:hover { background: rgba(255,0,170,0.10) !important; color: #15151A !important; }
-    .ejs-wrapper .ce-inline-tool--active,
-    .ce-inline-tool--active { color: #15151A !important; background: rgba(255,0,170,0.16) !important; }
-    .ejs-wrapper .ce-inline-toolbar__toggler-and-button-wrapper,
-    .ce-inline-toolbar__toggler-and-button-wrapper { padding: 2px !important; }
-    .ejs-wrapper .ce-inline-toolbar__line,
-    .ce-inline-toolbar__line { border-color: #E1E4EA !important; }
-    .ejs-wrapper .ce-inline-toolbar [contenteditable],
-    .ce-inline-toolbar [contenteditable] { color: #ccc !important; border-color: #444 !important; background: #111 !important; border-radius: 4px !important; padding: 2px 6px !important; }
+    /* Séparateur de groupes */
+    .ql-wrapper .ql-toolbar.ql-snow .ql-formats + .ql-formats::before {
+      content: '';
+      display: inline-block;
+      width: 1px;
+      height: 16px;
+      background: #2E2E36;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
 
-    /* Sélection et hover */
-    .ejs-wrapper .ce-block--selected .ce-block__content { background: rgba(65,65,255,0.16); color: #FFFFFF; border-radius: 6px; }
-    .ejs-wrapper ::selection { background: rgba(0,255,255,0.28); color: #FFFFFF; }
-    .ejs-wrapper ::-moz-selection { background: rgba(0,255,255,0.28); color: #FFFFFF; }
-    .ejs-wrapper .ce-block:hover { background: transparent; }
-
-    /* Menus popover / conversion */
-    .ejs-wrapper .ce-conversion-toolbar,
-    .ce-conversion-toolbar { background: #1E1E22 !important; border: 1px solid #3A3A44 !important; border-radius: 12px !important; box-shadow: 0 12px 36px rgba(0,0,0,0.55) !important; color: #E9EEF2 !important; }
-    .ejs-wrapper .ce-conversion-tool,
-    .ce-conversion-tool { color: #D8DDE6 !important; }
-    .ejs-wrapper .ce-conversion-tool:hover,
-    .ejs-wrapper .ce-conversion-tool--focused,
-    .ce-conversion-tool:hover,
-    .ce-conversion-tool--focused { background: rgba(255,0,170,0.14) !important; color: #FFFFFF !important; }
-    .ejs-wrapper .ce-popover,
-    .ce-popover { background: #1E1E22 !important; border: 1px solid #3A3A44 !important; border-radius: 12px !important; box-shadow: 0 12px 36px rgba(0,0,0,0.55) !important; color: #E9EEF2 !important; }
-    .ejs-wrapper .ce-popover-item,
-    .ce-popover-item { color: #D8DDE6 !important; }
-    .ejs-wrapper .ce-popover-item__title,
-    .ce-popover-item__title { color: #E9EEF2 !important; }
-    .ejs-wrapper .ce-popover-item__icon,
-    .ce-popover-item__icon { color: #C9D0DC !important; background: transparent !important; }
-    .ejs-wrapper .ce-popover-item:hover,
-    .ejs-wrapper .ce-popover-item--active,
-    .ce-popover-item:hover,
-    .ce-popover-item--active { background: rgba(255,0,170,0.14) !important; color: #FFFFFF !important; }
-    .ejs-wrapper .ce-popover__search,
-    .ce-popover__search { background: #101014 !important; border: 1px solid #3A3A44 !important; color: #E9EEF2 !important; border-radius: 8px !important; }
-    .ejs-wrapper .ce-popover__search input,
-    .ce-popover__search input { color: #E9EEF2 !important; caret-color: #FF00AA !important; }
-    .ejs-wrapper .ce-popover__search input::placeholder,
-    .ce-popover__search input::placeholder { color: #75808B !important; opacity: 1 !important; }
+    /* Tooltip lien */
+    .ql-tooltip {
+      background: #1E1E22 !important;
+      border: 1px solid #2E2E36 !important;
+      border-radius: 8px !important;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.6) !important;
+      color: #ccc !important;
+    }
+    .ql-tooltip input[type=text] {
+      background: #111 !important;
+      border-color: #3A3A44 !important;
+      color: #E4E4EC !important;
+      border-radius: 4px !important;
+      outline: none !important;
+    }
+    .ql-tooltip a.ql-action::after { color: #aaa !important; border-right-color: #3A3A44 !important; }
+    .ql-tooltip a.ql-remove::before { color: #aaa !important; }
+    .ql-tooltip a:hover { color: #fff !important; }
+    .ql-tooltip::before { color: #666 !important; }
   `;
   document.head.appendChild(style);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Inline tool : Strikethrough
+// Helpers
 // ─────────────────────────────────────────────────────────────────────────────
 
-class StrikethroughTool {
-  static get isInline() { return true; }
-  static get title() { return "Barré"; }
-  static get sanitize() { return { s: {} }; }
-
-  constructor({ api }) {
-    this.api = api;
-    this.button = null;
-    this._state = false;
-  }
-
-  get state() { return this._state; }
-  set state(s) {
-    this._state = s;
-    this.button?.classList.toggle("ce-inline-tool--active", s);
-  }
-
-  render() {
-    this.button = document.createElement("button");
-    this.button.type = "button";
-    this.button.classList.add("ce-inline-tool");
-    this.button.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4H9a3 3 0 0 0-2.83 4"/><path d="M14 12a4 4 0 0 1 0 8H6"/><line x1="4" y1="12" x2="20" y2="12"/></svg>`;
-    return this.button;
-  }
-
-  surround(range) {
-    if (this.state) {
-      const s = this.api.selection.findParentTag("S");
-      if (!s) return;
-      const content = range.extractContents();
-      s.replaceWith(content);
-    } else {
-      const s = document.createElement("s");
-      s.appendChild(range.extractContents());
-      range.insertNode(s);
-      this.api.selection.expandToTag(s);
-    }
-  }
-
-  checkState() {
-    const s = this.api.selection.findParentTag("S");
-    this.state = !!s;
-    return this.state;
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Serialisation HTML ↔ Editor.js blocks
-// ─────────────────────────────────────────────────────────────────────────────
-
-function normalizeInlineTags(html = "") {
-  return html
-    .replace(/<strong>/gi, "<b>").replace(/<\/strong>/gi, "</b>")
-    .replace(/<em>/gi, "<i>").replace(/<\/em>/gi, "</i>");
-}
-
-function htmlLineBreaksToEditorText(html = "") {
-  return normalizeInlineTags(String(html || "").replace(/<br\s*\/?>/gi, "\n"));
-}
-
-function editorTextLineBreaksToHtml(text = "") {
-  return String(text || "").replace(/\n/g, "<br />");
-}
-
-export function htmlToEditorJsBlocks(html = "") {
-  const source = String(html || "").trim();
-  if (!source) return [{ type: "paragraph", data: { text: "" } }];
-  if (typeof window === "undefined") {
-    return [{ type: "paragraph", data: { text: source } }];
-  }
-
-  const doc = new DOMParser().parseFromString(source, "text/html");
-  const blocks = [];
-  let paragraphParts = [];
-
-  const flushParagraph = () => {
-      const raw = paragraphParts.join("").replace(/(<br\s*\/?>\s*)+$/i, "").trim();
-      if (raw) blocks.push({ type: "paragraph", data: { text: htmlLineBreaksToEditorText(raw) } });
-    paragraphParts = [];
-  };
-
-  Array.from(doc.body.childNodes).forEach((node) => {
-    const name = node.nodeName;
-    if (node.nodeType === Node.TEXT_NODE) {
-      if (node.textContent) paragraphParts.push(node.textContent);
-    } else if (name === "BR") {
-      flushParagraph();
-    } else if (name === "UL" || name === "OL") {
-      flushParagraph();
-      const style = name === "UL" ? "unordered" : "ordered";
-      const items = Array.from(node.querySelectorAll(":scope > li")).map((li) =>
-        htmlLineBreaksToEditorText(li.innerHTML)
-      );
-      if (items.length) blocks.push({ type: "list", data: { style, items } });
-    } else if (name === "P" || name === "DIV") {
-      flushParagraph();
-      const inner = node.innerHTML.trim();
-      if (inner) blocks.push({ type: "paragraph", data: { text: htmlLineBreaksToEditorText(inner) } });
-    } else {
-      paragraphParts.push(node.outerHTML);
-    }
-  });
-
-  flushParagraph();
-  return blocks.length ? blocks : [{ type: "paragraph", data: { text: "" } }];
-}
-
-export function editorJsBlocksToHtml(blocks = []) {
-  const parts = [];
-  for (const block of blocks) {
-    if (block.type === "paragraph") {
-      const text = String(block.data?.text || "");
-      if (text) parts.push(editorTextLineBreaksToHtml(text));
-    } else if (block.type === "list") {
-      const tag = block.data?.style === "ordered" ? "ol" : "ul";
-      const items = (block.data?.items || []).map((item) => {
-        const content = typeof item === "string" ? item : (item.content || "");
-        return `<li>${editorTextLineBreaksToHtml(content)}</li>`;
-      });
-      if (items.length) parts.push(`<${tag}>${items.join("")}</${tag}>`);
-    }
-  }
-  return parts.join("<br />");
+/** Quill émet <p><br></p> quand l'éditeur est vide → on normalise vers "". */
+function normalizeQuillHtml(html = "") {
+  const trimmed = html.trim();
+  if (!trimmed || trimmed === "<p><br></p>") return "";
+  return trimmed;
 }
 
 function countPlainText(html = "") {
@@ -295,7 +178,7 @@ class RichTextErrorBoundary extends React.Component {
     this.state = { error: null, retryKey: 0 };
   }
   static getDerivedStateFromError(error) { return { error }; }
-  componentDidCatch(error) { console.warn("[editor.js] indisponible:", error); }
+  componentDidCatch(error) { console.warn("[quill] indisponible:", error); }
   retry = () => { this.setState((s) => ({ error: null, retryKey: s.retryKey + 1 })); };
   render() {
     if (this.state.error) return <PlainTextFallback {...this.props.editorProps} onRetry={this.retry} />;
@@ -304,69 +187,79 @@ class RichTextErrorBoundary extends React.Component {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// RichTextEditor — Editor.js wrapper
+// RichTextEditor — Quill wrapper
 // ─────────────────────────────────────────────────────────────────────────────
 
+const TOOLBAR_OPTIONS = [
+  ["bold", "italic", "underline", "strike"],
+  [{ list: "ordered" }, { list: "bullet" }],
+  ["link"],
+  ["clean"],
+];
+
 function RichTextEditor({ showCount, onChange, value = "", rows = 3, placeholder, ...props }) {
-  const rawId = useId();
-  const editorId = `ejs${rawId.replace(/[^a-zA-Z0-9]/g, "")}`;
-  const editorRef = useRef(null);
+  const holderRef = useRef(null);
+  const quillRef = useRef(null);
   const lastEmittedRef = useRef(String(value ?? ""));
   const [plainTextCount, setPlainTextCount] = useState(() => countPlainText(value));
   const [correcting, setCorrecting] = useState(false);
   const [correctError, setCorrectError] = useState(null);
 
   useEffect(() => {
-    injectEditorCss();
+    injectQuillCss();
 
-    const initialHtml = String(value ?? "");
-    const editor = new EditorJS({
-      holder: editorId,
-      tools: {
-        list: { class: EditorList, inlineToolbar: true },
-        underline: { class: Underline },
-        strikethrough: { class: StrikethroughTool },
+    const quill = new Quill(holderRef.current, {
+      theme: "snow",
+      modules: {
+        toolbar: TOOLBAR_OPTIONS,
       },
-      inlineToolbar: ["bold", "italic", "underline", "strikethrough", "link"],
-      data: { blocks: htmlToEditorJsBlocks(initialHtml) },
+      formats: ["bold", "italic", "underline", "strike", "link", "list", "indent"],
       placeholder: placeholder || "",
-      minHeight: Math.max(Number(rows) || 3, 2) * 28,
-      onChange: async () => {
-        try {
-          const output = await editor.save();
-          const html = editorJsBlocksToHtml(output.blocks);
-          lastEmittedRef.current = html;
-          setPlainTextCount(countPlainText(html));
-          onChange?.({ target: { value: html } });
-        } catch {}
-      },
     });
 
-    editorRef.current = editor;
+    // Charger le HTML initial
+    const initialHtml = String(value ?? "");
+    if (initialHtml) {
+      quill.clipboard.dangerouslyPasteHTML(initialHtml);
+    }
+
+    quill.on("text-change", () => {
+      const html = normalizeQuillHtml(quill.root.innerHTML);
+      lastEmittedRef.current = html;
+      setPlainTextCount(countPlainText(html));
+      onChange?.({ target: { value: html } });
+    });
+
+    quillRef.current = quill;
 
     return () => {
-      editor.isReady.then(() => editor.destroy()).catch(() => {});
-      editorRef.current = null;
+      quillRef.current = null;
+      // Quill v2 n'a pas de destroy(), on nettoie le DOM manuellement
+      if (holderRef.current) {
+        const toolbar = holderRef.current.previousSibling;
+        if (toolbar?.classList?.contains("ql-toolbar")) toolbar.remove();
+        holderRef.current.className = "";
+        holderRef.current.removeAttribute("contenteditable");
+      }
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Sync external value changes (undo/redo, preset load)
+  // Sync valeur externe (undo/redo, chargement preset)
   useEffect(() => {
     const v = String(value ?? "");
     if (v === lastEmittedRef.current) return;
     lastEmittedRef.current = v;
-    editorRef.current?.isReady
-      .then(() => editorRef.current?.render({ blocks: htmlToEditorJsBlocks(v) }))
-      .catch(() => {});
+    if (quillRef.current) {
+      quillRef.current.clipboard.dangerouslyPasteHTML(v || "");
+    }
   }, [value]);
 
   const handleCorrect = async () => {
-    if (correcting || !editorRef.current) return;
+    if (correcting || !quillRef.current) return;
     setCorrecting(true);
     setCorrectError(null);
     try {
-      const output = await editorRef.current.save();
-      const html = editorJsBlocksToHtml(output.blocks);
+      const html = normalizeQuillHtml(quillRef.current.root.innerHTML);
       if (!html.trim()) return;
 
       const { data: { session } } = await supabase.auth.getSession();
@@ -382,7 +275,7 @@ function RichTextEditor({ showCount, onChange, value = "", rows = 3, placeholder
       if (!res.ok) throw new Error(data.error || "Erreur serveur");
 
       const corrected = data.html;
-      await editorRef.current.render({ blocks: htmlToEditorJsBlocks(corrected) });
+      quillRef.current.clipboard.dangerouslyPasteHTML(corrected || "");
       lastEmittedRef.current = corrected;
       setPlainTextCount(countPlainText(corrected));
       onChange?.({ target: { value: corrected } });
@@ -393,9 +286,15 @@ function RichTextEditor({ showCount, onChange, value = "", rows = 3, placeholder
     }
   };
 
+  const minHeight = `${Math.max(Number(rows) || 3, 2) * 1.65}rem`;
+
   return (
     <div>
-      <div className="ejs-wrapper border border-line rounded-xl bg-d-panel2 focus-within:border-line2 transition-colors overflow-hidden">
+      <div
+        className="ql-wrapper border border-line rounded-xl bg-d-panel2 focus-within:border-line2 transition-colors overflow-hidden"
+        style={{ "--ql-min-height": minHeight }}
+      >
+        {/* Toolbar Quill sera insérée ici par Quill avant holderRef */}
         <div className="flex items-center justify-end border-b border-line bg-d-panel2 px-2 py-1.5">
           <Tooltip label="Corriger l'orthographe et la grammaire avec l'IA">
             <button
@@ -410,11 +309,7 @@ function RichTextEditor({ showCount, onChange, value = "", rows = 3, placeholder
             </button>
           </Tooltip>
         </div>
-        <div
-          id={editorId}
-          className="px-2"
-          style={{ minHeight: `${Math.max(Number(rows) || 3, 2) * 1.6}rem`, fontFamily: "'DM Sans', sans-serif" }}
-        />
+        <div ref={holderRef} style={{ fontFamily: "'DM Sans', sans-serif" }} />
       </div>
       {showCount && (
         <div className="text-right text-[10px] text-d-fg4 mt-0.5 tabular-nums">{plainTextCount} car.</div>
@@ -489,4 +384,18 @@ export function Section({ title, children, defaultOpen = true, action }) {
       {open && <div className="p-4">{children}</div>}
     </div>
   );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Compat export (utilisé dans certains modules pour parser l'HTML stocké)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Convertit un HTML stocké en blocs Editor.js (rétrocompat). */
+export function htmlToEditorJsBlocks(html = "") {
+  return [{ type: "paragraph", data: { text: String(html || "") } }];
+}
+
+/** Convertit des blocs Editor.js en HTML (rétrocompat). */
+export function editorJsBlocksToHtml(blocks = []) {
+  return blocks.map((b) => b.data?.text || "").filter(Boolean).join("<br />");
 }
