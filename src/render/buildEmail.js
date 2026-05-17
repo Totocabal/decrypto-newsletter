@@ -478,7 +478,7 @@ function renderChart(data, assetMode, isLastSection = false) {
     const isLast = i === n - 1;
     const w = (isFirst || isLast) ? `${halfPct}%` : `${stepPct}%`;
     const align = isFirst ? "left" : isLast ? "right" : "center";
-    return `<td width="${w}" align="${align}" style="font-family:${FONTS.body}; font-size:11px; color:${EMAIL_THEME.textFaint}; letter-spacing:0.06em;">${escapeHtml(l)}</td>`;
+    return `<td class="em-chart-label" width="${w}" align="${align}" style="font-family:${FONTS.body}; font-size:11px; color:${EMAIL_THEME.textFaint}; letter-spacing:0.06em; white-space:nowrap;">${escapeHtml(l)}</td>`;
   }).join("");
 
   return `
@@ -1196,7 +1196,8 @@ ${renderEmailFontFaces()}
     .em-event-text { word-break: break-word !important; overflow-wrap: break-word !important; }
     .em-cn-num { border-radius: 12px 12px 0 0 !important; }
     .em-cn-text { border-radius: 0 0 12px 12px !important; }
-    p, h1, h2, h3, td, div { word-break: break-word !important; overflow-wrap: break-word !important; }
+    p, h1, h2, h3, div { word-break: break-word !important; overflow-wrap: break-word !important; }
+    .em-chart-label { white-space: nowrap !important; word-break: keep-all !important; overflow-wrap: normal !important; }
   }
   @media only screen and (max-width: 380px) {
     .em-h1 { font-size: 28px !important; }
