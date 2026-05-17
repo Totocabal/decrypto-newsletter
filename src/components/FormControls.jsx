@@ -20,14 +20,31 @@ function injectEditorCss() {
   cssInjected = true;
   const style = document.createElement("style");
   style.textContent = `
-    .ejs-wrapper .codex-editor { font-family: 'DM Sans', sans-serif; color: #E4E4EC; }
-    .ejs-wrapper .codex-editor__redactor { padding-bottom: 4px !important; }
+    /* Base */
+    .ejs-wrapper .codex-editor { font-family: 'DM Sans', sans-serif; color: #E4E4EC; font-size: 15px; line-height: 1.65; }
+    .ejs-wrapper .codex-editor__redactor { padding-bottom: 8px !important; }
     .ejs-wrapper .ce-block__content { max-width: none !important; margin: 0 !important; }
-    .ejs-wrapper .ce-paragraph { font-size: 15px; line-height: 1.65; color: #E4E4EC; padding: 2px 0; }
-    .ejs-wrapper .ce-paragraph[data-placeholder]:empty::before { color: #888; }
-    .ejs-wrapper .ce-toolbar__plus { color: #888; }
+
+    /* Paragraphes */
+    .ejs-wrapper .ce-paragraph { font-size: 15px; line-height: 1.65; color: #E4E4EC; padding: 3px 0; }
+    .ejs-wrapper .ce-paragraph[data-placeholder]:empty::before { color: #555; }
+
+    /* Espacement entre blocs */
+    .ejs-wrapper .ce-block { padding: 1px 0; }
+    .ejs-wrapper .ce-block + .ce-block { margin-top: 4px; }
+
+    /* Listes */
+    .ejs-wrapper .cdx-list { color: #E4E4EC; font-size: 15px; line-height: 1.65; --spacing-s: 5px; --spacing-xs: 3px; }
+    .ejs-wrapper .cdx-list__item-content { color: #E4E4EC; font-size: 15px; line-height: 1.65; }
+    .ejs-wrapper .cdx-list__item:before { color: #E4E4EC; }
+
+    /* Masquer la liste de tâches */
+    [title="Checklist"] { display: none !important; }
+
+    /* Toolbar principale */
+    .ejs-wrapper .ce-toolbar__plus { color: #666; }
     .ejs-wrapper .ce-toolbar__plus:hover { color: #ccc; background: rgba(255,255,255,0.06); }
-    .ejs-wrapper .ce-toolbar__settings-btn { color: #888; }
+    .ejs-wrapper .ce-toolbar__settings-btn { color: #666; }
     .ejs-wrapper .ce-toolbar__settings-btn:hover { color: #ccc; background: rgba(255,255,255,0.06); }
     .ejs-wrapper .ce-toolbox { background: #1E1E22; border: 1px solid #2E2E36; border-radius: 10px; box-shadow: 0 4px 16px rgba(0,0,0,0.5); }
     .ejs-wrapper .ce-toolbox__button { color: #ccc; }
@@ -36,6 +53,8 @@ function injectEditorCss() {
     .ejs-wrapper .ce-settings { background: #1E1E22; border: 1px solid #2E2E36; border-radius: 10px; box-shadow: 0 4px 16px rgba(0,0,0,0.5); }
     .ejs-wrapper .ce-settings__button { color: #ccc; }
     .ejs-wrapper .ce-settings__button:hover { background: rgba(255,255,255,0.08); color: #fff; }
+
+    /* Toolbar inline (rendu hors wrapper, règles globales) */
     .ejs-wrapper .ce-inline-toolbar,
     .ce-inline-toolbar { background: #1E1E22 !important; border: 1px solid #2E2E36 !important; border-radius: 8px !important; box-shadow: 0 4px 20px rgba(0,0,0,0.6) !important; }
     .ejs-wrapper .ce-inline-tool,
@@ -50,10 +69,12 @@ function injectEditorCss() {
     .ce-inline-toolbar__line { border-color: #2E2E36 !important; }
     .ejs-wrapper .ce-inline-toolbar [contenteditable],
     .ce-inline-toolbar [contenteditable] { color: #ccc !important; border-color: #444 !important; background: #111 !important; border-radius: 4px !important; padding: 2px 6px !important; }
-    .ejs-wrapper .cdx-list { padding-left: 1.2em; color: #E4E4EC; font-size: 15px; line-height: 1.65; }
-    .ejs-wrapper .cdx-list__item { padding: 2px 0; }
+
+    /* Sélection et hover */
     .ejs-wrapper .ce-block--selected .ce-block__content { background: rgba(65,65,255,0.1); border-radius: 4px; }
     .ejs-wrapper .ce-block:hover { background: transparent; }
+
+    /* Menus popover / conversion */
     .ejs-wrapper .ce-conversion-toolbar { background: #1E1E22; border: 1px solid #2E2E36; border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.5); }
     .ejs-wrapper .ce-conversion-tool { color: #ccc; }
     .ejs-wrapper .ce-conversion-tool:hover,
