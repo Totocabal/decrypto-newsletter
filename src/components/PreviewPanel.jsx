@@ -2,8 +2,9 @@
 // Panneau d'aperçu — iframe pour rendu HTML, ou code brut, avec toggle device
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useState } from "react";
-import { Monitor, Smartphone, Maximize2, Minimize2 } from "lucide-react";
+import { useRef, useState } from "react";
+import { Monitor, Smartphone, Maximize2, Minimize2, Download } from "lucide-react";
+import html2canvas from "html2canvas";
 import { THEME } from "../config/theme.js";
 import { Tooltip } from "./Tooltip.jsx";
 
@@ -36,20 +37,60 @@ function DeviceToggle({ previewDevice, setPreviewDevice }) {
 
 export function PreviewPanel({ html, view, previewDevice, setPreviewDevice }) {
   const [fullscreen, setFullscreen] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const iframeRef = useRef(null);
+  const fullscreenIframeRef = useRef(null);
 
-  const iframeEl = (
-    <iframe
-      title="Aperçu newsletter"
-      srcDoc={html}
-      style={{
-        width: previewDevice === "mobile" ? "430px" : "100%",
-        maxWidth: previewDevice === "mobile" ? "100%" : "none",
-        height: "100%",
-        border: previewDevice === "mobile" ? `1px solid ${THEME.border}` : "none",
-        background: THEME.bgPage,
-        flexShrink: 0,
-      }}
-    />
+  const exportPng = async (ref) => {
+    const iframe = ref?.current;
+    if (!iframe?.contentDocument?.body) return;
+    setExporting(true);
+    try {
+      const body = iframe.contentDocument.body;
+      const canvas = await html2canvas(body, {
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: null,
+        scale: 2,
+        scrollX: 0,
+        scrollY: 0,
+        width: body.scrollWidth,
+        height: body.scrollHeight,
+        windowWidth: body.scrollWidth,
+        windowHeight: body.scrollHeight,
+      });
+      canvas.toBlob((blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `preview-${previewDevice}.png`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }, "image/png");
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const iframeStyle = {
+    width: previewDevice === "mobile" ? "430px" : "100%",
+    maxWidth: previewDevice === "mobile" ? "100%" : "none",
+    height: "100%",
+    border: previewDevice === "mobile" ? `1px solid ${THEME.border}` : "none",
+    background: THEME.bgPage,
+    flexShrink: 0,
+  };
+
+  const ExportButton = ({ targetRef }) => (
+    <Tooltip label="Exporter en PNG" side="bottom">
+      <button
+        onClick={() => exportPng(targetRef)}
+        disabled={exporting}
+        className="flex items-center justify-center p-1.5 text-d-fg4 hover:text-d-fg2 transition-colors rounded-full disabled:opacity-40"
+      >
+        <Download size={14} />
+      </button>
+    </Tooltip>
   );
 
   return (
@@ -58,7 +99,9 @@ export function PreviewPanel({ html, view, previewDevice, setPreviewDevice }) {
       <div className="flex h-[70vh] min-h-[420px] min-w-0 flex-col overflow-hidden rounded-2xl border border-line bg-d-panel xl:h-[calc(100vh-180px)]">
         {view === "preview" && (
           <div className="flex items-center justify-between border-b border-line px-3 py-2">
-            <div className="flex-1" />
+            <div className="flex flex-1 justify-start">
+              <ExportButton targetRef={iframeRef} />
+            </div>
             <DeviceToggle previewDevice={previewDevice} setPreviewDevice={setPreviewDevice} />
             <div className="flex flex-1 justify-end">
               <Tooltip label="Plein écran" side="bottom" align="right">
@@ -80,7 +123,7 @@ export function PreviewPanel({ html, view, previewDevice, setPreviewDevice }) {
               background: "radial-gradient(ellipse at top, rgba(65,65,255,0.05), transparent 60%), #0B0B0D",
             }}
           >
-            {iframeEl}
+            <iframe ref={iframeRef} title="Aperçu newsletter" srcDoc={html} style={iframeStyle} />
           </div>
         ) : (
           <pre
@@ -94,15 +137,14 @@ export function PreviewPanel({ html, view, previewDevice, setPreviewDevice }) {
 
       {/* Overlay plein écran */}
       {fullscreen && (
-        <div
-          className="fixed inset-0 z-50 flex flex-col"
-          style={{ background: "#0B0B0D" }}
-        >
+        <div className="fixed inset-0 z-50 flex flex-col" style={{ background: "#0B0B0D" }}>
           <div
             className="flex items-center justify-between border-b border-line px-4 py-2 flex-shrink-0"
             style={{ background: "#1E1E22" }}
           >
-            <div className="flex-1" />
+            <div className="flex flex-1 justify-start">
+              <ExportButton targetRef={fullscreenIframeRef} />
+            </div>
             <DeviceToggle previewDevice={previewDevice} setPreviewDevice={setPreviewDevice} />
             <div className="flex flex-1 justify-end">
               <Tooltip label="Quitter le plein écran" side="bottom" align="right">
@@ -121,18 +163,7 @@ export function PreviewPanel({ html, view, previewDevice, setPreviewDevice }) {
               background: "radial-gradient(ellipse at top, rgba(65,65,255,0.05), transparent 60%), #0B0B0D",
             }}
           >
-            <iframe
-              title="Aperçu newsletter plein écran"
-              srcDoc={html}
-              style={{
-                width: previewDevice === "mobile" ? "430px" : "100%",
-                maxWidth: previewDevice === "mobile" ? "100%" : "none",
-                height: "100%",
-                border: previewDevice === "mobile" ? `1px solid ${THEME.border}` : "none",
-                background: THEME.bgPage,
-                flexShrink: 0,
-              }}
-            />
+            <iframe ref={fullscreenIframeRef} title="Aperçu newsletter plein écran" srcDoc={html} style={iframeStyle} />
           </div>
         </div>
       )}
