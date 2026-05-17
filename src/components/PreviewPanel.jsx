@@ -47,26 +47,30 @@ export function PreviewPanel({ html, view, previewDevice, setPreviewDevice }) {
     setExporting(true);
     try {
       const body = iframe.contentDocument.body;
+      const bgColor = iframe.contentDocument.documentElement.style.backgroundColor
+        || iframe.contentDocument.body.style.backgroundColor
+        || "#15151A";
       const canvas = await html2canvas(body, {
         useCORS: true,
         allowTaint: true,
-        backgroundColor: null,
-        scale: 2,
+        backgroundColor: bgColor,
+        scale: 4,
         scrollX: 0,
         scrollY: 0,
         width: body.scrollWidth,
         height: body.scrollHeight,
         windowWidth: body.scrollWidth,
         windowHeight: body.scrollHeight,
+        logging: false,
       });
       canvas.toBlob((blob) => {
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = `preview-${previewDevice}.png`;
+        a.download = `preview-${previewDevice}.jpg`;
         a.click();
         URL.revokeObjectURL(url);
-      }, "image/png");
+      }, "image/jpeg", 0.95);
     } finally {
       setExporting(false);
     }
