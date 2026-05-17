@@ -590,7 +590,8 @@ function SectionCard({
             type="button"
             {...listeners}
             {...attributes}
-            className="flex-shrink-0 rounded-lg p-1 text-d-fg4 cursor-grab transition-colors hover:text-d-fg2 active:cursor-grabbing"
+            style={{ touchAction: "none" }}
+            className="flex-shrink-0 rounded-lg p-3 sm:p-1 text-d-fg4 cursor-grab transition-colors hover:text-d-fg2 active:cursor-grabbing"
           >
             <GripVertical size={14} />
           </button>

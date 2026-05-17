@@ -549,16 +549,17 @@ function SortableActiveItem({ entry, index, total, onMoveUp, onMoveDown, onRemov
   return (
     <div
       ref={setNodeRef}
+      {...listeners}
+      {...attributes}
       style={{
         transform: CSS.Transform.toString(transform),
         transition,
         opacity: isDragging ? 0 : 1,
+        touchAction: "none",
       }}
-      className="grid grid-cols-[20px_38px_38px_minmax(0,1fr)_auto] items-center gap-3 rounded-xl border border-line bg-d-panel px-3 py-3 transition-all hover:border-line2"
+      className="grid grid-cols-[20px_38px_38px_minmax(0,1fr)_auto] items-center gap-3 rounded-xl border border-line bg-d-panel px-3 py-3 transition-all hover:border-line2 cursor-grab active:cursor-grabbing"
     >
-      <button type="button" {...listeners} {...attributes} className="cursor-grab text-d-fg4 hover:text-d-fg2 transition-colors p-0 flex items-center">
-        <GripVertical size={15} />
-      </button>
+      <GripVertical size={15} className="text-d-fg4" />
       <span className="font-mono text-xs font-semibold text-d-cyan">
         {String(index + 1).padStart(2, "0")}
       </span>
