@@ -9,6 +9,11 @@ export const config = {
 
 const MAX_HTML_BYTES = 2 * 1024 * 1024;
 const SLICE_HEIGHT = 1400;
+const FALLBACK_FONT_STACK = "'Noto Sans Symbols 2', 'Noto Sans Symbols', 'Open Sans', Arial, sans-serif";
+const FALLBACK_FONT_LINKS = `
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Symbols&family=Noto+Sans+Symbols+2&display=swap" rel="stylesheet">`;
 
 function json(res, status, body) {
   res.statusCode = status;
@@ -67,6 +72,14 @@ function parseBody(req) {
   return req.body || {};
 }
 
+function injectScreenshotFallbackFonts(html) {
+  if (html.includes("Noto Sans Symbols 2")) return html;
+  if (html.includes("</head>")) {
+    return html.replace("</head>", `${FALLBACK_FONT_LINKS}</head>`);
+  }
+  return `${FALLBACK_FONT_LINKS}${html}`;
+}
+
 async function getExecutablePath() {
   if (process.env.PUPPETEER_EXECUTABLE_PATH) return process.env.PUPPETEER_EXECUTABLE_PATH;
   return chromium.executablePath();
@@ -86,7 +99,8 @@ export default async function handler(req, res) {
     if (!html || typeof html !== "string") {
       return json(res, 400, { error: "HTML manquant" });
     }
-    if (Buffer.byteLength(html, "utf8") > MAX_HTML_BYTES) {
+    const htmlForScreenshot = injectScreenshotFallbackFonts(html);
+    if (Buffer.byteLength(htmlForScreenshot, "utf8") > MAX_HTML_BYTES) {
       return json(res, 413, { error: "HTML trop volumineux pour l'export image" });
     }
 
@@ -103,8 +117,15 @@ export default async function handler(req, res) {
     });
 
     const page = await browser.newPage();
-    await page.setContent(html, { waitUntil: ["load", "networkidle0"], timeout: 20000 });
+    await page.setContent(htmlForScreenshot, { waitUntil: ["load", "networkidle0"], timeout: 20000 });
     await page.evaluate(async () => {
+      const fallback = "'Noto Sans Symbols 2', 'Noto Sans Symbols', 'Open Sans', Arial, sans-serif";
+      for (const el of document.querySelectorAll("[style*='font-family']")) {
+        const current = el.style.fontFamily || "";
+        if (current && !current.includes("Noto Sans Symbols")) {
+          el.style.fontFamily = `${current}, ${fallback}`;
+        }
+      }
       await document.fonts?.ready?.catch(() => {});
       await Promise.all(Array.from(document.images || []).map((img) => {
         if (img.complete && img.naturalWidth > 0) return Promise.resolve();
