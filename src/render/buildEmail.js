@@ -1177,25 +1177,33 @@ export function buildEmailHtml(state, options = {}) {
 <style>
 ${renderEmailFontFaces()}
   html, body { margin: 0 !important; padding: 0 !important; height: 100% !important; width: 100% !important; }
-  * { -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; }
+  * { -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; box-sizing: border-box; }
   table, td { mso-table-lspace: 0pt !important; mso-table-rspace: 0pt !important; border-collapse: collapse !important; border-spacing: 0 !important; }
-  img { -ms-interpolation-mode: bicubic; border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; display: block; }
+  img { -ms-interpolation-mode: bicubic; border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; display: block; max-width: 100%; }
   a { text-decoration: none; }
-  body { background-color: ${EMAIL_THEME.bgPage}; }
+  body { background-color: ${EMAIL_THEME.bgPage}; overflow-x: hidden; }
   @media only screen and (max-width: 640px) {
-    .em-container { width: 100% !important; max-width: 100% !important; }
+    .em-container { width: 100% !important; max-width: 100% !important; overflow-x: hidden !important; }
     .em-px { padding-left: 12px !important; padding-right: 12px !important; }
     .em-stack { display: block !important; width: 100% !important; box-sizing: border-box !important; border-right: none !important; }
     .em-stack-pad { padding-bottom: 16px !important; border-bottom: 1px solid ${EMAIL_THEME.borderStrong} !important; }
-    .em-h1 { font-size: 44px !important; line-height: 1 !important; }
-    .em-h2 { font-size: 24px !important; }
-    .em-event-day { font-size: 60px !important; }
-    .em-chart-value { font-size: 28px !important; }
+    .em-h1 { font-size: 36px !important; line-height: 1 !important; }
+    .em-h2 { font-size: 22px !important; }
+    .em-event-day { font-size: 52px !important; }
+    .em-chart-value { font-size: 26px !important; }
     .em-kpi-grid td { display: block !important; width: 100% !important; box-sizing: border-box !important; border-right: none !important; border-bottom: 1px solid ${EMAIL_THEME.border} !important; }
     .em-signal-col { display: block !important; width: 100% !important; box-sizing: border-box !important; border-right: none !important; border-bottom: 1px solid ${EMAIL_THEME.border} !important; }
     .em-event-text { word-break: break-word !important; overflow-wrap: break-word !important; }
     .em-cn-num { border-radius: 12px 12px 0 0 !important; }
     .em-cn-text { border-radius: 0 0 12px 12px !important; }
+    p, h1, h2, h3, td, div { word-break: break-word !important; overflow-wrap: break-word !important; }
+  }
+  @media only screen and (max-width: 380px) {
+    .em-h1 { font-size: 28px !important; }
+    .em-h2 { font-size: 18px !important; }
+    .em-event-day { font-size: 40px !important; }
+    .em-chart-value { font-size: 20px !important; }
+    .em-px { padding-left: 8px !important; padding-right: 8px !important; }
   }
   .em-event-bg { background-image: url('https://decrypto-newsletter.vercel.app/event-bg.png') !important; background-size: cover !important; background-position: center !important; }
 </style>
