@@ -322,7 +322,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                 className="flex shrink-0 items-center gap-2 rounded-full border border-line2 px-3 py-1.5 text-[11px] uppercase tracking-[0.18em] text-d-fg2 font-medium transition-colors hover:bg-d-panel2"
               >
                 <Settings size={12} />
-                Admin
+                <span className="hidden sm:inline">Admin</span>
               </button>
             )}
             <button
@@ -330,7 +330,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
               className="flex shrink-0 items-center gap-2 rounded-full border border-line2 px-3 py-1.5 text-[11px] uppercase tracking-[0.18em] text-d-fg2 font-medium transition-colors hover:bg-d-panel2"
             >
               <ImageIcon size={12} />
-              Images
+              <span className="hidden sm:inline">Images</span>
             </button>
             <div
               className="hidden max-w-[180px] truncate px-2 text-xs text-d-fg3 font-dm md:block"
@@ -343,7 +343,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
               className="flex shrink-0 items-center gap-2 rounded-full border border-line2 px-3 py-1.5 text-[11px] uppercase tracking-[0.18em] text-d-fg2 font-medium transition-colors hover:bg-d-panel2"
             >
               <LogOut size={12} />
-              Déconnexion
+              <span className="hidden sm:inline">Déconnexion</span>
             </button>
           </div>
         </div>

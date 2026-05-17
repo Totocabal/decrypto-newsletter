@@ -3,7 +3,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useState, useCallback } from "react";
-import { DndContext, DragOverlay, PointerSensor, useSensor, useSensors, closestCenter } from "@dnd-kit/core";
+import { DndContext, DragOverlay, PointerSensor, TouchSensor, useSensor, useSensors, closestCenter } from "@dnd-kit/core";
 import { SortableContext, useSortable, verticalListSortingStrategy, arrayMove } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import {
@@ -229,14 +229,14 @@ export function AdminPage({ onBack }) {
                 key={id}
                 type="button"
                 onClick={() => setTab(id)}
-                className={`flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.14em] font-semibold transition-colors ${
+                className={`flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 sm:px-3 text-[11px] uppercase tracking-[0.14em] font-semibold transition-colors ${
                   tab === id
                     ? "bg-white text-[#15151A]"
                     : "text-d-fg3 hover:text-d-fg2"
                 }`}
               >
                 <Icon size={12} />
-                {label}
+                <span className="hidden sm:inline">{label}</span>
               </button>
             ))}
           </div>
@@ -631,7 +631,10 @@ function DefaultSectionsEditor() {
   const [presetSaving, setPresetSaving] = useState(false);
   const [editingPresetId, setEditingPresetId] = useState(null);
   const [activeDragId, setActiveDragId] = useState(null);
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 8 } }),
+  );
   const editingPreset = presets.find((preset) => preset.id === editingPresetId) || null;
   const filteredTypes = allTypes.filter((type) =>
     SECTION_TYPES[type].label.toLowerCase().includes(blockSearch.trim().toLowerCase())

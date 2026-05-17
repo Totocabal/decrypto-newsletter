@@ -347,7 +347,7 @@ export function EditorPage({ newsletterId, onBack }) {
               />
             </Tooltip>
             {labels.length > 0 && (
-              <div className="relative flex flex-shrink-0 items-center gap-1.5">
+              <div className="relative hidden sm:flex flex-shrink-0 items-center gap-1.5">
                 {labels.filter((l) => labelIds.includes(l.id)).map((label) => (
                   <span
                     key={label.id}
@@ -412,7 +412,7 @@ export function EditorPage({ newsletterId, onBack }) {
               <button
                 onClick={handleUndo}
                 disabled={!undoCount || lockedByOther}
-                className="flex items-center justify-center p-2 text-d-fg3 hover:text-d-fg border border-line hover:border-line2 rounded-full disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                className="hidden sm:flex items-center justify-center p-2 text-d-fg3 hover:text-d-fg border border-line hover:border-line2 rounded-full disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
               >
                 <Undo2 size={14} />
               </button>
@@ -421,7 +421,7 @@ export function EditorPage({ newsletterId, onBack }) {
               <button
                 onClick={handleRedo}
                 disabled={!redoCount || lockedByOther}
-                className="flex items-center justify-center p-2 text-d-fg3 hover:text-d-fg border border-line hover:border-line2 rounded-full disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                className="hidden sm:flex items-center justify-center p-2 text-d-fg3 hover:text-d-fg border border-line hover:border-line2 rounded-full disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
               >
                 <Redo2 size={14} />
               </button>
