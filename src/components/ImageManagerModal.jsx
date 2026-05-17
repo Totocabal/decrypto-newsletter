@@ -472,15 +472,14 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId }) {
               <RefreshCw size={15} className={loading ? "animate-spin" : ""} />
             </button>
           </Tooltip>
-          <Tooltip label="Fermer" align="right">
-            <button
-              type="button"
-              onClick={onClose}
-              className="h-9 w-9 inline-flex items-center justify-center border border-line rounded-lg text-d-fg3 hover:text-d-fg hover:border-line2 transition-colors"
-            >
-              <X size={16} />
-            </button>
-          </Tooltip>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Fermer"
+            className="h-9 w-9 inline-flex items-center justify-center border border-line rounded-lg text-d-fg3 hover:text-d-fg hover:border-line2 transition-colors"
+          >
+            <X size={16} />
+          </button>
         </div>
       </header>
 
