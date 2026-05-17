@@ -125,36 +125,15 @@ function injectQuillCss() {
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Nettoie le HTML interne de Quill v2 pour produire du HTML standard :
- * - Supprime les <span class="ql-ui"> (puces/numéros injectés par Quill)
- * - Supprime data-list et autres attributs Quill sur les <li>
- * - Retourne "" si le contenu est vide (<p><br></p>)
+ * Récupère le HTML sémantique depuis une instance Quill v2.
+ * getSemanticHTML() produit du HTML standard avec <ol>/<ul>/<li> corrects,
+ * contrairement à quill.root.innerHTML qui utilise data-list et ql-ui spans.
+ * Retourne "" si le contenu est vide.
  */
-function cleanQuillHtml(html = "") {
-  const trimmed = (html || "").trim();
-  if (!trimmed || trimmed === "<p><br></p>") return "";
-  if (typeof document === "undefined") return trimmed;
-
-  const doc = new DOMParser().parseFromString(trimmed, "text/html");
-
-  // Supprimer les spans UI de Quill (puces / compteurs)
-  doc.querySelectorAll(".ql-ui").forEach((el) => el.remove());
-
-  // Nettoyer les <li> : supprimer data-list et class
-  doc.querySelectorAll("li[data-list]").forEach((li) => {
-    li.removeAttribute("data-list");
-    li.removeAttribute("class");
-  });
-
-  // Supprimer les classes Quill restantes sur les autres éléments
-  doc.querySelectorAll("[class^='ql-']").forEach((el) => el.removeAttribute("class"));
-
-  return doc.body.innerHTML;
-}
-
-/** Quill émet <p><br></p> quand l'éditeur est vide → on normalise vers "". */
-function normalizeQuillHtml(html = "") {
-  return cleanQuillHtml(html);
+function getCleanHtml(quill) {
+  const html = quill.getSemanticHTML().trim();
+  if (!html || html === "<p><br></p>" || html === "<p></p>") return "";
+  return html;
 }
 
 function countPlainText(html = "") {
@@ -250,7 +229,7 @@ function RichTextEditor({ showCount, onChange, value = "", rows = 3, placeholder
     }
 
     quill.on("text-change", () => {
-      const html = normalizeQuillHtml(quill.root.innerHTML);
+      const html = getCleanHtml(quill);
       lastEmittedRef.current = html;
       setPlainTextCount(countPlainText(html));
       onChange?.({ target: { value: html } });
@@ -285,7 +264,7 @@ function RichTextEditor({ showCount, onChange, value = "", rows = 3, placeholder
     setCorrecting(true);
     setCorrectError(null);
     try {
-      const html = normalizeQuillHtml(quillRef.current.root.innerHTML);
+      const html = getCleanHtml(quillRef.current);
       if (!html.trim()) return;
 
       const { data: { session } } = await supabase.auth.getSession();
