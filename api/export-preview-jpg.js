@@ -115,13 +115,32 @@ export default async function handler(req, res) {
       await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     });
 
-    const target = await page.$(".em-container");
-    if (!target) throw new Error("Conteneur de prévisualisation introuvable");
+    const metrics = await page.evaluate(() => {
+      const target = document.querySelector(".em-container");
+      if (!target) return null;
+      const rect = target.getBoundingClientRect();
+      return {
+        x: Math.max(0, Math.floor(rect.left + window.scrollX)),
+        y: Math.max(0, Math.floor(rect.top + window.scrollY)),
+        width: Math.ceil(Math.max(rect.width, target.scrollWidth)),
+        height: Math.ceil(Math.max(rect.height, target.scrollHeight)),
+      };
+    });
+    if (!metrics) throw new Error("Conteneur de prévisualisation introuvable");
 
-    const buffer = await target.screenshot({
+    await page.setViewport({
+      width: Math.max(viewportWidth, metrics.width),
+      height: Math.min(Math.max(metrics.height, 1200), 16000),
+      deviceScaleFactor: 2,
+    });
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    const buffer = await page.screenshot({
       type: "jpeg",
       quality: 95,
       omitBackground: false,
+      captureBeyondViewport: true,
+      clip: metrics,
     });
 
     res.statusCode = 200;
