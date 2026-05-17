@@ -4,8 +4,8 @@
 
 import { useRef, useState } from "react";
 import { Monitor, Smartphone, Maximize2, Minimize2, Download } from "lucide-react";
-import html2canvas from "html2canvas";
 import { THEME } from "../config/theme.js";
+import { supabase } from "../lib/supabase.js";
 import { Tooltip } from "./Tooltip.jsx";
 
 function DeviceToggle({ previewDevice, setPreviewDevice }) {
@@ -41,84 +41,39 @@ export function PreviewPanel({ html, view, previewDevice, setPreviewDevice }) {
   const iframeRef = useRef(null);
   const fullscreenIframeRef = useRef(null);
 
-  const waitForIframeReady = async (iframe) => {
-    const doc = iframe?.contentDocument;
-    if (!doc?.body) return;
-
-    if (doc.readyState !== "complete") {
-      await new Promise((resolve) => {
-        iframe.addEventListener("load", resolve, { once: true });
-        setTimeout(resolve, 1500);
-      });
-    }
-
-    await doc.fonts?.ready?.catch(() => {});
-
-    const images = Array.from(doc.images || []);
-    await Promise.all(images.map((img) => {
-      if (img.complete && img.naturalWidth > 0) return Promise.resolve();
-      if (img.decode) return img.decode().catch(() => {});
-      return new Promise((resolve) => {
-        img.onload = resolve;
-        img.onerror = resolve;
-      });
-    }));
-
-    const backgroundUrls = Array.from(doc.querySelectorAll("*"))
-      .map((el) => doc.defaultView.getComputedStyle(el).backgroundImage)
-      .flatMap((bg) => Array.from(bg.matchAll(/url\(["']?([^"')]+)["']?\)/g), (match) => match[1]))
-      .filter(Boolean);
-
-    await Promise.all([...new Set(backgroundUrls)].map((url) => new Promise((resolve) => {
-      const img = new Image();
-      img.crossOrigin = "anonymous";
-      img.onload = resolve;
-      img.onerror = resolve;
-      img.src = url;
-    })));
-
-    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-  };
-
-  const exportJpg = async (ref) => {
-    const iframe = ref?.current;
-    if (!iframe?.contentDocument?.body) return;
+  const exportJpg = async () => {
     setExporting(true);
     try {
-      await waitForIframeReady(iframe);
+      const { data, error } = await supabase.auth.getSession();
+      if (error) throw error;
+      const accessToken = data?.session?.access_token;
+      if (!accessToken) throw new Error("Session expirée. Reconnecte-toi puis réessaie.");
 
-      const doc = iframe.contentDocument;
-      const target = doc.querySelector(".em-container") || doc.body;
-      const bgColor = doc.documentElement.style.backgroundColor
-        || doc.body.style.backgroundColor
-        || "#15151A";
-
-      const rect = target.getBoundingClientRect();
-      const width = Math.ceil(Math.max(target.scrollWidth, rect.width));
-      const height = Math.ceil(Math.max(target.scrollHeight, rect.height));
-
-      const canvas = await html2canvas(target, {
-        useCORS: true,
-        allowTaint: false,
-        backgroundColor: bgColor,
-        scale: 3,
-        scrollX: 0,
-        scrollY: 0,
-        width,
-        height,
-        windowWidth: width,
-        windowHeight: height,
-        logging: false,
+      const response = await fetch("/api/export-preview-jpg", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({ html, device: previewDevice }),
       });
-      canvas.toBlob((blob) => {
-        if (!blob) return;
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `preview-${previewDevice}.jpg`;
-        a.click();
-        URL.revokeObjectURL(url);
-      }, "image/jpeg", 0.95);
+
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}));
+        throw new Error(payload?.error || `Export JPG impossible (HTTP ${response.status})`);
+      }
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `preview-${previewDevice}.jpg`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (e) {
+      alert(e.message || "Export JPG impossible");
     } finally {
       setExporting(false);
     }
@@ -133,10 +88,10 @@ export function PreviewPanel({ html, view, previewDevice, setPreviewDevice }) {
     flexShrink: 0,
   };
 
-  const ExportButton = ({ targetRef }) => (
+  const ExportButton = () => (
     <Tooltip label="Exporter en JPG" side="bottom">
       <button
-        onClick={() => exportJpg(targetRef)}
+        onClick={exportJpg}
         disabled={exporting}
         className="flex items-center justify-center p-1.5 text-d-fg4 hover:text-d-fg2 transition-colors rounded-full disabled:opacity-40"
       >
@@ -152,7 +107,7 @@ export function PreviewPanel({ html, view, previewDevice, setPreviewDevice }) {
         {view === "preview" && (
           <div className="flex items-center justify-between border-b border-line px-3 py-2">
             <div className="flex flex-1 justify-start">
-              <ExportButton targetRef={iframeRef} />
+              <ExportButton />
             </div>
             <DeviceToggle previewDevice={previewDevice} setPreviewDevice={setPreviewDevice} />
             <div className="flex flex-1 justify-end">
@@ -195,7 +150,7 @@ export function PreviewPanel({ html, view, previewDevice, setPreviewDevice }) {
             style={{ background: "#1E1E22" }}
           >
             <div className="flex flex-1 justify-start">
-              <ExportButton targetRef={fullscreenIframeRef} />
+              <ExportButton />
             </div>
             <DeviceToggle previewDevice={previewDevice} setPreviewDevice={setPreviewDevice} />
             <div className="flex flex-1 justify-end">
