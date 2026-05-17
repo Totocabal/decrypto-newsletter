@@ -12,7 +12,7 @@ export function Wordmark({ size = 18 }) {
         gap: 0,
       }}
     >
-      <span style={{ color: "#FFFFFF" }}>Decrypto</span>
+      <span style={{ color: "#FFFFFF" }}>decrypto</span>
       <span
         style={{
           background:
