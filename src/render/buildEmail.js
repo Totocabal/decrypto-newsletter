@@ -256,7 +256,7 @@ function buildChartSvg(points, assetMode, {
     <text x="${clampX(loPt[0], priceLow)}" y="${Math.min(H - 4, loPt[1] + 16)}" font-family="${FONT}" font-size="11" font-weight="600" fill="#FF4B28" text-anchor="middle">${escapeHtml(priceLow)}</text>`
     : "";
 
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="100%" height="${H}" preserveAspectRatio="none" style="display:block;">
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="100%" style="display:block; width:100%; height:auto;" preserveAspectRatio="xMidYMid meet">
     <defs>
       <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
         <stop offset="0%" stop-color="#00FFFF" stop-opacity="0.4"/>
