@@ -41,30 +41,77 @@ export function PreviewPanel({ html, view, previewDevice, setPreviewDevice }) {
   const iframeRef = useRef(null);
   const fullscreenIframeRef = useRef(null);
 
-  const exportPng = async (ref) => {
+  const waitForIframeReady = async (iframe) => {
+    const doc = iframe?.contentDocument;
+    if (!doc?.body) return;
+
+    if (doc.readyState !== "complete") {
+      await new Promise((resolve) => {
+        iframe.addEventListener("load", resolve, { once: true });
+        setTimeout(resolve, 1500);
+      });
+    }
+
+    await doc.fonts?.ready?.catch(() => {});
+
+    const images = Array.from(doc.images || []);
+    await Promise.all(images.map((img) => {
+      if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+      if (img.decode) return img.decode().catch(() => {});
+      return new Promise((resolve) => {
+        img.onload = resolve;
+        img.onerror = resolve;
+      });
+    }));
+
+    const backgroundUrls = Array.from(doc.querySelectorAll("*"))
+      .map((el) => doc.defaultView.getComputedStyle(el).backgroundImage)
+      .flatMap((bg) => Array.from(bg.matchAll(/url\(["']?([^"')]+)["']?\)/g), (match) => match[1]))
+      .filter(Boolean);
+
+    await Promise.all([...new Set(backgroundUrls)].map((url) => new Promise((resolve) => {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.onload = resolve;
+      img.onerror = resolve;
+      img.src = url;
+    })));
+
+    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+  };
+
+  const exportJpg = async (ref) => {
     const iframe = ref?.current;
     if (!iframe?.contentDocument?.body) return;
     setExporting(true);
     try {
-      await iframe.contentDocument.fonts.ready;
-      const body = iframe.contentDocument.body;
-      const bgColor = iframe.contentDocument.documentElement.style.backgroundColor
-        || iframe.contentDocument.body.style.backgroundColor
+      await waitForIframeReady(iframe);
+
+      const doc = iframe.contentDocument;
+      const target = doc.querySelector(".em-container") || doc.body;
+      const bgColor = doc.documentElement.style.backgroundColor
+        || doc.body.style.backgroundColor
         || "#15151A";
-      const canvas = await html2canvas(body, {
+
+      const rect = target.getBoundingClientRect();
+      const width = Math.ceil(Math.max(target.scrollWidth, rect.width));
+      const height = Math.ceil(Math.max(target.scrollHeight, rect.height));
+
+      const canvas = await html2canvas(target, {
         useCORS: true,
-        allowTaint: true,
+        allowTaint: false,
         backgroundColor: bgColor,
-        scale: 4,
+        scale: 3,
         scrollX: 0,
         scrollY: 0,
-        width: body.scrollWidth,
-        height: body.scrollHeight,
-        windowWidth: body.scrollWidth,
-        windowHeight: body.scrollHeight,
+        width,
+        height,
+        windowWidth: width,
+        windowHeight: height,
         logging: false,
       });
       canvas.toBlob((blob) => {
+        if (!blob) return;
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
@@ -87,9 +134,9 @@ export function PreviewPanel({ html, view, previewDevice, setPreviewDevice }) {
   };
 
   const ExportButton = ({ targetRef }) => (
-    <Tooltip label="Exporter en PNG" side="bottom">
+    <Tooltip label="Exporter en JPG" side="bottom">
       <button
-        onClick={() => exportPng(targetRef)}
+        onClick={() => exportJpg(targetRef)}
         disabled={exporting}
         className="flex items-center justify-center p-1.5 text-d-fg4 hover:text-d-fg2 transition-colors rounded-full disabled:opacity-40"
       >
