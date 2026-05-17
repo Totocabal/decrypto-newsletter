@@ -36,13 +36,20 @@ function injectEditorCss() {
     .ejs-wrapper .ce-settings { background: #1E1E22; border: 1px solid #2E2E36; border-radius: 10px; box-shadow: 0 4px 16px rgba(0,0,0,0.5); }
     .ejs-wrapper .ce-settings__button { color: #ccc; }
     .ejs-wrapper .ce-settings__button:hover { background: rgba(255,255,255,0.08); color: #fff; }
-    .ejs-wrapper .ce-inline-toolbar { background: #1E1E22; border: 1px solid #2E2E36; border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.5); }
-    .ejs-wrapper .ce-inline-tool { color: #bbb; border-radius: 4px; }
-    .ejs-wrapper .ce-inline-tool:hover { background: rgba(255,255,255,0.1); color: #fff; }
-    .ejs-wrapper .ce-inline-tool--active { color: #fff; background: rgba(65,65,255,0.4); }
-    .ejs-wrapper .ce-inline-toolbar__toggler-and-button-wrapper { padding: 2px; }
-    .ejs-wrapper .ce-inline-toolbar__line { border-color: #2E2E36; }
-    .ejs-wrapper .ce-inline-toolbar [contenteditable] { color: #ccc; border-color: #444; background: #111; border-radius: 4px; padding: 2px 6px; }
+    .ejs-wrapper .ce-inline-toolbar,
+    .ce-inline-toolbar { background: #1E1E22 !important; border: 1px solid #2E2E36 !important; border-radius: 8px !important; box-shadow: 0 4px 20px rgba(0,0,0,0.6) !important; }
+    .ejs-wrapper .ce-inline-tool,
+    .ce-inline-tool { color: #bbb !important; border-radius: 4px !important; }
+    .ejs-wrapper .ce-inline-tool:hover,
+    .ce-inline-tool:hover { background: rgba(255,255,255,0.1) !important; color: #fff !important; }
+    .ejs-wrapper .ce-inline-tool--active,
+    .ce-inline-tool--active { color: #fff !important; background: rgba(65,65,255,0.4) !important; }
+    .ejs-wrapper .ce-inline-toolbar__toggler-and-button-wrapper,
+    .ce-inline-toolbar__toggler-and-button-wrapper { padding: 2px !important; }
+    .ejs-wrapper .ce-inline-toolbar__line,
+    .ce-inline-toolbar__line { border-color: #2E2E36 !important; }
+    .ejs-wrapper .ce-inline-toolbar [contenteditable],
+    .ce-inline-toolbar [contenteditable] { color: #ccc !important; border-color: #444 !important; background: #111 !important; border-radius: 4px !important; padding: 2px 6px !important; }
     .ejs-wrapper .cdx-list { padding-left: 1.2em; color: #E4E4EC; font-size: 15px; line-height: 1.65; }
     .ejs-wrapper .cdx-list__item { padding: 2px 0; }
     .ejs-wrapper .ce-block--selected .ce-block__content { background: rgba(65,65,255,0.1); border-radius: 4px; }

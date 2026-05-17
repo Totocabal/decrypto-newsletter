@@ -462,16 +462,15 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId }) {
           </div>
         </div>
         <div className="flex flex-shrink-0 items-center gap-2">
-          <Tooltip label="Rafraîchir">
-            <button
-              type="button"
-              onClick={refresh}
-              disabled={loading || uploading}
-              className="h-9 w-9 inline-flex items-center justify-center border border-line rounded-lg text-d-fg3 hover:text-d-fg hover:border-line2 disabled:opacity-50 transition-colors"
-            >
-              <RefreshCw size={15} className={loading ? "animate-spin" : ""} />
-            </button>
-          </Tooltip>
+          <button
+            type="button"
+            onClick={refresh}
+            disabled={loading || uploading}
+            aria-label="Rafraîchir"
+            className="h-9 w-9 inline-flex items-center justify-center border border-line rounded-lg text-d-fg3 hover:text-d-fg hover:border-line2 disabled:opacity-50 transition-colors"
+          >
+            <RefreshCw size={15} className={loading ? "animate-spin" : ""} />
+          </button>
           <button
             type="button"
             onClick={onClose}
