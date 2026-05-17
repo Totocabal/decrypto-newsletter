@@ -584,18 +584,16 @@ function SectionCard({
         }}
       >
       {/* Barre de titre */}
-      <div data-drag-header className="flex items-center gap-2 px-2 py-2">
-        <Tooltip label="Glisser pour déplacer" className="hidden sm:inline-flex">
-          <button
-            type="button"
-            {...listeners}
-            {...attributes}
-            style={{ touchAction: "none" }}
-            className="flex-shrink-0 rounded-lg p-3 sm:p-1 text-d-fg4 cursor-grab transition-colors hover:text-d-fg2 active:cursor-grabbing"
-          >
-            <GripVertical size={14} />
-          </button>
-        </Tooltip>
+      <div
+        data-drag-header
+        {...listeners}
+        {...attributes}
+        style={{ touchAction: "none" }}
+        className="flex items-center gap-2 px-2 py-2 cursor-grab active:cursor-grabbing"
+      >
+        <span className="flex-shrink-0 rounded-lg p-1 text-d-fg4">
+          <GripVertical size={14} />
+        </span>
         <button
           onClick={() => setOpen((v) => !v)}
           className="flex-1 flex items-center gap-2 min-w-0 text-left hover:bg-d-panel2 -mx-1 px-2 py-1 rounded-lg transition-colors"
