@@ -360,6 +360,20 @@ function initialsFromName(name = "") {
 
 function renderHero(data, isLastSection = false) {
   const kicker = String(data.kicker || "").trim();
+  const hasKickerRule = /^[\s━-]+/.test(kicker);
+  const kickerText = hasKickerRule ? kicker.replace(/^[\s━-]+/, "").trim() : kicker;
+  const kickerHtml = kicker
+    ? hasKickerRule
+      ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 28px;">
+          <tr>
+            <td width="22" valign="middle" style="padding-right:8px;">
+              <table role="presentation" width="22" cellpadding="0" cellspacing="0" border="0"><tr><td style="height:2px; line-height:2px; font-size:1px; background-color:${EMAIL_THEME.accentPrimary};">&nbsp;</td></tr></table>
+            </td>
+            <td valign="middle" style="font-family:${FONTS.body}; font-size:11px; letter-spacing:0.2em; color:${EMAIL_THEME.accentPrimary}; font-weight:600; text-transform:uppercase;">${escapeHtml(kickerText)}</td>
+          </tr>
+        </table>`
+      : `<p style="margin:0 0 28px; font-family:${FONTS.body}; font-size:11px; letter-spacing:0.2em; color:${EMAIL_THEME.accentPrimary}; font-weight:600; text-transform:uppercase;">${escapeHtml(kickerText)}</p>`
+    : "";
   const chips = (data.chips || []).map((c, i, arr) => {
     let labelHtml;
     if (c.type === "fear_greed" && c.label.includes(" · ")) {
@@ -382,7 +396,7 @@ function renderHero(data, isLastSection = false) {
   return `
     <tr>
       <td class="em-px" style="padding:56px 36px 40px;${sectionBottomBorder(isLastSection)}">
-        ${kicker ? `<p style="margin:0 0 28px; font-family:${FONTS.body}; font-size:11px; letter-spacing:0.2em; color:${EMAIL_THEME.accentPrimary}; font-weight:600; text-transform:uppercase;">${escapeHtml(kicker)}</p>` : ""}
+        ${kickerHtml}
         <h1 class="em-h1" style="margin:0; font-family:${FONTS.heading}; font-weight:700; font-size:60px; line-height:0.98; letter-spacing:-0.035em; color:${EMAIL_THEME.textPrimary};">
           ${escapeHtml(data.title_part1)}<br />
           ${escapeHtml(data.title_part2)}<span style="color:${EMAIL_THEME.accentPrimary};">${escapeHtml(data.title_highlight)}</span>
