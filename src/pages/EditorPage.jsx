@@ -179,18 +179,6 @@ export function EditorPage({ newsletterId, onBack }) {
     onBack();
   };
 
-  useEffect(() => {
-    if (!state || lockedByOther || !dirtySinceVersion) return;
-
-    const warnBeforeUnload = (event) => {
-      event.preventDefault();
-      event.returnValue = "";
-    };
-
-    window.addEventListener("beforeunload", warnBeforeUnload);
-    return () => window.removeEventListener("beforeunload", warnBeforeUnload);
-  }, [state, lockedByOther, dirtySinceVersion]);
-
   const handleCopy = async () => {
     const ok = await copyHtmlToClipboard(html);
     if (ok) {
