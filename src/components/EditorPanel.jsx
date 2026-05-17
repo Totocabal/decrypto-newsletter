@@ -449,10 +449,10 @@ export function EditorPanel({ state, setState }) {
               const label = type?.label || sec.type;
               const preview = (() => { const d = sec.data || {}; return d.title || d.label || d.kicker || ""; })();
               return (
-                <div style={{ background: "#1E1E22", border: "1px solid #444", borderRadius: 10, padding: "8px 12px", display: "flex", alignItems: "center", gap: 8, boxShadow: "0 8px 32px rgba(0,0,0,0.5)", cursor: "grabbing", opacity: 0.95 }}>
-                  <GripVertical size={14} style={{ color: "#555", flexShrink: 0 }} />
-                  <span style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.18em", fontWeight: 600, color: "#888", flexShrink: 0 }}>{label}</span>
-                  {preview && <span style={{ fontSize: 11, color: "#666", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>{preview}</span>}
+                <div style={{ background: "#1E1E22", border: "2px solid #FF00AA", boxShadow: "0 0 0 4px rgba(255,0,170,0.15), 0 8px 32px rgba(0,0,0,0.5)", borderRadius: 12, padding: "8px 12px", display: "flex", alignItems: "center", gap: 8, cursor: "grabbing" }}>
+                  <GripVertical size={14} style={{ color: "#FF00AA", flexShrink: 0 }} />
+                  <span style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.18em", fontWeight: 600, color: "#ccc", flexShrink: 0 }}>{label}</span>
+                  {preview && <span style={{ fontSize: 11, color: "#888", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>{preview}</span>}
                 </div>
               );
             })() : null}
