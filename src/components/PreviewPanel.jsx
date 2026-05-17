@@ -3,7 +3,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useRef, useState } from "react";
-import { Monitor, Smartphone, Maximize2, Minimize2, Download } from "lucide-react";
+import { Monitor, Smartphone, Maximize2, Minimize2, Download, Loader2 } from "lucide-react";
 import { THEME } from "../config/theme.js";
 import { supabase } from "../lib/supabase.js";
 import { Tooltip } from "./Tooltip.jsx";
@@ -89,13 +89,14 @@ export function PreviewPanel({ html, view, previewDevice, setPreviewDevice }) {
   };
 
   const ExportButton = () => (
-    <Tooltip label="Exporter en JPG" side="bottom">
+    <Tooltip label={exporting ? "Export JPG en cours" : "Exporter en JPG"} side="bottom">
       <button
         onClick={exportJpg}
         disabled={exporting}
-        className="flex items-center justify-center p-1.5 text-d-fg4 hover:text-d-fg2 transition-colors rounded-full disabled:opacity-40"
+        className="flex items-center justify-center gap-1.5 rounded-full px-2 py-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-d-fg4 transition-colors hover:text-d-fg2 disabled:cursor-wait disabled:opacity-70"
       >
-        <Download size={14} />
+        {exporting ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
+        {exporting && <span>Export</span>}
       </button>
     </Tooltip>
   );

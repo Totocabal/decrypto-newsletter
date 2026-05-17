@@ -1,12 +1,14 @@
 import chromium from "@sparticuz/chromium";
 import puppeteer from "puppeteer-core";
 import { createClient } from "@supabase/supabase-js";
+import sharp from "sharp";
 
 export const config = {
   maxDuration: 30,
 };
 
 const MAX_HTML_BYTES = 2 * 1024 * 1024;
+const SLICE_HEIGHT = 1400;
 
 function json(res, status, body) {
   res.statusCode = status;
@@ -94,7 +96,7 @@ export default async function handler(req, res) {
       defaultViewport: {
         width: viewportWidth,
         height: 1200,
-        deviceScaleFactor: 2,
+        deviceScaleFactor: 1,
       },
       executablePath: await getExecutablePath(),
       headless: chromium.headless,
@@ -130,18 +132,39 @@ export default async function handler(req, res) {
 
     await page.setViewport({
       width: Math.max(viewportWidth, metrics.width),
-      height: Math.min(Math.max(metrics.height, 1200), 16000),
-      deviceScaleFactor: 2,
+      height: Math.min(Math.max(metrics.height, 1200), SLICE_HEIGHT),
+      deviceScaleFactor: 1,
     });
     await new Promise((resolve) => setTimeout(resolve, 100));
 
-    const buffer = await page.screenshot({
-      type: "jpeg",
-      quality: 95,
-      omitBackground: false,
-      captureBeyondViewport: true,
-      clip: metrics,
-    });
+    const slices = [];
+    for (let y = 0; y < metrics.height; y += SLICE_HEIGHT) {
+      const height = Math.min(SLICE_HEIGHT, metrics.height - y);
+      const input = await page.screenshot({
+        type: "png",
+        omitBackground: false,
+        captureBeyondViewport: true,
+        clip: {
+          x: metrics.x,
+          y: metrics.y + y,
+          width: metrics.width,
+          height,
+        },
+      });
+      slices.push({ input, top: y, left: 0 });
+    }
+
+    const buffer = await sharp({
+      create: {
+        width: metrics.width,
+        height: metrics.height,
+        channels: 3,
+        background: "#0B0B0D",
+      },
+    })
+      .composite(slices)
+      .jpeg({ quality: 95, mozjpeg: true })
+      .toBuffer();
 
     res.statusCode = 200;
     res.setHeader("Content-Type", "image/jpeg");
