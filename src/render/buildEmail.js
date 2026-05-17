@@ -681,12 +681,15 @@ function renderMacro(data, number, assetMode, anchor = "", isLastSection = false
   const effectiveBgImg = bgImg || (assetMode === "external"
     ? "assets/macro-quote-bg.png"
     : "https://decrypto-newsletter.vercel.app/macro-quote-bg.png");
+  const quoteBorder = EMAIL_THEME === EMAIL_THEMES.light
+    ? "border:1px solid rgba(0,0,0,0.08);"
+    : "border:0;";
   const quoteBlock = data.quote ? `
     <!--[if mso]>
     <v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false" style="width:568px; border-radius:16px;">
       <v:fill type="frame" src="${escapeAttr(effectiveBgImg)}" color="#1a0c2e" />
       <v:textbox inset="0,0,0,0"><![endif]-->
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#1a0c2e; background-image:linear-gradient(135deg, rgba(135,1,255,0.22), rgba(255,0,170,0.12) 60%, rgba(255,75,40,0.08) 100%); border:1px solid rgba(255,255,255,0.08); border-radius:16px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#1a0c2e; background-image:linear-gradient(135deg, rgba(135,1,255,0.22), rgba(255,0,170,0.12) 60%, rgba(255,75,40,0.08) 100%); ${quoteBorder} border-radius:16px;">
       <tr><td background="${escapeAttr(effectiveBgImg)}" style="background-image:url('${escapeAttr(effectiveBgImg)}'); background-size:cover; background-position:center; border-radius:16px;">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
       <tr>
