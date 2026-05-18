@@ -545,7 +545,7 @@ export function AdminPage({ onBack }) {
 
         {/* ── Onglet Template newsletter ── */}
         <div className={tab !== "template" ? "hidden" : ""}>
-          <DefaultSectionsEditor />
+          <DefaultSectionsEditor currentProfile={currentProfile} active={tab === "template"} />
         </div>
 
         {/* ── Onglet Labels ── */}
@@ -678,7 +678,7 @@ function SortableActiveItem({ entry, index, total, onMoveUp, onMoveDown, onToggl
   );
 }
 
-function DefaultSectionsEditor() {
+function DefaultSectionsEditor({ currentProfile, active: editorVisible = true }) {
   const confirm = useConfirm();
   const prompt = usePrompt();
   const allTypes = Object.keys(SECTION_TYPES);
@@ -704,15 +704,59 @@ function DefaultSectionsEditor() {
   const [presetSaving, setPresetSaving] = useState(false);
   const [editingPresetId, setEditingPresetId] = useState(null);
   const [activeDragId, setActiveDragId] = useState(null);
+  const [accessRequest, setAccessRequest] = useState(null);
+  const [accessRequestVisible, setAccessRequestVisible] = useState(false);
   const activeListRef = useRef(null);
+  const accessRequestTimer = useRef(null);
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 8 } }),
   );
   const editingPreset = presets.find((preset) => preset.id === editingPresetId) || null;
+  const editingTemplateKey = editingPresetId ? `preset:${editingPresetId}` : "default";
+  const editingTemplateName = editingPreset?.name || "Template par défaut";
   const filteredTypes = allTypes.filter((type) =>
     SECTION_TYPES[type].label.toLowerCase().includes(blockSearch.trim().toLowerCase())
   );
+
+  useEffect(() => {
+    if (!editorVisible || !currentProfile?.id) return undefined;
+    const channel = supabase.channel(`template-edit-intent:${editingTemplateKey}`, {
+      config: { broadcast: { self: false } },
+    });
+
+    channel.on("broadcast", { event: "template-edit-intent" }, ({ payload }) => {
+      if (!payload || payload.userId === currentProfile.id) return;
+      setAccessRequest(payload);
+      setAccessRequestVisible(true);
+      if (accessRequestTimer.current) clearTimeout(accessRequestTimer.current);
+      accessRequestTimer.current = setTimeout(() => {
+        setAccessRequestVisible(false);
+        setTimeout(() => setAccessRequest(null), 220);
+      }, 5200);
+    });
+
+    channel.subscribe((status) => {
+      if (status !== "SUBSCRIBED") return;
+      void channel.send({
+        type: "broadcast",
+        event: "template-edit-intent",
+        payload: {
+          userId: currentProfile.id,
+          name: currentProfile.full_name || currentProfile.email || "Un autre utilisateur",
+          email: currentProfile.email || "",
+          templateName: editingTemplateName,
+          templateKey: editingTemplateKey,
+          at: new Date().toISOString(),
+        },
+      });
+    });
+
+    return () => {
+      if (accessRequestTimer.current) clearTimeout(accessRequestTimer.current);
+      void supabase.removeChannel(channel);
+    };
+  }, [currentProfile?.email, currentProfile?.full_name, currentProfile?.id, editingTemplateKey, editingTemplateName, editorVisible]);
 
   const loadPresets = useCallback(async () => {
     setPresetsLoading(true);
@@ -879,6 +923,29 @@ function DefaultSectionsEditor() {
 
   return (
     <section>
+      {accessRequest && (
+        <div
+          className={`fixed left-1/2 top-4 z-[80] w-[calc(100vw-32px)] max-w-xl -translate-x-1/2 rounded-2xl border border-d-pink/30 bg-[#221525]/95 px-4 py-3 shadow-2xl backdrop-blur transition-all duration-200 ${
+            accessRequestVisible ? "translate-y-0 opacity-100" : "-translate-y-3 opacity-0"
+          }`}
+          style={{ animation: accessRequestVisible ? "adminAccessBannerIn 180ms ease-out" : undefined }}
+        >
+          <div className="flex items-start gap-3">
+            <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-d-pink/15 text-d-pink">
+              <Megaphone size={15} />
+            </span>
+            <div className="min-w-0">
+              <div className="text-sm font-semibold text-d-fg" style={{ fontFamily: "'Sora', sans-serif" }}>
+                {accessRequest.name} souhaite éditer ce template
+              </div>
+              <div className="mt-0.5 text-xs leading-relaxed text-d-fg3">
+                Accès demandé sur <span className="font-semibold text-d-fg2">{accessRequest.templateName}</span>
+                {accessRequest.email ? ` · ${accessRequest.email}` : ""}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="mb-5 space-y-4">
         <div className="min-w-0">
           <h2 className="text-sm font-semibold text-d-fg mb-1" style={{ fontFamily: "'Sora', sans-serif" }}>

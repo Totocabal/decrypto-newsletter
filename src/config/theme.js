@@ -83,9 +83,10 @@ export const BRAND_LOGOS = {
 // les stacks de polices existantes. Outlook ignore @font-face → fallback Arial.
 export const FONTS = {
   // Police principale (titres, chiffres clés)
-  heading: "'Sora', Arial, sans-serif",
+  heading: "'Sora', Calibri, 'Trebuchet MS', Arial, sans-serif",
   // Police body
-  body: "'DM Sans', Arial, sans-serif",
+  body: "'Sora', Calibri, 'Trebuchet MS', Arial, sans-serif",
+  mono: "'Sora', Calibri, 'Trebuchet MS', Arial, sans-serif",
   // URLs des fontes Sora hostées sur le CDN Braze
   sora: {
     100: "https://cdn.braze.eu/appboy/communication/assets/font_assets/files/674095fb9216550091ffa745/original.ttf?1732285947",

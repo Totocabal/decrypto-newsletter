@@ -634,7 +634,7 @@ function renderSignals(data, number, anchor = "", isLastSection = false) {
           <tr>
             <td valign="top" width="42">
               <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-                <td width="28" height="28" align="center" valign="middle" bgcolor="${bg}" style="background-color:${bg}; border-radius:99px; color:${fg}; font-family:Arial, sans-serif; font-size:16px; font-weight:900; line-height:28px; text-shadow:0.45px 0 ${fg}, -0.45px 0 ${fg}, 0 0.45px ${fg}, 0 -0.45px ${fg};"><strong style="font-weight:900; color:${fg};">${arrow}</strong></td>
+                <td width="28" height="28" align="center" valign="middle" bgcolor="${bg}" style="background-color:${bg}; border-radius:99px; color:${fg}; font-family:${FONTS.heading}; font-size:16px; font-weight:900; line-height:28px; text-shadow:0.45px 0 ${fg}, -0.45px 0 ${fg}, 0 0.45px ${fg}, 0 -0.45px ${fg};"><strong style="font-weight:900; color:${fg};">${arrow}</strong></td>
               </tr></table>
             </td>
             <td valign="top">
@@ -891,8 +891,8 @@ function renderFocusItem(item, assetMode) {
 
     const primaryBtn = `<!--[if mso]>
             <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${escapeAttr(item.url || "#")}" style="height:46px; v-text-anchor:middle; width:200px;" arcsize="50%" stroke="f" fillcolor="${EMAIL_THEME.accentTertiary}">
-              <w:anchorlock/>
-              <center style="color:#ffffff; font-family:Arial, sans-serif; font-size:13px; font-weight:bold;">${ctaText}</center>
+                  <w:anchorlock/>
+                  <center style="color:#ffffff; font-family:${FONTS.heading}; font-size:13px; font-weight:bold;">${ctaText}</center>
             </v:roundrect>
             <![endif]-->
             <!--[if !mso]><!-->
@@ -1023,7 +1023,7 @@ function renderFocus(data, number, assetMode, anchor = "", isLastSection = false
         <!--[if mso]>
         <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${escapeAttr(data.cta_primary_url || "#")}" style="height:46px; v-text-anchor:middle; width:260px;" arcsize="50%" stroke="f" fillcolor="${EMAIL_THEME.accentTertiary}">
           <w:anchorlock/>
-          <center style="color:#ffffff; font-family:Arial, sans-serif; font-size:13px; font-weight:bold;">${escapeHtml(data.cta_primary_label)}</center>
+          <center style="color:#ffffff; font-family:${FONTS.heading}; font-size:13px; font-weight:bold;">${escapeHtml(data.cta_primary_label)}</center>
         </v:roundrect>
         <![endif]-->
         <!--[if !mso]><!-->
@@ -1249,7 +1249,7 @@ export function buildEmailHtml(state, options = {}) {
 <!--[if mso]>
 <noscript><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript>
 <style>
-  table, td, div, h1, h2, h3, p, a { font-family: Arial, sans-serif !important; }
+  table, td, div, h1, h2, h3, p, a { font-family: Calibri, 'Trebuchet MS', Arial, sans-serif !important; }
 </style>
 <![endif]-->
 <style>
