@@ -4,7 +4,7 @@
 
 import { THEME, EMAIL_THEMES, BRAND_LOGOS, FONTS } from "../config/theme.js";
 import { computeSectionNumber } from "../config/schema.js";
-import { CALLOUT_PICTOS_MAP, DEFAULT_PICTO_ID, DEFAULT_CALLOUT_COLOR, hexToRgb, buildPictoSvgHtml } from "../config/calloutPictos.js";
+import { CALLOUT_PICTOS_MAP, DEFAULT_PICTO_ID, DEFAULT_CALLOUT_COLOR } from "../config/calloutPictos.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
@@ -366,6 +366,29 @@ function initialsFromName(name = "") {
     .split(/\s+/)
     .filter(Boolean);
   return (words.length ? words.slice(0, 2).map((word) => word[0]).join("") : "CH").toUpperCase();
+}
+
+function hexToParts(hex = DEFAULT_CALLOUT_COLOR) {
+  const match = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return match
+    ? [parseInt(match[1], 16), parseInt(match[2], 16), parseInt(match[3], 16)]
+    : [0, 255, 255];
+}
+
+function mixHex(a, b, ratio) {
+  const ca = hexToParts(a);
+  const cb = hexToParts(b);
+  const mixed = ca.map((value, index) => Math.round(value + (cb[index] - value) * ratio));
+  return `#${mixed.map((value) => value.toString(16).padStart(2, "0")).join("")}`;
+}
+
+function readableTextOn(hex) {
+  const [r, g, b] = hexToParts(hex).map((value) => {
+    const v = value / 255;
+    return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+  });
+  const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  return luminance > 0.45 ? "#111318" : "#FFFFFF";
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -901,22 +924,22 @@ function renderFocusItem(item) {
     const isLightTheme = EMAIL_THEME.bgEmail === "#FFFFFF" || EMAIL_THEME.bgEmail === "#ffffff";
     const picto = CALLOUT_PICTOS_MAP[item.picto || DEFAULT_PICTO_ID] || CALLOUT_PICTOS_MAP[DEFAULT_PICTO_ID];
     const accentHex = item.callout_color || DEFAULT_CALLOUT_COLOR;
-    const accentRgb = hexToRgb(accentHex);
-    const calloutBg = isLightTheme ? `rgba(${accentRgb},0.08)` : `rgba(${accentRgb},0.12)`;
-    const calloutBorder = isLightTheme ? `rgba(${accentRgb},0.35)` : `rgba(${accentRgb},0.30)`;
+    const baseBg = isLightTheme ? "#FFFFFF" : EMAIL_THEME.bgEmail || "#0B0B0D";
+    const calloutBg = mixHex(baseBg, accentHex, isLightTheme ? 0.07 : 0.12);
+    const calloutBorder = mixHex(baseBg, accentHex, isLightTheme ? 0.32 : 0.36);
     const calloutAccent = accentHex;
-    const iconBg = isLightTheme ? `rgba(${accentRgb},0.12)` : `rgba(${accentRgb},0.18)`;
-    const iconBorder = isLightTheme ? `rgba(${accentRgb},0.4)` : `rgba(${accentRgb},0.38)`;
-    const iconStroke = accentHex;
+    const iconBg = accentHex;
+    const iconBorder = accentHex;
+    const iconTextColor = readableTextOn(accentHex);
     // Utilise directement textSecondary du thème courant pour éviter tout problème
     // de comparaison d'objet qui ferait utiliser la mauvaise couleur de corps.
     const bodyColor = EMAIL_THEME.textSecondary;
-    const footerBorder = `rgba(${accentRgb},0.25)`;
+    const footerBorder = mixHex(baseBg, accentHex, isLightTheme ? 0.24 : 0.28);
     const footerColor = EMAIL_THEME.textDim;
     const iconHtml = item.show_icon === false
       ? ""
       : `<td valign="middle" style="padding-right:12px;">
-                  <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:separate !important; border-spacing:0 !important;"><tr><td width="30" height="30" align="center" valign="middle" style="background:${iconBg}; border:1px solid ${iconBorder}; border-radius:8px;">${buildPictoSvgHtml(picto.svgInner, iconStroke, 16)}</td></tr></table>
+                  <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:separate !important; border-spacing:0 !important;"><tr><td width="30" height="30" align="center" valign="middle" bgcolor="${iconBg}" style="background-color:${iconBg}; border:1px solid ${iconBorder}; border-radius:8px; color:${iconTextColor}; font-family:${FONTS.heading}; font-size:14px; font-weight:800; line-height:30px;">${escapeHtml((picto.label || "i").slice(0, 1).toUpperCase())}</td></tr></table>
                 </td>`;
     const footerText = String(item.footer || "").trim();
     const footer = footerText
@@ -926,9 +949,9 @@ function renderFocusItem(item) {
             : escapeHtml(footerText)
         }</p>`
       : "";
-    return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:26px; background-color:${calloutBg}; border:1px solid ${calloutBorder}; border-radius:12px; border-collapse:separate !important; border-spacing:0 !important; overflow:hidden;">
+    return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${calloutBg}" style="margin-bottom:26px; background-color:${calloutBg}; border:1px solid ${calloutBorder}; border-radius:12px; border-collapse:separate !important; border-spacing:0 !important; overflow:hidden;">
         <tr>
-          <td style="padding:22px 24px; background-color:${calloutBg}; border-radius:12px;">
+          <td bgcolor="${calloutBg}" style="padding:22px 24px; background-color:${calloutBg}; border-radius:12px;">
             <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:12px;">
               <tr>
                 ${iconHtml}
