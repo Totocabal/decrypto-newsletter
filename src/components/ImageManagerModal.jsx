@@ -172,7 +172,7 @@ function CardLabelRow({ labelIds, labels }) {
   );
 }
 
-export function ImageManagerModal({ currentPath, onClose, onSelect, userId, isAdmin = false }) {
+export function ImageManagerModal({ currentPath, onClose, onSelect, onSelectMany, userId, isAdmin = false }) {
   const confirm = useConfirm();
   const { labels } = useLabels();
   const inputRef = useRef(null);
@@ -190,6 +190,8 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId, isAd
   const [selectedPaths, setSelectedPaths] = useState([]);
   const [detailImage, setDetailImage] = useState(null);
   const canSelect = typeof onSelect === "function";
+  const canSelectMany = typeof onSelectMany === "function";
+  const isGridView = viewMode !== "list";
 
   const usedBytes = images.reduce((total, image) => total + (image.metadata?.size || 0), 0);
   const remainingBytes = Math.max(0, MAX_IMAGE_STORAGE_BYTES - usedBytes);
@@ -204,6 +206,10 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId, isAd
 
   const deletableImages = filteredImages.filter((image) => image.canDelete !== false);
   const selectedCount = selectedPaths.length;
+  const selectedImages = selectedPaths
+    .map((path) => images.find((image) => image.path === path))
+    .filter(Boolean);
+  const selectedDeletableImages = selectedImages.filter((image) => image.canDelete !== false);
 
   const refresh = useCallback(async () => {
     if (!userId) return;
@@ -286,16 +292,17 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId, isAd
   };
 
   const handleDeleteSelected = async () => {
-    if (!selectedPaths.length) return;
-    if (!await confirm(`Supprimer ${selectedPaths.length} image(s) du gestionnaire ?`, { danger: true, confirmLabel: "Supprimer" })) return;
+    if (!selectedDeletableImages.length) return;
+    if (!await confirm(`Supprimer ${selectedDeletableImages.length} image(s) du gestionnaire ?`, { danger: true, confirmLabel: "Supprimer" })) return;
     setError(null);
     try {
-      await Promise.all(selectedPaths.map((path) => deleteImage(path)));
-      setImages((items) => items.filter((item) => !selectedPaths.includes(item.path)));
+      const pathsToDelete = selectedDeletableImages.map((image) => image.path);
+      await Promise.all(pathsToDelete.map((path) => deleteImage(path)));
+      setImages((items) => items.filter((item) => !pathsToDelete.includes(item.path)));
       setDetailImage((current) =>
-        current && selectedPaths.includes(current.path) ? null : current
+        current && pathsToDelete.includes(current.path) ? null : current
       );
-      setSelectedPaths([]);
+      setSelectedPaths((paths) => paths.filter((path) => !pathsToDelete.includes(path)));
     } catch (err) {
       setError(err.message || String(err));
     }
@@ -344,7 +351,7 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId, isAd
   };
 
   const toggleImageSelection = (image) => {
-    if (!image?.path || image.canDelete === false) return;
+    if (!image?.path) return;
     setSelectedPaths((paths) =>
       paths.includes(image.path)
         ? paths.filter((item) => item !== image.path)
@@ -353,17 +360,22 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId, isAd
   };
 
   const toggleSelectAll = () => {
+    const selectableImages = canSelectMany && isGridView ? filteredImages : deletableImages;
     setSelectedPaths((paths) =>
-      paths.length === deletableImages.length ? [] : deletableImages.map((image) => image.path)
+      paths.length === selectableImages.length ? [] : selectableImages.map((image) => image.path)
     );
   };
 
+  const handleUseSelected = () => {
+    if (!canSelectMany || !selectedImages.length) return;
+    onSelectMany(selectedImages.map((image) => ({ url: image.url, path: image.path, name: image.name })));
+  };
+
   const renderSelectionButton = (image, className = "") => {
-    if (image.canDelete === false) return null;
     const checked = selectedPaths.includes(image.path);
     const Icon = checked ? CheckSquare : Square;
     return (
-      <Tooltip label={checked ? "Désélectionner" : "Sélectionner pour suppression"}>
+      <Tooltip label={checked ? "Désélectionner" : "Sélectionner"}>
       <button
         type="button"
         onClick={(event) => {
@@ -399,6 +411,11 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId, isAd
         }`}
       >
         <div className="relative">
+          {multiSelect && (
+            <div className="absolute right-2 top-2 z-10">
+              {renderSelectionButton(image, compact ? "h-7 w-7" : "h-8 w-8")}
+            </div>
+          )}
           <Tooltip label={multiSelect ? (checked ? "Désélectionner" : "Sélectionner") : "Voir le détail"} className="w-full">
             <button
               type="button"
@@ -417,6 +434,9 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId, isAd
                 <span className="absolute top-3 left-3 h-7 w-7 rounded-full bg-d-pink text-white inline-flex items-center justify-center">
                   <Check size={15} />
                 </span>
+              )}
+              {checked && (
+                <span className="absolute inset-0 border-2 border-d-pink bg-d-pink/10" />
               )}
             </button>
           </Tooltip>
@@ -438,7 +458,7 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId, isAd
                   onClick={() => selectImage(image)}
                   className="flex-1 px-3 py-2 rounded-lg border border-line text-[10px] uppercase tracking-[0.18em] text-d-fg2 hover:text-d-fg hover:border-line2 transition-colors"
                 >
-                  Sélectionner
+                  {multiSelect ? (checked ? "Retirer" : "Ajouter") : "Sélectionner"}
                 </button>
               )}
               {image.canDelete !== false && (
@@ -737,21 +757,31 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId, isAd
               </button>
               {multiSelect && (
                 <>
+                  {canSelectMany && isGridView && (
+                    <button
+                      type="button"
+                      onClick={handleUseSelected}
+                      disabled={selectedCount === 0}
+                      className="h-10 flex-shrink-0 rounded-xl border border-d-pink bg-d-pink/10 px-3 text-[10px] uppercase tracking-[0.16em] text-d-pink transition-colors hover:bg-d-pink/15 disabled:opacity-40"
+                    >
+                      Utiliser ({selectedCount})
+                    </button>
+                  )}
                   <button
                     type="button"
                     onClick={toggleSelectAll}
-                    disabled={deletableImages.length === 0}
+                    disabled={(canSelectMany && isGridView ? filteredImages.length : deletableImages.length) === 0}
                     className="h-10 flex-shrink-0 rounded-xl border border-line px-3 text-[10px] uppercase tracking-[0.16em] text-d-fg3 transition-colors hover:border-line2 hover:text-d-fg2 disabled:opacity-40"
                   >
-                    {selectedCount === deletableImages.length && deletableImages.length > 0 ? "Tout retirer" : "Tout sélectionner"}
+                    {selectedCount === (canSelectMany && isGridView ? filteredImages.length : deletableImages.length) && selectedCount > 0 ? "Tout retirer" : "Tout sélectionner"}
                   </button>
                   <button
                     type="button"
                     onClick={handleDeleteSelected}
-                    disabled={selectedCount === 0}
+                    disabled={selectedDeletableImages.length === 0}
                     className="h-10 flex-shrink-0 rounded-xl border border-red-500/30 px-3 text-[10px] uppercase tracking-[0.16em] text-red-300 transition-colors hover:bg-red-950/20 disabled:opacity-40"
                   >
-                    Supprimer ({selectedCount})
+                    Supprimer ({selectedDeletableImages.length})
                   </button>
                 </>
               )}

@@ -1648,6 +1648,32 @@ function FocusEditor({ data, set }) {
             updateItem(imageManagerOpen, { image_url: url, image_path: path });
             setImageManagerOpen(null);
           }}
+          onSelectMany={(selectedImages) => {
+            const currentIndex = items.findIndex((it) => it.id === imageManagerOpen);
+            if (currentIndex < 0 || selectedImages.length === 0) return;
+            const [first, ...rest] = selectedImages;
+            const nextItems = items.map((it) =>
+              it.id === imageManagerOpen
+                ? {
+                    ...it,
+                    image_url: first.url,
+                    image_path: first.path,
+                    image_alt: it.image_alt || first.name || "Visuel d'illustration",
+                  }
+                : it
+            );
+            const extraImageItems = rest.map((image) => ({
+              id: focusNewId(),
+              type: "image",
+              image_url: image.url,
+              image_path: image.path,
+              image_alt: image.name || "Visuel d'illustration",
+              link_url: "",
+            }));
+            nextItems.splice(currentIndex + 1, 0, ...extraImageItems);
+            setItems(nextItems);
+            setImageManagerOpen(null);
+          }}
           userId={profile?.id}
           isAdmin={profile?.is_admin}
         />
