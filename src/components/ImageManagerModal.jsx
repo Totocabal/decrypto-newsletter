@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   Check,
   CheckSquare,
@@ -110,6 +110,66 @@ async function compressImage(file, options = {}) {
     type: "image/png",
     lastModified: Date.now(),
   });
+}
+
+/**
+ * Affiche les labels d'une image en mode pill si tout tient sur une ligne,
+ * sinon en pastilles colorées sans texte. Réserve toujours la même hauteur
+ * pour que le bouton poubelle reste aligné.
+ */
+function CardLabelRow({ labelIds, labels }) {
+  const containerRef = useRef(null);
+  const [dots, setDots] = useState(false);
+
+  const assigned = labelIds
+    .map((id) => labels.find((l) => l.id === id))
+    .filter(Boolean);
+
+  // Réinitialise en mode pill quand les labels changent
+  useEffect(() => {
+    setDots(false);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [labelIds.join(",")]);
+
+  // Mesure après chaque rendu en mode pill
+  useLayoutEffect(() => {
+    if (dots) return;
+    const el = containerRef.current;
+    if (!el) return;
+    if (el.scrollWidth > el.clientWidth + 1) setDots(true);
+  });
+
+  return (
+    // minHeight garantit l'alignement de la poubelle même sans labels
+    <div
+      ref={dots ? null : containerRef}
+      className="mt-1.5 flex gap-1 overflow-hidden"
+      style={{ minHeight: 20 }}
+    >
+      {assigned.map((lbl) =>
+        dots ? (
+          <Tooltip key={lbl.id} label={lbl.name}>
+            <span
+              className="h-2.5 w-2.5 rounded-full flex-shrink-0 mt-0.5"
+              style={{ background: lbl.color }}
+            />
+          </Tooltip>
+        ) : (
+          <span
+            key={lbl.id}
+            className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-[0.12em] flex-shrink-0 whitespace-nowrap"
+            style={{
+              background: lbl.color + "22",
+              border: `1px solid ${lbl.color}55`,
+              color: lbl.color,
+            }}
+          >
+            {lbl.name}
+          </span>
+        )
+      )}
+    </div>
+  );
 }
 
 export function ImageManagerModal({ currentPath, onClose, onSelect, userId, isAdmin = false }) {
@@ -370,28 +430,7 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId, isAd
               <span>{formatBytes(image.metadata?.size)}</span>
               {!compact && <span>{formatDate(image.updated_at || image.created_at)}</span>}
             </div>
-            {/* Pills de labels */}
-            {(imageLabelMap[image.path] || []).length > 0 && (
-              <div className="mt-1.5 flex flex-wrap gap-1">
-                {(imageLabelMap[image.path] || []).map((lid) => {
-                  const lbl = labels.find((l) => l.id === lid);
-                  if (!lbl) return null;
-                  return (
-                    <span
-                      key={lid}
-                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-[0.12em]"
-                      style={{
-                        background: lbl.color + "22",
-                        border: `1px solid ${lbl.color}55`,
-                        color: lbl.color,
-                      }}
-                    >
-                      {lbl.name}
-                    </span>
-                  );
-                })}
-              </div>
-            )}
+            <CardLabelRow labelIds={imageLabelMap[image.path] || []} labels={labels} />
             <div className="mt-3 flex items-center gap-2">
               {canSelect && (
                 <button
