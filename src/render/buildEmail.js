@@ -696,6 +696,7 @@ function renderMacroBars(data, isLastSection = false) {
 
 function renderCommentedNumber(data, anchor = "", isLastSection = false) {
   const unit = String(data.unit || "").trim();
+  const unitHtml = escapeHtml(unit).replace(/\s+/g, "&nbsp;");
   const isLightTheme = EMAIL_THEME === EMAIL_THEMES.light;
   const cardBg = isLightTheme ? "#FBF8F2" : "#101018";
   const cardBorder = isLightTheme ? "#E6E0D4" : EMAIL_THEME.borderSubtle;
@@ -715,7 +716,7 @@ function renderCommentedNumber(data, anchor = "", isLastSection = false) {
                 <tr>
                   <td class="em-stack em-cn-num" valign="middle" width="200" style="padding:24px; background-color:${numberPanelBg}; border-right:1px solid ${dividerColor}; border-radius:12px 0 0 12px; box-sizing:border-box;">
                     <p style="margin:0; font-family:${FONTS.body}; font-size:10px; letter-spacing:0.22em; text-transform:uppercase; color:${EMAIL_THEME.textDim}; font-weight:600;">${escapeHtml(data.kicker || "Le chiffre")}</p>
-                    <p style="margin:6px 0 0; font-family:${FONTS.heading}; font-weight:700; font-size:56px; line-height:0.95; letter-spacing:-0.045em; color:${numberColor};">${escapeHtml(data.value)}${unit ? ` <span style="font-size:22px; color:${EMAIL_THEME.textMuted}; font-weight:500; letter-spacing:0;">${escapeHtml(unit)}</span>` : ""}</p>
+                    <p style="margin:6px 0 0; font-family:${FONTS.heading}; font-weight:700; font-size:56px; line-height:0.95; letter-spacing:-0.045em; color:${numberColor};">${escapeHtml(data.value)}${unit ? ` <span style="display:inline-block; white-space:nowrap; font-size:22px; color:${EMAIL_THEME.textMuted}; font-weight:500; letter-spacing:0;">${unitHtml}</span>` : ""}</p>
                     ${data.caption ? `<p style="margin:8px 0 0; font-family:${FONTS.body}; font-size:12px; color:${EMAIL_THEME.textMuted}; letter-spacing:0.02em;">${escapeHtml(data.caption)}</p>` : ""}
                   </td>
                   <td class="em-stack em-cn-text" valign="middle" style="padding:24px 28px; box-sizing:border-box;">

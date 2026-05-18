@@ -16,7 +16,7 @@ import {
   getChartSvgFull,
   getGaugeSvgFull,
 } from "../render/buildEmail.js";
-import { CALLOUT_PICTOS_MAP, DEFAULT_PICTO_ID, DEFAULT_CALLOUT_COLOR, buildPictoSvgHtml } from "../config/calloutPictos.js";
+import { CALLOUT_PICTOS_MAP, DEFAULT_PICTO_ID, DEFAULT_CALLOUT_COLOR } from "../config/calloutPictos.js";
 
 // Densité PNG : 2× pour les écrans Retina + une marge de sécurité pour le zoom
 const PIXEL_RATIO = 2;
@@ -70,9 +70,14 @@ function svgToPngBlob(svgString, width, height) {
         1.0
       );
     };
-    img.onerror = (e) => reject(new Error("Chargement SVG → PNG échoué : " + e));
+    img.onerror = () => reject(new Error("Chargement SVG → PNG échoué"));
     img.src = dataUrl;
   });
+}
+
+function buildStandalonePictoSvg(svgInner, color, size = 32) {
+  const inner = svgInner.replace(/currentColor/g, color);
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${inner}</svg>`;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -157,7 +162,7 @@ async function buildPngAssets(state) {
   for (const item of calloutPictos) {
     const picto = CALLOUT_PICTOS_MAP[item.pictoId] || CALLOUT_PICTOS_MAP[DEFAULT_PICTO_ID];
     const stroke = readableTextOn(item.color);
-    const svg = buildPictoSvgHtml(picto.svgInner, stroke, 32);
+    const svg = buildStandalonePictoSvg(picto.svgInner, stroke, 32);
     assets[item.filename] = await svgToPngBlob(svg, 32, 32);
   }
 
