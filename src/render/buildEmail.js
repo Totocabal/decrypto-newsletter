@@ -634,7 +634,7 @@ function renderSignals(data, number, anchor = "", isLastSection = false) {
           <tr>
             <td valign="top" width="42">
               <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-                <td width="28" height="28" align="center" valign="middle" bgcolor="${bg}" style="background-color:${bg}; border-radius:99px; color:${fg}; font-family:Arial, sans-serif; font-size:15px; font-weight:900; line-height:28px;"><strong style="font-weight:900; color:${fg};">${arrow}</strong></td>
+                <td width="28" height="28" align="center" valign="middle" bgcolor="${bg}" style="background-color:${bg}; border-radius:99px; color:${fg}; font-family:Arial, sans-serif; font-size:16px; font-weight:900; line-height:28px; text-shadow:0.45px 0 ${fg}, -0.45px 0 ${fg}, 0 0.45px ${fg}, 0 -0.45px ${fg};"><strong style="font-weight:900; color:${fg};">${arrow}</strong></td>
               </tr></table>
             </td>
             <td valign="top">
