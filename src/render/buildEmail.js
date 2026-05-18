@@ -898,19 +898,21 @@ function renderFocusItem(item) {
   if (item.type === "callout") {
     const hasBody = plainTextFromRichText(item.body);
     if (!hasBody) return "";
-    const isLightTheme = EMAIL_THEME === EMAIL_THEMES.light;
+    const isLightTheme = EMAIL_THEME.bgEmail === "#FFFFFF" || EMAIL_THEME.bgEmail === "#ffffff";
     const picto = CALLOUT_PICTOS_MAP[item.picto || DEFAULT_PICTO_ID] || CALLOUT_PICTOS_MAP[DEFAULT_PICTO_ID];
     const accentHex = item.callout_color || DEFAULT_CALLOUT_COLOR;
     const accentRgb = hexToRgb(accentHex);
-    const calloutBg = isLightTheme ? `rgba(${accentRgb},0.06)` : `rgba(${accentRgb},0.04)`;
-    const calloutBorder = isLightTheme ? `rgba(${accentRgb},0.35)` : `rgba(${accentRgb},0.22)`;
+    const calloutBg = isLightTheme ? `rgba(${accentRgb},0.08)` : `rgba(${accentRgb},0.12)`;
+    const calloutBorder = isLightTheme ? `rgba(${accentRgb},0.35)` : `rgba(${accentRgb},0.30)`;
     const calloutAccent = accentHex;
-    const iconBg = isLightTheme ? `rgba(${accentRgb},0.12)` : `rgba(${accentRgb},0.16)`;
-    const iconBorder = isLightTheme ? `rgba(${accentRgb},0.4)` : `rgba(${accentRgb},0.32)`;
+    const iconBg = isLightTheme ? `rgba(${accentRgb},0.12)` : `rgba(${accentRgb},0.18)`;
+    const iconBorder = isLightTheme ? `rgba(${accentRgb},0.4)` : `rgba(${accentRgb},0.38)`;
     const iconStroke = accentHex;
-    const bodyColor = isLightTheme ? "#303641" : "#D8DDE6";
-    const footerBorder = `rgba(${accentRgb},0.2)`;
-    const footerColor = isLightTheme ? "#68717E" : EMAIL_THEME.textDim;
+    // Utilise directement textSecondary du thème courant pour éviter tout problème
+    // de comparaison d'objet qui ferait utiliser la mauvaise couleur de corps.
+    const bodyColor = EMAIL_THEME.textSecondary;
+    const footerBorder = `rgba(${accentRgb},0.25)`;
+    const footerColor = EMAIL_THEME.textDim;
     const iconHtml = item.show_icon === false
       ? ""
       : `<td valign="middle" style="padding-right:12px;">
@@ -926,7 +928,7 @@ function renderFocusItem(item) {
       : "";
     return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:26px; background-color:${calloutBg}; border:1px solid ${calloutBorder}; border-radius:12px; border-collapse:separate !important; border-spacing:0 !important; overflow:hidden;">
         <tr>
-          <td style="padding:22px 24px;">
+          <td style="padding:22px 24px; background-color:${calloutBg}; border-radius:12px;">
             <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:12px;">
               <tr>
                 ${iconHtml}
