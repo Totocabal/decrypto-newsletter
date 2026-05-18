@@ -157,12 +157,7 @@ function Router() {
   }
 
   if (!user) {
-    return (
-      <>
-        <UiThemeToggle uiTheme={uiTheme} setUiTheme={setUiTheme} />
-        <LoginPage />
-      </>
-    );
+    return <LoginPage />;
   }
 
   // Connecté mais pas encore de profil (le trigger côté Supabase met parfois
@@ -201,12 +196,7 @@ function Router() {
   }
 
   if (!profile.approved) {
-    return (
-      <>
-        <UiThemeToggle uiTheme={uiTheme} setUiTheme={setUiTheme} />
-        <PendingApprovalPage />
-      </>
-    );
+    return <PendingApprovalPage />;
   }
 
   // Approuvé mais sans mot de passe défini → on l'invite à en créer un.
@@ -214,33 +204,20 @@ function Router() {
   // et tous les anciens (avant cette feature). L'utilisateur peut skip — dans
   // ce cas le flag est marqué à true et la page n'apparaîtra plus.
   if (profile.password_set === false) {
-    return (
-      <>
-        <UiThemeToggle uiTheme={uiTheme} setUiTheme={setUiTheme} />
-        <SetPasswordPage onDone={refreshProfile} />
-      </>
-    );
+    return <SetPasswordPage onDone={refreshProfile} />;
   }
 
   // Approuvé → routes internes
   if (route.name === "editor") {
     return (
-      <>
-        <UiThemeToggle uiTheme={uiTheme} setUiTheme={setUiTheme} compact />
-        <EditorPage
-          newsletterId={route.id}
-          onBack={() => setRoute({ name: "list" })}
-        />
-      </>
+      <EditorPage
+        newsletterId={route.id}
+        onBack={() => setRoute({ name: "list" })}
+      />
     );
   }
   if (route.name === "admin") {
-    return (
-      <>
-        <UiThemeToggle uiTheme={uiTheme} setUiTheme={setUiTheme} compact />
-        <AdminPage onBack={() => setRoute({ name: "list" })} />
-      </>
-    );
+    return <AdminPage onBack={() => setRoute({ name: "list" })} />;
   }
   return (
     <>
