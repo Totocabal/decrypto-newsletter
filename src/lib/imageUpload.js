@@ -63,26 +63,64 @@ export async function deleteImage(path) {
 }
 
 export async function listImages(userId) {
-  if (!userId) return [];
-  const { data, error } = await supabase.storage
+  const { data: rootItems, error: rootError } = await supabase.storage
     .from(BUCKET)
-    .list(userId, {
+    .list("", {
       limit: 200,
       offset: 0,
       sortBy: { column: "updated_at", order: "desc" },
     });
 
-  if (error) throw new Error(error.message);
+  if (rootError) throw new Error(rootError.message);
 
-  return (data || [])
-    .filter((item) => item?.name && item.name !== ".emptyFolderPlaceholder" && item.name !== "braze-export")
-    .map((item) => {
-      const path = `${userId}/${item.name}`;
-      const { data: publicData } = supabase.storage.from(BUCKET).getPublicUrl(path);
-      return {
+  const images = [];
+  const folders = [];
+
+  for (const item of rootItems || []) {
+    if (!item?.name || item.name === ".emptyFolderPlaceholder" || item.name === "braze-export") continue;
+    if (item.metadata) {
+      const { data: publicData } = supabase.storage.from(BUCKET).getPublicUrl(item.name);
+      images.push({
         ...item,
-        path,
+        path: item.name,
+        ownerId: null,
+        canDelete: false,
         url: publicData.publicUrl,
-      };
-    });
+      });
+    } else {
+      folders.push(item.name);
+    }
+  }
+
+  for (const folder of folders) {
+    const { data, error } = await supabase.storage
+      .from(BUCKET)
+      .list(folder, {
+        limit: 200,
+        offset: 0,
+        sortBy: { column: "updated_at", order: "desc" },
+      });
+
+    if (error) throw new Error(error.message);
+
+    (data || [])
+      .filter((item) => item?.name && item.name !== ".emptyFolderPlaceholder")
+      .forEach((item) => {
+        const path = `${folder}/${item.name}`;
+        const { data: publicData } = supabase.storage.from(BUCKET).getPublicUrl(path);
+        images.push({
+          ...item,
+          path,
+          ownerId: folder,
+          canDelete: folder === userId,
+          url: publicData.publicUrl,
+        });
+      });
+  }
+
+  return images.sort((a, b) => {
+    const aTime = new Date(a.updated_at || a.created_at || 0).getTime();
+    const bTime = new Date(b.updated_at || b.created_at || 0).getTime();
+    return bTime - aTime;
+  });
 }

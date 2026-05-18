@@ -124,6 +124,7 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId }) {
   const usedBytes = images.reduce((total, image) => total + (image.metadata?.size || 0), 0);
   const remainingBytes = Math.max(0, MAX_IMAGE_STORAGE_BYTES - usedBytes);
   const usedPercent = Math.min(100, (usedBytes / MAX_IMAGE_STORAGE_BYTES) * 100);
+  const deletableImages = images.filter((image) => image.canDelete !== false);
   const selectedCount = selectedPaths.length;
 
   const refresh = useCallback(async () => {
@@ -247,7 +248,7 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId }) {
 
   const selectImage = (image) => {
     if (multiSelect) {
-      toggleImageSelection(image.path);
+      toggleImageSelection(image);
       return;
     }
     if (canSelect) onSelect({ url: image.url, path: image.path });
@@ -255,27 +256,29 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId }) {
 
   const openImageDetails = (image) => {
     if (multiSelect) {
-      toggleImageSelection(image.path);
+      toggleImageSelection(image);
       return;
     }
     setDetailImage(image);
   };
 
-  const toggleImageSelection = (path) => {
+  const toggleImageSelection = (image) => {
+    if (!image?.path || image.canDelete === false) return;
     setSelectedPaths((paths) =>
-      paths.includes(path)
-        ? paths.filter((item) => item !== path)
-        : [...paths, path]
+      paths.includes(image.path)
+        ? paths.filter((item) => item !== image.path)
+        : [...paths, image.path]
     );
   };
 
   const toggleSelectAll = () => {
     setSelectedPaths((paths) =>
-      paths.length === images.length ? [] : images.map((image) => image.path)
+      paths.length === deletableImages.length ? [] : deletableImages.map((image) => image.path)
     );
   };
 
   const renderSelectionButton = (image, className = "") => {
+    if (image.canDelete === false) return null;
     const checked = selectedPaths.includes(image.path);
     const Icon = checked ? CheckSquare : Square;
     return (
@@ -284,7 +287,7 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId }) {
         type="button"
         onClick={(event) => {
           event.stopPropagation();
-          toggleImageSelection(image.path);
+          toggleImageSelection(image);
         }}
         className={`inline-flex items-center justify-center rounded-lg border transition-colors ${
           checked
@@ -355,15 +358,17 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId }) {
                   Sélectionner
                 </button>
               )}
-              <Tooltip label="Supprimer">
-                <button
-                  type="button"
-                  onClick={() => handleDelete(image)}
-                  className="h-8 w-8 inline-flex items-center justify-center rounded-lg border border-line text-d-fg4 hover:text-red-400 hover:border-red-500/30 hover:bg-red-950/20 transition-colors"
-                >
-                  <Trash2 size={13} />
-                </button>
-              </Tooltip>
+              {image.canDelete !== false && (
+                <Tooltip label="Supprimer">
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(image)}
+                    className="h-8 w-8 inline-flex items-center justify-center rounded-lg border border-line text-d-fg4 hover:text-red-400 hover:border-red-500/30 hover:bg-red-950/20 transition-colors"
+                  >
+                    <Trash2 size={13} />
+                  </button>
+                </Tooltip>
+              )}
             </div>
           </div>
         )}
@@ -372,7 +377,7 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId }) {
             <span className="text-[10px] text-d-fg4 truncate">{formatBytes(image.metadata?.size)}</span>
             {(multiSelect || selectedPaths.includes(image.path)) ? (
               renderSelectionButton(image, "h-7 w-7 flex-shrink-0")
-            ) : (
+            ) : image.canDelete !== false ? (
               <Tooltip label="Supprimer">
                 <button
                   type="button"
@@ -382,7 +387,7 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId }) {
                   <Trash2 size={12} />
                 </button>
               </Tooltip>
-            )}
+            ) : null}
           </div>
         )}
       </article>
@@ -433,15 +438,17 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId }) {
               Sélectionner
             </button>
           )}
-          <Tooltip label="Supprimer" align="right">
-            <button
-              type="button"
-              onClick={() => handleDelete(image)}
-              className="h-9 w-9 inline-flex items-center justify-center rounded-lg border border-line text-d-fg4 hover:text-red-400 hover:border-red-500/30 hover:bg-red-950/20 transition-colors"
-            >
-              <Trash2 size={14} />
-            </button>
-          </Tooltip>
+          {image.canDelete !== false && (
+            <Tooltip label="Supprimer" align="right">
+              <button
+                type="button"
+                onClick={() => handleDelete(image)}
+                className="h-9 w-9 inline-flex items-center justify-center rounded-lg border border-line text-d-fg4 hover:text-red-400 hover:border-red-500/30 hover:bg-red-950/20 transition-colors"
+              >
+                <Trash2 size={14} />
+              </button>
+            </Tooltip>
+          )}
         </div>
       </article>
     );
@@ -631,10 +638,10 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId }) {
                   <button
                     type="button"
                     onClick={toggleSelectAll}
-                    disabled={images.length === 0}
+                    disabled={deletableImages.length === 0}
                     className="h-10 flex-shrink-0 rounded-xl border border-line px-3 text-[10px] uppercase tracking-[0.16em] text-d-fg3 transition-colors hover:border-line2 hover:text-d-fg2 disabled:opacity-40"
                   >
-                    {selectedCount === images.length && images.length > 0 ? "Tout retirer" : "Tout sélectionner"}
+                    {selectedCount === deletableImages.length && deletableImages.length > 0 ? "Tout retirer" : "Tout sélectionner"}
                   </button>
                   <button
                     type="button"
