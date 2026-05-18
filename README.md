@@ -1,358 +1,869 @@
 # Décrypto — Newsletter Editor
 
-Éditeur collaboratif de newsletters HTML pour **Décrypto**, l'hebdo crypto de Coinhouse. Construit avec React + Vite côté front, **Supabase** (Postgres + Auth + Storage + Realtime) côté backend, déployé sur **Vercel**.
+Éditeur collaboratif de newsletters HTML pour **Décrypto**, l'hebdo crypto de Coinhouse. React 18 + Vite 5 côté front, **Supabase** (Postgres + Auth + Storage + Realtime) côté backend, déployé sur **Vercel**.
 
 ---
 
 ## Table des matières
 
 1. [Stack technique](#stack-technique)
-2. [Fonctionnalités](#fonctionnalités)
-3. [Architecture](#architecture)
+2. [Architecture des fichiers](#architecture-des-fichiers)
+3. [Modèle de données éditeur](#modèle-de-données-éditeur)
 4. [Blocs disponibles](#blocs-disponibles)
-5. [Système d'export](#système-dexport)
-6. [Collaboration en temps réel](#collaboration-en-temps-réel)
-7. [Gestion des images](#gestion-des-images)
-8. [Système de labels](#système-de-labels)
-9. [Schéma de base de données](#schéma-de-base-de-données)
-10. [Setup local](#setup-local)
-11. [Déploiement Vercel](#déploiement-vercel)
-12. [Scripts](#scripts)
+5. [Composants UI](#composants-ui)
+6. [Moteur de rendu email](#moteur-de-rendu-email)
+7. [Système d'export](#système-dexport)
+8. [Collaboration en temps réel](#collaboration-en-temps-réel)
+9. [Gestion des images](#gestion-des-images)
+10. [Données marché CoinGecko](#données-marché-coingecko)
+11. [Thème et identité visuelle](#thème-et-identité-visuelle)
+12. [Schéma de base de données](#schéma-de-base-de-données)
+13. [API serverless Vercel](#api-serverless-vercel)
+14. [Setup local](#setup-local)
+15. [Déploiement Vercel](#déploiement-vercel)
+16. [Scripts](#scripts)
 
 ---
 
 ## Stack technique
 
-| Couche | Technologie |
-|---|---|
-| Front-end | React 18, Vite 5 |
-| Styles | Tailwind CSS v3 |
-| Éditeur de texte riche | Slate.js |
-| Backend / BDD | Supabase (PostgreSQL) |
-| Auth | Supabase Auth — magic link |
-| Stockage fichiers | Supabase Storage |
-| Temps réel | Supabase Realtime (Broadcast) |
-| Déploiement | Vercel (SSR/Edge Functions) |
-| Export ZIP | JSZip |
-| Graphiques marché | CoinGecko API (public) |
+| Couche | Technologie | Version |
+|---|---|---|
+| Front-end | React | ^18.3.1 |
+| Bundler | Vite | ^5.4.21 |
+| Styles | Tailwind CSS | ^3.4.4 |
+| Éditeur de texte riche | Quill | ^2.0.3 |
+| Drag-and-drop | @dnd-kit/core + sortable + utilities | ^6.3.1 / ^10.0.0 / ^3.2.2 |
+| Backend / BDD | Supabase JS | ^2.105.4 |
+| Export ZIP | JSZip | ^3.10.1 |
+| Screenshots serveur | Puppeteer Core + @sparticuz/chromium | ^25.0.2 / ^148.0.0 |
+| Traitement image serveur | Sharp | ^0.34.5 |
+| Parsing CSV | PapaParse | ^5.4.1 |
+| Icônes | Lucide React | ^0.383.0 |
+| Déploiement | Vercel | — |
+
+Module type : `"module"` (ESM pur). Pas de test runner.
 
 ---
 
-## Fonctionnalités
-
-### Éditeur de blocs
-
-- **14 types de blocs** modulaires (voir [liste complète](#blocs-disponibles))
-- Réorganisation par glisser-déposer ou boutons ↑ / ↓
-- Chaque bloc est **collapsible** pour gagner de la place
-- Actions en en-tête de bloc : dupliquer, supprimer
-- Numérotation automatique des sections
-- **Thème clair / sombre** commutable depuis la barre d'outils
-
-### Éditeur de texte riche (Slate.js)
-
-Disponible dans les champs de corps de texte :
-
-- Gras, italique, souligné, rayé
-- Lien hypertexte
-- Liste à puces, liste numérotée
-- Rendu HTML inline correct pour les clients email
-
-### Données en temps réel
-
-- **CoinGecko** : prix BTC/ETH avec variation sur 7j ou 30j, en EUR ou USD
-  - Chips du hero synchronisés automatiquement
-  - Graphiques mis à jour en un clic ou à l'ouverture
-- **Fear & Greed Index** : synchronisation en un clic
-- Bouton **Synchroniser tout** global + bouton individuel par bloc concerné
-
-### Prévisualisation
-
-- Aperçu **temps réel** Desktop (600 px) et Mobile (430 px), dans l'onglet Aperçu
-- Vue **Code HTML** brut avec copie en un clic
-- Rendu fidèle aux principaux clients email : Gmail, Apple Mail, Outlook, iOS Mail
-
-### Versions
-
-- **Snapshot nommé** : auteur + commentaire + horodatage (jusqu'à 50 versions)
-- **Restauration** depuis l'historique côté panneau latéral
-- Auto-save serveur avec debounce 2 s (pas besoin de sauvegarder manuellement)
-
-### Labels colorés
-
-- Labels personnalisables (nom + couleur parmi 10 teintes)
-- Assignables sur les **newsletters** (page liste) et sur les **images** (gestionnaire)
-- Filtre multi-label en OR sur la liste des newsletters et dans le gestionnaire d'images
-- Pills de labels sur les cartes avec repli en pastilles de couleur si l'espace manque
-
-### Archivage
-
-- Les newsletters terminées peuvent être **archivées** (masquées de la liste principale)
-- Vue dédiée "Archives" accessible depuis la liste
-
-### Admin
-
-- Approbation / révocation des comptes utilisateurs
-- Création directe de compte avec mot de passe temporaire
-- **Template newsletter** : configurer la disposition par défaut (blocs initiaux, numérotation, thème, date automatique)
-- **Contenus par défaut** : éditer les textes initiaux de chaque type de bloc
-- **Presets de disposition** : sauvegarder et réutiliser des configurations de blocs pour toute l'équipe
-
----
-
-## Architecture
+## Architecture des fichiers
 
 ```
 src/
 ├── config/
-│   ├── theme.js              ← palette Décrypto, polices, constante BRAND
-│   ├── schema.js             ← catalogue des types de blocs + factory() + template par défaut
-│   └── calloutPictos.js      ← 15 pictos SVG + 9 couleurs pour les blocs encadré
+│   ├── schema.js             ← 14 types de blocs, INITIAL_STATE, migration, template par défaut
+│   ├── theme.js              ← tokens couleur (THEME/LIGHT_THEME), BRAND, FONTS, BRAND_LOGOS
+│   └── calloutPictos.js      ← 15 pictos SVG + 9 couleurs pour les encadrés focus
 │
 ├── contexts/
-│   └── AuthContext.jsx        ← session Supabase + profil utilisateur (is_approved, is_admin)
+│   └── AuthContext.jsx       ← session Supabase + profil (approved, is_admin)
 │
 ├── lib/
-│   ├── supabase.js            ← client Supabase (singleton)
-│   ├── useNewsletter.js       ← hook principal : chargement, lock collaboratif, auto-save, broadcast
-│   ├── useLabels.js           ← CRUD labels + hooks newsletter_labels / image_labels
-│   ├── templatePresets.js     ← presets de disposition (sauvegarde / chargement admin)
-│   ├── useCoinGecko.js        ← fetching CoinGecko + Fear & Greed
-│   └── imageUpload.js         ← upload + compression images vers Supabase Storage
+│   ├── supabase.js           ← client Supabase (singleton)
+│   ├── useNewsletter.js      ← hook principal : chargement, lock, auto-save, Realtime
+│   ├── useCoinGecko.js       ← fetching CoinGecko (60 cryptos, prix + courbes)
+│   ├── templatePresets.js    ← CRUD presets de disposition (table template_presets)
+│   └── imageUpload.js        ← upload/delete/list images Supabase Storage
 │
 ├── pages/
 │   ├── LoginPage.jsx
 │   ├── PendingApprovalPage.jsx
 │   ├── SetPasswordPage.jsx
 │   ├── SetupErrorPage.jsx
-│   ├── NewslettersListPage.jsx ← liste + filtres + labels + archivage
-│   ├── EditorPage.jsx          ← page principale : split EditorPanel / PreviewPanel
-│   └── AdminPage.jsx           ← gestion utilisateurs, template, presets
+│   ├── NewslettersListPage.jsx ← liste, filtres, labels, prévisualisation, création
+│   ├── EditorPage.jsx          ← éditeur principal split EditorPanel / PreviewPanel
+│   └── AdminPage.jsx           ← comptes, template, presets, labels
 │
 ├── components/
-│   ├── EditorPanel.jsx         ← panneau gauche : liste ordonnée des blocs + paramètres généraux
-│   ├── SectionEditor.jsx       ← formulaires d'édition spécifiques à chaque type de bloc
-│   ├── PreviewPanel.jsx        ← iframe de prévisualisation (desktop / mobile / HTML)
-│   ├── FormControls.jsx        ← composants UI : Field, RichTextEditor (Slate), Select, Toggle…
-│   ├── VersionsPanel.jsx       ← panneau historique des versions (snapshot + restauration)
-│   ├── ImageManagerModal.jsx   ← modal gestionnaire d'images (upload, labels, sélection, multi-select)
-│   ├── LockBanner.jsx          ← bandeau rouge "template verrouillé par X"
-│   ├── LockRequestBanner.jsx   ← bandeau ambre animé "Y souhaite prendre la main"
+│   ├── EditorPanel.jsx         ← panneau gauche : blocs, DnD, header global, footer
+│   ├── SectionEditor.jsx       ← formulaires spécifiques par type de bloc
+│   ├── PreviewPanel.jsx        ← iframe desktop/mobile + export JPG
+│   ├── FormControls.jsx        ← Field, Input, TextArea (Quill), Section
+│   ├── VersionsPanel.jsx       ← historique 50 versions + restauration
+│   ├── ImageManagerModal.jsx   ← modal images : upload, labels, sélection, multi-select
+│   ├── LockBanner.jsx          ← bandeau rouge "verrouillé par X"
+│   ├── LockRequestBanner.jsx   ← bandeau ambre animé "Y demande l'accès"
 │   ├── Toolbar.jsx             ← barre d'outils en-tête
-│   ├── Tooltip.jsx             ← composant tooltip générique
-│   └── Wordmark.jsx            ← logotype Décrypto
+│   └── Tooltip.jsx             ← tooltip générique
 │
 ├── render/
-│   └── buildEmail.js           ← moteur de rendu HTML email (tables, inline CSS, SVG inline)
+│   └── buildEmail.js           ← moteur HTML email (640px, tables, inline CSS, SVG)
 │
 ├── utils/
-│   ├── exportAssetPack.js      ← export ZIP (HTML + assets PNG)
-│   ├── exportImport.js         ← import/export JSON du brouillon
-│   ├── storage.js              ← helpers Supabase Storage
-│   └── dateParser.js           ← parsing dates pour l'automatisation
+│   ├── exportAssetPack.js      ← export ZIP + export Braze
+│   ├── exportImport.js         ← import/export JSON, téléchargement HTML, presse-papier
+│   └── storage.js              ← draft localStorage (clé v1, usage legacy)
 │
 └── App.jsx / main.jsx
 
 supabase/
-├── schema.sql                  ← schéma complet (tables, RLS, RPC, triggers)
-├── bootstrap-admin.sql         ← script d'initialisation du premier compte admin
-├── admin-create-user.sql       ← script pour la création de compte via admin
-└── keepalive.sql               ← RPC légère anti-pause (projets Free)
+├── schema.sql                  ← schéma complet (tables, RLS, RPCs, triggers)
+├── bootstrap-admin.sql         ← création du premier admin
+├── add-google-oauth.sql
+├── add-password-set.sql
+├── admin-create-user.sql
+├── fix-rls-recursion.sql
+├── keepalive.sql
+├── newsletters-owner-delete-policy.sql
+├── storage.sql
+└── template-presets.sql
 
 api/
-├── export-braze.js             ← serverless Vercel : upload images → Braze Media Library
-└── supabase-keepalive.js       ← serverless Vercel : cron ping anti-pause Supabase Free
+├── export-braze.js             ← serverless : upload assets → Braze Media Library
+├── export-preview-jpg.js       ← serverless : rendu JPG via Puppeteer/Chromium
+├── generate-preview-text.js    ← serverless : génération IA du texte d'aperçu
+├── correct-text.js             ← serverless : correction orthographique IA
+└── supabase-keepalive.js       ← serverless : cron ping anti-pause Supabase Free
 ```
 
 ### Flux de données éditeur
 
 ```
 EditorPage
-  ├── useNewsletter()           → charge le brouillon, gère le lock, auto-save, broadcast
-  ├── EditorPanel               → modifie sections[] localement → déclenche save
-  │     └── SectionEditor       → formulaires par type de bloc
-  └── PreviewPanel              → appelle buildEmail(draft) → HTML injecté dans <iframe>
+  ├── useNewsletter(newsletterId, userId, userName)
+  │     → charge current_state depuis Supabase (+ draft localStorage si plus récent)
+  │     → acquiert le lock via RPC acquire_lock
+  │     → auto-save (debounce 2 s) sur current_state
+  │     → Realtime channel lock-requests:{newsletterId}
+  │
+  ├── EditorPanel({ state, setState })
+  │     └── SectionEditor({ type, data, onChange }) — formulaires par type
+  │
+  └── PreviewPanel({ html, view, previewDevice })
+        → buildEmail(state) → HTML injecté dans <iframe srcDoc>
 ```
+
+---
+
+## Modèle de données éditeur
+
+### Structure `state`
+
+```js
+{
+  brand_name: "COINHOUSE",
+  issue_number: "1",
+  issue_date: "JEUDI 1ER JANVIER 2026",  // calculé automatiquement (jeudi courant)
+  preview_text: "",
+  show_section_numbers: true,
+  theme_variant: "dark",                  // "dark" | "light"
+  sections: [                             // liste ordonnée de blocs
+    { id: "<uuid>", type: "<type>", data: { ... } }
+  ],
+  footer: {
+    links: [
+      { label: "Particuliers", url: "" },
+      { label: "Clientèle Privée", url: "" },
+      { label: "Entreprises", url: "" },
+      { label: "Académie", url: "" }
+    ],
+    address: "",
+    legal: "",
+    unsub_url: "{{${set_user_to_unsubscribed_url}}}"  // Braze liquid tag
+  }
+}
+```
+
+### Clés localStorage
+
+| Clé | Usage |
+|---|---|
+| `decrypto-newsletter-draft:{newsletterId}` | Draft auto-sauvegardé par `useNewsletter` (format `{ state, saved_at }`) |
+| `decrypto:default_sections` | Types de blocs du template par défaut (admin) |
+| `decrypto:section_defaults` | Contenus par défaut par type de bloc (admin) |
+| `decrypto-newsletter-draft-v1` | Draft legacy mono-newsletter (utilisé par `storage.js`) |
+
+### Section auto-numérotée ou non
+
+Les types listés dans `UNNUMBERED_TYPES` ne reçoivent pas de numéro de section :
+
+```js
+new Set(["hero", "index", "chart", "macro_bars", "image_block", "divider"])
+```
+
+### Migration legacy
+
+`migrateLegacyState(state)` convertit les newsletters créées avant l'architecture `sections[]` (propriétés à plat) vers le format courant. Appelée automatiquement au chargement dans `useNewsletter`.
 
 ---
 
 ## Blocs disponibles
 
-| Type | Label UI | Description |
+### 1. `hero` — Bandeau principal
+
+| Champ | Type | Description |
 |---|---|---|
-| `hero` | Hero | Titre principal, kicker, sous-titre, chips BTC/ETH/F&G |
-| `index` | Sommaire | Liste numérotée des sujets de l'édition |
-| `edito` | Édito + KPI | Corps éditorial + rangée de KPI chiffrés |
-| `chart` | Graphique | Graphique de cours synchronisé CoinGecko (7j/30j, EUR/USD) |
-| `fear_greed` | Fear & Greed | Jauge Fear & Greed Index avec valeur et label |
-| `signals` | Signaux | Grille de signaux (haussier / neutre / baissier) avec description |
-| `macro` | Macro / Citation | Bloc macro-économie ou mise en avant d'une citation |
-| `macro_bars` | Barres macro | Comparatif visuel sous forme de barres horizontales |
-| `commented_number` | Chiffre commenté | Grand chiffre mis en avant avec titre et commentaire |
-| `event` | Évènement | Carte évènement avec date, titre, lieu, description |
-| `focus` | Texte & Media | Composition libre d'items : texte riche, image, encadré, CTA |
-| `image_block` | Image | Bloc image pleine largeur avec légende optionnelle |
-| `text_block` | Texte | Paragraphe de texte libre (riche) |
-| `divider` | Séparateur | Séparateur visuel entre sections |
+| `kicker` | string | Texte au-dessus du titre |
+| `title_part1` | string | Première ligne du titre |
+| `title_part2` | string | Deuxième ligne (avant le mot accentué) |
+| `title_highlight` | string | Mot en couleur magenta (#FF00AA) |
+| `subtitle` | string | Sous-titre (texte riche) |
+| `chips[]` | array | Pastilles : `{ label, type }` où `type` est `manual`, `btc`, `eth` ou `fear_greed` |
 
-### Bloc Texte & Media — items
+Les chips `btc` et `eth` se synchronisent automatiquement depuis CoinGecko. Les chips `fear_greed` lisent la valeur du bloc `fear_greed` de la même newsletter.
 
-Le bloc `focus` est le plus flexible. Il peut contenir autant d'items que souhaité, de quatre types :
+### 2. `index` — Sommaire
 
-- **text** — éditeur de texte riche (Slate.js)
-- **image** — image sélectionnée depuis le gestionnaire, avec légende optionnelle
-- **callout** — encadré avec 1 des **15 pictos** (info, décrypte, intuition, épingle, prudence, signal, contexte, lecture, timing, essentiel, dollar, euro, bitcoin, ethereum, question) et 1 des **9 couleurs** (cyan, menthe, bleu, rose, orange, corail, violet, jaune, blanc)
-- **cta** — bouton d'appel à l'action avec texte, URL, couleur de fond dégradé en PNG exporté
+| Champ | Type | Description |
+|---|---|---|
+| `label` | string | Titre du sommaire |
+| `items[]` | array | Entrées : `{ section_id, number, title }` |
+
+Le bouton "Sync blocs" recrée automatiquement les entrées depuis tous les blocs numérotés de l'édition. Dans le rendu, chaque entrée pointe vers l'ancre de sa section.
+
+### 3. `edito` — Édito + KPI
+
+| Champ | Type | Description |
+|---|---|---|
+| `kicker` | string | Kicker |
+| `title` | string | Titre |
+| `body` | string | Corps (texte riche HTML) |
+| `kpis[]` | array | `{ label, value, delta, tone }` — `tone` : `positive`, `negative`, `warning`, `muted` |
+
+La grille KPI s'auto-dimensionne selon le nombre de colonnes.
+
+### 4. `chart` — Graphique de cours
+
+| Champ | Type | Description |
+|---|---|---|
+| `chart_mode` | `"auto"` \| `"manual"` | Source des données |
+| `chart_crypto` | string | ID CoinGecko (ex. `"bitcoin"`) |
+| `chart_currency` | `"eur"` \| `"usd"` | Devise |
+| `chart_days` | `7` \| `30` | Période en jours |
+| `label` | string | Libellé de la paire (ex. `BTC / EUR`) |
+| `value` | string | Prix actuel affiché |
+| `price_start` | number | Prix de début de période |
+| `price_high` | number | Prix le plus haut |
+| `price_low` | number | Prix le plus bas |
+| `delta` | string | Variation affichée (ex. `▲ +2,93 %`) |
+| `delta_tone` | string | `positive`, `negative`, `warning`, `muted` |
+| `subdelta` | string | Variation secondaire (ex. `+1 838 € sur 7j`) |
+| `points[]` | number[] | Valeurs normalisées 0–100 (0 = min, 100 = max) |
+| `x_labels[]` | string[] | Étiquettes de l'axe X |
+| `y_axis_ticks[]` | number[] | Ticks axe Y (auto-calculés, pas en chevauche-ment) |
+| `raw_prices[]` | array | `{ date, price }` — données brutes CoinGecko |
+
+En mode manuel, les points sont éditables via des sliders dans l'interface.
+
+### 5. `fear_greed` — Jauge Fear & Greed
+
+| Champ | Type | Description |
+|---|---|---|
+| `kicker` | string | Kicker |
+| `title` | string | Titre |
+| `value` | number | 0–100 |
+| `classification` | string | Calculé automatiquement depuis `value` |
+| `commentary` | string | Commentaire (texte riche HTML) |
+
+Zones de classification : `EXTREME FEAR` (0–24), `FEAR` (25–44), `NEUTRAL` (45–54), `GREED` (55–74), `EXTREME GREED` (75–100).
+
+### 6. `signals` — Signaux de marché
+
+| Champ | Type | Description |
+|---|---|---|
+| `kicker` | string | Kicker |
+| `title` | string | Titre |
+| `signals[]` | array | `{ direction, title, description }` — `direction` : `"up"` (↗ cyan) ou `"down"` (↘ orange) |
+
+Rendu en grille 2×2. Idéal pour 4 signaux.
+
+### 7. `macro` — Macro / Citation
+
+| Champ | Type | Description |
+|---|---|---|
+| `kicker` | string | Kicker |
+| `title` | string | Titre |
+| `body` | string | Corps (texte riche) |
+| `quote` | string | Citation |
+| `quote_author` | string | Auteur de la citation |
+| `bg_image_url` | string | URL de l'image de fond (recommandé 1280×480) |
+| `bg_image_path` | string | Chemin Supabase Storage (pour l'export ZIP/Braze) |
+
+Rendu avec fallback VML pour Outlook.
+
+### 8. `macro_bars` — Barres comparatives
+
+| Champ | Type | Description |
+|---|---|---|
+| `bars[]` | array | `{ label, value, percent, caption }` — `percent` : 0–100 pour la largeur de barre |
+
+Bloc non numéroté.
+
+### 9. `commented_number` — Chiffre commenté
+
+| Champ | Type | Description |
+|---|---|---|
+| `kicker` | string | Libellé |
+| `value` | string | Chiffre mis en avant |
+| `unit` | string | Unité |
+| `caption` | string | Légende |
+| `title` | string | Titre de la partie texte |
+| `body` | string | Commentaire (texte riche) |
+
+Rendu en carte divisée : panneau chiffre à gauche, panneau texte à droite.
+
+### 10. `event` — Évènement
+
+| Champ | Type | Description |
+|---|---|---|
+| `day` | string | Jour |
+| `month` | string | Mois |
+| `year` | string | Année |
+| `kicker` | string | Kicker |
+| `title` | string | Titre |
+| `description` | string | Description |
+| `cta_label` | string | Texte du bouton |
+| `cta_url` | string | URL du bouton |
+| `bg_image_url` | string | Image de fond (recommandé 1280×480) |
+| `bg_image_path` | string | Chemin Supabase Storage |
+
+Image de fond visible dans Apple Mail, iOS Mail, Samsung Mail. Gmail affiche le fond sombre.
+
+### 11. `focus` — Texte & Média (bloc libre)
+
+| Champ | Type | Description |
+|---|---|---|
+| `kicker` | string | Kicker |
+| `title` | string | Titre |
+| `items[]` | array | Liste d'items de types différents |
+
+Chaque item possède un `id` UUID et un `type` parmi :
+
+**`text`** : `{ body }` — texte riche HTML.
+
+**`image`** : `{ image_url, image_path, image_alt, link_url }` — l'image devient cliquable si `link_url` est renseigné.
+
+**`cta`** : `{ label, url, arrow, centered, secondary_label, secondary_url, secondary_arrow }` — bouton principal gradient (#4141FF→#8701FF→#FF00AA) + bouton secondaire outline optionnel.
+
+**`callout`** : `{ label, body, footer, footer_url, show_icon, picto, callout_color }` — encadré avec picto parmi les 15 disponibles et couleur parmi les 9 définies.
+
+**`spacer`** : `{ height }` — espace vertical en px, de 0 à 120.
+
+La multi-sélection d'images dans le gestionnaire insère plusieurs items `image` consécutifs.
+
+### 12. `image_block` — Image pleine largeur
+
+| Champ | Type | Description |
+|---|---|---|
+| `image_url` | string | URL de l'image (recommandé 568×280) |
+| `image_path` | string | Chemin Supabase Storage |
+| `image_alt` | string | Texte alternatif |
+| `link_url` | string | Lien de redirection optionnel |
+
+Bloc non numéroté.
+
+### 13. `text_block` — Bloc texte libre
+
+| Champ | Type | Description |
+|---|---|---|
+| `kicker` | string | Kicker |
+| `title` | string | Titre |
+| `body` | string | Corps (texte riche) |
+| `cta_label` | string | Texte du bouton gradient (laissé vide = masqué) |
+| `cta_url` | string | URL du bouton |
+
+### 14. `divider` — Séparateur
+
+| Champ | Type | Valeurs |
+|---|---|---|
+| `style` | string | `"thin"` (1 px), `"thick"` (4 px), `"gradient"` (3 px dégradé Coinhouse) |
+
+Bloc non numéroté.
+
+---
+
+## Composants UI
+
+### `FormControls.jsx` — composants réutilisables
+
+**`Field({ label, children, hint, action, noMargin })`**
+Conteneur de champ de formulaire : label en petites majuscules, hint en dessous, slot `action` à droite du label.
+
+**`Input({ readOnly, ...props })`**
+Input HTML standard. En mode `readOnly` : fond plus sombre (`bg-d-panel3`), curseur `default`.
+
+**`TextArea(props)`**
+Wrappeur Quill v2 avec error boundary. Si Quill échoue, bascule en `PlainTextFallback` (textarea HTML) avec bouton "Réessayer l'éditeur". Le bouton "Corriger" appelle `/api/correct-text` (IA).
+
+Toolbar Quill : `[bold, italic, underline, strike]`, `[list ordered, list bullet]`, `[link]`, `[clean]`.
+
+Formats supportés : `bold`, `italic`, `underline`, `strike`, `link`, `list`, `indent`.
+
+Raccourci Shift+Enter dans une liste : insère un `<BR>` (blot custom `SoftBreakBlot`) sans créer un nouvel item.
+
+Stockage : HTML sémantique via `quill.getSemanticHTML()` (pas `innerHTML`).
+
+**`Section({ title, children, defaultOpen, action })`**
+Conteneur collapsible avec chevron, slot `action` dans l'en-tête.
+
+**Exports de compatibilité :**
+- `htmlToEditorJsBlocks(html)` — convertit HTML → bloc Editor.js (rétrocompat)
+- `editorJsBlocksToHtml(blocks)` — convertit blocs Editor.js → HTML (rétrocompat)
+
+### `SectionEditor.jsx` — formulaires par type
+
+Composant exporté principal :
+
+```js
+export function SectionEditor({ type, data, onChange, sections = [] })
+```
+
+Dispatch par `switch(type)` vers 14 sous-composants :
+
+| Composant | Type |
+|---|---|
+| `HeroEditor` | `hero` |
+| `IndexEditor` | `index` |
+| `EditoEditor` | `edito` |
+| `ChartEditor` | `chart` |
+| `FearGreedEditor` | `fear_greed` |
+| `SignalsEditor` | `signals` |
+| `MacroEditor` | `macro` |
+| `MacroBarsEditor` | `macro_bars` |
+| `CommentedNumberEditor` | `commented_number` |
+| `EventEditor` | `event` |
+| `FocusEditor` | `focus` |
+| `ImageBlockEditor` | `image_block` |
+| `TextBlockEditor` | `text_block` |
+| `DividerEditor` | `divider` |
+
+`ChipEditor` (sous-composant de `HeroEditor`) gère les chips avec sélecteur de type et bouton refresh CoinGecko.
+
+`FocusEditor` gère la liste d'items avec collapse individuel, migration de l'ancien format plat, et ouverture du gestionnaire d'images.
+
+---
+
+## Moteur de rendu email
+
+**`src/render/buildEmail.js`** — fonction pure, pas de React.
+
+### Export principal
+
+```js
+buildEmailHtml(state, options = {})
+// options.assetMode : "inline" (SVG inline, par défaut) | "external" (assets/xxx.png)
+// options.ctaGradientUrl : URL du PNG gradient pour les boutons CTA
+```
+
+### Largeur et responsive
+
+- Container email : **640 px**
+- Breakpoint 1 : < 640 px (padding réduit)
+- Breakpoint 2 : < 380 px (layout simplifié)
+
+### Fonctions utilitaires exportées
+
+| Fonction | Description |
+|---|---|
+| `escapeHtml(str)` | Échappe `&`, `<`, `>`, `"`, `'` |
+| `escapeAttr(str)` | Échappe les attributs HTML |
+| `sanitizeRichText(text)` | Convertit HTML riche (gras, italic, lien, listes, markdown `**`, `*`, `[text](url)`, `-`) en HTML email-safe |
+| `getLogoSvg(size, color)` | SVG du logo hexagone Coinhouse |
+| `getChartSvgFull(points, opts)` | SVG de la courbe de prix (polyline + remplissage dégradé) |
+| `getGaugeSvgFull(value, opts)` | SVG de la jauge Fear & Greed (arcs colorés + aiguille) |
+| `getCalloutPictoFilename(pictoId, color)` | Nom de fichier PNG du picto (ex. `callout-picto-info-00ffff-white.png`) |
+
+### Fonctions de rendu par section (privées)
+
+`renderHero`, `renderIndex`, `renderEdito`, `renderChart`, `renderFearGreed`, `renderSignals`, `renderMacro`, `renderMacroBars`, `renderCommentedNumber`, `renderEvent`, `renderFocus`, `renderFocusItem`, `renderImageBlock`, `renderTextBlock`, `renderDivider`
+
+### Assets SVG générés
+
+- **Logo** : hexagone Coinhouse en SVG inline
+- **Graphique** : SVG polyline avec remplissage dégradé (transparent → couleur accent)
+- **Jauge Fear & Greed** : 5 arcs de couleur + aiguille SVG — zones : 0–24 (rouge), 25–44 (orange), 45–54 (jaune), 55–74 (vert clair), 75–100 (cyan)
+
+### Polices
+
+16 déclarations `@font-face` : 8 graisses (100–800) pour Sora + 8 pour DM Sans, hébergées sur le CDN Braze en `.ttf`.
+
+### Fallbacks Outlook (VML)
+
+- Boutons CTA (VML `v:roundrect`)
+- Fond de la carte évènement
+- Fond du bloc macro/citation
 
 ---
 
 ## Système d'export
 
-### Export ZIP
+### Hook `useNewsletter`
 
-Bouton **Exporter ZIP** dans la barre d'outils :
+Undo/redo (profondeur 50) géré dans `EditorPage` via `undoStackRef` et `redoStackRef`.
 
-1. `buildEmail(draft)` génère le HTML complet avec toutes les images référencées en chemin relatif `assets/…`
-2. Chaque image Supabase Storage est téléchargée et convertie en PNG
-3. Les boutons CTA gradient sont générés comme PNG via `<canvas>` (dégradé Décrypto)
-4. Archive ZIP produite avec `JSZip` : `newsletter.html` + dossier `assets/`
-5. Prêt à uploader sur un CDN ou à envoyer directement
+### Export ZIP — `exportAssetPack(state, filename)`
 
-### Export Braze
+Génère un ZIP contenant :
+- `email.html` — HTML complet avec chemins relatifs `assets/…`
+- `assets/chart.png` — courbe SVG convertie en PNG (1120×360, PIXEL_RATIO = 2)
+- `assets/gauge.png` — jauge SVG convertie en PNG (200×120, PIXEL_RATIO = 2)
+- `assets/gradient-header.png` — fetché depuis l'URL Vercel
+- `assets/event-bg.png` — fetché
+- `assets/macro-quote-bg.png` — fetché
+- `assets/gradient-cta.png` — généré canvas (600×46, dégradé #4141FF → #8701FF → #FF00AA)
+- `assets/callout-picto-{id}-{color}-white.png` — 32×32 à 2× pour chaque combinaison picto+couleur unique
+- Images externes des blocs `focus` et `image_block` téléchargées dans `assets/`
+- `README.md` — explications sur les chemins relatifs
 
-Bouton **Exporter Braze** (admins uniquement) :
+### Export Braze — `exportBrazeHtml(state, filename, accessToken)`
 
-1. Appel à la serverless function Vercel `/api/export-braze`
-2. La fonction vérifie la session Supabase + flag `is_admin` côté serveur
-3. Chaque image est uploadée dans la **Braze Media Library** via l'API REST Braze
-4. Le HTML final utilise les URLs CDN Braze définitives
-5. La clé `BRAZE_API_KEY` ne transite jamais côté client
+1. Appel POST `/api/export-braze` avec les assets en base64
+2. La fonction serverless vérifie l'auth Supabase + `is_admin`
+3. Limite : **30 assets max**, **5 MB max** par asset
+4. Chaque asset est uploadé dans la Braze Media Library via `{BRAZE_BASE_URL}/media_library/create`
+5. Les URLs Braze CDN remplacent les chemins `assets/…` dans le HTML final
+6. Le HTML est téléchargé côté client
 
-### Export / Import JSON
+### Export JSON — `exportStateAsJson(state, filename)`
 
-Menu **⋯ → Exporter JSON** : snapshot du brouillon complet exportable/réimportable, utile pour les sauvegardes ou transferts entre environnements.
+Télécharge le state brut en JSON. Réimportable via `importStateFromJson(file, onSuccess, onError)`.
+
+### Copie presse-papier — `copyHtmlToClipboard(html)`
+
+Utilise `navigator.clipboard`. Retourne un booléen.
+
+### Export JPG — `/api/export-preview-jpg`
+
+Appel depuis `PreviewPanel` avec `{ html, device }` et le token Bearer. Génère une capture d'écran JPG via Puppeteer + Chromium.
 
 ---
 
 ## Collaboration en temps réel
 
-### Verrou d'édition
+### Hook `useNewsletter` — constantes
 
-Un seul utilisateur peut éditer un template à la fois :
+| Constante | Valeur |
+|---|---|
+| `LOCK_RENEW_INTERVAL_MS` | 120 000 ms (2 min) |
+| `AUTOSAVE_DEBOUNCE_MS` | 2 000 ms (2 s) |
+| `LOCAL_DRAFT_PREFIX` | `"decrypto-newsletter-draft"` |
 
-- À l'ouverture, `useNewsletter` tente d'acquérir le verrou via la RPC Postgres `acquire_lock`
-- Le verrou a un **TTL de 10 minutes** renouvelé automatiquement toutes les 4 minutes tant que l'onglet est actif
-- Si le verrou est pris, un **bandeau rouge** (`LockBanner`) s'affiche avec le nom du détenteur et la date d'expiration
-- Une fois le verrou expiré, n'importe quel autre utilisateur peut le prendre de force (**prise de contrôle forcée**)
+### Cycle de vie du lock
 
-### Bandeau de demande d'accès (`LockRequestBanner`)
+1. **Acquisition** : `supabase.rpc("acquire_lock", { p_newsletter_id, p_force: false })` à l'ouverture
+2. **Renouvellement** : toutes les 2 minutes si l'utilisateur est propriétaire du lock
+3. **Libération** : `supabase.rpc("release_lock")` sur `beforeunload` et cleanup React
+4. **TTL** : 10 minutes côté serveur (configurable dans `acquire_lock`)
+5. **Force** : `takeOverLock()` appelle `acquire_lock` avec `p_force: true` puis broadcast `lock-taken`
 
-Quand un second utilisateur (B) tente d'accéder à un template verrouillé par A :
+### Canal Realtime
 
-1. B voit le bandeau rouge et peut déclencher une **demande d'accès**
-2. Un event `lock-request` est broadcasté sur le canal Supabase Realtime `lock-requests:{newsletterId}`
-3. A reçoit un **bandeau ambre animé** (slide-in + fade) en haut de l'écran indiquant que B souhaite prendre la main
-4. Le bandeau se ferme automatiquement après 8 secondes ou manuellement
+Canal stable `lock-requests:{newsletterId}`, créé une seule fois par couple `(newsletterId, userId)`.
 
-### Notification de prise de contrôle
+| Événement broadcast | Émetteur | Récepteur | Description |
+|---|---|---|---|
+| `lock-request` | Observateur (B) | Propriétaire du lock (A) | B demande l'accès |
+| `lock-taken` | Nouveau propriétaire (B) | Tous sauf B | B a pris le contrôle |
 
-Quand B prend de force le verrou :
+Le canal est géré via des refs (`channelRef`, `channelReadyRef`, `lockedByOtherRef`, `forcedOutRef`, `lockRequestSentRef`) pour éviter les doublons d'envoi et les récréations intempestives.
 
-1. `takeOverLock` acquiert le verrou côté DB
-2. Un event `lock-taken` est broadcasté (avec le nom de B)
-3. A reçoit un **toast rouge** : *"[Nom de B] a pris la main sur l'édition."*
-4. A est basculé en lecture seule immédiatement
+### `LockRequestBanner`
 
-### Canal Realtime stable
+Slide-in animé côté A quand B demande l'accès. Auto-dismiss après **8 000 ms** (`AUTO_DISMISS_MS`). Animation CSS `lock-request-slide` (translateY -100% → 0).
 
-Le canal Supabase Realtime est créé **une seule fois** par couple `(newsletterId, userId)` et maintenu via des refs React (`channelRef`, `channelReadyRef`, `lockedByOtherRef`, `forcedOutRef`) pour éviter les récréations intempestives ou les doublons d'events.
+### Draft local
+
+Si le localStorage contient un draft `{ state, saved_at }` plus récent que `newsletter.updated_at`, il est utilisé à la place de la DB au chargement.
 
 ---
 
 ## Gestion des images
 
+### `imageUpload.js` — constantes
+
+| Constante | Valeur |
+|---|---|
+| `MAX_IMAGE_FILE_SIZE_BYTES` | 5 242 880 (5 Mo) |
+| `MAX_IMAGE_FILE_SIZE_LABEL` | `"5 Mo"` |
+| `MAX_IMAGE_STORAGE_BYTES` | 1 073 741 824 (1 Go) |
+| `MAX_IMAGE_STORAGE_LABEL` | `"1 Go"` |
+
 ### Upload
 
-- Modal **Gestionnaire d'images** (`ImageManagerModal`) accessible depuis tout champ image
-- Upload par glisser-déposer ou sélecteur de fichiers
-- **Compression automatique** côté client avant upload (qualité configurable)
-- Stockage dans le bucket Supabase Storage `newsletter-images`
-- Nommage par hash pour éviter les collisions
-- Vue grille, grille compacte et vue liste
+- Formats acceptés : PNG, JPG, GIF, WebP
+- Nommage : `{userId}/{timestamp}-{safename}.{ext}`, cache-control 31 536 000 (1 an)
+- Compression optionnelle : canvas → PNG, jusqu'à 8 tentatives à 0,8× de ratio
+- Stockage : bucket Supabase `newsletter-images`
+
+### `listImages(userId, isAdmin)`
+
+Liste les images de la racine + tous les dossiers utilisateurs (limite 200 par requête). `canDelete = true` si `isAdmin` OU si le dossier correspond à `userId`. Exclut `.emptyFolderPlaceholder` et le dossier `braze-export`.
+
+### `ImageManagerModal` — modes d'affichage
+
+| Mode | Colonnes desktop → mobile |
+|---|---|
+| `grid4` | 4 → 2 colonnes |
+| `grid8` | 8 → 4 colonnes |
+| `grid16` | 16 → 8 colonnes |
+| `list` | Tableau |
 
 ### Sélection
 
-- Sélection simple : clic sur une image → insérée dans le champ
-- **Multi-sélection** : mode multi-select avec bordure rose sur les cartes sélectionnées (pas de case à cocher)
-- Actions groupées disponibles en multi-select (ex. suppression)
-
-### Labels sur les images
-
-- Les images peuvent recevoir des **labels colorés** depuis le panneau de détail
-- Filtre par label(s) en OR dans la grille (barre de filtres en haut du modal)
-- Affichage des labels sur les cartes : pills colorées, ou pastilles si l'espace manque (détection overflow via `useLayoutEffect`)
-
-### Détail d'une image
-
-Panneau latéral d'une image sélectionnée :
-- Aperçu grande taille
-- Copie de l'URL
-- Assignation / retrait de labels (toggle pill)
-- Suppression
+- **Simple** : `onSelect({ url, path })` — sélectionne et ferme
+- **Multi-select** : `onSelectMany(images[])` — sélection multiple avec bouton "Utiliser", select all, suppression groupée
+- **Label filter** : logique OR (image affichée si elle possède au moins un label sélectionné)
 
 ---
 
-## Système de labels
+## Données marché CoinGecko
 
-### Structure
+### `useCoinGecko.js` — 60 cryptos
 
-Labels globaux stockés dans la table `labels` (nom + couleur hex). Associés aux newsletters via `newsletter_labels` et aux images via `image_labels`.
+Bitcoin, Ethereum, USD-Coin, Solana, XRP, Dogecoin, Cardano, Avalanche, TON, Chainlink, Polkadot, Litecoin, Bitcoin Cash, Shiba Inu, Uniswap, Stellar, Aave, Tezos, Cosmos, Filecoin, Arbitrum, Optimism, Pepe, Hyperliquid, Bittensor, Injective, Sui, Aptos, Render, Fetch.ai, Near, Kaspa, Polygon, Lido DAO, Raydium, MultiversX, Bonk, dogwifhat, Axie Infinity, Floki, The Graph, Arweave, Jupiter, StarkNet, Gnosis, GMX, Curve, dYdX, Synthetix, Decentraland, Algorand, ApeCoin, Gala, The Sandbox, Loopring, Sonic, Pyth Network, Ondo Finance, Sky, Basic Attention Token, Sushi, ENS.
 
-### Gestion
+### `fetch7d(cryptoId, currency = "eur", days = 7)`
 
-- Page **Admin → Labels** : créer, renommer, recolorer, supprimer
-- 10 couleurs prédéfinies : rouge, orange, jaune, vert, cyan, bleu, violet, rose, ardoise, ambre
+Appelle `https://api.coingecko.com/api/v3/coins/{id}/market_chart`.
 
-### Affichage
+Retourne :
 
-- Style cohérent sur toute l'app : `uppercase tracking-[0.12em] font-semibold` sur fond de la couleur à 20% d'opacité
-- Repli automatique en **pastilles de couleur** quand les pills débordent de la carte
+```js
+{
+  label,         // ex. "BTC / EUR"
+  value,         // prix courant formaté
+  price_start,   // prix début de période
+  price_high,    // prix le plus haut
+  price_low,     // prix le plus bas
+  delta,         // ex. "▲ +2,93 %"
+  delta_tone,    // "positive" | "negative"
+  subdelta,      // ex. "+1 838 € sur 7j"
+  points,        // float[] normalisés 0–100
+  x_labels,      // string[] — noms des jours ou "DD/MM" si > 7 jours
+  raw_prices,    // { date, price }[]
+  y_axis_ticks   // float[] — ticks axe Y (nice step multiple de 100, 3–6 ticks)
+}
+```
+
+Points dédupliqués par jour calendaire UTC (dernière valeur du jour retenue).
+
+---
+
+## Thème et identité visuelle
+
+### `theme.js` — tokens
+
+**Thème sombre (`THEME`)** :
+
+| Token | Valeur |
+|---|---|
+| `accentPrimary` | `#FF00AA` (magenta) |
+| `accentSecondary` | `#4141FF` (bleu) |
+| `accentTertiary` | `#8701FF` (violet) |
+| `accentWarm` | `#FF4B28` |
+| `positive` | `#03FFCF` (cyan) |
+| `negative` | `#FF4B28` |
+| `warning` | `#FF8B28` |
+| `bgPage` / `bgEmail` | `#0B0B0D` |
+| `bgSection` | `#101018` |
+| `bgFooter` | `#000000` |
+| `bgEventCard` | `#171717` |
+
+**Thème clair (`LIGHT_THEME`)** : étend `THEME` avec `bgEmail = #FFFFFF`, `bgSection = #F7F8FA`, `positive = #00BB97`.
+
+**Polices** :
+
+```js
+FONTS.heading = FONTS.body = FONTS.mono = "'Sora', Calibri, 'Trebuchet MS', Arial, sans-serif"
+FONTS.sora = [/* 8 graisses 100–800, fichiers .ttf sur CDN Braze */]
+```
+
+**Marque** :
+- Nom : `COINHOUSE`
+- Adresse : SAS au capital de 210 000 €, RCS Paris 815 254 545
+- Mention légale : PSCA agréé MiCA n°A2026-013
+
+### `calloutPictos.js` — 15 pictos
+
+| ID | Label | Couleur par défaut |
+|---|---|---|
+| `info` | Info | #00FFFF |
+| `decode` | Décryptage | #00FFFF |
+| `insight` | Analyse | #00FFFF |
+| `pin` | À retenir | #00FFFF |
+| `warning` | Attention | #FF4B28 |
+| `signal` | Signal | #03FFCF |
+| `context` | Contexte | #00FFFF |
+| `read` | Lecture | #00FFFF |
+| `timing` | Timing | #00FFFF |
+| `target` | Objectif | #FF00AA |
+| `dollar` | Dollar | #03FFCF |
+| `euro` | Euro | #00FFFF |
+| `btc` | Bitcoin | #FF8B28 |
+| `eth` | Ethereum | #B36BFF |
+| `question` | Question | #00FFFF |
+
+**9 couleurs de callout** : `#00FFFF` Cyan, `#03FFCF` Menthe, `#4141FF` Bleu, `#FF00AA` Rose, `#FF8B28` Orange, `#FF4B28` Corail, `#B36BFF` Violet, `#FFE600` Jaune, `#FFFFFF` Blanc.
+
+`DEFAULT_PICTO_ID = "info"`, `DEFAULT_CALLOUT_COLOR = "#00FFFF"`.
 
 ---
 
 ## Schéma de base de données
 
-### Tables principales
+Extension PostgreSQL requise : `pgcrypto`.
 
-| Table | Description |
-|---|---|
-| `profiles` | Profils utilisateurs (full_name, is_approved, is_admin, avatar_url) |
-| `newsletters` | Brouillons de newsletters (title, content JSONB, status, created_by) |
-| `versions` | Historique de versions (newsletter_id, snapshot JSONB, name, comment, created_by) |
-| `locks` | Verrous d'édition (newsletter_id, locked_by, expires_at) |
-| `labels` | Labels colorés (name, color, created_by, updated_by) |
-| `newsletter_labels` | Association newsletters ↔ labels (newsletter_id, label_id, assigned_by) |
-| `image_labels` | Association images ↔ labels (image_path TEXT, label_id, assigned_by) |
-| `template_config` | Configuration du template par défaut (admin) |
-| `default_content` | Contenus par défaut par type de bloc (admin) |
+### Tables
+
+#### `profiles`
+
+| Colonne | Type | Notes |
+|---|---|---|
+| `id` | uuid PK | Référence `auth.users(id)` CASCADE |
+| `full_name` | text | |
+| `avatar_url` | text | |
+| `email` | text NOT NULL | |
+| `approved` | boolean | default `false` |
+| `is_admin` | boolean | default `false` |
+| `password_set` | boolean | default `false` |
+| `auth_provider` | text | default `'email'` |
+| `created_at` | timestamptz | |
+
+Trigger `on_auth_user_created` : insère un profil non approuvé à chaque inscription. `password_set` vaut `true` pour les providers OAuth (Google…).
+
+#### `newsletters`
+
+| Colonne | Type | Notes |
+|---|---|---|
+| `id` | uuid PK | `gen_random_uuid()` |
+| `title` | text NOT NULL | |
+| `issue_number` | text | |
+| `current_state` | jsonb NOT NULL | Brouillon complet (auto-save) |
+| `created_at` | timestamptz | |
+| `updated_at` | timestamptz | Auto-mis à jour par trigger |
+| `created_by` | uuid | → `profiles`, SET NULL |
+| `updated_by` | uuid | → `profiles`, SET NULL — mis à jour par trigger |
+| `archived` | boolean | default `false` |
+
+Index : `updated_at DESC`, `archived`.
+
+#### `versions`
+
+| Colonne | Type | Notes |
+|---|---|---|
+| `id` | uuid PK | |
+| `newsletter_id` | uuid NOT NULL | → `newsletters` CASCADE |
+| `state` | jsonb NOT NULL | Snapshot complet |
+| `author_id` | uuid | → `profiles`, SET NULL |
+| `comment` | text | |
+| `created_at` | timestamptz | |
+
+Index : `(newsletter_id, created_at DESC)`.
+
+#### `template_presets`
+
+| Colonne | Type | Notes |
+|---|---|---|
+| `id` | uuid PK | |
+| `name` | text NOT NULL | |
+| `sections` | jsonb | default `'[]'` |
+| `include_default_content` | boolean | default `true` |
+| `show_section_numbers` | boolean | default `true` |
+| `theme_variant` | text | `'dark'` ou `'light'`, check constraint |
+| `show_issue_date` | boolean | default `true` |
+| `created_at` / `updated_at` | timestamptz | |
+| `created_by` / `updated_by` | uuid | → `profiles`, SET NULL |
+
+Index : `lower(name)`.
+
+#### `locks`
+
+| Colonne | Type | Notes |
+|---|---|---|
+| `newsletter_id` | uuid PK | → `newsletters` CASCADE |
+| `user_id` | uuid NOT NULL | → `profiles` CASCADE |
+| `acquired_at` | timestamptz | |
+| `expires_at` | timestamptz NOT NULL | `now() + interval '10 minutes'` |
+| `user_full_name` | text | |
+| `user_email` | text | |
 
 ### RPC Postgres
 
-| Fonction | Description |
-|---|---|
-| `acquire_lock(newsletter_id, user_id, ttl_minutes)` | Acquiert ou renouvelle le verrou, retourne success/locked_by |
-| `release_lock(newsletter_id, user_id)` | Libère le verrou si détenu par cet utilisateur |
-| `supabase_keepalive()` | No-op légère pour le cron anti-pause |
+#### `acquire_lock(p_newsletter_id uuid, p_force boolean = false)`
+
+Retourne une ligne `public.locks`. Logique atomique (UPSERT) :
+- Pas de lock, ou lock expiré, ou lock de l'utilisateur courant → upsert
+- `p_force = true` → force le remplacement
+- Sinon → retourne la ligne existante (client affiche le bandeau)
+
+`acquired_at` est préservé si l'utilisateur renouvelle son propre lock.
+
+#### `release_lock(p_newsletter_id uuid)`
+
+Supprime le lock si `user_id = auth.uid()`.
+
+#### `admin_create_user(p_email, p_password, p_full_name, p_approved, p_is_admin)`
+
+Crée un utilisateur Auth confirmé (sans email de confirmation) + son profil. Si l'email existe déjà dans `auth.users`, met à jour le profil uniquement. Mot de passe minimum : 8 caractères. Retourne le profil créé.
+
+#### Fonctions utilitaires (SECURITY DEFINER)
+
+- `current_user_is_admin()` → boolean
+- `current_user_is_approved()` → boolean
+- `touch_updated_at()` → trigger — met à jour `updated_at` et `updated_by` avant chaque UPDATE
+
+### Triggers
+
+- `on_auth_user_created` (AFTER INSERT on `auth.users`) → `handle_new_user()`
+- `newsletters_touch` (BEFORE UPDATE on `newsletters`) → `touch_updated_at()`
+- `template_presets_touch` (BEFORE UPDATE on `template_presets`) → `touch_updated_at()`
 
 ### RLS (Row Level Security)
 
-Toutes les tables ont des policies RLS activées :
+Toutes les tables ont RLS activé.
 
-- `profiles` : lecture publique, écriture par le propriétaire ou admin
-- `newsletters` : lecture/écriture pour les utilisateurs approuvés (`is_approved = true`)
-- `locks` : lecture publique, modification via RPC uniquement
-- `labels` / `newsletter_labels` / `image_labels` : lecture publique, écriture pour les utilisateurs approuvés
-- `versions` : lecture/écriture pour les utilisateurs approuvés
+| Table | SELECT | INSERT | UPDATE | DELETE |
+|---|---|---|---|---|
+| `profiles` | Tous les authentifiés | Trigger uniquement | Soi-même (sans changer `is_admin`) OU admin | Admin |
+| `newsletters` | Approuvés | Approuvés | Approuvés | Admin OU créateur |
+| `versions` | Approuvés | Approuvés (`author_id = auth.uid()`) | — | — |
+| `template_presets` | Approuvés | Admin | Admin | Admin OU créateur |
+| `locks` | Approuvés | Approuvés (`user_id = auth.uid()`) | Propriétaire | Propriétaire OU expiré OU admin |
+
+---
+
+## API serverless Vercel
+
+### `api/export-braze.js` — POST
+
+Auth : Bearer token → vérifie `profiles.is_admin AND approved`.
+
+Body :
+```json
+{
+  "assets": [
+    { "assetName": "chart.png", "base64": "…" },
+    { "assetName": "header.png", "assetUrl": "https://…" }
+  ]
+}
+```
+
+Limites : 30 assets max, 5 Mo par asset.
+
+Réponse :
+```json
+{ "assets": { "chart.png": "https://cdn.braze.eu/…" } }
+```
+
+Variables d'environnement : `BRAZE_API_KEY`, `BRAZE_BASE_URL` (ou `BRAZE_REST_ENDPOINT`), `SUPABASE_URL` / `VITE_SUPABASE_URL`, `SUPABASE_ANON_KEY` / `VITE_SUPABASE_ANON_KEY`.
+
+### `api/supabase-keepalive.js` — GET ou POST
+
+Cron Vercel : lundi et jeudi à 08h17 (schedule `"17 8 * * 1,4"`).
+
+Appelle `POST {SUPABASE_URL}/rest/v1/rpc/keepalive`. Accepte `CRON_SECRET` optionnel en Authorization.
+
+### `api/export-preview-jpg.js` — POST
+
+Auth : Bearer token Supabase. Corps : `{ html, device }`. Rend le HTML via Puppeteer + @sparticuz/chromium et retourne un JPG.
+
+### `api/generate-preview-text.js` — POST
+
+Corps : `{ draft }` ou `{ state }`. Génère un texte d'aperçu email via IA.
+
+### `api/correct-text.js` — POST
+
+Corps : `{ html }`. Retourne `{ html }` corrigé orthographiquement.
 
 ---
 
@@ -361,34 +872,13 @@ Toutes les tables ont des policies RLS activées :
 ### 1. Créer le projet Supabase
 
 1. Créer un projet sur [supabase.com](https://supabase.com)
-2. Région recommandée : **eu-central-1** (Francfort) pour la conformité RGPD
+2. Dans **SQL Editor**, exécuter `supabase/schema.sql`
 
-### 2. Exécuter le schéma
+### 2. Configurer Supabase Storage
 
-Dans **SQL Editor** du dashboard Supabase, exécuter `supabase/schema.sql`. Ce script crée toutes les tables, policies RLS, RPCs et triggers.
+Créer un bucket `newsletter-images` (public).
 
-### 3. Récupérer les clés API
-
-Dans **Project Settings → API** :
-- `Project URL` → `VITE_SUPABASE_URL`
-- `anon public` key → `VITE_SUPABASE_ANON_KEY`
-
-### 4. Configurer le Storage
-
-Dans **Storage**, créer un bucket `newsletter-images` :
-- Public : oui (pour les URLs d'images dans les emails)
-- Policies : insertion/suppression pour les utilisateurs approuvés
-
-### 5. Lancer en local
-
-```bash
-cp .env.example .env
-# Remplir .env avec les valeurs Supabase
-npm install
-npm run dev
-```
-
-Variables d'environnement nécessaires en local :
+### 3. Variables d'environnement
 
 ```env
 VITE_SUPABASE_URL=https://xxxx.supabase.co
@@ -396,56 +886,53 @@ VITE_SUPABASE_ANON_KEY=eyJ...
 VITE_AUTH_REDIRECT_URL=http://localhost:5173
 ```
 
-### 6. Créer le premier compte admin
+### 4. Lancer en local
 
-1. Ouvrir `http://localhost:5173`, saisir son email
-2. Cliquer le magic link reçu → compte en attente d'approbation
-3. Dans Supabase → SQL Editor, exécuter `supabase/bootstrap-admin.sql` avec son email
-4. Recharger la page → accès complet
+```bash
+npm install
+npm run dev
+```
 
-### 7. Créer des comptes utilisateurs (optionnel)
+### 5. Créer le premier compte admin
 
-Via l'interface Admin → Créer un compte, ou en exécutant `supabase/admin-create-user.sql` dans le SQL Editor pour créer un compte avec mot de passe temporaire.
+1. Ouvrir `http://localhost:5173`, créer un compte
+2. Dans Supabase → SQL Editor, exécuter `supabase/bootstrap-admin.sql` avec son email
+3. Recharger → accès complet
 
 ---
 
 ## Déploiement Vercel
 
-### 1. Push sur GitHub et importer sur Vercel
-
-1. Pousser le repo sur GitHub
-2. Importer le projet sur [vercel.com](https://vercel.com)
-3. Build command : `npm run build`, Output directory : `dist`
-
-### 2. Variables d'environnement
-
-Dans **Vercel → Settings → Environment Variables** :
+### Variables d'environnement Vercel
 
 | Variable | Description |
 |---|---|
 | `VITE_SUPABASE_URL` | URL du projet Supabase |
 | `VITE_SUPABASE_ANON_KEY` | Clé anon public Supabase |
-| `VITE_AUTH_REDIRECT_URL` | URL publique exacte de l'app (ex. `https://newsletter.decrypto.com`) |
+| `VITE_AUTH_REDIRECT_URL` | URL publique de l'app |
+| `SUPABASE_URL` | Idem (pour les fonctions serverless) |
+| `SUPABASE_ANON_KEY` | Idem (pour les fonctions serverless) |
 | `BRAZE_API_KEY` | Clé serveur Braze (permission `media_library.create`) |
 | `BRAZE_BASE_URL` | REST endpoint Braze (ex. `https://rest.fra-01.braze.eu`) |
-| `SUPABASE_URL` | Idem `VITE_SUPABASE_URL` (pour les fonctions serverless) |
-| `SUPABASE_ANON_KEY` | Idem `VITE_SUPABASE_ANON_KEY` (pour les fonctions serverless) |
-| `CRON_SECRET` | Secret optionnel pour sécuriser l'endpoint keepalive |
+| `CRON_SECRET` | Secret optionnel pour l'endpoint keepalive |
 
-> **Sécurité Braze** : la clé `BRAZE_API_KEY` n'est jamais exposée côté client (pas de préfixe `VITE_`). Le bouton Export Braze appelle `/api/export-braze` qui vérifie la session Supabase et le flag `is_admin` avant d'utiliser la clé.
+### `vercel.json`
 
-### 3. Configurer les redirections Auth
+```json
+{
+  "crons": [{ "path": "/api/supabase-keepalive", "schedule": "17 8 * * 1,4" }],
+  "headers": [
+    { "source": "/", "headers": [{ "key": "Cache-Control", "value": "no-store, no-cache, must-revalidate, max-age=0" }] },
+    { "source": "/index.html", "headers": [{ "key": "Cache-Control", "value": "no-store, no-cache, must-revalidate, max-age=0" }] },
+    { "source": "/assets/(.*)", "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }] }
+  ],
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+}
+```
 
-Dans **Supabase → Authentication → URL Configuration**, ajouter l'URL Vercel dans **Redirect URLs**.
+### Ajouter l'URL Vercel aux Redirect URLs Supabase
 
-### 4. Keepalive anti-pause (projets Supabase Free)
-
-Les projets Supabase Free se mettent en pause après 7 jours d'inactivité. Un Cron Vercel appelle une RPC légère deux fois par semaine :
-
-1. Exécuter `supabase/keepalive.sql` dans le SQL Editor pour créer la fonction
-2. Ajouter `CRON_SECRET` dans les variables Vercel (optionnel mais recommandé)
-3. Le fichier `vercel.json` configure le cron automatiquement
-4. Tester avec `GET /api/supabase-keepalive` après déploiement
+Dans **Supabase → Authentication → URL Configuration**.
 
 ---
 
@@ -459,18 +946,20 @@ npm run preview  # Prévisualiser le build de production localement
 
 ---
 
-## Contribuer / Étendre
+## Étendre le projet
 
-### Ajouter un nouveau type de bloc
+### Ajouter un type de bloc
 
-1. Ajouter une entrée dans `src/config/schema.js` → `SECTION_TYPES` avec `label`, `icon` (nom Lucide), et `factory()`
-2. Ajouter la fonction de rendu dans `src/render/buildEmail.js`
-3. Ajouter le formulaire d'édition dans `src/components/SectionEditor.jsx`
+1. `src/config/schema.js` → `SECTION_TYPES` : ajouter `label`, `icon`, `factory()`
+2. `src/render/buildEmail.js` → ajouter la fonction de rendu et le case dans `renderSection()`
+3. `src/components/SectionEditor.jsx` → ajouter le formulaire et le case dans `SectionEditor`
+
+Si le bloc ne doit pas être numéroté, l'ajouter à `UNNUMBERED_TYPES` dans `schema.js`.
 
 ### Ajouter un picto d'encadré
 
-Ajouter une entrée dans `src/config/calloutPictos.js` → `CALLOUT_PICTOS` avec `id`, `num`, `label`, `color`, `bgRgb`, et `svgInner` (chemin SVG pour viewBox 24×24).
+`src/config/calloutPictos.js` → `CALLOUT_PICTOS` : `{ id, num, label, color, svgInner }` (SVG 24×24).
 
-### Modifier la palette de couleurs
+### Modifier la palette
 
-Éditer `src/config/theme.js` pour les couleurs de marque, et `tailwind.config.js` pour les tokens Tailwind.
+`src/config/theme.js` pour les couleurs email et marque. `tailwind.config.js` pour les tokens Tailwind utilisés dans l'UI.
