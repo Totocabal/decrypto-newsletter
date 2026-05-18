@@ -9,6 +9,15 @@ import "quill/dist/quill.snow.css";
 import { supabase } from "../lib/supabase.js";
 import { Tooltip } from "./Tooltip.jsx";
 
+const EmbedBlot = Quill.import("blots/embed");
+
+class SoftBreakBlot extends EmbedBlot {
+  static blotName = "softbreak";
+  static tagName = "BR";
+}
+
+Quill.register(SoftBreakBlot, true);
+
 // ─────────────────────────────────────────────────────────────────────────────
 // CSS dark-theme pour Quill (injecté une seule fois)
 // ─────────────────────────────────────────────────────────────────────────────
@@ -223,7 +232,9 @@ function RichTextEditor({ showCount, onChange, value = "", rows = 3, placeholder
               key: "Enter",
               shiftKey: true,
               handler(range) {
-                this.quill.insertText(range.index, "\n", "user");
+                const formats = this.quill.getFormat(range);
+                if (!formats.list) return true;
+                this.quill.insertEmbed(range.index, "softbreak", true, "user");
                 this.quill.setSelection(range.index + 1, 0, "silent");
                 return false;
               },
