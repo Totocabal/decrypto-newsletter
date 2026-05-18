@@ -46,7 +46,7 @@ function injectQuillCss() {
     /* Listes */
     .ql-wrapper .ql-editor ul,
     .ql-wrapper .ql-editor ol { padding-left: 1.4em; margin: 4px 0; }
-    .ql-wrapper .ql-editor li { color: #E4E4EC; padding: 1px 0; line-height: 1.65; }
+    .ql-wrapper .ql-editor li { color: #E4E4EC; padding: 1px 0; line-height: 1.65; white-space: pre-wrap; }
     .ql-wrapper .ql-editor li::before { color: #888; }
 
     /* Toolbar */
@@ -217,6 +217,19 @@ function RichTextEditor({ showCount, onChange, value = "", rows = 3, placeholder
       theme: "snow",
       modules: {
         toolbar: TOOLBAR_OPTIONS,
+        keyboard: {
+          bindings: {
+            shiftEnter: {
+              key: "Enter",
+              shiftKey: true,
+              handler(range) {
+                this.quill.insertText(range.index, "\n", "user");
+                this.quill.setSelection(range.index + 1, 0, "silent");
+                return false;
+              },
+            },
+          },
+        },
       },
       formats: ["bold", "italic", "underline", "strike", "link", "list", "indent"],
       placeholder: placeholder || "",
