@@ -64,7 +64,7 @@ function isDraftNewerThanNewsletter(draft, newsletter) {
   return new Date(draft.saved_at).getTime() > new Date(newsletter.updated_at).getTime();
 }
 
-export function useNewsletter(newsletterId, userId) {
+export function useNewsletter(newsletterId, userId, userName) {
   const [newsletter, setNewsletter] = useState(null);
   const [state, setState] = useState(null);
   const [lockInfo, setLockInfo] = useState(null);
@@ -73,6 +73,8 @@ export function useNewsletter(newsletterId, userId) {
   const [error, setError] = useState(null);
   const [saving, setSaving] = useState(false);
   const [lastSavedAt, setLastSavedAt] = useState(null);
+  // Notification de demande d'accès : { requesterName, requestedAt }
+  const [lockRequest, setLockRequest] = useState(null);
 
   const autosaveTimer = useRef(null);
   const lockRenewTimer = useRef(null);
@@ -167,7 +169,46 @@ export function useNewsletter(newsletterId, userId) {
     };
   }, [newsletterId, userId, lockedByOther, lockInfo]);
 
-  // ── 3. Libération du lock à la fermeture ──
+  // ── 3. Realtime : broadcast de la demande d'accès ──
+  // - Si lockedByOther : on envoie un message sur le canal pour prévenir le détenteur
+  // - Si !lockedByOther : on écoute les demandes entrantes et on expose lockRequest
+  useEffect(() => {
+    if (!newsletterId || !userId) return;
+
+    const channel = supabase.channel(`lock-requests:${newsletterId}`, {
+      config: { broadcast: { self: false } },
+    });
+
+    if (lockedByOther) {
+      // User B — signaler au détenteur qu'on souhaite accéder
+      channel.subscribe((status) => {
+        if (status === "SUBSCRIBED") {
+          channel.send({
+            type: "broadcast",
+            event: "lock-request",
+            payload: { userId, userName: userName || userId },
+          });
+        }
+      });
+    } else {
+      // User A (détenteur) — écouter les demandes entrantes
+      channel
+        .on("broadcast", { event: "lock-request" }, ({ payload }) => {
+          if (!isMounted.current) return;
+          setLockRequest({
+            requesterName: payload.userName || payload.userId,
+            requestedAt: Date.now(),
+          });
+        })
+        .subscribe();
+    }
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [newsletterId, userId, userName, lockedByOther]);
+
+  // ── 5. Libération du lock à la fermeture ──
   useEffect(() => {
     if (!newsletterId) return;
 
@@ -189,7 +230,7 @@ export function useNewsletter(newsletterId, userId) {
     };
   }, [newsletterId]);
 
-  // ── 4. Auto-save (debounce 2s) sur current_state ──
+  // ── 6. Auto-save (debounce 2s) sur current_state ──
   useEffect(() => {
     if (!newsletterId || !state || lockedByOther) return;
     if (skipNextAutosave.current) {
@@ -219,7 +260,7 @@ export function useNewsletter(newsletterId, userId) {
     };
   }, [state, newsletterId, lockedByOther]);
 
-  // ── 5. Save explicite (= snapshot de version) ──
+  // ── 7. Save explicite (= snapshot de version) ──
   const saveVersion = useCallback(
     async (comment = null) => {
       if (!newsletterId || !state || !userId) return { error: "Pas prêt" };
@@ -246,7 +287,7 @@ export function useNewsletter(newsletterId, userId) {
     [newsletterId, state, userId]
   );
 
-  // ── 6. Forcer la prise de contrôle ──
+  // ── 8. Forcer la prise de contrôle ──
   const takeOverLock = useCallback(async () => {
     const { data, error } = await supabase.rpc("acquire_lock", {
       p_newsletter_id: newsletterId,
@@ -259,7 +300,7 @@ export function useNewsletter(newsletterId, userId) {
     return { error: error?.message || null };
   }, [newsletterId]);
 
-  // ── 7. Mise à jour du titre (colonne dédiée, pas dans current_state) ──
+  // ── 9. Mise à jour du titre (colonne dédiée, pas dans current_state) ──
   // Update optimiste en local puis envoi à Supabase. Debounce 500ms pour
   // éviter une requête à chaque frappe.
   const titleTimer = useRef(null);
@@ -293,6 +334,8 @@ export function useNewsletter(newsletterId, userId) {
     lastSavedAt,
     lockInfo,
     lockedByOther,
+    lockRequest,
+    setLockRequest,
     saveVersion,
     takeOverLock,
     updateTitle,

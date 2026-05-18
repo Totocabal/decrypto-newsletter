@@ -8,6 +8,7 @@ import { Toolbar } from "../components/Toolbar.jsx";
 import { PreviewPanel } from "../components/PreviewPanel.jsx";
 import { EditorPanel } from "../components/EditorPanel.jsx";
 import { LockBanner } from "../components/LockBanner.jsx";
+import { LockRequestBanner } from "../components/LockRequestBanner.jsx";
 import { VersionsPanel } from "../components/VersionsPanel.jsx";
 import { Wordmark } from "../components/Wordmark.jsx";
 import { Tooltip } from "../components/Tooltip.jsx";
@@ -36,10 +37,16 @@ export function EditorPage({ newsletterId, onBack }) {
     lastSavedAt,
     lockInfo,
     lockedByOther,
+    lockRequest,
+    setLockRequest,
     saveVersion,
     takeOverLock,
     updateTitle,
-  } = useNewsletter(newsletterId, profile?.id);
+  } = useNewsletter(
+    newsletterId,
+    profile?.id,
+    profile?.full_name || profile?.email
+  );
 
   const [view, setView] = useState("preview");
   const [previewDevice, setPreviewDevice] = useState("desktop");
@@ -300,6 +307,14 @@ export function EditorPage({ newsletterId, onBack }) {
           lockInfo={lockInfo}
           onTakeOver={takeOverLock}
           onBack={onBack}
+        />
+      )}
+
+      {/* Bandeau de demande d'accès (pour le détenteur du lock) */}
+      {!lockedByOther && (
+        <LockRequestBanner
+          lockRequest={lockRequest}
+          onDismiss={() => setLockRequest(null)}
         />
       )}
 
