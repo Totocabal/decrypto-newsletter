@@ -226,7 +226,7 @@ function Router() {
   if (route.name === "editor") {
     return (
       <>
-        <UiThemeToggle uiTheme={uiTheme} setUiTheme={setUiTheme} />
+        <UiThemeToggle uiTheme={uiTheme} setUiTheme={setUiTheme} compact />
         <EditorPage
           newsletterId={route.id}
           onBack={() => setRoute({ name: "list" })}
@@ -237,7 +237,7 @@ function Router() {
   if (route.name === "admin") {
     return (
       <>
-        <UiThemeToggle uiTheme={uiTheme} setUiTheme={setUiTheme} />
+        <UiThemeToggle uiTheme={uiTheme} setUiTheme={setUiTheme} compact />
         <AdminPage onBack={() => setRoute({ name: "list" })} />
       </>
     );
@@ -253,7 +253,7 @@ function Router() {
   );
 }
 
-function UiThemeToggle({ uiTheme, setUiTheme }) {
+function UiThemeToggle({ uiTheme, setUiTheme, compact = false }) {
   const options = [
     { id: "system", label: "Système", icon: Monitor },
     { id: "light", label: "Light", icon: Sun },
@@ -262,7 +262,9 @@ function UiThemeToggle({ uiTheme, setUiTheme }) {
 
   return (
     <div
-      className="fixed bottom-4 right-4 z-[90] inline-flex items-center rounded-full border border-line bg-d-panel p-1 shadow-xl"
+      className={`fixed right-4 z-[90] inline-flex items-center rounded-full border border-line bg-d-panel shadow-xl ${
+        compact ? "bottom-3 p-0.5" : "bottom-4 p-1"
+      }`}
       role="group"
       aria-label="Mode d'affichage de l'interface"
     >
@@ -276,13 +278,15 @@ function UiThemeToggle({ uiTheme, setUiTheme }) {
             onClick={() => setUiTheme(option.id)}
             aria-label={`Mode ${option.label}`}
             title={option.label}
-            className={`inline-flex h-8 w-8 items-center justify-center rounded-full transition-colors ${
+            className={`inline-flex items-center justify-center rounded-full transition-colors ${
+              compact ? "h-6 w-6" : "h-8 w-8"
+            } ${
               active
                 ? "bg-d-fg text-d-bg"
                 : "text-d-fg3 hover:bg-d-panel2 hover:text-d-fg"
             }`}
           >
-            <Icon size={15} />
+            <Icon size={compact ? 12 : 15} />
           </button>
         );
       })}
