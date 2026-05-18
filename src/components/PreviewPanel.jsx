@@ -104,7 +104,7 @@ export function PreviewPanel({ html, view, previewDevice, setPreviewDevice }) {
   return (
     <>
       {/* Panneau normal */}
-      <div className="flex h-[70vh] min-h-[420px] min-w-0 flex-col overflow-hidden rounded-2xl border border-line bg-d-panel xl:h-[calc(100vh-180px)]">
+      <div className="flex h-[70vh] min-h-[420px] min-w-0 flex-col overflow-hidden rounded-2xl border border-line bg-d-panel sm:h-[calc(100vh-180px)]">
         {view === "preview" && (
           <div className="flex items-center justify-between border-b border-line px-3 py-2">
             <div className="flex flex-1 justify-start">

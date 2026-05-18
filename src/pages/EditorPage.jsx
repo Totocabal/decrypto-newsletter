@@ -434,10 +434,10 @@ export function EditorPage({ newsletterId, onBack }) {
       />
 
       <div
-        className="grid grid-cols-1 gap-5 p-4 sm:p-6 xl:grid-cols-[minmax(380px,480px)_1fr] xl:gap-6"
+        className="grid grid-cols-1 gap-5 p-4 sm:p-6 sm:grid-cols-[minmax(380px,480px)_1fr] sm:gap-6"
       >
         <div
-          className={`min-w-0 xl:max-h-[calc(100vh-180px)] xl:overflow-y-auto xl:pr-1 ${
+          className={`min-w-0 sm:max-h-[calc(100vh-180px)] sm:overflow-y-auto sm:pr-1 ${
             lockedByOther ? "pointer-events-none opacity-60" : ""
           }`}
         >
