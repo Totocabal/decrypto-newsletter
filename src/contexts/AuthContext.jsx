@@ -150,12 +150,15 @@ export function AuthProvider({ children }) {
         if (!mounted) return;
 
         if (result?.error) {
-          // Une session locale corrompue ou un refresh token expiré peut bloquer
-          // l'app après refresh. On nettoie seulement le stockage auth local.
-          // L'utilisateur pourra se reconnecter immédiatement.
           // eslint-disable-next-line no-console
           console.warn("[auth] getSession error:", result.error);
-          clearSupabaseStorage();
+          // Si un ?code= OAuth PKCE est dans l'URL, on ne nettoie PAS le storage :
+          // onAuthStateChange va échanger le code et créer la session tout seul.
+          // On ne nettoie que les vraies erreurs de session corrompue/expirée.
+          const hasOAuthCode = /[?&]code=/.test(window.location.search);
+          if (!hasOAuthCode) {
+            clearSupabaseStorage();
+          }
           setUser(null);
           setProfile(null);
           setLoading(false);

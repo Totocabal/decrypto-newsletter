@@ -59,7 +59,8 @@ export const supabase = createClient(
     auth: {
       persistSession: true,
       autoRefreshToken: true,
-      detectSessionInUrl: true, // gère le retour du magic link
+      detectSessionInUrl: true, // gère le retour du magic link et OAuth
+      flowType: 'pkce',         // flux PKCE explicite pour Google OAuth
     },
   }
 );
