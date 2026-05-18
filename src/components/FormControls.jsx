@@ -354,9 +354,9 @@ function RichTextEditor({ showCount, onChange, value = "", rows = 3, placeholder
 // Exports publics
 // ─────────────────────────────────────────────────────────────────────────────
 
-export function Field({ label, children, hint, action }) {
+export function Field({ label, children, hint, action, noMargin = false }) {
   return (
-    <div className="block mb-4">
+    <div className={noMargin ? "block" : "block mb-4"}>
       <div className="min-h-[28px] flex items-center justify-between text-[10px] uppercase tracking-[0.18em] font-medium text-d-fg3 mb-1.5 leading-tight">
         <span>{label}</span>
         {action && <span>{action}</span>}

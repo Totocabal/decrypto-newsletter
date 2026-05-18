@@ -1375,9 +1375,9 @@ function FocusEditor({ data, set }) {
                 </button>
               </div>
             </div>
-            {!collapsed.has(item.id) && <div className="p-3">
+            {!collapsed.has(item.id) && <div className="p-3 space-y-3">
               {item.type === "text" && (
-                <Field hint="Éditeur riche : gras, italique, souligné, rayé, lien et listes">
+                <Field noMargin hint="Éditeur riche : gras, italique, souligné, rayé, lien et listes">
                   <TextArea
                     showCount
                     rows={6}
@@ -1389,7 +1389,7 @@ function FocusEditor({ data, set }) {
               {item.type === "image" && (
                 <>
                   {item.image_url ? (
-                    <div className="mb-2">
+                    <div>
                       <div className="relative mb-2">
                         <img src={item.image_url} alt={item.image_alt || ""} className="w-full h-auto rounded-xl border border-line" />
                         <Tooltip label="Retirer l'image" align="right" className="absolute top-2 right-2">
@@ -1411,10 +1411,10 @@ function FocusEditor({ data, set }) {
                   )}
                   {item.image_url && (
                     <>
-                      <Field label="Texte alternatif (alt)" hint="Pour les lecteurs d'écran">
+                      <Field noMargin label="Texte alternatif (alt)" hint="Pour les lecteurs d'écran">
                         <Input value={item.image_alt || ""} onChange={(e) => updateItem(item.id, { image_alt: e.target.value })} />
                       </Field>
-                      <Field label="Lien (optionnel)" hint="L'image devient cliquable">
+                      <Field noMargin label="Lien (optionnel)" hint="L'image devient cliquable">
                         <Input value={item.link_url || ""} onChange={(e) => updateItem(item.id, { link_url: e.target.value })} placeholder="https://…" />
                       </Field>
                     </>
@@ -1424,16 +1424,18 @@ function FocusEditor({ data, set }) {
               {item.type === "cta" && (
                 <>
                   {/* Bouton principal — gradient */}
-                  <div className="text-[10px] uppercase tracking-[0.15em] font-semibold text-d-fg4 mb-1.5">Bouton principal (gradient)</div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-2">
-                    <Field label="Texte">
-                      <Input value={item.label || ""} onChange={(e) => updateItem(item.id, { label: e.target.value })} />
-                    </Field>
-                    <Field label="Lien">
-                      <Input value={item.url || ""} onChange={(e) => updateItem(item.id, { url: e.target.value })} />
-                    </Field>
+                  <div>
+                    <div className="text-[10px] uppercase tracking-[0.15em] font-semibold text-d-fg4 mb-2">Bouton principal (gradient)</div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <Field noMargin label="Texte">
+                        <Input value={item.label || ""} onChange={(e) => updateItem(item.id, { label: e.target.value })} />
+                      </Field>
+                      <Field noMargin label="Lien">
+                        <Input value={item.url || ""} onChange={(e) => updateItem(item.id, { url: e.target.value })} />
+                      </Field>
+                    </div>
                   </div>
-                  <div className="flex gap-2 mb-3">
+                  <div className="flex gap-2">
                     <button
                       type="button"
                       onClick={() => updateItem(item.id, { centered: !item.centered })}
@@ -1453,15 +1455,15 @@ function FocusEditor({ data, set }) {
                   </div>
 
                   {/* Bouton secondaire — outline */}
-                  <div className="border-t border-line pt-3">
-                    <div className="text-[10px] uppercase tracking-[0.15em] font-semibold text-d-fg4 mb-1.5">
+                  <div className="border-t border-line pt-3 space-y-3">
+                    <div className="text-[10px] uppercase tracking-[0.15em] font-semibold text-d-fg4">
                       Bouton secondaire (outline) — <span className="normal-case font-normal">optionnel, à droite</span>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-2">
-                      <Field label="Texte">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <Field noMargin label="Texte">
                         <Input value={item.secondary_label || ""} onChange={(e) => updateItem(item.id, { secondary_label: e.target.value })} placeholder="Laisser vide pour masquer" />
                       </Field>
-                      <Field label="Lien">
+                      <Field noMargin label="Lien">
                         <Input value={item.secondary_url || ""} onChange={(e) => updateItem(item.id, { secondary_url: e.target.value })} />
                       </Field>
                     </div>
@@ -1481,7 +1483,7 @@ function FocusEditor({ data, set }) {
               {item.type === "callout" && (
                 <>
                   {/* Couleur */}
-                  <div className="mb-3">
+                  <div>
                     <div className="text-[10px] uppercase tracking-[0.15em] font-semibold text-d-fg4 mb-2">Couleur</div>
                     <div className="flex flex-wrap gap-1.5">
                       {CALLOUT_COLORS.map((c) => {
@@ -1506,7 +1508,7 @@ function FocusEditor({ data, set }) {
                   </div>
 
                   {/* Toggle afficher le picto */}
-                  <label className="mb-3 flex items-center justify-between gap-4 rounded-xl border border-line bg-d-panel px-3 py-2.5 cursor-pointer">
+                  <label className="flex items-center justify-between gap-4 rounded-xl border border-line bg-d-panel px-3 py-2.5 cursor-pointer">
                     <span className="text-xs font-semibold text-d-fg">Afficher le picto</span>
                     <span className="relative inline-flex h-6 w-11 flex-shrink-0 items-center">
                       <input
@@ -1522,7 +1524,7 @@ function FocusEditor({ data, set }) {
 
                   {/* Sélecteur de picto */}
                   {item.show_icon !== false && (
-                    <div className="mb-3">
+                    <div>
                       <div className="text-[10px] uppercase tracking-[0.15em] font-semibold text-d-fg4 mb-2">Pictogramme</div>
                       <div className="grid grid-cols-5 gap-1.5">
                         {CALLOUT_PICTOS.map((p) => {
@@ -1550,14 +1552,14 @@ function FocusEditor({ data, set }) {
                       </div>
                     </div>
                   )}
-                  <Field label="Libellé">
+                  <Field noMargin label="Libellé">
                     <Input
                       value={item.label || ""}
                       onChange={(e) => updateItem(item.id, { label: e.target.value })}
                       placeholder="Note de la rédac"
                     />
                   </Field>
-                  <Field label="Texte" hint="Éditeur riche">
+                  <Field noMargin label="Texte" hint="Éditeur riche">
                     <TextArea
                       showCount
                       rows={5}
@@ -1566,14 +1568,14 @@ function FocusEditor({ data, set }) {
                     />
                   </Field>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <Field label="Ligne de bas" hint="Optionnelle">
+                    <Field noMargin label="Ligne de bas" hint="Optionnelle">
                       <Input
                         value={item.footer || ""}
                         onChange={(e) => updateItem(item.id, { footer: e.target.value })}
                         placeholder="→ 4 lectures disponibles"
                       />
                     </Field>
-                    <Field label="Lien">
+                    <Field noMargin label="Lien">
                       <Input
                         value={item.footer_url || ""}
                         onChange={(e) => updateItem(item.id, { footer_url: e.target.value })}
