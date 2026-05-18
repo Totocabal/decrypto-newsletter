@@ -11,7 +11,7 @@
 //   - AdminPage              (admin uniquement)
 
 import { useEffect, useState } from "react";
-import { Loader2, Moon, Sun } from "lucide-react";
+import { Loader2, Monitor, Moon, Sun } from "lucide-react";
 import { AuthProvider, useAuth } from "./contexts/AuthContext.jsx";
 import { DialogProvider } from "./components/Dialog.jsx";
 import { LoginPage } from "./pages/LoginPage.jsx";
@@ -69,13 +69,25 @@ function Router() {
   const [route, setRoute] = useState(readRouteFromHash);
   const [longWait, setLongWait] = useState(false);
   const [uiTheme, setUiTheme] = useState(() => {
-    if (typeof window === "undefined") return "dark";
-    return window.localStorage.getItem("decrypto-ui-theme") === "light" ? "light" : "dark";
+    if (typeof window === "undefined") return "system";
+    const storedTheme = window.localStorage.getItem("decrypto-ui-theme");
+    return ["system", "light", "dark"].includes(storedTheme) ? storedTheme : "system";
   });
 
   useEffect(() => {
-    document.documentElement.classList.toggle("ui-light", uiTheme === "light");
+    const media = window.matchMedia("(prefers-color-scheme: light)");
+    const applyTheme = () => {
+      const resolvedTheme = uiTheme === "system"
+        ? (media.matches ? "light" : "dark")
+        : uiTheme;
+      document.documentElement.classList.toggle("ui-light", resolvedTheme === "light");
+      document.documentElement.dataset.uiTheme = uiTheme;
+    };
+
+    applyTheme();
     window.localStorage.setItem("decrypto-ui-theme", uiTheme);
+    media.addEventListener?.("change", applyTheme);
+    return () => media.removeEventListener?.("change", applyTheme);
   }, [uiTheme]);
 
   useEffect(() => {
@@ -242,16 +254,38 @@ function Router() {
 }
 
 function UiThemeToggle({ uiTheme, setUiTheme }) {
-  const isLight = uiTheme === "light";
+  const options = [
+    { id: "system", label: "Système", icon: Monitor },
+    { id: "light", label: "Light", icon: Sun },
+    { id: "dark", label: "Dark", icon: Moon },
+  ];
+
   return (
-    <button
-      type="button"
-      onClick={() => setUiTheme(isLight ? "dark" : "light")}
-      aria-label={isLight ? "Passer l'interface en dark mode" : "Passer l'interface en light mode"}
-      title={isLight ? "Dark mode" : "Light mode"}
-      className="fixed bottom-4 right-4 z-[90] inline-flex h-10 w-10 items-center justify-center rounded-full border border-line bg-d-panel text-d-fg3 shadow-xl transition-colors hover:border-line2 hover:bg-d-panel2 hover:text-d-fg"
+    <div
+      className="fixed bottom-4 right-4 z-[90] inline-flex items-center rounded-full border border-line bg-d-panel p-1 shadow-xl"
+      role="group"
+      aria-label="Mode d'affichage de l'interface"
     >
-      {isLight ? <Moon size={16} /> : <Sun size={16} />}
-    </button>
+      {options.map((option) => {
+        const Icon = option.icon;
+        const active = uiTheme === option.id;
+        return (
+          <button
+            key={option.id}
+            type="button"
+            onClick={() => setUiTheme(option.id)}
+            aria-label={`Mode ${option.label}`}
+            title={option.label}
+            className={`inline-flex h-8 w-8 items-center justify-center rounded-full transition-colors ${
+              active
+                ? "bg-d-fg text-d-bg"
+                : "text-d-fg3 hover:bg-d-panel2 hover:text-d-fg"
+            }`}
+          >
+            <Icon size={15} />
+          </button>
+        );
+      })}
+    </div>
   );
 }
