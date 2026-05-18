@@ -154,18 +154,20 @@ export function EditorPage({ newsletterId, onBack }) {
       return;
     }
 
-    const shouldSave = await confirm(
-      "Créer une version avant de quitter cette newsletter ?"
+    // 3 choix : Confirmer (sauvegarder) / Je quitte sans sauvegarder / Annuler (rester)
+    const result = await confirm(
+      "Créer une version avant de quitter cette newsletter ?",
+      { extraLabel: "Je quitte sans sauvegarder" }
     );
-    if (!shouldSave) {
-      onBack();
-      return;
-    }
+    if (result === false) return;        // Annuler → rester sur la page
+    if (result === "leave") { onBack(); return; } // Quitter sans sauvegarder
 
+    // result === true → demander un commentaire
     const comment = await prompt(
       "La version sera numérotée automatiquement. Commentaire optionnel :",
       { title: "Sauvegarder une version" }
     );
+    if (comment === "leave") { onBack(); return; } // "Je quitte sans sauvegarder" sur le prompt
     if (comment === null) return;
 
     setLeaving(true);

@@ -38,8 +38,9 @@ export function DialogProvider({ children }) {
 
   const handleConfirm = () => { resolveRef.current?.(true); setConfirmState(null); };
   const handleCancel = () => { resolveRef.current?.(false); setConfirmState(null); };
+  const handleExtra = () => { resolveRef.current?.("leave"); setConfirmState(null); };
   const handlePromptSubmit = (value) => { resolveRef.current?.(value); setPromptState(null); };
-  const handlePromptCancel = () => { resolveRef.current?.(null); setPromptState(null); };
+  const handlePromptCancel = (leaveValue = null) => { resolveRef.current?.(leaveValue); setPromptState(null); };
 
   return (
     <ToastCtx.Provider value={addToast}>
@@ -55,11 +56,11 @@ export function DialogProvider({ children }) {
             document.body
           )}
           {confirmState && createPortal(
-            <ConfirmModal {...confirmState} onConfirm={handleConfirm} onCancel={handleCancel} />,
+            <ConfirmModal {...confirmState} onConfirm={handleConfirm} onCancel={handleCancel} onExtra={handleExtra} />,
             document.body
           )}
           {promptState && createPortal(
-            <PromptModal {...promptState} onSubmit={handlePromptSubmit} onCancel={handlePromptCancel} />,
+            <PromptModal {...promptState} onSubmit={handlePromptSubmit} onCancel={(v) => handlePromptCancel(v)} />,
             document.body
           )}
         </PromptCtx.Provider>
@@ -103,7 +104,7 @@ function ToastItem({ toast, onRemove }) {
   );
 }
 
-function ConfirmModal({ message, title = "Confirmation", confirmLabel = "Confirmer", cancelLabel = "Annuler", danger = false, onConfirm, onCancel }) {
+function ConfirmModal({ message, title = "Confirmation", confirmLabel = "Confirmer", cancelLabel = "Annuler", extraLabel, danger = false, onConfirm, onCancel, onExtra }) {
   useEffect(() => {
     const onKey = (e) => {
       if (e.key === "Enter") { e.preventDefault(); onConfirm(); }
@@ -121,12 +122,17 @@ function ConfirmModal({ message, title = "Confirmation", confirmLabel = "Confirm
       <div style={{ background: "#1E1E22", border: "1px solid #333", borderRadius: 18, width: "100%", maxWidth: 420, padding: "28px 28px 24px", boxShadow: "0 8px 48px rgba(0,0,0,0.6)", margin: 16 }}>
         <h2 style={{ fontFamily: "'Sora', sans-serif", fontSize: 16, fontWeight: 600, color: "#f0f0f0", marginBottom: 10 }}>{title}</h2>
         <p style={{ fontSize: 14, color: "#999", lineHeight: 1.55, marginBottom: 24 }}>{message}</p>
-        <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
-          <button onClick={onCancel} style={{ padding: "8px 18px", borderRadius: 10, border: "1px solid #3a3a3a", background: "transparent", color: "#999", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
-            {cancelLabel}
-          </button>
-          <button onClick={onConfirm} style={{ padding: "8px 18px", borderRadius: 10, border: "none", background: danger ? "#d93025" : "#FF00AA", color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <button onClick={onConfirm} style={{ width: "100%", padding: "10px 18px", borderRadius: 10, border: "none", background: danger ? "#d93025" : "#FF00AA", color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
             {confirmLabel}
+          </button>
+          {extraLabel && (
+            <button onClick={onExtra} style={{ width: "100%", padding: "10px 18px", borderRadius: 10, border: "1px solid #3a3a3a", background: "transparent", color: "#bbb", fontSize: 13, fontWeight: 500, cursor: "pointer" }}>
+              {extraLabel}
+            </button>
+          )}
+          <button onClick={onCancel} style={{ width: "100%", padding: "10px 18px", borderRadius: 10, border: "1px solid #3a3a3a", background: "transparent", color: "#666", fontSize: 13, fontWeight: 500, cursor: "pointer" }}>
+            {cancelLabel}
           </button>
         </div>
       </div>
@@ -134,7 +140,7 @@ function ConfirmModal({ message, title = "Confirmation", confirmLabel = "Confirm
   );
 }
 
-function PromptModal({ message, title = "Commentaire", defaultValue = "", confirmLabel = "OK", cancelLabel = "Annuler", onSubmit, onCancel }) {
+function PromptModal({ message, title = "Commentaire", defaultValue = "", confirmLabel = "Confirmer", cancelLabel = "Je quitte sans sauvegarder", cancelValue = "leave", onSubmit, onCancel }) {
   const [value, setValue] = useState(defaultValue);
   const inputRef = useRef(null);
 
@@ -144,16 +150,16 @@ function PromptModal({ message, title = "Commentaire", defaultValue = "", confir
 
   useEffect(() => {
     const onKey = (e) => {
-      if (e.key === "Escape") onCancel();
+      if (e.key === "Escape") onCancel(cancelValue);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [onCancel]);
+  }, [onCancel, cancelValue]);
 
   return (
     <div
       style={{ position: "fixed", inset: 0, zIndex: 9998, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.65)", backdropFilter: "blur(4px)" }}
-      onClick={(e) => { if (e.target === e.currentTarget) onCancel(); }}
+      onClick={(e) => { if (e.target === e.currentTarget) onCancel(cancelValue); }}
     >
       <div style={{ background: "#1E1E22", border: "1px solid #333", borderRadius: 18, width: "100%", maxWidth: 420, padding: "28px 28px 24px", boxShadow: "0 8px 48px rgba(0,0,0,0.6)", margin: 16 }}>
         <h2 style={{ fontFamily: "'Sora', sans-serif", fontSize: 16, fontWeight: 600, color: "#f0f0f0", marginBottom: 10 }}>{title}</h2>
@@ -165,14 +171,14 @@ function PromptModal({ message, title = "Commentaire", defaultValue = "", confir
             value={value}
             onChange={(e) => setValue(e.target.value)}
             placeholder="Optionnel…"
-            style={{ width: "100%", boxSizing: "border-box", background: "#2a2a2e", border: "1px solid #3a3a3a", borderRadius: 10, padding: "9px 12px", fontSize: 13, color: "#e0e0e0", marginBottom: 20, outline: "none" }}
+            style={{ width: "100%", boxSizing: "border-box", background: "#2a2a2e", border: "1px solid #3a3a3a", borderRadius: 10, padding: "9px 12px", fontSize: 13, color: "#e0e0e0", marginBottom: 16, outline: "none" }}
           />
-          <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
-            <button type="button" onClick={onCancel} style={{ padding: "8px 18px", borderRadius: 10, border: "1px solid #3a3a3a", background: "transparent", color: "#999", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
-              {cancelLabel}
-            </button>
-            <button type="submit" style={{ padding: "8px 18px", borderRadius: 10, border: "none", background: "#FF00AA", color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <button type="submit" style={{ width: "100%", padding: "10px 18px", borderRadius: 10, border: "none", background: "#FF00AA", color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
               {confirmLabel}
+            </button>
+            <button type="button" onClick={() => onCancel(cancelValue)} style={{ width: "100%", padding: "10px 18px", borderRadius: 10, border: "1px solid #3a3a3a", background: "transparent", color: "#bbb", fontSize: 13, fontWeight: 500, cursor: "pointer" }}>
+              {cancelLabel}
             </button>
           </div>
         </form>
