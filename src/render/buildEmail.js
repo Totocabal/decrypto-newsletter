@@ -1209,7 +1209,7 @@ function renderFooter(footer, assetMode) {
     const isAcademyLink = normalizedLabel.includes("academie");
     return `
     <td class="${isAcademyLink ? "em-footer-academy" : ""}" align="center" style="padding:0 11px;">
-      <a href="${escapeAttr(l.url)}" style="font-family:${FONTS.body}; font-size:12px; color:${EMAIL_THEME.textMuted}; letter-spacing:0.04em; text-decoration:none;">${escapeHtml(l.label)}</a>
+      <a class="em-footer-link" href="${escapeAttr(l.url)}" style="font-family:${FONTS.body}; font-size:12px; color:${EMAIL_THEME.textMuted}; letter-spacing:0.04em; text-decoration:none;">${escapeHtml(l.label)}</a>
     </td>`;
   }).join("");
 
@@ -1298,6 +1298,7 @@ ${renderEmailFontFaces()}
     .em-event-text { word-break: break-word !important; overflow-wrap: break-word !important; }
     .em-cn-num { width: 100% !important; max-width: 100% !important; box-sizing: border-box !important; border-right: none !important; border-bottom: 1px solid ${EMAIL_THEME.borderStrong} !important; border-radius: 12px 12px 0 0 !important; }
     .em-cn-text { width: 100% !important; max-width: 100% !important; box-sizing: border-box !important; padding: 24px !important; border-radius: 0 0 12px 12px !important; }
+    .em-footer-link { font-size: 11px !important; letter-spacing: 0.02em !important; }
     .em-footer-academy { display: none !important; mso-hide: all !important; max-height: 0 !important; overflow: hidden !important; }
     p, h1, h2, h3, div { word-break: break-word !important; overflow-wrap: break-word !important; }
     .em-chart-label { white-space: nowrap !important; word-break: keep-all !important; overflow-wrap: normal !important; }
