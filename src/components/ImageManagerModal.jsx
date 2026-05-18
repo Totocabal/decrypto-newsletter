@@ -648,7 +648,7 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, onSelectMany
               type="button"
               onClick={() => inputRef.current?.click()}
               disabled={uploading}
-              className="px-4 py-2 rounded-full bg-white text-d-bg text-[11px] uppercase tracking-[0.18em] font-semibold disabled:opacity-50"
+              className="px-4 py-2 rounded-full border border-d-pink bg-d-pink text-white shadow-sm text-[11px] uppercase tracking-[0.18em] font-semibold transition-colors hover:bg-d-pink/90 disabled:opacity-50"
             >
               Choisir des fichiers
             </button>
