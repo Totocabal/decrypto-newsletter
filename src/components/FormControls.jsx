@@ -37,7 +37,7 @@ function injectQuillCss() {
 
     /* Zone de saisie */
     .ql-wrapper .ql-editor {
-      color: #E4E4EC;
+      color: rgb(var(--d-fg));
       font-family: 'DM Sans', sans-serif;
       font-size: 15px;
       line-height: 1.65;
@@ -45,7 +45,7 @@ function injectQuillCss() {
       min-height: var(--ql-min-height, 72px);
     }
     .ql-wrapper .ql-editor.ql-blank::before {
-      color: #555;
+      color: rgb(var(--d-fg4));
       font-style: normal;
       font-family: 'DM Sans', sans-serif;
     }
@@ -55,13 +55,13 @@ function injectQuillCss() {
     /* Listes */
     .ql-wrapper .ql-editor ul,
     .ql-wrapper .ql-editor ol { padding-left: 1.4em; margin: 4px 0; }
-    .ql-wrapper .ql-editor li { color: #E4E4EC; padding: 1px 0; line-height: 1.65; white-space: pre-wrap; }
-    .ql-wrapper .ql-editor li::before { color: #888; }
+    .ql-wrapper .ql-editor li { color: rgb(var(--d-fg)); padding: 1px 0; line-height: 1.65; white-space: pre-wrap; }
+    .ql-wrapper .ql-editor li::before { color: rgb(var(--d-fg3)); }
 
     /* Toolbar */
     .ql-wrapper .ql-toolbar.ql-snow {
       border: none;
-      border-bottom: 1px solid #2E2E36;
+      border-bottom: 1px solid var(--d-line2);
       background: transparent;
       padding: 5px 8px;
       display: flex;
@@ -80,20 +80,20 @@ function injectQuillCss() {
       transition: background 0.15s;
     }
     .ql-wrapper .ql-toolbar.ql-snow button:hover {
-      background: rgba(255,255,255,0.08) !important;
+      background: rgb(var(--d-panel3) / 0.72) !important;
     }
     .ql-wrapper .ql-toolbar.ql-snow button.ql-active {
       background: rgba(65,65,255,0.28) !important;
     }
 
     /* Icônes SVG */
-    .ql-wrapper .ql-toolbar.ql-snow .ql-stroke { stroke: #777; transition: stroke 0.15s; }
-    .ql-wrapper .ql-toolbar.ql-snow .ql-fill  { fill:   #777; transition: fill  0.15s; }
-    .ql-wrapper .ql-toolbar.ql-snow .ql-thin  { stroke: #777; }
+    .ql-wrapper .ql-toolbar.ql-snow .ql-stroke { stroke: rgb(var(--d-fg3)); transition: stroke 0.15s; }
+    .ql-wrapper .ql-toolbar.ql-snow .ql-fill  { fill:   rgb(var(--d-fg3)); transition: fill  0.15s; }
+    .ql-wrapper .ql-toolbar.ql-snow .ql-thin  { stroke: rgb(var(--d-fg3)); }
     .ql-wrapper .ql-toolbar.ql-snow button:hover .ql-stroke,
-    .ql-wrapper .ql-toolbar.ql-snow button.ql-active .ql-stroke { stroke: #E4E4EC; }
+    .ql-wrapper .ql-toolbar.ql-snow button.ql-active .ql-stroke { stroke: rgb(var(--d-fg)); }
     .ql-wrapper .ql-toolbar.ql-snow button:hover .ql-fill,
-    .ql-wrapper .ql-toolbar.ql-snow button.ql-active .ql-fill  { fill:   #E4E4EC; }
+    .ql-wrapper .ql-toolbar.ql-snow button.ql-active .ql-fill  { fill:   rgb(var(--d-fg)); }
 
     /* Séparateur de groupes */
     .ql-wrapper .ql-toolbar.ql-snow .ql-formats + .ql-formats::before {
@@ -101,7 +101,7 @@ function injectQuillCss() {
       display: inline-block;
       width: 1px;
       height: 16px;
-      background: #2E2E36;
+      background: var(--d-line2);
       margin-right: 8px;
       vertical-align: middle;
     }
