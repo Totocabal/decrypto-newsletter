@@ -2,7 +2,7 @@
 // AdminPage — gestion des comptes (approbation, droits admin)
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { DndContext, DragOverlay, PointerSensor, TouchSensor, useSensor, useSensors, closestCenter } from "@dnd-kit/core";
 import { SortableContext, useSortable, verticalListSortingStrategy, arrayMove } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -704,6 +704,7 @@ function DefaultSectionsEditor() {
   const [presetSaving, setPresetSaving] = useState(false);
   const [editingPresetId, setEditingPresetId] = useState(null);
   const [activeDragId, setActiveDragId] = useState(null);
+  const activeListRef = useRef(null);
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 8 } }),
@@ -733,6 +734,12 @@ function DefaultSectionsEditor() {
   const addBlock = (type) => {
     setActive((prev) => [...prev, createDefaultSectionTemplateEntry(type)]);
     setSaved(false);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const list = activeListRef.current;
+        if (list) list.scrollTo({ top: list.scrollHeight, behavior: "smooth" });
+      });
+    });
   };
 
   const clearBlocks = async () => {
@@ -1015,7 +1022,7 @@ function DefaultSectionsEditor() {
             </div>
           </div>
 
-          <div className="max-h-[640px] overflow-auto p-5">
+          <div ref={activeListRef} className="max-h-[640px] overflow-auto p-5">
             {active.length === 0 ? (
               <div className="rounded-xl border border-dashed border-line p-10 text-center">
                 <LayoutTemplate size={28} className="mx-auto mb-3 text-d-fg4" />
