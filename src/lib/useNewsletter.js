@@ -16,6 +16,17 @@ const LOCK_RENEW_INTERVAL_MS = 2 * 60 * 1000; // 2 min
 const AUTOSAVE_DEBOUNCE_MS = 2000; // 2 s
 const LOCAL_DRAFT_PREFIX = "decrypto-newsletter-draft";
 
+function formatLockError(error) {
+  const message = error?.message || String(error || "");
+  if (
+    message.includes("locks_newsletter_id_fkey") ||
+    message.toLowerCase().includes("foreign key")
+  ) {
+    return "Newsletter introuvable ou supprimée. Retourne à la liste puis rouvre une newsletter existante.";
+  }
+  return "Lock impossible : " + message;
+}
+
 function getLocalDraftKey(newsletterId) {
   return `${LOCAL_DRAFT_PREFIX}:${newsletterId}`;
 }
@@ -145,7 +156,7 @@ export function useNewsletter(newsletterId, userId, userName) {
 
       if (!isMounted.current) return;
       if (lockError) {
-        setError("Lock impossible : " + lockError.message);
+        setError(formatLockError(lockError));
       } else {
         setLockInfo(lock);
         setLockedByOther(lock.user_id !== userId);

@@ -354,11 +354,19 @@ declare
   v_user_id uuid := auth.uid();
   v_existing public.locks;
   v_profile public.profiles;
+  v_newsletter_exists boolean;
 begin
   -- Vérifier que l'user est approuvé
   select * into v_profile from public.profiles where id = v_user_id;
   if v_profile is null or v_profile.approved = false then
     raise exception 'Compte non approuvé';
+  end if;
+
+  select exists (
+    select 1 from public.newsletters where id = p_newsletter_id
+  ) into v_newsletter_exists;
+  if v_newsletter_exists = false then
+    raise exception 'Newsletter introuvable ou supprimée';
   end if;
 
   -- Tente de récupérer le lock courant
