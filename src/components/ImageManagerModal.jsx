@@ -105,7 +105,7 @@ async function compressImage(file, options = {}) {
   });
 }
 
-export function ImageManagerModal({ currentPath, onClose, onSelect, userId }) {
+export function ImageManagerModal({ currentPath, onClose, onSelect, userId, isAdmin = false }) {
   const confirm = useConfirm();
   const inputRef = useRef(null);
   const [images, setImages] = useState([]);
@@ -132,7 +132,7 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId }) {
     setLoading(true);
     setError(null);
     try {
-      setImages(await listImages(userId));
+      setImages(await listImages(userId, isAdmin));
     } catch (err) {
       setError(err.message || String(err));
     } finally {

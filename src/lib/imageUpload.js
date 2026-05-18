@@ -62,7 +62,7 @@ export async function deleteImage(path) {
   await supabase.storage.from(BUCKET).remove([path]);
 }
 
-export async function listImages(userId) {
+export async function listImages(userId, isAdmin = false) {
   const { data: rootItems, error: rootError } = await supabase.storage
     .from(BUCKET)
     .list("", {
@@ -112,7 +112,7 @@ export async function listImages(userId) {
           ...item,
           path,
           ownerId: folder,
-          canDelete: folder === userId,
+          canDelete: isAdmin || folder === userId,
           url: publicData.publicUrl,
         });
       });

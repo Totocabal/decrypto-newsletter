@@ -860,6 +860,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
         <ImageManagerModal
           onClose={() => setImageManagerOpen(false)}
           userId={profile?.id}
+          isAdmin={profile?.is_admin}
         />
       )}
     </div>

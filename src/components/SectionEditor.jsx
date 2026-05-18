@@ -1057,6 +1057,7 @@ function MacroEditor({ data, set }) {
           }}
           onClose={() => setBgImageManagerOpen(false)}
           userId={profile?.id}
+          isAdmin={profile?.is_admin}
         />
       )}
     </>
@@ -1271,6 +1272,7 @@ function EventEditor({ data, set }) {
           }}
           onClose={() => setBgImageManagerOpen(false)}
           userId={profile?.id}
+          isAdmin={profile?.is_admin}
         />
       )}
     </>
@@ -1608,6 +1610,7 @@ function FocusEditor({ data, set }) {
             setImageManagerOpen(null);
           }}
           userId={profile?.id}
+          isAdmin={profile?.is_admin}
         />
       )}
     </>
@@ -1707,6 +1710,7 @@ function ImageBlockEditor({ data, set }) {
           onClose={() => setImageManagerOpen(false)}
           onSelect={handleSelectImage}
           userId={profile?.id}
+          isAdmin={profile?.is_admin}
         />
       )}
     </>
