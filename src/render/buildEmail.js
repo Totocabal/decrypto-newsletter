@@ -31,6 +31,20 @@ function decodeStoredTextEntities(str = "") {
     .replace(/&amp;/gi, "&");
 }
 
+/** Retire toutes les balises HTML et décode les entités courantes — pour le preheader. */
+function stripHtmlForPreheader(str = "") {
+  return String(str)
+    .replace(/<[^>]*>/g, " ")   // balises → espace
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 function escapedOpeningTagPattern(tagName) {
   return new RegExp(`&(?:amp;)?lt;${tagName}(?:\\s+[\\s\\S]*?)?&(?:amp;)?gt;`, "gi");
 }
@@ -1230,7 +1244,7 @@ ${renderEmailFontFaces()}
 <body style="margin:0; padding:0; background-color:${EMAIL_THEME.bgPage}; font-family:${FONTS.body};">
 
 <div style="display:none; font-size:1px; color:${EMAIL_THEME.bgPage}; line-height:1px; max-height:0; max-width:0; opacity:0; overflow:hidden;">
-  ${escapeHtml(state.preview_text)} ⏤ ⏤ ⏤ ⏤ ⏤ ⏤ ⏤ ⏤ ⏤ ⏤
+  ${escapeHtml(stripHtmlForPreheader(state.preview_text))} ⏤ ⏤ ⏤ ⏤ ⏤ ⏤ ⏤ ⏤ ⏤ ⏤
 </div>
 
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${EMAIL_THEME.bgPage}" style="background-color:${EMAIL_THEME.bgPage};">
