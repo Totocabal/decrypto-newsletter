@@ -39,6 +39,8 @@ export function EditorPage({ newsletterId, onBack }) {
     lockedByOther,
     lockRequest,
     setLockRequest,
+    lockTakenBy,
+    setLockTakenBy,
     saveVersion,
     takeOverLock,
     updateTitle,
@@ -70,6 +72,16 @@ export function EditorPage({ newsletterId, onBack }) {
   const redoStackRef = useRef([]);
   const lastStateRef = useRef(null);
   const skipHistoryRef = useRef(false);
+
+  // Toast quand quelqu'un nous prend la main sur l'édition
+  useEffect(() => {
+    if (!lockTakenBy) return;
+    addToast(
+      `${lockTakenBy.takerName} a pris la main sur l'édition.`,
+      "error"
+    );
+    setLockTakenBy(null);
+  }, [lockTakenBy, addToast, setLockTakenBy]);
 
   const html = useMemo(
     () => (state ? buildEmailHtml(state) : ""),

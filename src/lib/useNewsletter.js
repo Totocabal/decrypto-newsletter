@@ -75,12 +75,26 @@ export function useNewsletter(newsletterId, userId, userName) {
   const [lastSavedAt, setLastSavedAt] = useState(null);
   // Notification de demande d'accès : { requesterName, requestedAt }
   const [lockRequest, setLockRequest] = useState(null);
+  // Notification de prise de contrôle subie : { takerName }
+  const [lockTakenBy, setLockTakenBy] = useState(null);
 
   const autosaveTimer = useRef(null);
   const lockRenewTimer = useRef(null);
   const isMounted = useRef(true);
   // Pour éviter d'auto-save l'état initial au tout premier render
   const skipNextAutosave = useRef(true);
+
+  // Refs pour le canal Realtime (stable entre les renders)
+  const channelRef = useRef(null);
+  const channelReadyRef = useRef(false);  // true une fois le canal SUBSCRIBED
+  const lockRequestSentRef = useRef(false); // évite les envois multiples
+  const forcedOutRef = useRef(false);     // true si on a subi un takeover
+  const lockedByOtherRef = useRef(false);
+  const userNameRef = useRef(userName);
+
+  // Garder les refs à jour avec les valeurs courantes
+  useEffect(() => { lockedByOtherRef.current = lockedByOther; }, [lockedByOther]);
+  useEffect(() => { userNameRef.current = userName; }, [userName]);
 
   // ── 1. Chargement initial + acquisition du lock ──
   useEffect(() => {
@@ -169,44 +183,74 @@ export function useNewsletter(newsletterId, userId, userName) {
     };
   }, [newsletterId, userId, lockedByOther, lockInfo]);
 
-  // ── 3. Realtime : broadcast de la demande d'accès ──
-  // - Si lockedByOther : on envoie un message sur le canal pour prévenir le détenteur
-  // - Si !lockedByOther : on écoute les demandes entrantes et on expose lockRequest
+  // ── 3. Realtime : canal stable (créé une fois par newsletterId/userId) ──
+  // Écoute lock-request (pour le détenteur) et lock-taken (pour tous).
+  // Le canal n'est PAS recréé quand lockedByOther change — on utilise des refs.
   useEffect(() => {
     if (!newsletterId || !userId) return;
+    lockRequestSentRef.current = false;
+    forcedOutRef.current = false;
+    channelReadyRef.current = false;
 
-    const channel = supabase.channel(`lock-requests:${newsletterId}`, {
+    const ch = supabase.channel(`lock-requests:${newsletterId}`, {
       config: { broadcast: { self: false } },
     });
+    channelRef.current = ch;
 
-    if (lockedByOther) {
-      // User B — signaler au détenteur qu'on souhaite accéder
-      channel.subscribe((status) => {
-        if (status === "SUBSCRIBED") {
-          channel.send({
+    ch
+      .on("broadcast", { event: "lock-request" }, ({ payload }) => {
+        // Seul le détenteur du lock s'intéresse aux demandes
+        if (!isMounted.current || lockedByOtherRef.current) return;
+        setLockRequest({
+          requesterName: payload.userName || payload.userId,
+          requestedAt: Date.now(),
+        });
+      })
+      .on("broadcast", { event: "lock-taken" }, ({ payload }) => {
+        // Tout le monde sauf le preneur lui-même est concerné
+        if (!isMounted.current || payload.userId === userId) return;
+        forcedOutRef.current = true;
+        setLockTakenBy({ takerName: payload.userName || payload.userId });
+        setLockedByOther(true);
+      })
+      .subscribe((status) => {
+        if (status !== "SUBSCRIBED") return;
+        channelReadyRef.current = true;
+        // Si on est déjà en mode locked-by-other au moment où le canal se connecte
+        if (lockedByOtherRef.current && !lockRequestSentRef.current && !forcedOutRef.current) {
+          lockRequestSentRef.current = true;
+          ch.send({
             type: "broadcast",
             event: "lock-request",
-            payload: { userId, userName: userName || userId },
+            payload: { userId, userName: userNameRef.current || userId },
           });
         }
       });
-    } else {
-      // User A (détenteur) — écouter les demandes entrantes
-      channel
-        .on("broadcast", { event: "lock-request" }, ({ payload }) => {
-          if (!isMounted.current) return;
-          setLockRequest({
-            requesterName: payload.userName || payload.userId,
-            requestedAt: Date.now(),
-          });
-        })
-        .subscribe();
-    }
 
     return () => {
-      supabase.removeChannel(channel);
+      channelRef.current = null;
+      channelReadyRef.current = false;
+      supabase.removeChannel(ch);
     };
-  }, [newsletterId, userId, userName, lockedByOther]);
+  }, [newsletterId, userId]);
+
+  // ── 4. Envoyer lock-request quand lockedByOther devient true ET canal déjà prêt ──
+  // Cas : DB répond avant que le WS ne soit établi (effet 3 subscribe callback déjà passé)
+  useEffect(() => {
+    if (
+      !lockedByOther ||
+      !channelReadyRef.current ||
+      !channelRef.current ||
+      lockRequestSentRef.current ||
+      forcedOutRef.current
+    ) return;
+    lockRequestSentRef.current = true;
+    channelRef.current.send({
+      type: "broadcast",
+      event: "lock-request",
+      payload: { userId, userName: userName || userId },
+    });
+  }, [lockedByOther, userId, userName]);
 
   // ── 5. Libération du lock à la fermeture ──
   useEffect(() => {
@@ -296,9 +340,17 @@ export function useNewsletter(newsletterId, userId, userName) {
     if (!error && data) {
       setLockInfo(data);
       setLockedByOther(false);
+      // Notifier les autres utilisateurs présents sur ce template
+      if (channelRef.current) {
+        channelRef.current.send({
+          type: "broadcast",
+          event: "lock-taken",
+          payload: { userId, userName: userNameRef.current || userId },
+        });
+      }
     }
     return { error: error?.message || null };
-  }, [newsletterId]);
+  }, [newsletterId, userId]);
 
   // ── 9. Mise à jour du titre (colonne dédiée, pas dans current_state) ──
   // Update optimiste en local puis envoi à Supabase. Debounce 500ms pour
@@ -336,6 +388,8 @@ export function useNewsletter(newsletterId, userId, userName) {
     lockedByOther,
     lockRequest,
     setLockRequest,
+    lockTakenBy,
+    setLockTakenBy,
     saveVersion,
     takeOverLock,
     updateTitle,
