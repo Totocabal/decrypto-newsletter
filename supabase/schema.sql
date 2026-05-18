@@ -76,6 +76,9 @@ create table if not exists public.newsletters (
   archived boolean not null default false
 );
 
+alter table public.newsletters
+  alter column created_by set default auth.uid();
+
 create index if not exists newsletters_updated_at_idx
   on public.newsletters (updated_at desc);
 create index if not exists newsletters_archived_idx
@@ -242,10 +245,14 @@ create policy "newsletters_update_approved"
   with check (public.current_user_is_approved());
 
 drop policy if exists "newsletters_delete_admin" on public.newsletters;
-create policy "newsletters_delete_admin"
+drop policy if exists "newsletters_delete_owner_or_admin" on public.newsletters;
+create policy "newsletters_delete_owner_or_admin"
   on public.newsletters for delete
   to authenticated
-  using (public.current_user_is_admin());
+  using (
+    public.current_user_is_admin()
+    or created_by = auth.uid()
+  );
 
 -- ── versions ── lecture pour tous les approuvés, insertion seulement de
 -- ses propres versions

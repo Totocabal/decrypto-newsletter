@@ -240,8 +240,8 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
   };
 
   const handleDelete = async (nl) => {
-    if (!profile?.is_admin) {
-      addToast("Seuls les administrateurs peuvent supprimer une newsletter.", "info");
+    if (!profile?.is_admin && nl?.created_by !== profile?.id) {
+      addToast("Tu peux supprimer uniquement les templates que tu as créés.", "info");
       return;
     }
     if (!nl?.id) return;
@@ -492,6 +492,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
             {filteredNewsletters.map((nl, i, arr) => {
               const lock = locks[nl.id];
               const lockedByOther = lock && lock.user_id !== profile?.id;
+              const canDeleteNewsletter = profile?.is_admin || nl.created_by === profile?.id;
               const cardLabelIds = nlLabels[nl.id] || [];
               const cardLabels = labels.filter((l) => cardLabelIds.includes(l.id));
               const pickerOpen = labelPickerOpen === nl.id;
@@ -634,7 +635,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                       >
                         <Copy size={14} />
                       </button>
-                      {profile?.is_admin && (
+                      {canDeleteNewsletter && (
                         <button
                           onClick={(event) => {
                             event.stopPropagation();

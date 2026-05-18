@@ -78,6 +78,7 @@ drop policy if exists "newsletters_select_approved" on public.newsletters;
 drop policy if exists "newsletters_insert_approved" on public.newsletters;
 drop policy if exists "newsletters_update_approved" on public.newsletters;
 drop policy if exists "newsletters_delete_admin" on public.newsletters;
+drop policy if exists "newsletters_delete_owner_or_admin" on public.newsletters;
 
 create policy "newsletters_select_approved"
   on public.newsletters for select
@@ -95,10 +96,13 @@ create policy "newsletters_update_approved"
   using (public.current_user_is_approved())
   with check (public.current_user_is_approved());
 
-create policy "newsletters_delete_admin"
+create policy "newsletters_delete_owner_or_admin"
   on public.newsletters for delete
   to authenticated
-  using (public.current_user_is_admin());
+  using (
+    public.current_user_is_admin()
+    or created_by = auth.uid()
+  );
 
 -- 4. Versions
 drop policy if exists "versions_select_approved" on public.versions;
