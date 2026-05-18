@@ -126,11 +126,11 @@ function ConfirmModal({ message, title = "Confirmation", confirmLabel = "Confirm
           /* 3 choix : Confirmer + Extra côte à côte, Annuler en dessous */
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             <div style={{ display: "flex", gap: 8 }}>
-              <button onClick={onConfirm} style={{ flex: 1, padding: "10px 14px", borderRadius: 10, border: "none", background: danger ? "#d93025" : "#FF00AA", color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
-                {confirmLabel}
-              </button>
               <button onClick={onExtra} style={{ flex: 1, padding: "10px 14px", borderRadius: 10, border: "1px solid #3a3a3a", background: "transparent", color: "#bbb", fontSize: 13, fontWeight: 500, cursor: "pointer" }}>
                 {extraLabel}
+              </button>
+              <button onClick={onConfirm} style={{ flex: 1, padding: "10px 14px", borderRadius: 10, border: "none", background: danger ? "#d93025" : "#FF00AA", color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+                {confirmLabel}
               </button>
             </div>
             <button onClick={onCancel} style={{ width: "100%", padding: "8px 14px", borderRadius: 10, border: "none", background: "transparent", color: "#555", fontSize: 12, fontWeight: 500, cursor: "pointer" }}>
