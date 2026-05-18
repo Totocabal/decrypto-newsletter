@@ -305,11 +305,11 @@ export function EditorPage({ newsletterId, onBack }) {
 
       {/* Topbar : logo + titre + statut + actions */}
       <header
-        className="border-b border-line px-4 py-2 sm:px-6 sm:py-0"
+        className="border-b border-line px-3 py-2 sm:px-6 sm:py-0"
         style={{ background: "#1E1E22", minHeight: "52px" }}
       >
-        <div className="flex min-h-9 flex-wrap items-center gap-2 sm:min-h-[52px] sm:gap-3">
-          <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2 sm:gap-3">
+        <div className="flex min-h-9 items-center gap-1.5 sm:min-h-[52px] sm:gap-3">
+          <div className="flex min-w-0 flex-1 items-center gap-1.5 sm:gap-3">
             <button type="button" onClick={handleBack} disabled={leaving} className="shrink-0 opacity-90 hover:opacity-100 transition-opacity">
               <Wordmark size={18} />
             </button>
@@ -320,18 +320,18 @@ export function EditorPage({ newsletterId, onBack }) {
             <button
               onClick={handleBack}
               disabled={leaving}
-              className="flex items-center gap-2 text-[10px] uppercase tracking-[0.18em] font-medium text-d-fg3 hover:text-d-fg px-3 py-1.5 border border-line hover:border-line2 rounded-full flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="hidden flex-shrink-0 items-center gap-2 rounded-full border border-line px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.18em] text-d-fg3 transition-colors hover:border-line2 hover:text-d-fg disabled:cursor-not-allowed disabled:opacity-50 sm:flex"
             >
               {leaving ? <Loader2 size={12} className="animate-spin" /> : <ArrowLeft size={12} />}
               {leaving ? "Sauvegarde…" : "Retour"}
             </button>
-            <Tooltip label="Cliquer pour renommer cette newsletter" side="bottom" className="min-w-[130px] flex-1 sm:max-w-xs">
+            <Tooltip label="Cliquer pour renommer cette newsletter" side="bottom" className="min-w-0 flex-1 sm:max-w-xs">
               <input
                 type="text"
                 value={newsletter?.title || ""}
                 onChange={(e) => updateTitle(e.target.value)}
                 placeholder="Titre de la newsletter…"
-                className="w-full rounded-full border border-transparent bg-transparent px-2.5 py-1.5 text-xs font-medium text-d-fg transition-colors hover:border-line focus:border-line2 focus:bg-d-panel2 focus:outline-none sm:px-3 sm:text-sm"
+                className="w-full rounded-full border border-transparent bg-transparent px-2 py-1.5 text-xs font-medium text-d-fg transition-colors hover:border-line focus:border-line2 focus:bg-d-panel2 focus:outline-none sm:px-3 sm:text-sm"
                 style={{ fontFamily: "'Sora', sans-serif" }}
               />
             </Tooltip>
@@ -352,7 +352,7 @@ export function EditorPage({ newsletterId, onBack }) {
                 ))}
                 <button
                   onClick={() => setLabelPickerOpen((o) => !o)}
-                  className={`flex h-8 w-8 items-center justify-center rounded-full border border-line text-[10px] font-medium uppercase tracking-[0.14em] transition-colors sm:h-auto sm:w-auto sm:gap-1.5 sm:px-2.5 sm:py-1.5 ${labelPickerOpen ? "bg-d-panel2 text-d-fg2" : "text-d-fg4 hover:text-d-fg2 hover:bg-d-panel2"}`}
+                  className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-line text-[10px] font-medium uppercase tracking-[0.14em] transition-colors sm:h-auto sm:w-auto sm:gap-1.5 sm:px-2.5 sm:py-1.5 ${labelPickerOpen ? "bg-d-panel2 text-d-fg2" : "text-d-fg4 hover:text-d-fg2 hover:bg-d-panel2"}`}
                   aria-label="Labels"
                 >
                   <Tag size={11} />
@@ -394,7 +394,8 @@ export function EditorPage({ newsletterId, onBack }) {
             />
             <button
               onClick={() => setShowVersions(true)}
-              className="flex items-center justify-center p-2 text-d-fg3 hover:text-d-fg border border-line hover:border-line2 rounded-full transition-colors"
+              className="flex h-8 w-8 items-center justify-center rounded-full border border-line text-d-fg3 transition-colors hover:border-line2 hover:text-d-fg sm:h-auto sm:w-auto sm:p-2"
+              aria-label="Versions"
             >
               <History size={14} />
             </button>
@@ -402,7 +403,7 @@ export function EditorPage({ newsletterId, onBack }) {
               <button
                 onClick={handleUndo}
                 disabled={!undoCount || lockedByOther}
-                className="flex items-center justify-center rounded-full border border-line p-2 text-d-fg3 transition-colors hover:border-line2 hover:text-d-fg disabled:cursor-not-allowed disabled:opacity-30"
+                className="flex h-8 w-8 items-center justify-center rounded-full border border-line text-d-fg3 transition-colors hover:border-line2 hover:text-d-fg disabled:cursor-not-allowed disabled:opacity-30 sm:h-auto sm:w-auto sm:p-2"
                 aria-label="Annuler"
               >
                 <Undo2 size={14} />
@@ -412,7 +413,7 @@ export function EditorPage({ newsletterId, onBack }) {
               <button
                 onClick={handleRedo}
                 disabled={!redoCount || lockedByOther}
-                className="flex items-center justify-center rounded-full border border-line p-2 text-d-fg3 transition-colors hover:border-line2 hover:text-d-fg disabled:cursor-not-allowed disabled:opacity-30"
+                className="flex h-8 w-8 items-center justify-center rounded-full border border-line text-d-fg3 transition-colors hover:border-line2 hover:text-d-fg disabled:cursor-not-allowed disabled:opacity-30 sm:h-auto sm:w-auto sm:p-2"
                 aria-label="Restaurer"
               >
                 <Redo2 size={14} />
