@@ -136,7 +136,7 @@ export function EditorPage({ newsletterId, onBack }) {
   const handleSave = async () => {
     const comment = await prompt(
       "La version sera numérotée automatiquement. Commentaire optionnel :",
-      { title: "Sauvegarder une version", confirmLabel: "Sauvegarder", cancelLabel: "Sans commentaire", cancelValue: "" }
+      { title: "Sauvegarder une version", confirmLabel: "Sauvegarder", cancelLabel: "Annuler", cancelValue: null }
     );
     if (comment === null) return;
     const { error } = await saveVersion(comment.trim() || null);
@@ -165,7 +165,7 @@ export function EditorPage({ newsletterId, onBack }) {
     // result === true → demander un commentaire
     const comment = await prompt(
       "La version sera numérotée automatiquement. Commentaire optionnel :",
-      { title: "Sauvegarder une version", confirmLabel: "Sauvegarder", cancelLabel: "Sans commentaire", cancelValue: "" }
+      { title: "Sauvegarder une version", confirmLabel: "Sauvegarder", cancelLabel: "Annuler", cancelValue: null }
     );
     if (comment === null) return;
 
