@@ -61,6 +61,42 @@ export async function removeLabel(newsletterId, labelId) {
   if (error) throw error;
 }
 
+// ── Image labels ──────────────────────────────────────────────────────────────
+
+export async function assignImageLabel(imagePath, labelId, userId) {
+  const { error } = await supabase
+    .from("image_labels")
+    .insert({ image_path: imagePath, label_id: labelId, assigned_by: userId });
+  if (error && error.code !== "23505") throw error; // ignore duplicate
+}
+
+export async function removeImageLabel(imagePath, labelId) {
+  const { error } = await supabase
+    .from("image_labels")
+    .delete()
+    .eq("image_path", imagePath)
+    .eq("label_id", labelId);
+  if (error) throw error;
+}
+
+/**
+ * Retourne un objet { [imagePath]: labelId[] } pour une liste de chemins.
+ */
+export async function fetchImageLabelMap(imagePaths) {
+  if (!imagePaths || imagePaths.length === 0) return {};
+  const { data, error } = await supabase
+    .from("image_labels")
+    .select("image_path, label_id")
+    .in("image_path", imagePaths);
+  if (error) throw error;
+  const map = {};
+  for (const row of data || []) {
+    if (!map[row.image_path]) map[row.image_path] = [];
+    map[row.image_path].push(row.label_id);
+  }
+  return map;
+}
+
 export function useNewsletterLabels(newsletterId) {
   const [labelIds, setLabelIds] = useState([]);
 

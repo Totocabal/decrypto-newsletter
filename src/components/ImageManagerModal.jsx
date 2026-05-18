@@ -9,6 +9,7 @@ import {
   Loader2,
   RefreshCw,
   Square,
+  Tag,
   Trash2,
   Upload,
   X,
@@ -22,6 +23,12 @@ import {
   MAX_IMAGE_STORAGE_LABEL,
   uploadImage,
 } from "../lib/imageUpload.js";
+import {
+  assignImageLabel,
+  fetchImageLabelMap,
+  removeImageLabel,
+  useLabels,
+} from "../lib/useLabels.js";
 import { Tooltip } from "./Tooltip.jsx";
 import { useConfirm } from "./Dialog.jsx";
 
@@ -107,8 +114,11 @@ async function compressImage(file, options = {}) {
 
 export function ImageManagerModal({ currentPath, onClose, onSelect, userId, isAdmin = false }) {
   const confirm = useConfirm();
+  const { labels } = useLabels();
   const inputRef = useRef(null);
   const [images, setImages] = useState([]);
+  const [imageLabelMap, setImageLabelMap] = useState({}); // { [path]: labelId[] }
+  const [filterLabelIds, setFilterLabelIds] = useState([]); // labels actifs pour le filtre
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [dragging, setDragging] = useState(false);
@@ -124,7 +134,15 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId, isAd
   const usedBytes = images.reduce((total, image) => total + (image.metadata?.size || 0), 0);
   const remainingBytes = Math.max(0, MAX_IMAGE_STORAGE_BYTES - usedBytes);
   const usedPercent = Math.min(100, (usedBytes / MAX_IMAGE_STORAGE_BYTES) * 100);
-  const deletableImages = images.filter((image) => image.canDelete !== false);
+
+  // Images filtrées selon les labels actifs (OR : image visible si elle a AU MOINS un label sélectionné)
+  const filteredImages = filterLabelIds.length === 0
+    ? images
+    : images.filter((img) =>
+        filterLabelIds.some((lid) => (imageLabelMap[img.path] || []).includes(lid))
+      );
+
+  const deletableImages = filteredImages.filter((image) => image.canDelete !== false);
   const selectedCount = selectedPaths.length;
 
   const refresh = useCallback(async () => {
@@ -132,13 +150,16 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId, isAd
     setLoading(true);
     setError(null);
     try {
-      setImages(await listImages(userId, isAdmin));
+      const loaded = await listImages(userId, isAdmin);
+      setImages(loaded);
+      const paths = loaded.map((img) => img.path);
+      setImageLabelMap(await fetchImageLabelMap(paths));
     } catch (err) {
       setError(err.message || String(err));
     } finally {
       setLoading(false);
     }
-  }, [userId]);
+  }, [userId, isAdmin]);
 
   useEffect(() => {
     refresh();
@@ -346,6 +367,23 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId, isAd
               <span>{formatBytes(image.metadata?.size)}</span>
               {!compact && <span>{formatDate(image.updated_at || image.created_at)}</span>}
             </div>
+            {/* Dots de labels */}
+            {(imageLabelMap[image.path] || []).length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-1">
+                {(imageLabelMap[image.path] || []).map((lid) => {
+                  const lbl = labels.find((l) => l.id === lid);
+                  if (!lbl) return null;
+                  return (
+                    <Tooltip key={lid} label={lbl.name}>
+                      <span
+                        className="h-2.5 w-2.5 rounded-full flex-shrink-0"
+                        style={{ background: lbl.color }}
+                      />
+                    </Tooltip>
+                  );
+                })}
+              </div>
+            )}
             <div className="mt-3 flex items-center gap-2">
               {(multiSelect || selectedPaths.includes(image.path)) &&
                 renderSelectionButton(image, "h-8 w-8")}
@@ -425,6 +463,24 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId, isAd
             <span>{formatBytes(image.metadata?.size)}</span>
             <span>{formatDate(image.updated_at || image.created_at)}</span>
           </div>
+          {(imageLabelMap[image.path] || []).length > 0 && (
+            <div className="mt-1.5 flex flex-wrap gap-1">
+              {(imageLabelMap[image.path] || []).map((lid) => {
+                const lbl = labels.find((l) => l.id === lid);
+                if (!lbl) return null;
+                return (
+                  <span
+                    key={lid}
+                    className="inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-medium"
+                    style={{ background: `${lbl.color}22`, color: lbl.color }}
+                  >
+                    <span className="h-1.5 w-1.5 rounded-full" style={{ background: lbl.color }} />
+                    {lbl.name}
+                  </span>
+                );
+              })}
+            </div>
+          )}
         </div>
         <div className="flex items-center gap-2">
           {(multiSelect || selectedPaths.includes(image.path)) &&
@@ -590,7 +646,7 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId, isAd
                 Bibliothèque
               </div>
               <div className="text-sm text-d-fg2">
-                {images.length} image{images.length > 1 ? "s" : ""}
+                {filteredImages.length}{filterLabelIds.length > 0 && ` / ${images.length}`} image{images.length > 1 ? "s" : ""}
                 {selectedCount > 0 && (
                   <span className="text-d-pink"> · {selectedCount} sélectionnée{selectedCount > 1 ? "s" : ""}</span>
                 )}
@@ -655,6 +711,51 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId, isAd
               )}
             </div>
           </div>
+          {/* Filtre par labels */}
+          {labels.length > 0 && (
+            <div className="mb-4 flex flex-wrap items-center gap-2">
+              <span className="flex items-center gap-1 text-[10px] uppercase tracking-[0.18em] text-d-fg4 flex-shrink-0">
+                <Tag size={11} />
+                Filtrer
+              </span>
+              {labels.map((label) => {
+                const active = filterLabelIds.includes(label.id);
+                return (
+                  <button
+                    key={label.id}
+                    type="button"
+                    onClick={() =>
+                      setFilterLabelIds((ids) =>
+                        active ? ids.filter((id) => id !== label.id) : [...ids, label.id]
+                      )
+                    }
+                    className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors"
+                    style={{
+                      borderColor: active ? label.color : "rgba(255,255,255,0.12)",
+                      background: active ? `${label.color}22` : "transparent",
+                      color: active ? label.color : "#888",
+                    }}
+                  >
+                    <span
+                      className="h-2 w-2 rounded-full flex-shrink-0"
+                      style={{ background: label.color }}
+                    />
+                    {label.name}
+                  </button>
+                );
+              })}
+              {filterLabelIds.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setFilterLabelIds([])}
+                  className="text-[10px] uppercase tracking-[0.16em] text-d-fg4 hover:text-d-fg2 transition-colors"
+                >
+                  Effacer
+                </button>
+              )}
+            </div>
+          )}
+
           {loading ? (
             <div className="h-full min-h-[360px] flex items-center justify-center gap-2 text-xs uppercase tracking-[0.18em] text-d-fg3">
               <Loader2 size={14} className="animate-spin" />
@@ -668,26 +769,32 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId, isAd
                 Ajoute une image depuis la zone d'import à gauche.
               </div>
             </div>
+          ) : filteredImages.length === 0 ? (
+            <div className="h-full min-h-[360px] flex flex-col items-center justify-center text-center border border-dashed border-line rounded-2xl">
+              <Tag size={28} className="text-d-fg4 mb-4" />
+              <div className="text-sm text-d-fg2 mb-1">Aucune image avec ces labels</div>
+              <div className="text-xs text-d-fg4">Modifie le filtre ou ajoute des labels aux images.</div>
+            </div>
           ) : (
             <>
               {viewMode === "grid4" && (
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                  {images.map((image) => renderImageCard(image))}
+                  {filteredImages.map((image) => renderImageCard(image))}
                 </div>
               )}
               {viewMode === "grid8" && (
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 xl:grid-cols-8">
-                  {images.map((image) => renderImageCard(image, "compact"))}
+                  {filteredImages.map((image) => renderImageCard(image, "compact"))}
                 </div>
               )}
               {viewMode === "grid16" && (
                 <div className="grid grid-cols-4 gap-2 sm:grid-cols-8 2xl:grid-cols-[repeat(16,minmax(0,1fr))]">
-                  {images.map((image) => renderImageCard(image, "micro"))}
+                  {filteredImages.map((image) => renderImageCard(image, "micro"))}
                 </div>
               )}
               {viewMode === "list" && (
                 <div className="space-y-3">
-                  {images.map((image) => renderImageRow(image))}
+                  {filteredImages.map((image) => renderImageRow(image))}
                 </div>
               )}
             </>
@@ -702,13 +809,43 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId, isAd
           onClose={() => setDetailImage(null)}
           onSelect={() => onSelect?.({ url: detailImage.url, path: detailImage.path })}
           onDelete={detailImage.canDelete !== false ? () => handleDelete(detailImage) : null}
+          labels={labels}
+          assignedLabelIds={imageLabelMap[detailImage.path] || []}
+          userId={userId}
+          onLabelToggle={async (labelId) => {
+            const assigned = (imageLabelMap[detailImage.path] || []).includes(labelId);
+            if (assigned) {
+              await removeImageLabel(detailImage.path, labelId);
+              setImageLabelMap((m) => ({
+                ...m,
+                [detailImage.path]: (m[detailImage.path] || []).filter((id) => id !== labelId),
+              }));
+            } else {
+              await assignImageLabel(detailImage.path, labelId, userId);
+              setImageLabelMap((m) => ({
+                ...m,
+                [detailImage.path]: [...(m[detailImage.path] || []), labelId],
+              }));
+            }
+          }}
         />
       )}
     </div>
   );
 }
 
-function ImageDetailsModal({ image, canSelect, selected, onClose, onSelect, onDelete }) {
+function ImageDetailsModal({
+  image,
+  canSelect,
+  selected,
+  onClose,
+  onSelect,
+  onDelete,
+  labels = [],
+  assignedLabelIds = [],
+  userId,
+  onLabelToggle,
+}) {
   const metadata = image.metadata || {};
   const createdAt = image.created_at || image.createdAt;
   const updatedAt = image.updated_at || image.updatedAt || createdAt;
@@ -781,6 +918,40 @@ function ImageDetailsModal({ image, canSelect, selected, onClose, onSelect, onDe
                 </a>
               </div>
             </div>
+
+            {/* Labels */}
+            {labels.length > 0 && (
+              <div className="mt-5">
+                <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-d-fg4">
+                  Labels
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {labels.map((label) => {
+                    const active = assignedLabelIds.includes(label.id);
+                    return (
+                      <button
+                        key={label.id}
+                        type="button"
+                        onClick={() => onLabelToggle?.(label.id)}
+                        className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors"
+                        style={{
+                          borderColor: active ? label.color : "rgba(255,255,255,0.12)",
+                          background: active ? `${label.color}22` : "transparent",
+                          color: active ? label.color : "#888",
+                        }}
+                      >
+                        <span
+                          className="h-2 w-2 rounded-full flex-shrink-0"
+                          style={{ background: label.color }}
+                        />
+                        {label.name}
+                        {active && <Check size={10} />}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             <div className="mt-5 flex flex-col gap-2">
               {canSelect && (
