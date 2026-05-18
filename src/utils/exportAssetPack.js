@@ -26,6 +26,7 @@ const EVENT_BG_FILENAME = "event-bg.png";
 const EVENT_BG_URL = "https://decrypto-newsletter.vercel.app/event-bg.png";
 const MACRO_QUOTE_BG_FILENAME = "macro-quote-bg.png";
 const MACRO_QUOTE_BG_URL = "https://decrypto-newsletter.vercel.app/macro-quote-bg.png";
+export const GRADIENT_CTA_FILENAME = "gradient-cta.png";
 
 function hexToParts(hex = DEFAULT_CALLOUT_COLOR) {
   const match = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
@@ -75,6 +76,33 @@ function svgToPngBlob(svgString, width, height) {
   });
 }
 
+/**
+ * Génère un PNG du dégradé CTA (#4141FF → #8701FF → #FF00AA) via canvas.
+ * Ce PNG est utilisé comme background-image sur les boutons CTA pour
+ * conserver le dégradé dans Gmail app (qui ignore les CSS linear-gradient).
+ */
+function gradientCtaPngBlob() {
+  return new Promise((resolve, reject) => {
+    const W = 600;
+    const H = 46;
+    const canvas = document.createElement("canvas");
+    canvas.width = W * PIXEL_RATIO;
+    canvas.height = H * PIXEL_RATIO;
+    const ctx = canvas.getContext("2d");
+    const grad = ctx.createLinearGradient(0, 0, W * PIXEL_RATIO, 0);
+    grad.addColorStop(0, "#4141FF");
+    grad.addColorStop(0.5, "#8701FF");
+    grad.addColorStop(1, "#FF00AA");
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W * PIXEL_RATIO, H * PIXEL_RATIO);
+    canvas.toBlob(
+      (blob) => blob ? resolve(blob) : reject(new Error("Canvas toBlob CTA gradient échoué")),
+      "image/png",
+      1.0
+    );
+  });
+}
+
 function buildStandalonePictoSvg(svgInner, color, size = 32) {
   const inner = svgInner.replace(/currentColor/g, color);
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${inner}</svg>`;
@@ -93,6 +121,7 @@ async function buildPngAssets(state) {
   let chartPoints = null;
   let needGauge = false;
   let gaugeValue = null;
+  let needCtaGradient = false;
   // Map { sectionId → { url, filename } } pour les images de blocs focus/image
   const focusImages = [];
 
@@ -121,6 +150,9 @@ async function buildPngAssets(state) {
       focusImages.push({ sectionId: sec.id, originalUrl: sec.data.image_url, filename: `image_block-${sec.id}.${ext}` });
     }
     if (sec.type === "focus") {
+      if (!needCtaGradient && sec.data.items?.some((it) => it.type === "cta")) {
+        needCtaGradient = true;
+      }
       if (sec.data.items) {
         // New items-based format
         sec.data.items.filter((it) => it.type === "image" && it.image_url).forEach((it, idx) => {
@@ -164,6 +196,15 @@ async function buildPngAssets(state) {
     const stroke = readableTextOn(item.color);
     const svg = buildStandalonePictoSvg(picto.svgInner, stroke, 32);
     assets[item.filename] = await svgToPngBlob(svg, 32, 32);
+  }
+
+  if (needCtaGradient) {
+    try {
+      assets[GRADIENT_CTA_FILENAME] = await gradientCtaPngBlob();
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.warn("[export] gradient-cta.png non généré :", e);
+    }
   }
 
   try {
@@ -371,7 +412,8 @@ export async function exportAssetPack(state, filename = "decrypto-export.zip") {
   // 2. HTML avec références externes. On clone l'état pour réécrire les URL
   // des images intégrées vers leur chemin local dans assets/.
   const stateForExport = buildExternalAssetState(state, focusImages, assets);
-  const html = buildEmailHtml(stateForExport, { assetMode: "external" });
+  const ctaGradientUrl = assets[GRADIENT_CTA_FILENAME] ? `assets/${GRADIENT_CTA_FILENAME}` : null;
+  const html = buildEmailHtml(stateForExport, { assetMode: "external", ctaGradientUrl });
   zip.file("email.html", html);
 
   // 3. Assets (PNG + images intégrées)
@@ -391,7 +433,8 @@ export async function exportAssetPack(state, filename = "decrypto-export.zip") {
 export async function exportBrazeHtml(state, filename = "decrypto-braze.html", accessToken) {
   const { assets, focusImages } = await buildPngAssets(state);
   const stateForExport = buildExternalAssetState(state, focusImages, assets);
-  const html = buildEmailHtml(stateForExport, { assetMode: "external" });
+  const ctaGradientUrl = assets[GRADIENT_CTA_FILENAME] ? `assets/${GRADIENT_CTA_FILENAME}` : null;
+  const html = buildEmailHtml(stateForExport, { assetMode: "external", ctaGradientUrl });
 
   const serializedAssets = await Promise.all(
     Object.entries(assets).map(async ([name, blob]) => {

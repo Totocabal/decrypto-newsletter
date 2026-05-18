@@ -56,6 +56,8 @@ function escapedClosingTagPattern(tagName) {
 const RICH_TEXT_WEIGHT = 400;
 const RICH_TEXT_BOLD_WEIGHT = 700;
 let EMAIL_THEME = THEME;
+// URL du PNG de dégradé CTA — null en mode inline (prévisualisation), renseigné en mode export
+let CTA_GRADIENT_URL = null;
 
 function getEmailThemeVariant(state = {}) {
   return state.theme_variant === "light" ? "light" : "dark";
@@ -898,7 +900,7 @@ function renderFocusItem(item, assetMode) {
             <!--[if !mso]><!-->
             <table role="presentation" cellpadding="0" cellspacing="0" border="0">
               <tr>
-                <td bgcolor="${EMAIL_THEME.accentTertiary}" style="border-radius:99px; background-color:${EMAIL_THEME.accentTertiary}; background-image:linear-gradient(90deg, ${EMAIL_THEME.accentSecondary} 0%, ${EMAIL_THEME.accentTertiary} 50%, ${EMAIL_THEME.accentPrimary} 100%);">
+                <td bgcolor="${EMAIL_THEME.accentTertiary}" style="border-radius:99px; background-color:${EMAIL_THEME.accentTertiary}; background-image:${CTA_GRADIENT_URL ? `url('${CTA_GRADIENT_URL}'), ` : ""}linear-gradient(90deg, ${EMAIL_THEME.accentSecondary} 0%, ${EMAIL_THEME.accentTertiary} 50%, ${EMAIL_THEME.accentPrimary} 100%); background-size:100% 100%;">
                   <a href="${escapeAttr(item.url || "#")}" style="display:inline-block; padding:13px 22px; font-family:${FONTS.heading}; font-weight:600; font-size:13px; color:#ffffff; text-decoration:none; border-radius:99px; letter-spacing:0.01em;">${ctaText}</a>
                 </td>
               </tr>
@@ -1029,7 +1031,7 @@ function renderFocus(data, number, assetMode, anchor = "", isLastSection = false
         <!--[if !mso]><!-->
         <table role="presentation" cellpadding="0" cellspacing="0" border="0">
           <tr>
-            <td bgcolor="${EMAIL_THEME.accentTertiary}" style="border-radius:99px; background-color:${EMAIL_THEME.accentTertiary}; background-image:linear-gradient(90deg, ${EMAIL_THEME.accentSecondary} 0%, ${EMAIL_THEME.accentTertiary} 50%, ${EMAIL_THEME.accentPrimary} 100%);">
+            <td bgcolor="${EMAIL_THEME.accentTertiary}" style="border-radius:99px; background-color:${EMAIL_THEME.accentTertiary}; background-image:${CTA_GRADIENT_URL ? `url('${CTA_GRADIENT_URL}'), ` : ""}linear-gradient(90deg, ${EMAIL_THEME.accentSecondary} 0%, ${EMAIL_THEME.accentTertiary} 50%, ${EMAIL_THEME.accentPrimary} 100%); background-size:100% 100%;">
               <a href="${escapeAttr(data.cta_primary_url || "#")}" style="display:inline-block; padding:13px 22px; font-family:${FONTS.heading}; font-weight:600; font-size:13px; color:#ffffff; text-decoration:none; border-radius:99px; letter-spacing:0.01em;">${escapeHtml(data.cta_primary_label)}</a>
             </td>
           </tr>
@@ -1214,6 +1216,7 @@ function renderFooter(footer, assetMode) {
 export function buildEmailHtml(state, options = {}) {
   setRenderTheme(state);
   const assetMode = options.assetMode || "inline"; // "inline" ou "external"
+  CTA_GRADIENT_URL = options.ctaGradientUrl || null;
   const showSectionNumbers = state.show_section_numbers !== false;
   const themeVariant = getEmailThemeVariant(state);
   const emailColorScheme = themeVariant === "light" ? "light" : "dark";
