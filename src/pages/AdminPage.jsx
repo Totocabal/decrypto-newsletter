@@ -66,6 +66,7 @@ import {
   saveDefaultSectionOverride,
   resetDefaultSectionOverride,
   getAllDefaultSectionOverrides,
+  UNNUMBERED_TYPES,
 } from "../config/schema.js";
 
 function generateTemporaryPassword() {
@@ -594,10 +595,11 @@ const SECTION_TYPE_DESCRIPTIONS = {
   divider: "Séparateur visuel entre deux blocs.",
 };
 
-function SortableActiveItem({ entry, index, total, onMoveUp, onMoveDown, onRemove }) {
+function SortableActiveItem({ entry, index, total, onMoveUp, onMoveDown, onToggleNumbering, onRemove }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: entry.id });
   const type = entry.type;
   const Icon = SECTION_ICON_MAP[type] ?? Newspaper;
+  const countsForNumbering = entry.counts_for_numbering ?? !UNNUMBERED_TYPES.has(type);
   return (
     <div
       ref={setNodeRef}
@@ -630,6 +632,19 @@ function SortableActiveItem({ entry, index, total, onMoveUp, onMoveDown, onRemov
         <span className="mt-0.5 block truncate text-xs text-d-fg4">
           {SECTION_TYPE_DESCRIPTIONS[type]}
         </span>
+        <label className="mt-2 inline-flex cursor-pointer items-center gap-2 rounded-full border border-line bg-d-panel2 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-d-fg3 transition-colors hover:border-line2">
+          <span className="relative inline-flex h-4 w-7 flex-shrink-0 items-center">
+            <input
+              type="checkbox"
+              checked={countsForNumbering}
+              onChange={(event) => onToggleNumbering(event.target.checked)}
+              className="peer sr-only"
+            />
+            <span className="absolute inset-0 rounded-full border border-line bg-d-panel transition-colors peer-checked:border-d-pink peer-checked:bg-d-pink/25" />
+            <span className="relative ml-0.5 h-3 w-3 rounded-full bg-d-fg4 transition-transform peer-checked:translate-x-3 peer-checked:bg-d-pink" />
+          </span>
+          {countsForNumbering ? "Numéroté" : "Non numéroté"}
+        </label>
       </span>
       <span className="flex items-center gap-1">
         <button
@@ -728,6 +743,15 @@ function DefaultSectionsEditor() {
 
   const removeBlock = (id) => {
     setActive((prev) => prev.filter((entry) => entry.id !== id));
+    setSaved(false);
+  };
+
+  const updateBlockNumbering = (id, countsForNumbering) => {
+    setActive((prev) =>
+      prev.map((entry) =>
+        entry.id === id ? { ...entry, counts_for_numbering: countsForNumbering } : entry
+      )
+    );
     setSaved(false);
   };
 
@@ -1023,6 +1047,7 @@ function DefaultSectionsEditor() {
                         total={active.length}
                         onMoveUp={() => { moveBlock(entry.id, -1); }}
                         onMoveDown={() => { moveBlock(entry.id, 1); }}
+                        onToggleNumbering={(checked) => updateBlockNumbering(entry.id, checked)}
                         onRemove={() => removeBlock(entry.id)}
                       />
                     ))}

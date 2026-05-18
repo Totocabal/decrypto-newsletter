@@ -305,11 +305,11 @@ export function EditorPage({ newsletterId, onBack }) {
 
       {/* Topbar : logo + titre + statut + actions */}
       <header
-        className="border-b border-line px-4 sm:px-6"
-        style={{ background: "#1E1E22", height: "52px" }}
+        className="border-b border-line px-4 py-2 sm:px-6 sm:py-0"
+        style={{ background: "#1E1E22", minHeight: "52px" }}
       >
-        <div className="flex h-full items-center gap-2 sm:gap-3">
-          <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
+        <div className="flex min-h-9 flex-wrap items-center gap-2 sm:min-h-[52px] sm:gap-3">
+          <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2 sm:gap-3">
             <button type="button" onClick={handleBack} disabled={leaving} className="shrink-0 opacity-90 hover:opacity-100 transition-opacity">
               <Wordmark size={18} />
             </button>
@@ -336,11 +336,11 @@ export function EditorPage({ newsletterId, onBack }) {
               />
             </Tooltip>
             {labels.length > 0 && (
-              <div className="relative hidden sm:flex flex-shrink-0 items-center gap-1.5">
+              <div className="relative flex basis-full items-center gap-1.5 overflow-x-auto pb-1 sm:basis-auto sm:flex-shrink-0 sm:overflow-visible sm:pb-0">
                 {labels.filter((l) => labelIds.includes(l.id)).map((label) => (
                   <span
                     key={label.id}
-                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-[0.12em]"
+                    className="inline-flex flex-shrink-0 items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-[0.12em]"
                     style={{
                       background: label.color + "22",
                       border: `1px solid ${label.color}55`,
@@ -401,18 +401,20 @@ export function EditorPage({ newsletterId, onBack }) {
               <button
                 onClick={handleUndo}
                 disabled={!undoCount || lockedByOther}
-                className="hidden sm:flex items-center justify-center p-2 text-d-fg3 hover:text-d-fg border border-line hover:border-line2 rounded-full disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                className="flex items-center justify-center gap-1.5 rounded-full border border-line px-2.5 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-d-fg3 transition-colors hover:border-line2 hover:text-d-fg disabled:cursor-not-allowed disabled:opacity-30 sm:p-2"
               >
                 <Undo2 size={14} />
+                <span className="sm:hidden">Annuler</span>
               </button>
             </Tooltip>
             <Tooltip label="Restaurer le dernier changement annulé" side="bottom" align="right">
               <button
                 onClick={handleRedo}
                 disabled={!redoCount || lockedByOther}
-                className="hidden sm:flex items-center justify-center p-2 text-d-fg3 hover:text-d-fg border border-line hover:border-line2 rounded-full disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                className="flex items-center justify-center gap-1.5 rounded-full border border-line px-2.5 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-d-fg3 transition-colors hover:border-line2 hover:text-d-fg disabled:cursor-not-allowed disabled:opacity-30 sm:p-2"
               >
                 <Redo2 size={14} />
+                <span className="sm:hidden">Restaurer</span>
               </button>
             </Tooltip>
           </div>

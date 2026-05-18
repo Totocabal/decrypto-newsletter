@@ -534,10 +534,14 @@ function normalizeTemplateSections(value) {
     .map((entry) => {
       const type = typeof entry === "string" ? entry : entry?.type;
       if (!SECTION_TYPES[type]) return null;
-      return {
+      const normalized = {
         id: typeof entry === "object" && entry?.id ? entry.id : templateEntry(type).id,
         type,
       };
+      if (typeof entry?.counts_for_numbering === "boolean") {
+        normalized.counts_for_numbering = entry.counts_for_numbering;
+      }
+      return normalized;
     })
     .filter(Boolean);
 
@@ -628,9 +632,13 @@ export function buildInitialStateFromTypes(types, options = {}) {
     show_section_numbers: showSectionNumbers,
     theme_variant: themeVariant,
     issue_date: includeIssueDate ? INITIAL_STATE.issue_date : "",
-    sections: sections.map(({ type }) =>
-      section(type, includeDefaultContent ? getDefaultSectionData(type) : emptySectionData(type))
-    ),
+    sections: sections.map(({ type, counts_for_numbering }) => {
+      const nextSection = section(type, includeDefaultContent ? getDefaultSectionData(type) : emptySectionData(type));
+      if (typeof counts_for_numbering === "boolean") {
+        nextSection.counts_for_numbering = counts_for_numbering;
+      }
+      return nextSection;
+    }),
   };
 }
 
