@@ -12,9 +12,11 @@
 import JSZip from "jszip";
 import {
   buildEmailHtml,
+  getCalloutPictoFilename,
   getChartSvgFull,
   getGaugeSvgFull,
 } from "../render/buildEmail.js";
+import { CALLOUT_PICTOS_MAP, DEFAULT_PICTO_ID, DEFAULT_CALLOUT_COLOR, buildPictoSvgHtml } from "../config/calloutPictos.js";
 
 // Densité PNG : 2× pour les écrans Retina + une marge de sécurité pour le zoom
 const PIXEL_RATIO = 2;
@@ -24,6 +26,22 @@ const EVENT_BG_FILENAME = "event-bg.png";
 const EVENT_BG_URL = "https://decrypto-newsletter.vercel.app/event-bg.png";
 const MACRO_QUOTE_BG_FILENAME = "macro-quote-bg.png";
 const MACRO_QUOTE_BG_URL = "https://decrypto-newsletter.vercel.app/macro-quote-bg.png";
+
+function hexToParts(hex = DEFAULT_CALLOUT_COLOR) {
+  const match = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return match
+    ? [parseInt(match[1], 16), parseInt(match[2], 16), parseInt(match[3], 16)]
+    : [0, 255, 255];
+}
+
+function readableTextOn(hex) {
+  const [r, g, b] = hexToParts(hex).map((value) => {
+    const v = value / 255;
+    return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+  });
+  const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  return luminance > 0.45 ? "#111318" : "#FFFFFF";
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SVG → PNG côté navigateur
@@ -63,6 +81,7 @@ function svgToPngBlob(svgString, width, height) {
 
 async function buildPngAssets(state) {
   const assets = {};
+  const calloutPictos = [];
 
   // Pour chaque section "chart" et "fear_greed" présente, on génère son PNG.
   let needChart = false;
@@ -103,6 +122,14 @@ async function buildPngAssets(state) {
           const ext = guessImageExtension(it.image_url);
           focusImages.push({ sectionId: sec.id, itemId: it.id, originalUrl: it.image_url, filename: `focus-${sec.id}-${idx}.${ext}` });
         });
+        sec.data.items.filter((it) => it.type === "callout" && it.show_icon !== false).forEach((it) => {
+          const pictoId = it.picto || DEFAULT_PICTO_ID;
+          const color = it.callout_color || DEFAULT_CALLOUT_COLOR;
+          const filename = getCalloutPictoFilename(pictoId, color);
+          if (!calloutPictos.some((p) => p.filename === filename)) {
+            calloutPictos.push({ pictoId, color, filename });
+          }
+        });
       } else if (sec.data.image_url) {
         // Legacy flat format
         const ext = guessImageExtension(sec.data.image_url);
@@ -125,6 +152,13 @@ async function buildPngAssets(state) {
   if (needGauge) {
     const gaugeSvg = getGaugeSvgFull(gaugeValue, { themeVariant: state.theme_variant });
     assets["gauge.png"] = await svgToPngBlob(gaugeSvg, 200, 120);
+  }
+
+  for (const item of calloutPictos) {
+    const picto = CALLOUT_PICTOS_MAP[item.pictoId] || CALLOUT_PICTOS_MAP[DEFAULT_PICTO_ID];
+    const stroke = readableTextOn(item.color);
+    const svg = buildPictoSvgHtml(picto.svgInner, stroke, 32);
+    assets[item.filename] = await svgToPngBlob(svg, 32, 32);
   }
 
   try {

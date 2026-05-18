@@ -4,7 +4,7 @@
 
 import { THEME, EMAIL_THEMES, BRAND_LOGOS, FONTS } from "../config/theme.js";
 import { computeSectionNumber } from "../config/schema.js";
-import { CALLOUT_PICTOS_MAP, DEFAULT_PICTO_ID, DEFAULT_CALLOUT_COLOR } from "../config/calloutPictos.js";
+import { CALLOUT_PICTOS_MAP, DEFAULT_PICTO_ID, DEFAULT_CALLOUT_COLOR, buildPictoSvgHtml } from "../config/calloutPictos.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
@@ -389,6 +389,13 @@ function readableTextOn(hex) {
   });
   const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
   return luminance > 0.45 ? "#111318" : "#FFFFFF";
+}
+
+export function getCalloutPictoFilename(pictoId = DEFAULT_PICTO_ID, color = DEFAULT_CALLOUT_COLOR) {
+  const safePicto = String(pictoId || DEFAULT_PICTO_ID).replace(/[^a-z0-9_-]+/gi, "-").toLowerCase();
+  const safeColor = String(color || DEFAULT_CALLOUT_COLOR).replace(/[^a-f0-9]+/gi, "").toLowerCase() || "00ffff";
+  const tone = readableTextOn(color) === "#FFFFFF" ? "white" : "dark";
+  return `callout-picto-${safePicto}-${safeColor}-${tone}.png`;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -829,7 +836,7 @@ function renderEvent(data, anchor = "", isLastSection = false) {
     </tr>`;
 }
 
-function renderFocusItem(item) {
+function renderFocusItem(item, assetMode) {
   if (item.type === "image") {
     const imgUrl = String(item.image_url || "").trim();
     if (!imgUrl) return "";
@@ -931,6 +938,9 @@ function renderFocusItem(item) {
     const iconBg = accentHex;
     const iconBorder = accentHex;
     const iconTextColor = readableTextOn(accentHex);
+    const iconContent = assetMode === "external"
+      ? `<img src="assets/${getCalloutPictoFilename(item.picto || DEFAULT_PICTO_ID, accentHex)}" width="16" height="16" alt="" style="display:block; width:16px; height:16px; border:0; margin:0 auto;" />`
+      : buildPictoSvgHtml(picto.svgInner, iconTextColor, 16);
     // Utilise directement textSecondary du thème courant pour éviter tout problème
     // de comparaison d'objet qui ferait utiliser la mauvaise couleur de corps.
     const bodyColor = EMAIL_THEME.textSecondary;
@@ -939,7 +949,7 @@ function renderFocusItem(item) {
     const iconHtml = item.show_icon === false
       ? ""
       : `<td valign="middle" style="padding-right:12px;">
-                  <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:separate !important; border-spacing:0 !important;"><tr><td width="30" height="30" align="center" valign="middle" bgcolor="${iconBg}" style="background-color:${iconBg}; border:1px solid ${iconBorder}; border-radius:8px; color:${iconTextColor}; font-family:${FONTS.heading}; font-size:14px; font-weight:800; line-height:30px;">${escapeHtml((picto.label || "i").slice(0, 1).toUpperCase())}</td></tr></table>
+                  <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:separate !important; border-spacing:0 !important;"><tr><td width="30" height="30" align="center" valign="middle" bgcolor="${iconBg}" style="background-color:${iconBg}; border:1px solid ${iconBorder}; border-radius:8px;">${iconContent}</td></tr></table>
                 </td>`;
     const footerText = String(item.footer || "").trim();
     const footer = footerText
@@ -967,10 +977,10 @@ function renderFocusItem(item) {
   return "";
 }
 
-function renderFocus(data, number, anchor = "", isLastSection = false) {
+function renderFocus(data, number, assetMode, anchor = "", isLastSection = false) {
   // Items-based rendering (new format)
   if (data.items) {
-    const renderedItems = data.items.map(renderFocusItem).join("\n");
+    const renderedItems = data.items.map((item) => renderFocusItem(item, assetMode)).join("\n");
     return `
     <tr>
       <td class="em-px" style="padding:44px 36px;${sectionBottomBorder(isLastSection)}">
@@ -1125,7 +1135,7 @@ function renderSection(sec, allSections, assetMode, showSectionNumbers = true, i
     case "macro_bars": return renderMacroBars(sec.data, isLastSection);
     case "commented_number": return renderCommentedNumber(sec.data, anchor, isLastSection);
     case "event":      return renderEvent(sec.data, anchor, isLastSection);
-    case "focus":      return renderFocus(sec.data, number, anchor, isLastSection);
+    case "focus":      return renderFocus(sec.data, number, assetMode, anchor, isLastSection);
     case "image_block": return renderImageBlock(sec.data, isLastSection);
     case "text_block": return renderTextBlock(sec.data, number, anchor, isLastSection);
     case "divider":    return renderDivider(sec.data, isLastSection);
