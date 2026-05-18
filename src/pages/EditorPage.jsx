@@ -157,7 +157,7 @@ export function EditorPage({ newsletterId, onBack }) {
     // 3 choix : Confirmer (sauvegarder) / Je quitte sans sauvegarder / Annuler (rester)
     const result = await confirm(
       "Créer une version avant de quitter cette newsletter ?",
-      { extraLabel: "Je quitte sans sauvegarder" }
+      { extraLabel: "Quitter sans sauvegarder" }
     );
     if (result === false) return;        // Annuler → rester sur la page
     if (result === "leave") { onBack(); return; } // Quitter sans sauvegarder

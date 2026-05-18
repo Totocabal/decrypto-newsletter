@@ -927,8 +927,8 @@ function DefaultSectionsEditor() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[310px_minmax(0,1fr)_360px]">
-        <aside className="overflow-hidden rounded-2xl border border-line bg-d-panel">
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[310px_minmax(0,1fr)_360px] xl:items-start">
+        <aside className="flex flex-col overflow-hidden rounded-2xl border border-line bg-d-panel xl:sticky xl:top-4">
           <div className="border-b border-line p-4">
             <div className="mb-3 flex items-center justify-between gap-3">
               <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-d-fg3">
@@ -947,7 +947,7 @@ function DefaultSectionsEditor() {
             </div>
           </div>
 
-          <div className="max-h-[420px] overflow-auto p-3">
+          <div className="overflow-auto p-3">
             <div className="flex flex-col gap-1.5">
               {filteredTypes.map((type) => {
                 const Icon = SECTION_ICON_MAP[type] ?? Newspaper;
