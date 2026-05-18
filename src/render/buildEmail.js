@@ -747,9 +747,7 @@ function renderMacro(data, number, assetMode, anchor = "", isLastSection = false
   const effectiveBgImg = bgImg || (assetMode === "external"
     ? "assets/macro-quote-bg.png"
     : "https://decrypto-newsletter.vercel.app/macro-quote-bg.png");
-  const quoteBorder = EMAIL_THEME === EMAIL_THEMES.light
-    ? "border:1px solid #E7E2DC;"
-    : "border:0;";
+  const quoteBorder = "border:0;";
   const quoteAvatarBg = "#5A2363";
   const quoteAvatarFg = "#FFFFFF";
   const quoteBlock = data.quote ? `
