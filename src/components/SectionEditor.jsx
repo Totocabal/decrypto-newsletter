@@ -1325,6 +1325,7 @@ function FocusEditor({ data, set }) {
     if (type === "text") item = { id, type: "text", body: "" };
     else if (type === "image") item = { id, type: "image", image_url: "", image_path: "", image_alt: "Visuel d'illustration", link_url: "" };
     else if (type === "callout") item = { id, type: "callout", label: "Note de la rédac", body: "", footer: "", footer_url: "", show_icon: true, picto: DEFAULT_PICTO_ID, callout_color: DEFAULT_CALLOUT_COLOR };
+    else if (type === "spacer") item = { id, type: "spacer", height: 24 };
     else item = { id, type: "cta", label: "", url: "", arrow: false, centered: false, secondary_label: "", secondary_url: "" };
     setItems([...items, item]);
   };
@@ -1360,7 +1361,7 @@ function FocusEditor({ data, set }) {
               <div className="flex items-center gap-2">
                 <ChevronDown size={14} className="text-d-fg3 transition-transform" style={{ transform: collapsed.has(item.id) ? "rotate(-90deg)" : "rotate(0deg)" }} />
                 <span className="text-[10px] uppercase tracking-[0.15em] font-bold text-d-fg2">
-                  {item.type === "text" ? "Texte" : item.type === "image" ? "Image" : item.type === "callout" ? "Encadré" : "CTA"}
+                  {item.type === "text" ? "Texte" : item.type === "image" ? "Image" : item.type === "callout" ? "Encadré" : item.type === "spacer" ? "Spacer" : "CTA"}
                 </span>
               </div>
               <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
@@ -1479,6 +1480,32 @@ function FocusEditor({ data, set }) {
                     )}
                   </div>
                 </>
+              )}
+              {item.type === "spacer" && (
+                <Field noMargin label="Hauteur" hint="Espace vertical volontaire entre deux éléments du bloc.">
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="range"
+                      min="0"
+                      max="120"
+                      step="2"
+                      value={Number.isFinite(Number(item.height)) ? Number(item.height) : 24}
+                      onChange={(e) => updateItem(item.id, { height: Number(e.target.value) })}
+                      className="flex-1 accent-d-pink"
+                    />
+                    <div className="w-16">
+                      <Input
+                        type="number"
+                        min="0"
+                        max="120"
+                        step="2"
+                        value={Number.isFinite(Number(item.height)) ? Number(item.height) : 24}
+                        onChange={(e) => updateItem(item.id, { height: Math.max(0, Math.min(120, Number(e.target.value) || 0)) })}
+                      />
+                    </div>
+                    <span className="text-xs font-semibold text-d-fg3">px</span>
+                  </div>
+                </Field>
               )}
               {item.type === "callout" && (
                 <>
@@ -1600,13 +1627,13 @@ function FocusEditor({ data, set }) {
         ))}
       </div>
 
-      <div className="flex gap-2 mt-3">
-        {[["text", "Texte"], ["image", "Image"], ["cta", "CTA"], ["callout", "Encadré"]].map(([type, label]) => (
+      <div className="flex flex-wrap gap-2 mt-3">
+        {[["text", "Texte"], ["image", "Image"], ["cta", "CTA"], ["callout", "Encadré"], ["spacer", "Spacer"]].map(([type, label]) => (
           <button
             key={type}
             type="button"
             onClick={() => addItem(type)}
-            className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 border border-dashed border-line text-d-fg3 hover:border-line2 hover:text-d-fg2 rounded-xl text-[10px] uppercase tracking-[0.18em] transition-colors"
+            className="min-w-[110px] flex-1 flex items-center justify-center gap-1.5 px-3 py-2 border border-dashed border-line text-d-fg3 hover:border-line2 hover:text-d-fg2 rounded-xl text-[10px] uppercase tracking-[0.18em] transition-colors"
           >
             <Plus size={12} /> {label}
           </button>

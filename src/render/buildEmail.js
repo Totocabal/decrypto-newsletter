@@ -936,6 +936,15 @@ function renderFocusItem(item, assetMode, isLastItem = false) {
         </tr>
       </table>`;
   }
+  if (item.type === "spacer") {
+    const height = Math.max(0, Math.min(120, Number(item.height) || 0));
+    if (!height) return "";
+    return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td height="${height}" style="height:${height}px; line-height:${height}px; font-size:1px;">&nbsp;</td>
+        </tr>
+      </table>`;
+  }
   if (item.type === "callout") {
     const hasBody = plainTextFromRichText(item.body);
     if (!hasBody) return "";
@@ -996,6 +1005,7 @@ function renderFocus(data, number, assetMode, anchor = "", isLastSection = false
       if (item.type === "text") return Boolean(String(item.body || "").replace(/<[^>]*>/g, "").trim());
       if (item.type === "cta") return Boolean(item.label);
       if (item.type === "callout") return Boolean(plainTextFromRichText(item.body));
+      if (item.type === "spacer") return Number(item.height) > 0;
       return false;
     });
     const renderedItems = renderableItems.map((item, index) => (
