@@ -436,7 +436,7 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, onSelectMany
                 </span>
               )}
               {checked && (
-                <span className="absolute inset-0 border-2 border-d-pink bg-d-pink/10" />
+                <span className="absolute inset-0 bg-d-pink/10" />
               )}
             </button>
           </Tooltip>
