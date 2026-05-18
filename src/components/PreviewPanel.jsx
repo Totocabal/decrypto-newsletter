@@ -145,10 +145,10 @@ export function PreviewPanel({ html, view, previewDevice, setPreviewDevice }) {
 
       {/* Overlay plein écran */}
       {fullscreen && (
-        <div className="fixed inset-0 z-50 flex flex-col" style={{ background: "#0B0B0D" }}>
+        <div className="fixed inset-0 z-50 flex flex-col bg-d-bg">
           <div
             className="flex items-center justify-between border-b border-line px-4 py-2 flex-shrink-0"
-            style={{ background: "#1E1E22" }}
+            style={{ background: "rgb(var(--d-panel))" }}
           >
             <div className="flex flex-1 justify-start">
               <ExportButton />

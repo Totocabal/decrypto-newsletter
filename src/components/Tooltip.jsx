@@ -33,7 +33,7 @@ export function Tooltip({ label, children, side = "top", align = "center", class
                 ? "translate-y-1"
                 : "-translate-y-1"
         } group-hover/tooltip:translate-x-0 group-hover/tooltip:translate-y-0 group-hover/tooltip:opacity-100 group-focus-within/tooltip:translate-x-0 group-focus-within/tooltip:translate-y-0 group-focus-within/tooltip:opacity-100`}
-        style={{ background: "#2E2E34" }}
+        style={{ background: "rgb(var(--d-panel3))" }}
       >
         {label}
       </span>

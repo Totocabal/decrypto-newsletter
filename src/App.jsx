@@ -11,7 +11,7 @@
 //   - AdminPage              (admin uniquement)
 
 import { useEffect, useState } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, Moon, Sun } from "lucide-react";
 import { AuthProvider, useAuth } from "./contexts/AuthContext.jsx";
 import { DialogProvider } from "./components/Dialog.jsx";
 import { LoginPage } from "./pages/LoginPage.jsx";
@@ -68,6 +68,15 @@ function Router() {
   const { user, profile, loading, profileLoading, initError, refreshProfile, resetLocalSession } = useAuth();
   const [route, setRoute] = useState(readRouteFromHash);
   const [longWait, setLongWait] = useState(false);
+  const [uiTheme, setUiTheme] = useState(() => {
+    if (typeof window === "undefined") return "dark";
+    return window.localStorage.getItem("decrypto-ui-theme") === "light" ? "light" : "dark";
+  });
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("ui-light", uiTheme === "light");
+    window.localStorage.setItem("decrypto-ui-theme", uiTheme);
+  }, [uiTheme]);
 
   useEffect(() => {
     writeRouteToHash(route);
@@ -108,7 +117,7 @@ function Router() {
           {longWait && (
             <div
               className="rounded-2xl p-5 max-w-md text-center border border-line"
-              style={{ background: "#1E1E22" }}
+              style={{ background: "rgb(var(--d-panel))" }}
             >
               <div className="text-xs text-d-fg3 mb-4 leading-relaxed">
                 Ça prend plus longtemps que prévu. Possible problème de réseau
@@ -135,7 +144,14 @@ function Router() {
     );
   }
 
-  if (!user) return <LoginPage />;
+  if (!user) {
+    return (
+      <>
+        <UiThemeToggle uiTheme={uiTheme} setUiTheme={setUiTheme} />
+        <LoginPage />
+      </>
+    );
+  }
 
   // Connecté mais pas encore de profil (le trigger côté Supabase met parfois
   // 1-2s). On affiche un loader avec un bouton de relance.
@@ -145,7 +161,7 @@ function Router() {
         <Wordmark size={18} />
         <div
           className="rounded-2xl p-6 w-full max-w-md text-center border border-line"
-          style={{ background: "#1E1E22" }}
+          style={{ background: "rgb(var(--d-panel))" }}
         >
           <div className="flex items-center justify-center gap-2 text-xs uppercase tracking-[0.18em] text-d-fg3 mb-3">
             <Loader2 className="animate-spin" size={14} />
@@ -172,32 +188,70 @@ function Router() {
     );
   }
 
-  if (!profile.approved) return <PendingApprovalPage />;
+  if (!profile.approved) {
+    return (
+      <>
+        <UiThemeToggle uiTheme={uiTheme} setUiTheme={setUiTheme} />
+        <PendingApprovalPage />
+      </>
+    );
+  }
 
   // Approuvé mais sans mot de passe défini → on l'invite à en créer un.
   // Ça concerne tous les nouveaux comptes (qui se sont logués en magic link)
   // et tous les anciens (avant cette feature). L'utilisateur peut skip — dans
   // ce cas le flag est marqué à true et la page n'apparaîtra plus.
   if (profile.password_set === false) {
-    return <SetPasswordPage onDone={refreshProfile} />;
+    return (
+      <>
+        <UiThemeToggle uiTheme={uiTheme} setUiTheme={setUiTheme} />
+        <SetPasswordPage onDone={refreshProfile} />
+      </>
+    );
   }
 
   // Approuvé → routes internes
   if (route.name === "editor") {
     return (
-      <EditorPage
-        newsletterId={route.id}
-        onBack={() => setRoute({ name: "list" })}
-      />
+      <>
+        <UiThemeToggle uiTheme={uiTheme} setUiTheme={setUiTheme} />
+        <EditorPage
+          newsletterId={route.id}
+          onBack={() => setRoute({ name: "list" })}
+        />
+      </>
     );
   }
   if (route.name === "admin") {
-    return <AdminPage onBack={() => setRoute({ name: "list" })} />;
+    return (
+      <>
+        <UiThemeToggle uiTheme={uiTheme} setUiTheme={setUiTheme} />
+        <AdminPage onBack={() => setRoute({ name: "list" })} />
+      </>
+    );
   }
   return (
-    <NewslettersListPage
-      onOpen={(id) => setRoute({ name: "editor", id })}
-      onOpenAdmin={() => setRoute({ name: "admin" })}
-    />
+    <>
+      <UiThemeToggle uiTheme={uiTheme} setUiTheme={setUiTheme} />
+      <NewslettersListPage
+        onOpen={(id) => setRoute({ name: "editor", id })}
+        onOpenAdmin={() => setRoute({ name: "admin" })}
+      />
+    </>
+  );
+}
+
+function UiThemeToggle({ uiTheme, setUiTheme }) {
+  const isLight = uiTheme === "light";
+  return (
+    <button
+      type="button"
+      onClick={() => setUiTheme(isLight ? "dark" : "light")}
+      aria-label={isLight ? "Passer l'interface en dark mode" : "Passer l'interface en light mode"}
+      title={isLight ? "Dark mode" : "Light mode"}
+      className="fixed bottom-4 right-4 z-[90] inline-flex h-10 w-10 items-center justify-center rounded-full border border-line bg-d-panel text-d-fg3 shadow-xl transition-colors hover:border-line2 hover:bg-d-panel2 hover:text-d-fg"
+    >
+      {isLight ? <Moon size={16} /> : <Sun size={16} />}
+    </button>
   );
 }

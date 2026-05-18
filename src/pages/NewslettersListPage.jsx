@@ -314,7 +314,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
       {/* Header */}
       <header
         className="border-b border-line px-4 sm:px-6"
-        style={{ background: "#1E1E22", height: "52px" }}
+        style={{ background: "rgb(var(--d-panel))", height: "52px" }}
       >
         <div className="flex h-full items-center gap-3 sm:gap-4">
           <Wordmark size={18} />

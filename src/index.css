@@ -5,8 +5,45 @@
 @tailwind utilities;
 
 :root {
+  color-scheme: dark;
+  --d-bg: 20 20 22;
+  --d-panel: 30 30 34;
+  --d-panel2: 38 38 43;
+  --d-panel3: 46 46 52;
+  --d-fg: 241 242 245;
+  --d-fg2: 199 202 209;
+  --d-fg3: 140 143 152;
+  --d-fg4: 94 97 104;
+  --d-pink: 255 0 170;
+  --d-cyan: 0 255 255;
+  --d-blue: 65 65 255;
+  --d-orange: 255 75 40;
+  --d-green: 3 255 207;
   --d-line:  rgba(255,255,255,0.06);
   --d-line2: rgba(255,255,255,0.10);
+  --d-scroll-track: #1E1E22;
+  --d-scroll-thumb: #2E2E34;
+}
+
+:root.ui-light {
+  color-scheme: light;
+  --d-bg: 244 245 247;
+  --d-panel: 255 255 255;
+  --d-panel2: 248 249 251;
+  --d-panel3: 238 240 244;
+  --d-fg: 21 21 26;
+  --d-fg2: 53 57 68;
+  --d-fg3: 101 108 122;
+  --d-fg4: 145 151 163;
+  --d-pink: 220 0 145;
+  --d-cyan: 0 187 187;
+  --d-blue: 65 65 255;
+  --d-orange: 214 82 26;
+  --d-green: 0 187 151;
+  --d-line: rgba(18,24,38,0.10);
+  --d-line2: rgba(18,24,38,0.16);
+  --d-scroll-track: #ECEEF2;
+  --d-scroll-thumb: #C8CED8;
 }
 
 @keyframes fadeSlideIn {
@@ -25,9 +62,9 @@ html, body {
   width: 100%;
   min-width: 0;
   overflow-x: hidden;
-  background: #141416;
+  background: rgb(var(--d-bg));
   font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  color: #F1F2F5;
+  color: rgb(var(--d-fg));
 }
 
 #root { min-width: 0; }
@@ -42,8 +79,8 @@ html, body {
 }
 
 ::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: #1E1E22; }
-::-webkit-scrollbar-thumb { background: #2E2E34; border-radius: 999px; }
+::-webkit-scrollbar-track { background: var(--d-scroll-track); }
+::-webkit-scrollbar-thumb { background: var(--d-scroll-thumb); border-radius: 999px; }
 
 /* Border utilities using CSS vars (rgba borders not supported as Tailwind arbitrary) */
 .border-line  { border-color: var(--d-line); }

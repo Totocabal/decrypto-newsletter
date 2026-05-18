@@ -108,16 +108,16 @@ function injectQuillCss() {
 
     /* Tooltip lien */
     .ql-tooltip {
-      background: #1E1E22 !important;
-      border: 1px solid #2E2E36 !important;
+      background: rgb(var(--d-panel)) !important;
+      border: 1px solid var(--d-line2) !important;
       border-radius: 8px !important;
       box-shadow: 0 4px 20px rgba(0,0,0,0.6) !important;
-      color: #ccc !important;
+      color: rgb(var(--d-fg2)) !important;
     }
     .ql-tooltip input[type=text] {
-      background: #111 !important;
-      border-color: #3A3A44 !important;
-      color: #E4E4EC !important;
+      background: rgb(var(--d-panel2)) !important;
+      border-color: var(--d-line2) !important;
+      color: rgb(var(--d-fg)) !important;
       border-radius: 4px !important;
       outline: none !important;
     }

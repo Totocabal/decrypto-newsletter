@@ -135,8 +135,8 @@ export class AppErrorBoundary extends React.Component {
     }
 
     return (
-      <div className="min-h-screen bg-[#141416] flex items-center justify-center p-6 text-[#F1F2F5]">
-        <div className="w-full max-w-2xl border border-white/10 bg-[#1E1E22] rounded-sm overflow-hidden shadow-2xl">
+      <div className="min-h-screen bg-d-bg flex items-center justify-center p-6 text-d-fg">
+        <div className="w-full max-w-2xl border border-line bg-d-panel rounded-sm overflow-hidden shadow-2xl">
           <div className="h-1 bg-gradient-to-r from-[#8701FF] via-[#ff00aa] to-[#03FFCF]" />
           <div className="p-7 sm:p-9">
             <div className="text-[10px] uppercase tracking-[0.24em] text-[#ff00aa] font-semibold mb-5">

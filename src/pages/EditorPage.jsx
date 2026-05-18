@@ -294,7 +294,7 @@ export function EditorPage({ newsletterId, onBack }) {
       <div className="min-h-screen bg-d-bg flex items-center justify-center p-6">
         <div
           className="rounded-2xl p-6 max-w-md border border-line"
-          style={{ background: "#1E1E22" }}
+          style={{ background: "rgb(var(--d-panel))" }}
         >
           <div className="text-sm font-semibold mb-2" style={{ color: "#FF8466" }}>
             Erreur de chargement
@@ -333,7 +333,7 @@ export function EditorPage({ newsletterId, onBack }) {
       {/* Topbar : logo + titre + statut + actions */}
       <header
         className="border-b border-line px-3 py-2 sm:px-6 sm:py-0"
-        style={{ background: "#1E1E22", minHeight: "52px" }}
+        style={{ background: "rgb(var(--d-panel))", minHeight: "52px" }}
       >
         <div className="flex min-h-9 items-center gap-1.5 sm:min-h-[52px] sm:gap-3">
           <div className="flex min-w-0 flex-1 items-center gap-1.5 sm:gap-3">

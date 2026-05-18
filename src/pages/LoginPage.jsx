@@ -106,7 +106,7 @@ export function LoginPage() {
     <div className="min-h-screen bg-d-bg flex items-center justify-center p-6">
       <div
         className="w-full max-w-md p-8 rounded-2xl border border-line"
-        style={{ background: "#1E1E22" }}
+        style={{ background: "rgb(var(--d-panel))" }}
       >
         {/* Logo */}
         <div className="mb-8">

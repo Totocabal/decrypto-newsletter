@@ -383,7 +383,7 @@ export function EditorPanel({ state, setState }) {
                 className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] uppercase tracking-[0.14em] font-semibold rounded-full text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 style={{
                   background: globalSyncing
-                    ? "#2E2E34"
+                    ? "rgb(var(--d-panel3))"
                     : "linear-gradient(90deg, #4141FF 0%, #FF00AA 60%, #FF4B28 100%)",
                 }}
               >
@@ -449,7 +449,7 @@ export function EditorPanel({ state, setState }) {
               const label = type?.label || sec.type;
               const preview = (() => { const d = sec.data || {}; return d.title || d.label || d.kicker || ""; })();
               return (
-                <div style={{ background: "#1E1E22", border: "2px solid #FF00AA", boxShadow: "0 0 0 4px rgba(255,0,170,0.15), 0 8px 32px rgba(0,0,0,0.5)", borderRadius: 12, padding: "8px 12px", display: "flex", alignItems: "center", gap: 8, cursor: "grabbing" }}>
+                <div style={{ background: "rgb(var(--d-panel))", border: "2px solid #FF00AA", boxShadow: "0 0 0 4px rgba(255,0,170,0.15), 0 8px 32px rgba(0,0,0,0.5)", borderRadius: 12, padding: "8px 12px", display: "flex", alignItems: "center", gap: 8, cursor: "grabbing" }}>
                   <GripVertical size={14} style={{ color: "#FF00AA", flexShrink: 0 }} />
                   <span style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.18em", fontWeight: 600, color: "#ccc", flexShrink: 0 }}>{label}</span>
                   {preview && <span style={{ fontSize: 11, color: "#888", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>{preview}</span>}
@@ -579,7 +579,7 @@ function SectionCard({
           selectedMobile ? "mobile-section-card-selected" : ""
         }`}
         style={{
-          background: "#1E1E22",
+          background: "rgb(var(--d-panel))",
           border: "1px solid var(--d-line2)",
         }}
       >
@@ -672,7 +672,7 @@ function SectionCard({
           className="p-4"
           style={{
             borderTop: "1px solid var(--d-line)",
-            background: "#26262B",
+            background: "rgb(var(--d-panel2))",
           }}
         >
           <SectionEditor
@@ -765,7 +765,7 @@ function AddSectionButton({ onAdd }) {
       ) : (
         <div
           className="rounded-3xl p-4 border border-line shadow-2xl"
-          style={{ background: "#1E1E22" }}
+          style={{ background: "rgb(var(--d-panel))" }}
         >
           <div className="flex items-start justify-between gap-4 mb-4">
             <div>

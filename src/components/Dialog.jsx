@@ -96,8 +96,8 @@ function ToastItem({ toast, onRemove }) {
         : isSuccess
         ? <CheckCircle size={14} style={{ color: "#03FFCF", flexShrink: 0, marginTop: 1 }} />
         : <Info size={14} style={{ color: "#aaa", flexShrink: 0, marginTop: 1 }} />}
-      <span style={{ fontSize: 13, color: "#e0e0e0", flex: 1, lineHeight: 1.45 }}>{message}</span>
-      <button onClick={() => onRemove(id)} style={{ color: "#555", background: "none", border: "none", cursor: "pointer", padding: "1px 0 0 4px", flexShrink: 0, lineHeight: 1 }}>
+      <span style={{ fontSize: 13, color: "rgb(var(--d-fg))", flex: 1, lineHeight: 1.45 }}>{message}</span>
+      <button onClick={() => onRemove(id)} style={{ color: "rgb(var(--d-fg4))", background: "none", border: "none", cursor: "pointer", padding: "1px 0 0 4px", flexShrink: 0, lineHeight: 1 }}>
         <X size={12} />
       </button>
     </div>
@@ -119,28 +119,28 @@ function ConfirmModal({ message, title = "Confirmation", confirmLabel = "Confirm
       style={{ position: "fixed", inset: 0, zIndex: 9998, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.65)", backdropFilter: "blur(4px)" }}
       onClick={(e) => { if (e.target === e.currentTarget) onCancel(); }}
     >
-      <div style={{ background: "#1E1E22", border: "1px solid #333", borderRadius: 18, width: "100%", maxWidth: 420, padding: "28px 28px 24px", boxShadow: "0 8px 48px rgba(0,0,0,0.6)", margin: 16 }}>
-        <h2 style={{ fontFamily: "'Sora', sans-serif", fontSize: 16, fontWeight: 600, color: "#f0f0f0", marginBottom: 10 }}>{title}</h2>
-        <p style={{ fontSize: 14, color: "#999", lineHeight: 1.55, marginBottom: 24 }}>{message}</p>
+      <div style={{ background: "rgb(var(--d-panel))", border: "1px solid var(--d-line2)", borderRadius: 18, width: "100%", maxWidth: 420, padding: "28px 28px 24px", boxShadow: "0 8px 48px rgba(0,0,0,0.6)", margin: 16 }}>
+        <h2 style={{ fontFamily: "'Sora', sans-serif", fontSize: 16, fontWeight: 600, color: "rgb(var(--d-fg))", marginBottom: 10 }}>{title}</h2>
+        <p style={{ fontSize: 14, color: "rgb(var(--d-fg3))", lineHeight: 1.55, marginBottom: 24 }}>{message}</p>
         {extraLabel ? (
           /* 3 choix : Confirmer + Extra côte à côte, Annuler en dessous */
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             <div style={{ display: "flex", gap: 8 }}>
-              <button onClick={onExtra} style={{ flex: 1, padding: "10px 14px", borderRadius: 10, border: "1px solid #3a3a3a", background: "transparent", color: "#bbb", fontSize: 13, fontWeight: 500, cursor: "pointer" }}>
+              <button onClick={onExtra} style={{ flex: 1, padding: "10px 14px", borderRadius: 10, border: "1px solid var(--d-line2)", background: "transparent", color: "rgb(var(--d-fg2))", fontSize: 13, fontWeight: 500, cursor: "pointer" }}>
                 {extraLabel}
               </button>
               <button onClick={onConfirm} style={{ flex: 1, padding: "10px 14px", borderRadius: 10, border: "none", background: danger ? "#d93025" : "#FF00AA", color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
                 {confirmLabel}
               </button>
             </div>
-            <button onClick={onCancel} style={{ width: "100%", padding: "8px 14px", borderRadius: 10, border: "none", background: "transparent", color: "#555", fontSize: 12, fontWeight: 500, cursor: "pointer" }}>
+            <button onClick={onCancel} style={{ width: "100%", padding: "8px 14px", borderRadius: 10, border: "none", background: "transparent", color: "rgb(var(--d-fg4))", fontSize: 12, fontWeight: 500, cursor: "pointer" }}>
               {cancelLabel}
             </button>
           </div>
         ) : (
           /* 2 choix : côte à côte */
           <div style={{ display: "flex", gap: 8 }}>
-            <button onClick={onCancel} style={{ flex: 1, padding: "10px 14px", borderRadius: 10, border: "1px solid #3a3a3a", background: "transparent", color: "#999", fontSize: 13, fontWeight: 500, cursor: "pointer" }}>
+            <button onClick={onCancel} style={{ flex: 1, padding: "10px 14px", borderRadius: 10, border: "1px solid var(--d-line2)", background: "transparent", color: "rgb(var(--d-fg3))", fontSize: 13, fontWeight: 500, cursor: "pointer" }}>
               {cancelLabel}
             </button>
             <button onClick={onConfirm} style={{ flex: 1, padding: "10px 14px", borderRadius: 10, border: "none", background: danger ? "#d93025" : "#FF00AA", color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
@@ -174,9 +174,9 @@ function PromptModal({ message, title = "Commentaire", defaultValue = "", confir
       style={{ position: "fixed", inset: 0, zIndex: 9998, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.65)", backdropFilter: "blur(4px)" }}
       onClick={(e) => { if (e.target === e.currentTarget) onCancel(cancelValue); }}
     >
-      <div style={{ background: "#1E1E22", border: "1px solid #333", borderRadius: 18, width: "100%", maxWidth: 420, padding: "28px 28px 24px", boxShadow: "0 8px 48px rgba(0,0,0,0.6)", margin: 16 }}>
-        <h2 style={{ fontFamily: "'Sora', sans-serif", fontSize: 16, fontWeight: 600, color: "#f0f0f0", marginBottom: 10 }}>{title}</h2>
-        <p style={{ fontSize: 14, color: "#999", lineHeight: 1.55, marginBottom: 14 }}>{message}</p>
+      <div style={{ background: "rgb(var(--d-panel))", border: "1px solid var(--d-line2)", borderRadius: 18, width: "100%", maxWidth: 420, padding: "28px 28px 24px", boxShadow: "0 8px 48px rgba(0,0,0,0.6)", margin: 16 }}>
+        <h2 style={{ fontFamily: "'Sora', sans-serif", fontSize: 16, fontWeight: 600, color: "rgb(var(--d-fg))", marginBottom: 10 }}>{title}</h2>
+        <p style={{ fontSize: 14, color: "rgb(var(--d-fg3))", lineHeight: 1.55, marginBottom: 14 }}>{message}</p>
         <form onSubmit={(e) => { e.preventDefault(); onSubmit(value); }}>
           <input
             ref={inputRef}
@@ -184,10 +184,10 @@ function PromptModal({ message, title = "Commentaire", defaultValue = "", confir
             value={value}
             onChange={(e) => setValue(e.target.value)}
             placeholder="Optionnel…"
-            style={{ width: "100%", boxSizing: "border-box", background: "#2a2a2e", border: "1px solid #3a3a3a", borderRadius: 10, padding: "9px 12px", fontSize: 13, color: "#e0e0e0", marginBottom: 16, outline: "none" }}
+            style={{ width: "100%", boxSizing: "border-box", background: "rgb(var(--d-panel2))", border: "1px solid var(--d-line2)", borderRadius: 10, padding: "9px 12px", fontSize: 13, color: "rgb(var(--d-fg))", marginBottom: 16, outline: "none" }}
           />
           <div style={{ display: "flex", gap: 8 }}>
-            <button type="button" onClick={() => onCancel(cancelValue)} style={{ flex: 1, padding: "10px 14px", borderRadius: 10, border: "1px solid #3a3a3a", background: "transparent", color: "#999", fontSize: 13, fontWeight: 500, cursor: "pointer" }}>
+            <button type="button" onClick={() => onCancel(cancelValue)} style={{ flex: 1, padding: "10px 14px", borderRadius: 10, border: "1px solid var(--d-line2)", background: "transparent", color: "rgb(var(--d-fg3))", fontSize: 13, fontWeight: 500, cursor: "pointer" }}>
               {cancelLabel}
             </button>
             <button type="submit" style={{ flex: 1, padding: "10px 14px", borderRadius: 10, border: "none", background: "#FF00AA", color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>

@@ -206,7 +206,7 @@ export function AdminPage({ onBack }) {
     <div className="min-h-screen bg-d-bg">
       <header
         className="border-b border-line px-4 sm:px-6"
-        style={{ background: "#1E1E22", height: "52px" }}
+        style={{ background: "rgb(var(--d-panel))", height: "52px" }}
       >
         <div className="flex h-full items-center gap-3 sm:gap-4">
           <button type="button" onClick={onBack} className="shrink-0 opacity-90 hover:opacity-100 transition-opacity">
@@ -1134,7 +1134,7 @@ function DefaultSectionsEditor({ currentProfile, active: editorVisible = true })
                     const Icon = SECTION_ICON_MAP[entry.type] ?? Newspaper;
                     const idx = active.findIndex((e) => e.id === activeDragId);
                     return (
-                      <div style={{ background: "#1E1E22", border: "2px solid #FF00AA", boxShadow: "0 0 0 4px rgba(255,0,170,0.15), 0 8px 32px rgba(0,0,0,0.5)", borderRadius: 12, cursor: "grabbing" }}
+                      <div style={{ background: "rgb(var(--d-panel))", border: "2px solid #FF00AA", boxShadow: "0 0 0 4px rgba(255,0,170,0.15), 0 8px 32px rgba(0,0,0,0.5)", borderRadius: 12, cursor: "grabbing" }}
                         className="grid grid-cols-[20px_38px_38px_minmax(0,1fr)_auto] items-center gap-3 px-3 py-3"
                       >
                         <GripVertical size={15} style={{ color: "#FF00AA" }} />

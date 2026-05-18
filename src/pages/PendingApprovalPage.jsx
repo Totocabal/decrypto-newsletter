@@ -14,7 +14,7 @@ export function PendingApprovalPage() {
       <Wordmark size={18} />
       <div
         className="rounded-2xl border border-line w-full max-w-md p-8"
-        style={{ background: "#1E1E22" }}
+        style={{ background: "rgb(var(--d-panel))" }}
       >
         <div
           className="rounded-xl p-4 mb-6 flex gap-3"
