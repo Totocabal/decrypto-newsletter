@@ -617,8 +617,13 @@ function renderSignals(data, number, anchor = "", isLastSection = false) {
     const cellOf = (s, position) => {
       if (!s) return `<td class="em-signal-col" width="50%"></td>`;
       const arrowUp = s.direction === "up";
-      const bg = arrowUp ? EMAIL_THEME.positiveBg : "rgba(255,75,40,0.14)";
-      const fg = arrowUp ? EMAIL_THEME.positive : EMAIL_THEME.warning;
+      const isLightTheme = EMAIL_THEME.bgEmail === "#FFFFFF" || EMAIL_THEME.bgEmail === "#ffffff";
+      const bg = arrowUp
+        ? (isLightTheme ? "#DDF7F1" : "#003D33")
+        : (isLightTheme ? "#FFE8D7" : "#3A1F12");
+      const fg = arrowUp
+        ? (isLightTheme ? "#00A889" : "#03FFCF")
+        : (isLightTheme ? "#D65F00" : "#FF8B28");
       const arrow = arrowUp ? "↗" : "↘";
       let borders = "";
       if (position === "tl") borders = `border-right:1px solid ${EMAIL_THEME.border}; border-bottom:1px solid ${EMAIL_THEME.border};`;
@@ -629,7 +634,7 @@ function renderSignals(data, number, anchor = "", isLastSection = false) {
           <tr>
             <td valign="top" width="42">
               <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-                <td width="28" height="28" align="center" valign="middle" style="background:${bg}; border-radius:99px; color:${fg}; font-family:Arial, sans-serif; font-size:14px; font-weight:700; line-height:28px;">${arrow}</td>
+                <td width="28" height="28" align="center" valign="middle" bgcolor="${bg}" style="background-color:${bg}; border-radius:99px; color:${fg}; font-family:Arial, sans-serif; font-size:14px; font-weight:700; line-height:28px;">${arrow}</td>
               </tr></table>
             </td>
             <td valign="top">
@@ -741,8 +746,10 @@ function renderMacro(data, number, assetMode, anchor = "", isLastSection = false
     ? "assets/macro-quote-bg.png"
     : "https://decrypto-newsletter.vercel.app/macro-quote-bg.png");
   const quoteBorder = EMAIL_THEME === EMAIL_THEMES.light
-    ? "border:1px solid rgba(0,0,0,0.08);"
+    ? "border:1px solid #E7E2DC;"
     : "border:0;";
+  const quoteAvatarBg = "#5A2363";
+  const quoteAvatarFg = "#FFFFFF";
   const quoteBlock = data.quote ? `
     <!--[if mso]>
     <v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false" style="width:568px; border-radius:16px;">
@@ -758,7 +765,7 @@ function renderMacro(data, number, assetMode, anchor = "", isLastSection = false
           ${data.quote_author ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:22px;">
             <tr>
               <td style="padding-right:12px;">
-                <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td width="32" height="32" align="center" valign="middle" style="background:rgba(255,255,255,0.12); border-radius:99px; color:#ffffff; font-family:${FONTS.heading}; font-size:12px; font-weight:700; line-height:32px; letter-spacing:0.04em;">${escapeHtml(initialsFromName(authorName || data.quote_author))}</td></tr></table>
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td width="32" height="32" align="center" valign="middle" bgcolor="${quoteAvatarBg}" style="background-color:${quoteAvatarBg}; border-radius:99px; color:${quoteAvatarFg}; font-family:${FONTS.heading}; font-size:12px; font-weight:700; line-height:32px; letter-spacing:0.04em;">${escapeHtml(initialsFromName(authorName || data.quote_author))}</td></tr></table>
               </td>
               <td valign="middle">
                 <p style="margin:0; font-family:${FONTS.heading}; font-weight:600; font-size:13px; color:#ffffff; letter-spacing:-0.005em;">${sanitizeRichText(authorName || data.quote_author)}</p>
@@ -1034,7 +1041,7 @@ function renderFocus(data, number, assetMode, anchor = "", isLastSection = false
     ? `<td valign="middle">
         <table role="presentation" cellpadding="0" cellspacing="0" border="0">
           <tr>
-            <td style="border:1px solid rgba(255,255,255,0.22); border-radius:99px;">
+            <td style="border:1px solid #3C424D; border-radius:99px;">
               <a href="${escapeAttr(data.cta_secondary_url || "#")}" style="display:inline-block; padding:12px 20px; font-family:${FONTS.heading}; font-weight:500; font-size:13px; color:#E9EEF2; text-decoration:none; border-radius:99px; letter-spacing:0.01em;">${escapeHtml(data.cta_secondary_label)}</a>
             </td>
           </tr>
