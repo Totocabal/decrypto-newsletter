@@ -69,6 +69,21 @@ export const SECTION_TYPES = {
       kpis: [],
     }),
   },
+  focus: {
+    label: "Texte & Media",
+    icon: "ImageIcon",
+    factory: () => ({
+      kicker: "FOCUS",
+      title: "Confier ses crypto à des experts, sans renoncer au contrôle",
+      items: [
+        {
+          id: (typeof crypto !== "undefined" && crypto.randomUUID) ? crypto.randomUUID() : Math.random().toString(36).slice(2),
+          type: "text",
+          body: "Sur un marché qui mûrit, beaucoup d'investisseurs nous posent la même question : <strong>comment intégrer la crypto dans une stratégie patrimoniale long terme, sans y consacrer ses week-ends ?</strong> La réponse Coinhouse tient en trois principes. <strong>D'abord la sécurité :</strong> nos actifs sont conservés en cold storage chez des dépositaires régulés en Europe, avec une assurance dédiée. <strong>Ensuite la transparence :</strong> chaque arbitrage est documenté, chaque frais explicite. <strong>Enfin l'accompagnement :</strong> un conseiller dédié, joignable, qui connaît votre allocation globale et ajuste l'exposition crypto au fil des cycles.",
+        },
+      ],
+    }),
+  },
   chart: {
     label: "Graphique",
     icon: "TrendingUp",
@@ -197,21 +212,6 @@ export const SECTION_TYPES = {
         "Bitcoin vient de repasser le cap des 80 000 $. Mais derrière ce beau rebond, s'agit-il d'une vraie reprise ou d'une simple respiration du marché ? On fait le point.\n\n\nLe meilleur mois depuis un an : \nLe cours a franchi la barre symbolique des 80 000 $ (flirtant même avec les 81 000 $), son plus haut niveau depuis fin janvier.  \nAvec près de 12 % de hausse sur le mois d'avril, le Bitcoin signe sa meilleure performance depuis un an et met fin à cinq longs mois de baisse.\n \nLes institutionnels à la manœuvre : \nCe regain d'énergie est largement porté par la finance traditionnelle via les ETF.  \nPrès de 1,97 milliard de dollars y ont été injectés en avril, avec un pic impressionnant de 630 millions sur la seule journée du 1er mai.",
       cta_label: "",
       cta_url: "",
-    }),
-  },
-  focus: {
-    label: "Texte & Media",
-    icon: "ImageIcon",
-    factory: () => ({
-      kicker: "FOCUS",
-      title: "Confier ses crypto à des experts, sans renoncer au contrôle",
-      items: [
-        {
-          id: (typeof crypto !== "undefined" && crypto.randomUUID) ? crypto.randomUUID() : Math.random().toString(36).slice(2),
-          type: "text",
-          body: "Sur un marché qui mûrit, beaucoup d'investisseurs nous posent la même question : <strong>comment intégrer la crypto dans une stratégie patrimoniale long terme, sans y consacrer ses week-ends ?</strong> La réponse Coinhouse tient en trois principes. <strong>D'abord la sécurité :</strong> nos actifs sont conservés en cold storage chez des dépositaires régulés en Europe, avec une assurance dédiée. <strong>Ensuite la transparence :</strong> chaque arbitrage est documenté, chaque frais explicite. <strong>Enfin l'accompagnement :</strong> un conseiller dédié, joignable, qui connaît votre allocation globale et ajuste l'exposition crypto au fil des cycles.",
-        },
-      ],
     }),
   },
   image_block: {
