@@ -325,22 +325,22 @@ export function EditorPage({ newsletterId, onBack }) {
               {leaving ? <Loader2 size={12} className="animate-spin" /> : <ArrowLeft size={12} />}
               {leaving ? "Sauvegarde…" : "Retour"}
             </button>
-            <Tooltip label="Cliquer pour renommer cette newsletter" side="bottom" className="flex-1 min-w-0 max-w-xs hidden sm:flex">
+            <Tooltip label="Cliquer pour renommer cette newsletter" side="bottom" className="min-w-[130px] flex-1 sm:max-w-xs">
               <input
                 type="text"
                 value={newsletter?.title || ""}
                 onChange={(e) => updateTitle(e.target.value)}
                 placeholder="Titre de la newsletter…"
-                className="w-full text-sm font-medium text-d-fg bg-transparent border border-transparent hover:border-line focus:border-line2 focus:bg-d-panel2 px-3 py-1.5 rounded-full focus:outline-none transition-colors"
+                className="w-full rounded-full border border-transparent bg-transparent px-2.5 py-1.5 text-xs font-medium text-d-fg transition-colors hover:border-line focus:border-line2 focus:bg-d-panel2 focus:outline-none sm:px-3 sm:text-sm"
                 style={{ fontFamily: "'Sora', sans-serif" }}
               />
             </Tooltip>
             {labels.length > 0 && (
-              <div className="relative flex basis-full items-center gap-1.5 overflow-x-auto pb-1 sm:basis-auto sm:flex-shrink-0 sm:overflow-visible sm:pb-0">
+              <div className="relative flex items-center gap-1.5 overflow-visible">
                 {labels.filter((l) => labelIds.includes(l.id)).map((label) => (
                   <span
                     key={label.id}
-                    className="inline-flex flex-shrink-0 items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-[0.12em]"
+                    className="hidden flex-shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] sm:inline-flex"
                     style={{
                       background: label.color + "22",
                       border: `1px solid ${label.color}55`,
@@ -352,10 +352,11 @@ export function EditorPage({ newsletterId, onBack }) {
                 ))}
                 <button
                   onClick={() => setLabelPickerOpen((o) => !o)}
-                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[10px] uppercase tracking-[0.14em] font-medium border border-line transition-colors ${labelPickerOpen ? "bg-d-panel2 text-d-fg2" : "text-d-fg4 hover:text-d-fg2 hover:bg-d-panel2"}`}
+                  className={`flex h-8 w-8 items-center justify-center rounded-full border border-line text-[10px] font-medium uppercase tracking-[0.14em] transition-colors sm:h-auto sm:w-auto sm:gap-1.5 sm:px-2.5 sm:py-1.5 ${labelPickerOpen ? "bg-d-panel2 text-d-fg2" : "text-d-fg4 hover:text-d-fg2 hover:bg-d-panel2"}`}
+                  aria-label="Labels"
                 >
                   <Tag size={11} />
-                  Labels
+                  <span className="hidden sm:inline">Labels</span>
                 </button>
                 {labelPickerOpen && (
                   <div className="absolute left-0 top-full z-50 mt-1 min-w-[160px] rounded-xl border border-line bg-d-panel shadow-xl">
@@ -401,20 +402,20 @@ export function EditorPage({ newsletterId, onBack }) {
               <button
                 onClick={handleUndo}
                 disabled={!undoCount || lockedByOther}
-                className="flex items-center justify-center gap-1.5 rounded-full border border-line px-2.5 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-d-fg3 transition-colors hover:border-line2 hover:text-d-fg disabled:cursor-not-allowed disabled:opacity-30 sm:p-2"
+                className="flex items-center justify-center rounded-full border border-line p-2 text-d-fg3 transition-colors hover:border-line2 hover:text-d-fg disabled:cursor-not-allowed disabled:opacity-30"
+                aria-label="Annuler"
               >
                 <Undo2 size={14} />
-                <span className="sm:hidden">Annuler</span>
               </button>
             </Tooltip>
             <Tooltip label="Restaurer le dernier changement annulé" side="bottom" align="right">
               <button
                 onClick={handleRedo}
                 disabled={!redoCount || lockedByOther}
-                className="flex items-center justify-center gap-1.5 rounded-full border border-line px-2.5 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-d-fg3 transition-colors hover:border-line2 hover:text-d-fg disabled:cursor-not-allowed disabled:opacity-30 sm:p-2"
+                className="flex items-center justify-center rounded-full border border-line p-2 text-d-fg3 transition-colors hover:border-line2 hover:text-d-fg disabled:cursor-not-allowed disabled:opacity-30"
+                aria-label="Restaurer"
               >
                 <Redo2 size={14} />
-                <span className="sm:hidden">Restaurer</span>
               </button>
             </Tooltip>
           </div>
