@@ -844,7 +844,10 @@ function renderEvent(data, anchor = "", isLastSection = false) {
     </tr>`;
 }
 
-function renderFocusItem(item, assetMode) {
+function renderFocusItem(item, assetMode, isLastItem = false) {
+  const itemMarginBottom = isLastItem ? "0" : "26px";
+  const ctaMarginBottom = isLastItem ? "0" : "18px";
+
   if (item.type === "image") {
     const imgUrl = String(item.image_url || "").trim();
     if (!imgUrl) return "";
@@ -854,7 +857,7 @@ function renderFocusItem(item, assetMode) {
     const inner = linkUrl
       ? `<a href="${escapeAttr(linkUrl)}" target="_blank" style="display:block; text-decoration:none;">${img}</a>`
       : img;
-    return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:26px;">
+    return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:${itemMarginBottom};">
         <tr>
           <td>${inner}</td>
         </tr>
@@ -863,7 +866,7 @@ function renderFocusItem(item, assetMode) {
   if (item.type === "text") {
     const hasBody = String(item.body || "").replace(/<[^>]*>/g, "").trim();
     if (!hasBody) return "";
-    return `<div style="margin:0 0 26px; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:15px; line-height:1.65; color:${EMAIL_THEME.textSecondary};">
+    return `<div style="margin:0 0 ${itemMarginBottom}; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:15px; line-height:1.65; color:${EMAIL_THEME.textSecondary};">
         ${sanitizeRichText(item.body)}
       </div>`;
   }
@@ -874,7 +877,7 @@ function renderFocusItem(item, assetMode) {
 
     // Legacy: items with explicit style="secondary" render as standalone outline button
     if (item.style === "secondary") {
-      return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:16px;">
+      return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:${ctaMarginBottom};">
         <tr>
           <td align="${align}" valign="middle">
             <table role="presentation" cellpadding="0" cellspacing="0" border="0">
@@ -920,7 +923,7 @@ function renderFocusItem(item, assetMode) {
           </td>`
       : "";
 
-    return `<table role="presentation" class="em-cta-row" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:16px;">
+    return `<table role="presentation" class="em-cta-row" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:${ctaMarginBottom};">
         <tr>
           <td align="${align}" valign="middle">
             <table role="presentation" cellpadding="0" cellspacing="0" border="0">
@@ -967,7 +970,7 @@ function renderFocusItem(item, assetMode) {
             : escapeHtml(footerText)
         }</p>`
       : "";
-    return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${calloutBg}" style="margin-bottom:26px; background-color:${calloutBg}; border:1px solid ${calloutBorder}; border-radius:12px; border-collapse:separate !important; border-spacing:0 !important; overflow:hidden;">
+    return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${calloutBg}" style="margin-bottom:${itemMarginBottom}; background-color:${calloutBg}; border:1px solid ${calloutBorder}; border-radius:12px; border-collapse:separate !important; border-spacing:0 !important; overflow:hidden;">
         <tr>
           <td bgcolor="${calloutBg}" style="padding:22px 24px; background-color:${calloutBg}; border-radius:12px;">
             <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:12px;">
@@ -988,7 +991,16 @@ function renderFocusItem(item, assetMode) {
 function renderFocus(data, number, assetMode, anchor = "", isLastSection = false) {
   // Items-based rendering (new format)
   if (data.items) {
-    const renderedItems = data.items.map((item) => renderFocusItem(item, assetMode)).join("\n");
+    const renderableItems = data.items.filter((item) => {
+      if (item.type === "image") return Boolean(String(item.image_url || "").trim());
+      if (item.type === "text") return Boolean(String(item.body || "").replace(/<[^>]*>/g, "").trim());
+      if (item.type === "cta") return Boolean(item.label);
+      if (item.type === "callout") return Boolean(plainTextFromRichText(item.body));
+      return false;
+    });
+    const renderedItems = renderableItems.map((item, index) => (
+      renderFocusItem(item, assetMode, index === renderableItems.length - 1)
+    )).join("\n");
     return `
     <tr>
       <td class="em-px" style="padding:44px 36px;${sectionBottomBorder(isLastSection)}">
