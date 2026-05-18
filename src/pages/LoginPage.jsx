@@ -7,6 +7,10 @@ import { Mail, Lock, Loader2, CheckCircle2, ArrowRight, KeyRound } from "lucide-
 import { useAuth } from "../contexts/AuthContext.jsx";
 import { Wordmark } from "../components/Wordmark.jsx";
 
+const GoogleIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#4285F4" d="M47.5 24.5c0-1.6-.1-3.2-.4-4.7H24.5v9h13.1c-.6 3-2.3 5.5-4.8 7.2v6h7.8c4.5-4.2 7.1-10.3 7.1-17.5z"/><path fill="#34A853" d="M24.5 48c6.5 0 12-2.2 16-5.9l-7.8-6c-2.2 1.5-5 2.3-8.2 2.3-6.3 0-11.6-4.2-13.5-9.9H3v6.2C7 42.8 15.2 48 24.5 48z"/><path fill="#FBBC04" d="M11 28.5c-.5-1.5-.8-3-.8-4.5s.3-3 .8-4.5V13.3H3C1.1 17 0 20.6 0 24.5s1.1 7.5 3 11.2L11 28.5z"/><path fill="#EA4335" d="M24.5 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C36.5 2.2 31 0 24.5 0 15.2 0 7 5.2 3 13.3l8 6.2c1.9-5.7 7.2-10 13.5-10z"/></svg>
+);
+
 function getAuthErrorMessage(error) {
   const message = error?.message || String(error || "");
 
@@ -22,13 +26,25 @@ function getAuthErrorMessage(error) {
 }
 
 export function LoginPage() {
-  const { signInWithPassword, signInWithMagicLink, requestPasswordRecovery } = useAuth();
+  const { signInWithPassword, signInWithMagicLink, requestPasswordRecovery, signInWithGoogle } = useAuth();
   const [mode, setMode] = useState("password");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [status, setStatus] = useState("idle");
   const [error, setError] = useState(null);
   const [sentKind, setSentKind] = useState("magic");
+  const [googleLoading, setGoogleLoading] = useState(false);
+
+  const handleGoogleSignIn = async () => {
+    setGoogleLoading(true);
+    setError(null);
+    const { error } = await signInWithGoogle();
+    if (error) {
+      setGoogleLoading(false);
+      setError(getAuthErrorMessage(error));
+    }
+    // On success the browser redirects, so no need to reset loading
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -265,6 +281,27 @@ export function LoginPage() {
               Pas encore de compte ? Demande à un admin de t'inviter ou de
               créer ton accès dans Supabase.
             </p>
+
+            {/* Google OAuth */}
+            <div className="flex items-center gap-3 mt-5">
+              <div className="flex-1 h-px" style={{ background: "var(--d-line)" }} />
+              <span className="text-[10px] text-d-fg4 uppercase tracking-[0.14em] shrink-0">ou</span>
+              <div className="flex-1 h-px" style={{ background: "var(--d-line)" }} />
+            </div>
+            <button
+              type="button"
+              onClick={handleGoogleSignIn}
+              disabled={googleLoading || status === "loading"}
+              className="mt-3 w-full flex items-center justify-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ background: "#2a2a2e", border: "1px solid #3a3a3a" }}
+            >
+              {googleLoading ? (
+                <Loader2 size={16} className="animate-spin" />
+              ) : (
+                <GoogleIcon />
+              )}
+              Continuer avec Google
+            </button>
           </>
         )}
       </div>

@@ -192,6 +192,7 @@ export function AdminPage({ onBack }) {
     }
   };
 
+  const pending = profiles.filter((p) => !p.approved);
   const approved = profiles.filter((p) => p.approved);
 
   const tabs = [
@@ -348,6 +349,53 @@ export function AdminPage({ onBack }) {
                       Copier les identifiants
                     </button>
                   </div>
+                )}
+              </div>
+            </section>
+
+            {/* En attente d'approbation */}
+            <section>
+              <div className="flex items-center gap-2 mb-3">
+                <h2 className="text-[10px] uppercase tracking-[0.18em] text-d-fg3 font-medium">
+                  Comptes en attente d'approbation
+                </h2>
+                <span className="text-[10px] bg-d-panel2 text-d-fg3 px-2 py-0.5 rounded-full font-medium border border-line">
+                  {pending.length}
+                </span>
+              </div>
+              <div className="bg-d-panel border border-line rounded-2xl divide-y" style={{ borderColor: "var(--d-line)" }}>
+                {pending.length === 0 ? (
+                  <div className="flex items-center gap-2 p-4 text-xs text-d-fg4">
+                    Aucun compte en attente.
+                  </div>
+                ) : (
+                  pending.map((p) => (
+                    <div key={p.id} className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:gap-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex min-w-0 flex-wrap items-center gap-2">
+                          <span className="text-sm text-d-fg">{p.full_name || p.email}</span>
+                          {p.auth_provider === 'google' && (
+                            <span
+                              className="inline-flex items-center text-[10px] uppercase tracking-[0.14em] font-semibold px-2 py-0.5 rounded-full"
+                              style={{ background: "rgba(66,133,244,0.15)", color: "#4285F4" }}
+                            >
+                              Google
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-[11px] text-d-fg4">{p.email}</div>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-1 sm:justify-end">
+                        <button
+                          onClick={() => updateProfile(p.id, { approved: true })}
+                          className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] font-semibold px-3 py-1.5 rounded-full transition-colors"
+                          style={{ background: "#03FFCF", color: "#15151A" }}
+                        >
+                          Approuver
+                        </button>
+                      </div>
+                    </div>
+                  ))
                 )}
               </div>
             </section>

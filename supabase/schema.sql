@@ -18,6 +18,7 @@ create table if not exists public.profiles (
   approved boolean not null default false,
   is_admin boolean not null default false,
   password_set boolean not null default false,
+  auth_provider text not null default 'email',
   created_at timestamptz not null default now()
 );
 
@@ -27,13 +28,28 @@ returns trigger
 language plpgsql
 security definer
 as $$
+declare
+  v_provider text;
+  v_is_email_provider boolean;
 begin
-  insert into public.profiles (id, email, full_name, avatar_url)
+  v_provider := coalesce(new.raw_app_meta_data->>'provider', 'email');
+  v_is_email_provider := v_provider = 'email';
+
+  insert into public.profiles (id, email, full_name, avatar_url, password_set, auth_provider)
   values (
     new.id,
     new.email,
-    coalesce(new.raw_user_meta_data->>'full_name', split_part(new.email, '@', 1)),
-    new.raw_user_meta_data->>'avatar_url'
+    coalesce(
+      new.raw_user_meta_data->>'full_name',
+      new.raw_user_meta_data->>'name',
+      split_part(new.email, '@', 1)
+    ),
+    coalesce(
+      new.raw_user_meta_data->>'avatar_url',
+      new.raw_user_meta_data->>'picture'
+    ),
+    not v_is_email_provider,
+    v_provider
   );
   return new;
 end;

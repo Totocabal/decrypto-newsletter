@@ -256,6 +256,16 @@ export function AuthProvider({ children }) {
     return { error };
   }, []);
 
+  const signInWithGoogle = useCallback(async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: getAuthRedirectUrl(),
+      },
+    });
+    return { error };
+  }, []);
+
   const requestPasswordRecovery = useCallback(async (email) => {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: getAuthRedirectUrl(),
@@ -301,6 +311,7 @@ export function AuthProvider({ children }) {
         initError,
         signIn, // alias rétrocompat — équivalent à signInWithMagicLink
         signInWithMagicLink,
+        signInWithGoogle,
         requestPasswordRecovery,
         signInWithPassword,
         updatePassword,
