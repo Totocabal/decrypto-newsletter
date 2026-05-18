@@ -113,6 +113,9 @@ create table if not exists public.template_presets (
   updated_by uuid references public.profiles(id) on delete set null
 );
 
+alter table public.template_presets
+  alter column created_by set default auth.uid();
+
 create index if not exists template_presets_name_idx
   on public.template_presets (lower(name));
 
@@ -282,10 +285,14 @@ create policy "template_presets_update_admin"
   with check (public.current_user_is_admin());
 
 drop policy if exists "template_presets_delete_admin" on public.template_presets;
-create policy "template_presets_delete_admin"
+drop policy if exists "template_presets_delete_owner_or_admin" on public.template_presets;
+create policy "template_presets_delete_owner_or_admin"
   on public.template_presets for delete
   to authenticated
-  using (public.current_user_is_admin());
+  using (
+    public.current_user_is_admin()
+    or created_by = auth.uid()
+  );
 
 -- ── locks ── tout user approuvé lit, chacun ne pose/MAJ que son propre lock
 drop policy if exists "locks_select_approved" on public.locks;

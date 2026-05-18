@@ -701,7 +701,7 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId }) {
           selected={detailImage.path === currentPath}
           onClose={() => setDetailImage(null)}
           onSelect={() => onSelect?.({ url: detailImage.url, path: detailImage.path })}
-          onDelete={() => handleDelete(detailImage)}
+          onDelete={detailImage.canDelete !== false ? () => handleDelete(detailImage) : null}
         />
       )}
     </div>
@@ -793,14 +793,16 @@ function ImageDetailsModal({ image, canSelect, selected, onClose, onSelect, onDe
                   {selected ? "Image sélectionnée" : "Sélectionner"}
                 </button>
               )}
-              <button
-                type="button"
-                onClick={onDelete}
-                className="inline-flex items-center justify-center gap-2 rounded-full border border-red-500/30 px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-red-300 transition-colors hover:bg-red-950/20"
-              >
-                <Trash2 size={13} />
-                Supprimer
-              </button>
+              {onDelete && (
+                <button
+                  type="button"
+                  onClick={onDelete}
+                  className="inline-flex items-center justify-center gap-2 rounded-full border border-red-500/30 px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-red-300 transition-colors hover:bg-red-950/20"
+                >
+                  <Trash2 size={13} />
+                  Supprimer
+                </button>
+              )}
             </div>
           </aside>
         </div>

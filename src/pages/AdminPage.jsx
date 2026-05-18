@@ -1239,6 +1239,7 @@ function DefaultSectionsEditor({ currentProfile, active: editorVisible = true })
               <div className="flex flex-col gap-1.5">
                 {presets.map((preset) => {
                   const isActivePreset = editingPresetId === preset.id;
+                  const canDeletePreset = currentProfile?.is_admin || preset.createdBy === currentProfile?.id;
                   return (
                     <div
                       key={preset.id}
@@ -1260,14 +1261,23 @@ function DefaultSectionsEditor({ currentProfile, active: editorVisible = true })
                           {preset.sections.length} blocs · {preset.themeVariant === "light" ? "clair" : "sombre"} · {preset.includeIssueDate ? "daté" : "sans date"}
                         </span>
                       </button>
-                      <button
-                        type="button"
-                        onClick={() => handleDeletePreset(preset)}
-                        className="rounded-md p-1 text-d-fg4 transition-colors hover:bg-red-950/20 hover:text-red-300"
-                        title="Supprimer"
-                      >
-                        <X size={13} />
-                      </button>
+                      {canDeletePreset ? (
+                        <button
+                          type="button"
+                          onClick={() => handleDeletePreset(preset)}
+                          className="rounded-md p-1 text-d-fg4 transition-colors hover:bg-red-950/20 hover:text-red-300"
+                          title="Supprimer"
+                        >
+                          <X size={13} />
+                        </button>
+                      ) : (
+                        <span
+                          className="rounded-md p-1 text-d-fg4/40"
+                          title="Seul le créateur ou un admin peut supprimer ce preset"
+                        >
+                          <Lock size={13} />
+                        </span>
+                      )}
                     </div>
                   );
                 })}

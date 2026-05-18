@@ -20,6 +20,9 @@ alter table public.template_presets
   add column if not exists updated_by uuid references public.profiles(id) on delete set null;
 
 alter table public.template_presets
+  alter column created_by set default auth.uid();
+
+alter table public.template_presets
   add column if not exists show_section_numbers boolean not null default true;
 
 alter table public.template_presets
@@ -60,10 +63,14 @@ create policy "template_presets_update_admin"
   with check (public.current_user_is_admin());
 
 drop policy if exists "template_presets_delete_admin" on public.template_presets;
-create policy "template_presets_delete_admin"
+drop policy if exists "template_presets_delete_owner_or_admin" on public.template_presets;
+create policy "template_presets_delete_owner_or_admin"
   on public.template_presets for delete
   to authenticated
-  using (public.current_user_is_admin());
+  using (
+    public.current_user_is_admin()
+    or created_by = auth.uid()
+  );
 
 drop trigger if exists template_presets_touch on public.template_presets;
 create trigger template_presets_touch

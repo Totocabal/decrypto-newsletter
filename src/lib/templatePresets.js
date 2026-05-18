@@ -2,6 +2,8 @@ import { supabase } from "./supabase.js";
 
 const TABLE = "template_presets";
 const SELECT_FULL =
+  "id, name, sections, include_default_content, show_section_numbers, theme_variant, show_issue_date, created_by, updated_by, created_at, updated_at";
+const SELECT_WITH_AUTHORS =
   "id, name, sections, include_default_content, show_section_numbers, theme_variant, show_issue_date, created_at, updated_at";
 const SELECT_WITH_THEME =
   "id, name, sections, include_default_content, show_section_numbers, theme_variant, created_at, updated_at";
@@ -25,6 +27,10 @@ function isMissingThemeColumn(error) {
 
 function isMissingIssueDateColumn(error) {
   return isMissingColumn(error, "show_issue_date");
+}
+
+function isMissingAuthorsColumn(error) {
+  return isMissingColumn(error, "created_by|updated_by");
 }
 
 function normalizeThemeVariant(value) {
@@ -65,6 +71,8 @@ function normalizePreset(row) {
     showSectionNumbers: row.show_section_numbers !== false,
     themeVariant: getThemeVariantValue(row),
     includeIssueDate: getIncludeIssueDateValue(row),
+    createdBy: row.created_by || null,
+    updatedBy: row.updated_by || null,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -75,6 +83,15 @@ export async function listTemplatePresets() {
     .from(TABLE)
     .select(SELECT_FULL)
     .order("name", { ascending: true });
+
+  if (isMissingAuthorsColumn(error)) {
+    const withoutAuthors = await supabase
+      .from(TABLE)
+      .select(SELECT_WITH_AUTHORS)
+      .order("name", { ascending: true });
+    if (withoutAuthors.error) throw withoutAuthors.error;
+    return (withoutAuthors.data || []).map(normalizePreset);
+  }
 
   if (isMissingIssueDateColumn(error)) {
     const withoutIssueDate = await supabase
@@ -151,6 +168,23 @@ export async function createTemplatePreset({
     })
     .select(SELECT_FULL)
     .single();
+
+  if (isMissingAuthorsColumn(error)) {
+    const withoutAuthors = await supabase
+      .from(TABLE)
+      .insert({
+        name,
+        sections,
+        include_default_content: includeDefaultContent !== false,
+        show_section_numbers: showSectionNumbers !== false,
+        theme_variant: themeVariant === "light" ? "light" : "dark",
+        show_issue_date: includeIssueDate !== false,
+      })
+      .select(SELECT_WITH_AUTHORS)
+      .single();
+    if (withoutAuthors.error) throw withoutAuthors.error;
+    return normalizePreset(withoutAuthors.data);
+  }
 
   if (isMissingIssueDateColumn(error)) {
     const fallbackSections = sectionsWithOptionsFallback(sections, themeVariant, includeIssueDate);
@@ -285,6 +319,17 @@ export async function updateTemplatePreset(id, {
     .eq("id", id)
     .select(SELECT_FULL)
     .single();
+
+  if (isMissingAuthorsColumn(error)) {
+    const withoutAuthors = await supabase
+      .from(TABLE)
+      .update(patch)
+      .eq("id", id)
+      .select(SELECT_WITH_AUTHORS)
+      .single();
+    if (withoutAuthors.error) throw withoutAuthors.error;
+    return normalizePreset(withoutAuthors.data);
+  }
 
   if (isMissingIssueDateColumn(error)) {
     const fallbackSections = sectionsWithOptionsFallback(sections, themeVariant, includeIssueDate);
