@@ -473,7 +473,7 @@ function renderEdito(data, number, anchor = "", isLastSection = false) {
         ${sectionHeader(number, data.kicker)}
         ${sectionTitle(data.title)}
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-          <tr><td style="padding-top:22px;"><p style="margin:0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:15px; line-height:1.65; color:${EMAIL_THEME.textSecondary};">${sanitizeRichText(data.body)}</p></td></tr>
+          <tr><td style="padding-top:22px;"><div style="margin:0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:15px; line-height:1.65; color:${EMAIL_THEME.textSecondary};">${sanitizeRichText(data.body)}</div></td></tr>
           ${grid ? `<tr><td style="padding-top:24px;">${grid}</td></tr>` : ""}
         </table>
       </td>
@@ -559,7 +559,7 @@ function renderFearGreed(data, number, assetMode, anchor = "", isLastSection = f
             </td>
           </tr>
         </table>
-        <p style="margin:22px 0 0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:15px; line-height:1.65; color:${EMAIL_THEME.textSecondary};">${sanitizeRichText(data.commentary)}</p>
+        <div style="margin:22px 0 0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:15px; line-height:1.65; color:${EMAIL_THEME.textSecondary};">${sanitizeRichText(data.commentary)}</div>
       </td>
     </tr>`;
 }
@@ -676,7 +676,7 @@ function renderCommentedNumber(data, anchor = "", isLastSection = false) {
                   </td>
                   <td class="em-stack em-cn-text" valign="middle" style="padding:24px 28px; box-sizing:border-box;">
                     ${data.title ? `<p style="margin:0 0 8px; font-family:${FONTS.heading}; font-weight:600; font-size:17px; line-height:1.25; letter-spacing:-0.015em; color:${titleColor};">${escapeHtml(data.title)}</p>` : ""}
-                    <p style="margin:0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:13.5px; line-height:1.55; color:${bodyColor};">${sanitizeRichText(data.body)}</p>
+                    <div style="margin:0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:13.5px; line-height:1.55; color:${bodyColor};">${sanitizeRichText(data.body)}</div>
                   </td>
                 </tr>
               </table>
@@ -734,7 +734,7 @@ function renderMacro(data, number, assetMode, anchor = "", isLastSection = false
         ${anchor}
         ${sectionHeader(number, data.kicker)}
         ${sectionTitleSpaced(data.title)}
-        <p style="margin:0 0 22px; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:15px; line-height:1.65; color:${EMAIL_THEME.textSecondary};">${sanitizeRichText(data.body)}</p>
+        <div style="margin:0 0 22px; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:15px; line-height:1.65; color:${EMAIL_THEME.textSecondary};">${sanitizeRichText(data.body)}</div>
         ${quoteBlock}
       </td>
     </tr>`;
@@ -758,7 +758,7 @@ function renderEvent(data, anchor = "", isLastSection = false) {
                 <td class="em-stack em-event-text" valign="middle" style="padding:32px 28px;">
                   ${kicker ? `<p style="margin:0 0 12px; font-family:${FONTS.body}; font-size:11px; letter-spacing:0.2em; text-transform:uppercase; font-weight:600; color:${EMAIL_THEME.positive};">${escapeHtml(kicker)}</p>` : ""}
                   ${String(data.title || "").trim() ? `<h3 style="margin:0; font-family:${FONTS.heading}; font-weight:700; font-size:28px; letter-spacing:-0.025em; line-height:1.05; color:${eventTextPrimary};">${escapeHtml(data.title)}</h3>` : ""}
-                  <p style="margin:12px 0 0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:13px; line-height:1.5; color:${eventTextSecondary};">${sanitizeRichText(data.description)}</p>
+                  <div style="margin:12px 0 0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:13px; line-height:1.5; color:${eventTextSecondary};">${sanitizeRichText(data.description)}</div>
                   <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:18px;">
                     <tr><td bgcolor="#ffffff" style="border-radius:99px;">
                       <a href="${escapeAttr(data.cta_url)}" style="display:inline-block; padding:11px 20px; font-family:${FONTS.heading}; font-weight:600; font-size:13px; color:${EMAIL_THEME.bgEventCard}; text-decoration:none; border-radius:99px;">${escapeHtml(data.cta_label)}</a>
@@ -957,9 +957,9 @@ function renderFocus(data, number, anchor = "", isLastSection = false) {
       </table>`
     : "";
   const textBlock = hasBody
-    ? `<p style="margin:0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:15px; line-height:1.65; color:${EMAIL_THEME.textSecondary};">
+    ? `<div style="margin:0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:15px; line-height:1.65; color:${EMAIL_THEME.textSecondary};">
         ${sanitizeRichText(data.body)}
-      </p>`
+      </div>`
     : "";
   const primaryBtn = data.cta_primary_label
     ? `<td valign="middle" style="padding-right:10px;">
@@ -1051,7 +1051,7 @@ function renderTextBlock(data, number, anchor = "", isLastSection = false) {
         ${anchor}
         ${sectionHeader(number, data.kicker)}
         ${sectionTitle(data.title)}
-        <p style="margin:22px 0 0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:15px; line-height:1.65; color:${EMAIL_THEME.textSecondary};">${sanitizeRichText(data.body)}</p>
+        <div style="margin:22px 0 0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:15px; line-height:1.65; color:${EMAIL_THEME.textSecondary};">${sanitizeRichText(data.body)}</div>
         ${ctaBtn}
       </td>
     </tr>`;
