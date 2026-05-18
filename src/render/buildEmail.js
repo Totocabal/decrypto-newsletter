@@ -624,7 +624,7 @@ function renderSignals(data, number, anchor = "", isLastSection = false) {
       const fg = arrowUp
         ? (isLightTheme ? "#00A889" : "#03FFCF")
         : (isLightTheme ? "#D65F00" : "#FF8B28");
-      const arrow = arrowUp ? "↗" : "↘";
+      const arrow = arrowUp ? "&#8599;" : "&#8600;";
       let borders = "";
       if (position === "tl") borders = `border-right:1px solid ${EMAIL_THEME.border}; border-bottom:1px solid ${EMAIL_THEME.border};`;
       else if (position === "tr") borders = `border-bottom:1px solid ${EMAIL_THEME.border};`;
@@ -634,7 +634,7 @@ function renderSignals(data, number, anchor = "", isLastSection = false) {
           <tr>
             <td valign="top" width="42">
               <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-                <td width="28" height="28" align="center" valign="middle" bgcolor="${bg}" style="background-color:${bg}; border-radius:99px; color:${fg}; font-family:Arial, sans-serif; font-size:14px; font-weight:700; line-height:28px;">${arrow}</td>
+                <td width="28" height="28" align="center" valign="middle" bgcolor="${bg}" style="background-color:${bg}; border-radius:99px; color:${fg}; font-family:Arial, sans-serif; font-size:15px; font-weight:900; line-height:28px;"><strong style="font-weight:900; color:${fg};">${arrow}</strong></td>
               </tr></table>
             </td>
             <td valign="top">
@@ -714,17 +714,17 @@ function renderCommentedNumber(data, anchor = "", isLastSection = false) {
     <tr>
       <td class="em-px" style="padding:36px;${sectionBottomBorder(isLastSection)}">
         ${anchor}
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:${cardBg}; border:1px solid ${cardBorder}; border-radius:14px; border-collapse:separate !important; border-spacing:0 !important; overflow:hidden;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${cardBg}" style="background-color:${cardBg}; border:1px solid ${cardBorder}; border-radius:14px; border-collapse:separate !important; border-spacing:0 !important; overflow:hidden;">
           <tr>
             <td style="padding:4px;">
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:separate !important; border-spacing:0 !important;">
                 <tr>
-                  <td class="em-stack em-cn-num" valign="middle" width="200" style="padding:24px; background-color:${numberPanelBg}; border-right:1px solid ${dividerColor}; border-radius:12px 0 0 12px; box-sizing:border-box;">
+                  <td class="em-stack em-cn-num" valign="middle" width="200" bgcolor="${numberPanelBg}" style="padding:24px; background-color:${numberPanelBg}; border-right:1px solid ${dividerColor}; border-radius:12px 0 0 12px; box-sizing:border-box;">
                     <p style="margin:0; font-family:${FONTS.body}; font-size:10px; letter-spacing:0.22em; text-transform:uppercase; color:${EMAIL_THEME.textDim}; font-weight:600;">${escapeHtml(data.kicker || "Le chiffre")}</p>
                     <p style="margin:6px 0 0; font-family:${FONTS.heading}; font-weight:700; font-size:56px; line-height:0.95; letter-spacing:-0.045em; color:${numberColor};">${escapeHtml(data.value)}${unit ? ` <span style="display:inline-block; white-space:nowrap; font-size:22px; color:${EMAIL_THEME.textMuted}; font-weight:500; letter-spacing:0;">${unitHtml}</span>` : ""}</p>
                     ${data.caption ? `<p style="margin:8px 0 0; font-family:${FONTS.body}; font-size:12px; color:${EMAIL_THEME.textMuted}; letter-spacing:0.02em;">${escapeHtml(data.caption)}</p>` : ""}
                   </td>
-                  <td class="em-stack em-cn-text" valign="middle" style="padding:24px 28px; box-sizing:border-box;">
+                  <td class="em-stack em-cn-text" valign="middle" bgcolor="${cardBg}" style="padding:24px 28px; background-color:${cardBg}; box-sizing:border-box;">
                     ${data.title ? `<p style="margin:0 0 8px; font-family:${FONTS.heading}; font-weight:600; font-size:17px; line-height:1.25; letter-spacing:-0.015em; color:${titleColor};">${escapeHtml(data.title)}</p>` : ""}
                     <div style="margin:0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:13.5px; line-height:1.55; color:${bodyColor};">${sanitizeRichText(data.body)}</div>
                   </td>
