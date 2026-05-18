@@ -385,8 +385,6 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId, isAd
               </div>
             )}
             <div className="mt-3 flex items-center gap-2">
-              {(multiSelect || selectedPaths.includes(image.path)) &&
-                renderSelectionButton(image, "h-8 w-8")}
               {canSelect && (
                 <button
                   type="button"
