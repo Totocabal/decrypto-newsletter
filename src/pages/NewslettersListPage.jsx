@@ -267,7 +267,11 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
 
   const getPreviewText = (nl) => {
     const text = nl?.current_state?.preview_text || "";
-    const normalized = String(text)
+    // Décoder les entités HTML via un élément temporaire
+    const decoded = typeof document !== "undefined"
+      ? (() => { const el = document.createElement("div"); el.innerHTML = String(text); return el.textContent || el.innerText || ""; })()
+      : String(text);
+    const normalized = decoded
       .replace(/<[^>]*>/g, " ")
       .replace(/\s+/g, " ")
       .trim();
