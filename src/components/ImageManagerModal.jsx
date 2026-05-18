@@ -324,22 +324,27 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId, isAd
 
   const renderImageCard = (image, density = "default") => {
     const selected = canSelect && image.path === currentPath;
+    const checked = selectedPaths.includes(image.path);
     const compact = density === "compact" || density === "micro";
     const micro = density === "micro";
     return (
       <article
         key={image.path}
         className={`group border rounded-2xl overflow-hidden bg-d-panel transition-colors ${
-          selected ? "border-d-pink" : "border-line hover:border-line2"
+          selected || checked
+            ? "border-d-pink"
+            : multiSelect
+            ? "border-line hover:border-d-pink/40"
+            : "border-line hover:border-line2"
         }`}
       >
         <div className="relative">
-          <Tooltip label="Voir le détail" className="w-full">
+          <Tooltip label={multiSelect ? (checked ? "Désélectionner" : "Sélectionner") : "Voir le détail"} className="w-full">
             <button
               type="button"
               onClick={() => openImageDetails(image)}
               className={`block w-full aspect-[4/3] bg-d-panel2 overflow-hidden ${
-                multiSelect ? "" : "cursor-zoom-in"
+                multiSelect ? "cursor-pointer" : "cursor-zoom-in"
               }`}
             >
               <img
@@ -348,15 +353,13 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId, isAd
                 className="h-full w-full object-cover transition-transform group-hover:scale-[1.02]"
                 loading="lazy"
               />
-              {selected && (
+              {selected && !checked && (
                 <span className="absolute top-3 left-3 h-7 w-7 rounded-full bg-d-pink text-white inline-flex items-center justify-center">
                   <Check size={15} />
                 </span>
               )}
             </button>
           </Tooltip>
-          {(multiSelect || selectedPaths.includes(image.path)) &&
-            renderSelectionButton(image, "absolute top-2 right-2 h-7 w-7")}
         </div>
         {!micro && (
           <div className={compact ? "p-2" : "p-3"}>
@@ -367,19 +370,24 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId, isAd
               <span>{formatBytes(image.metadata?.size)}</span>
               {!compact && <span>{formatDate(image.updated_at || image.created_at)}</span>}
             </div>
-            {/* Dots de labels */}
+            {/* Pills de labels */}
             {(imageLabelMap[image.path] || []).length > 0 && (
-              <div className="mt-2 flex flex-wrap gap-1">
+              <div className="mt-1.5 flex flex-wrap gap-1">
                 {(imageLabelMap[image.path] || []).map((lid) => {
                   const lbl = labels.find((l) => l.id === lid);
                   if (!lbl) return null;
                   return (
-                    <Tooltip key={lid} label={lbl.name}>
-                      <span
-                        className="h-2.5 w-2.5 rounded-full flex-shrink-0"
-                        style={{ background: lbl.color }}
-                      />
-                    </Tooltip>
+                    <span
+                      key={lid}
+                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-[0.12em]"
+                      style={{
+                        background: lbl.color + "22",
+                        border: `1px solid ${lbl.color}55`,
+                        color: lbl.color,
+                      }}
+                    >
+                      {lbl.name}
+                    </span>
                   );
                 })}
               </div>
@@ -411,9 +419,7 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId, isAd
         {micro && (
           <div className="p-1.5 flex items-center justify-between gap-1">
             <span className="text-[10px] text-d-fg4 truncate">{formatBytes(image.metadata?.size)}</span>
-            {(multiSelect || selectedPaths.includes(image.path)) ? (
-              renderSelectionButton(image, "h-7 w-7 flex-shrink-0")
-            ) : image.canDelete !== false ? (
+            {!multiSelect && image.canDelete !== false && (
               <Tooltip label="Supprimer">
                 <button
                   type="button"
@@ -423,7 +429,7 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId, isAd
                   <Trash2 size={12} />
                 </button>
               </Tooltip>
-            ) : null}
+            )}
           </div>
         )}
       </article>
@@ -469,10 +475,13 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId, isAd
                 return (
                   <span
                     key={lid}
-                    className="inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-medium"
-                    style={{ background: `${lbl.color}22`, color: lbl.color }}
+                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-[0.12em]"
+                    style={{
+                      background: lbl.color + "22",
+                      border: `1px solid ${lbl.color}55`,
+                      color: lbl.color,
+                    }}
                   >
-                    <span className="h-1.5 w-1.5 rounded-full" style={{ background: lbl.color }} />
                     {lbl.name}
                   </span>
                 );
@@ -712,10 +721,7 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId, isAd
           {/* Filtre par labels */}
           {labels.length > 0 && (
             <div className="mb-4 flex flex-wrap items-center gap-2">
-              <span className="flex items-center gap-1 text-[10px] uppercase tracking-[0.18em] text-d-fg4 flex-shrink-0">
-                <Tag size={11} />
-                Filtrer
-              </span>
+              <span className="text-[10px] uppercase tracking-[0.18em] text-d-fg4 font-medium flex-shrink-0">Labels :</span>
               {labels.map((label) => {
                 const active = filterLabelIds.includes(label.id);
                 return (
@@ -727,17 +733,14 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId, isAd
                         active ? ids.filter((id) => id !== label.id) : [...ids, label.id]
                       )
                     }
-                    className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors"
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-[0.12em] border transition-all"
                     style={{
-                      borderColor: active ? label.color : "rgba(255,255,255,0.12)",
-                      background: active ? `${label.color}22` : "transparent",
-                      color: active ? label.color : "#888",
+                      background: active ? label.color + "33" : "transparent",
+                      borderColor: active ? label.color + "88" : label.color + "44",
+                      color: active ? label.color : label.color + "99",
                     }}
                   >
-                    <span
-                      className="h-2 w-2 rounded-full flex-shrink-0"
-                      style={{ background: label.color }}
-                    />
+                    <span className="h-1.5 w-1.5 rounded-full flex-shrink-0" style={{ background: label.color }} />
                     {label.name}
                   </button>
                 );
@@ -746,9 +749,9 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, userId, isAd
                 <button
                   type="button"
                   onClick={() => setFilterLabelIds([])}
-                  className="text-[10px] uppercase tracking-[0.16em] text-d-fg4 hover:text-d-fg2 transition-colors"
+                  className="text-[10px] uppercase tracking-[0.18em] text-d-fg4 hover:text-d-fg2 transition-colors"
                 >
-                  Effacer
+                  <X size={11} />
                 </button>
               )}
             </div>
@@ -931,17 +934,14 @@ function ImageDetailsModal({
                         key={label.id}
                         type="button"
                         onClick={() => onLabelToggle?.(label.id)}
-                        className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors"
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-[0.12em] border transition-all"
                         style={{
-                          borderColor: active ? label.color : "rgba(255,255,255,0.12)",
-                          background: active ? `${label.color}22` : "transparent",
-                          color: active ? label.color : "#888",
+                          background: active ? label.color + "33" : "transparent",
+                          borderColor: active ? label.color + "88" : label.color + "44",
+                          color: active ? label.color : label.color + "99",
                         }}
                       >
-                        <span
-                          className="h-2 w-2 rounded-full flex-shrink-0"
-                          style={{ background: label.color }}
-                        />
+                        <span className="h-1.5 w-1.5 rounded-full flex-shrink-0" style={{ background: label.color }} />
                         {label.name}
                         {active && <Check size={10} />}
                       </button>
