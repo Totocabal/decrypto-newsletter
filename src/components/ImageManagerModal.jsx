@@ -399,6 +399,9 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, onSelectMany
     const checked = selectedPaths.includes(image.path);
     const compact = density === "compact" || density === "micro";
     const micro = density === "micro";
+    const assignedLabels = (imageLabelMap[image.path] || [])
+      .map((id) => labels.find((label) => label.id === id))
+      .filter(Boolean);
     return (
       <article
         key={image.path}
@@ -478,6 +481,18 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, onSelectMany
         {micro && (
           <div className="p-1.5 flex items-center justify-between gap-1">
             <span className="text-[10px] text-d-fg4 truncate">{formatBytes(image.metadata?.size)}</span>
+            {assignedLabels.length > 0 && (
+              <div className="flex min-w-0 flex-1 justify-end gap-0.5 overflow-hidden">
+                {assignedLabels.slice(0, 4).map((label) => (
+                  <Tooltip key={label.id} label={label.name}>
+                    <span
+                      className="h-2.5 w-2.5 flex-shrink-0 rounded-full"
+                      style={{ background: label.color }}
+                    />
+                  </Tooltip>
+                ))}
+              </div>
+            )}
             {!multiSelect && image.canDelete !== false && (
               <Tooltip label="Supprimer">
                 <button
