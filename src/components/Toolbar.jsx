@@ -93,10 +93,11 @@ export function Toolbar({
             >
               <button
                 onClick={onSave}
-                className="flex flex-shrink-0 items-center gap-1.5 rounded-full border border-line2 px-3 py-2 text-[11px] uppercase tracking-[0.14em] font-medium text-d-fg2 transition-colors hover:bg-d-panel2 focus:bg-d-panel2 focus:outline-none focus:ring-2 focus:ring-d-pink/30"
+                aria-label={saved ? "Sauvé" : "Sauvegarder"}
+                className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-line2 text-d-fg2 transition-colors hover:bg-d-panel2 focus:bg-d-panel2 focus:outline-none focus:ring-2 focus:ring-d-pink/30 sm:h-auto sm:w-auto sm:gap-1.5 sm:px-3 sm:py-2 sm:text-[11px] sm:font-medium sm:uppercase sm:tracking-[0.14em]"
               >
                 {saved ? <Check size={12} /> : <Save size={12} />}
-                {saved ? "Sauvé" : "Sauvegarder"}
+                <span className="hidden sm:inline">{saved ? "Sauvé" : "Sauvegarder"}</span>
               </button>
             </Tooltip>
 
@@ -112,10 +113,11 @@ export function Toolbar({
               >
                 <button
                   onClick={onSaveAsPreset}
-                  className="flex flex-shrink-0 items-center gap-1.5 rounded-full border border-line2 px-3 py-2 text-[11px] uppercase tracking-[0.14em] font-medium text-d-fg2 transition-colors hover:bg-d-panel2"
+                  aria-label="Preset"
+                  className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-line2 text-d-fg2 transition-colors hover:bg-d-panel2 sm:h-auto sm:w-auto sm:gap-1.5 sm:px-3 sm:py-2 sm:text-[11px] sm:font-medium sm:uppercase sm:tracking-[0.14em]"
                 >
                   <BookMarked size={12} />
-                  Preset
+                  <span className="hidden sm:inline">Preset</span>
                 </button>
               </Tooltip>
             )}
@@ -125,13 +127,14 @@ export function Toolbar({
               <button
                 onClick={() => setExportModalOpen(true)}
                 disabled={busy}
-                className="flex flex-shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-2 text-[11px] uppercase tracking-[0.14em] font-semibold text-white transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                aria-label="Exporter"
+                className="flex h-8 w-8 flex-shrink-0 items-center justify-center whitespace-nowrap rounded-full text-white transition-colors disabled:cursor-not-allowed disabled:opacity-50 sm:h-auto sm:w-auto sm:gap-1.5 sm:px-3 sm:py-2 sm:text-[11px] sm:font-semibold sm:uppercase sm:tracking-[0.14em]"
                 style={{ background: "linear-gradient(90deg, #4141FF 0%, #FF00AA 60%, #FF4B28 100%)" }}
               >
                 {busy ? (
-                  <><Loader2 size={12} className="animate-spin" /> Export…</>
+                  <><Loader2 size={12} className="animate-spin" /> <span className="hidden sm:inline">Export…</span></>
                 ) : (
-                  <><Package size={12} /> Exporter</>
+                  <><Package size={12} /> <span className="hidden sm:inline">Exporter</span></>
                 )}
               </button>
             )}
