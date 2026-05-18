@@ -623,32 +623,28 @@ function SectionCard({
         </button>
 
         <div className="flex items-center gap-0.5 flex-shrink-0">
-          <Tooltip label="Monter">
-            <button
-              onClick={(event) => {
-                event.stopPropagation();
-                onSelectMobile();
-                onMoveUp();
-              }}
-              disabled={index === 0}
-              className="rounded-lg bg-d-pink/10 p-1.5 text-d-pink transition-colors hover:bg-d-pink/15 hover:text-d-pink disabled:cursor-not-allowed disabled:opacity-20"
-            >
-              <ChevronUp size={14} />
-            </button>
-          </Tooltip>
-          <Tooltip label="Descendre">
-            <button
-              onClick={(event) => {
-                event.stopPropagation();
-                onSelectMobile();
-                onMoveDown();
-              }}
-              disabled={index === total - 1}
-              className="rounded-lg bg-d-pink/10 p-1.5 text-d-pink transition-colors hover:bg-d-pink/15 hover:text-d-pink disabled:cursor-not-allowed disabled:opacity-20"
-            >
-              <ChevronDown size={14} />
-            </button>
-          </Tooltip>
+          <button
+            onClick={(event) => {
+              event.stopPropagation();
+              onSelectMobile();
+              onMoveUp();
+            }}
+            disabled={index === 0}
+            className="rounded-lg bg-d-pink/10 p-1.5 text-d-pink transition-colors hover:bg-d-pink/15 hover:text-d-pink disabled:cursor-not-allowed disabled:opacity-20"
+          >
+            <ChevronUp size={14} />
+          </button>
+          <button
+            onClick={(event) => {
+              event.stopPropagation();
+              onSelectMobile();
+              onMoveDown();
+            }}
+            disabled={index === total - 1}
+            className="rounded-lg bg-d-pink/10 p-1.5 text-d-pink transition-colors hover:bg-d-pink/15 hover:text-d-pink disabled:cursor-not-allowed disabled:opacity-20"
+          >
+            <ChevronDown size={14} />
+          </button>
           <Tooltip label="Dupliquer">
             <button
               onClick={onDuplicate}

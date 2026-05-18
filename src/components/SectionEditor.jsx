@@ -1526,27 +1526,37 @@ function FocusEditor({ data, set }) {
                   {item.show_icon !== false && (
                     <div>
                       <div className="text-[10px] uppercase tracking-[0.15em] font-semibold text-d-fg4 mb-2">Pictogramme</div>
-                      <div className="grid grid-cols-5 gap-1.5">
+                      <div className="grid grid-cols-8 gap-1.5">
                         {CALLOUT_PICTOS.map((p) => {
                           const activeColor = item.callout_color || DEFAULT_CALLOUT_COLOR;
                           const rgb = hexToRgb(activeColor);
                           const isSelected = (item.picto || DEFAULT_PICTO_ID) === p.id;
                           return (
-                            <Tooltip key={p.id} label={`${p.num} — ${p.label}`}>
+                            <div key={p.id} className="relative group">
                               <button
                                 type="button"
                                 onClick={() => updateItem(item.id, { picto: p.id })}
                                 className={`w-full aspect-square rounded-lg border flex items-center justify-center transition-all ${
-                                  isSelected ? "opacity-100 scale-105" : "border-line bg-d-panel3 opacity-40 hover:opacity-70"
+                                  isSelected ? "opacity-100 scale-105" : "border-line bg-d-panel3 opacity-40 hover:opacity-80 hover:scale-105"
                                 }`}
                                 style={isSelected ? {
                                   background: `rgba(${rgb},0.16)`,
                                   borderColor: `rgba(${rgb},0.4)`,
                                 } : {}}
                               >
-                                <span dangerouslySetInnerHTML={{ __html: buildPictoSvgHtml(p.svgInner, activeColor, 14) }} />
+                                <span dangerouslySetInnerHTML={{ __html: buildPictoSvgHtml(p.svgInner, activeColor, 13) }} />
                               </button>
-                            </Tooltip>
+                              {/* Preview agrandie au survol */}
+                              <div
+                                className="pointer-events-none absolute bottom-[calc(100%+6px)] left-1/2 -translate-x-1/2 z-20 hidden group-hover:flex h-10 w-10 items-center justify-center rounded-xl border shadow-xl"
+                                style={{
+                                  background: `rgba(${rgb},0.16)`,
+                                  borderColor: `rgba(${rgb},0.4)`,
+                                }}
+                              >
+                                <span dangerouslySetInnerHTML={{ __html: buildPictoSvgHtml(p.svgInner, activeColor, 22) }} />
+                              </div>
+                            </div>
                           );
                         })}
                       </div>
