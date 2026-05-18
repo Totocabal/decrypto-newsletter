@@ -1,72 +1,371 @@
 # Décrypto — Newsletter Editor
 
-Éditeur collaboratif de newsletters HTML pour **Décrypto**, l'hebdo crypto Coinhouse. Construit avec React + Vite côté front, **Supabase** (Postgres + Auth) côté backend, déployé sur Vercel.
+Éditeur collaboratif de newsletters HTML pour **Décrypto**, l'hebdo crypto de Coinhouse. Construit avec React + Vite côté front, **Supabase** (Postgres + Auth + Storage + Realtime) côté backend, déployé sur **Vercel**.
+
+---
+
+## Table des matières
+
+1. [Stack technique](#stack-technique)
+2. [Fonctionnalités](#fonctionnalités)
+3. [Architecture](#architecture)
+4. [Blocs disponibles](#blocs-disponibles)
+5. [Système d'export](#système-dexport)
+6. [Collaboration en temps réel](#collaboration-en-temps-réel)
+7. [Gestion des images](#gestion-des-images)
+8. [Système de labels](#système-de-labels)
+9. [Schéma de base de données](#schéma-de-base-de-données)
+10. [Setup local](#setup-local)
+11. [Déploiement Vercel](#déploiement-vercel)
+12. [Scripts](#scripts)
+
+---
+
+## Stack technique
+
+| Couche | Technologie |
+|---|---|
+| Front-end | React 18, Vite 5 |
+| Styles | Tailwind CSS v3 |
+| Éditeur de texte riche | Slate.js |
+| Backend / BDD | Supabase (PostgreSQL) |
+| Auth | Supabase Auth — magic link |
+| Stockage fichiers | Supabase Storage |
+| Temps réel | Supabase Realtime (Broadcast) |
+| Déploiement | Vercel (SSR/Edge Functions) |
+| Export ZIP | JSZip |
+| Graphiques marché | CoinGecko API (public) |
 
 ---
 
 ## Fonctionnalités
 
-### Éditeur
+### Éditeur de blocs
 
-- **14 types de blocs** modulaires, réorganisables par glisser-déposer ou boutons ↑↓ :
-  - `hero` · `sommaire` · `édito + KPI` · `graphique` · `fear & greed` · `signaux` · `macro / citation` · `barres macro` · `chiffre commenté` · `évènement` · `texte` · `texte & media` · `image` · `séparateur`
-- Chaque bloc est **collapsible** ; actions de duplication et suppression dans l'en-tête
-- **Texte & Media** : composition libre d'items texte riche, image, encadré (15 pictos + 9 couleurs) et CTA
-- **Éditeur de texte riche** avec gras, italique, souligné, rayé, lien, liste à puces et liste numérotée
-- Header et footer **fixes** (mentions légales PSAN garanties)
+- **14 types de blocs** modulaires (voir [liste complète](#blocs-disponibles))
+- Réorganisation par glisser-déposer ou boutons ↑ / ↓
+- Chaque bloc est **collapsible** pour gagner de la place
+- Actions en en-tête de bloc : dupliquer, supprimer
 - Numérotation automatique des sections
-- **Thème sombre / clair** commutable depuis l'en-tête
+- **Thème clair / sombre** commutable depuis la barre d'outils
 
-### Données auto
+### Éditeur de texte riche (Slate.js)
 
-- **CoinGecko** : graphiques synchronisés (7j / 30j, EUR / USD), chips BTC / ETH dans le hero
+Disponible dans les champs de corps de texte :
+
+- Gras, italique, souligné, rayé
+- Lien hypertexte
+- Liste à puces, liste numérotée
+- Rendu HTML inline correct pour les clients email
+
+### Données en temps réel
+
+- **CoinGecko** : prix BTC/ETH avec variation sur 7j ou 30j, en EUR ou USD
+  - Chips du hero synchronisés automatiquement
+  - Graphiques mis à jour en un clic ou à l'ouverture
 - **Fear & Greed Index** : synchronisation en un clic
-- Bouton **Synchroniser** global + bouton individuel par bloc
+- Bouton **Synchroniser tout** global + bouton individuel par bloc concerné
 
 ### Prévisualisation
 
-- Aperçu **temps réel** Desktop (600 px) et Mobile (430 px)
+- Aperçu **temps réel** Desktop (600 px) et Mobile (430 px), dans l'onglet Aperçu
 - Vue **Code HTML** brut avec copie en un clic
-- Fidèle aux principaux clients email (Gmail, Apple Mail, Outlook, iOS Mail)
+- Rendu fidèle aux principaux clients email : Gmail, Apple Mail, Outlook, iOS Mail
 
-### Export
+### Versions
 
-- **Export ZIP** : `newsletter.html` + dossier `assets/` avec les images en PNG — prêt CDN
-- **Export Braze** : upload automatique des images dans la Media Library Braze, HTML avec URLs CDN définitives
+- **Snapshot nommé** : auteur + commentaire + horodatage (jusqu'à 50 versions)
+- **Restauration** depuis l'historique côté panneau latéral
+- Auto-save serveur avec debounce 2 s (pas besoin de sauvegarder manuellement)
 
-### Collaboration
+### Labels colorés
 
-- Auth par **magic link** (aucun mot de passe)
-- **Validation manuelle des comptes** par un admin
-- **Verrou d'édition** : un seul éditeur actif à la fois, TTL serveur 10 min
-- **Bandeau de présence** avec prise de contrôle forcée si verrou expiré
-- **Auto-save** serveur (debounce 2s)
-- **Versions** : snapshot nommé avec auteur + commentaire, restauration depuis l'historique (50 versions)
-- **Labels** colorés pour organiser la liste des newsletters
-- **Archivage** des éditions terminées
+- Labels personnalisables (nom + couleur parmi 10 teintes)
+- Assignables sur les **newsletters** (page liste) et sur les **images** (gestionnaire)
+- Filtre multi-label en OR sur la liste des newsletters et dans le gestionnaire d'images
+- Pills de labels sur les cartes avec repli en pastilles de couleur si l'espace manque
+
+### Archivage
+
+- Les newsletters terminées peuvent être **archivées** (masquées de la liste principale)
+- Vue dédiée "Archives" accessible depuis la liste
 
 ### Admin
 
-- Approbation / révocation des comptes, création directe avec mot de passe temporaire
-- **Template newsletter** : configurer la disposition par défaut (blocs, numérotation, thème, date)
+- Approbation / révocation des comptes utilisateurs
+- Création directe de compte avec mot de passe temporaire
+- **Template newsletter** : configurer la disposition par défaut (blocs initiaux, numérotation, thème, date automatique)
 - **Contenus par défaut** : éditer les textes initiaux de chaque type de bloc
-- **Presets** : sauvegarder des dispositions réutilisables par toute l'équipe
+- **Presets de disposition** : sauvegarder et réutiliser des configurations de blocs pour toute l'équipe
 
 ---
 
-## Setup
+## Architecture
+
+```
+src/
+├── config/
+│   ├── theme.js              ← palette Décrypto, polices, constante BRAND
+│   ├── schema.js             ← catalogue des types de blocs + factory() + template par défaut
+│   └── calloutPictos.js      ← 15 pictos SVG + 9 couleurs pour les blocs encadré
+│
+├── contexts/
+│   └── AuthContext.jsx        ← session Supabase + profil utilisateur (is_approved, is_admin)
+│
+├── lib/
+│   ├── supabase.js            ← client Supabase (singleton)
+│   ├── useNewsletter.js       ← hook principal : chargement, lock collaboratif, auto-save, broadcast
+│   ├── useLabels.js           ← CRUD labels + hooks newsletter_labels / image_labels
+│   ├── templatePresets.js     ← presets de disposition (sauvegarde / chargement admin)
+│   ├── useCoinGecko.js        ← fetching CoinGecko + Fear & Greed
+│   └── imageUpload.js         ← upload + compression images vers Supabase Storage
+│
+├── pages/
+│   ├── LoginPage.jsx
+│   ├── PendingApprovalPage.jsx
+│   ├── SetPasswordPage.jsx
+│   ├── SetupErrorPage.jsx
+│   ├── NewslettersListPage.jsx ← liste + filtres + labels + archivage
+│   ├── EditorPage.jsx          ← page principale : split EditorPanel / PreviewPanel
+│   └── AdminPage.jsx           ← gestion utilisateurs, template, presets
+│
+├── components/
+│   ├── EditorPanel.jsx         ← panneau gauche : liste ordonnée des blocs + paramètres généraux
+│   ├── SectionEditor.jsx       ← formulaires d'édition spécifiques à chaque type de bloc
+│   ├── PreviewPanel.jsx        ← iframe de prévisualisation (desktop / mobile / HTML)
+│   ├── FormControls.jsx        ← composants UI : Field, RichTextEditor (Slate), Select, Toggle…
+│   ├── VersionsPanel.jsx       ← panneau historique des versions (snapshot + restauration)
+│   ├── ImageManagerModal.jsx   ← modal gestionnaire d'images (upload, labels, sélection, multi-select)
+│   ├── LockBanner.jsx          ← bandeau rouge "template verrouillé par X"
+│   ├── LockRequestBanner.jsx   ← bandeau ambre animé "Y souhaite prendre la main"
+│   ├── Toolbar.jsx             ← barre d'outils en-tête
+│   ├── Tooltip.jsx             ← composant tooltip générique
+│   └── Wordmark.jsx            ← logotype Décrypto
+│
+├── render/
+│   └── buildEmail.js           ← moteur de rendu HTML email (tables, inline CSS, SVG inline)
+│
+├── utils/
+│   ├── exportAssetPack.js      ← export ZIP (HTML + assets PNG)
+│   ├── exportImport.js         ← import/export JSON du brouillon
+│   ├── storage.js              ← helpers Supabase Storage
+│   └── dateParser.js           ← parsing dates pour l'automatisation
+│
+└── App.jsx / main.jsx
+
+supabase/
+├── schema.sql                  ← schéma complet (tables, RLS, RPC, triggers)
+├── bootstrap-admin.sql         ← script d'initialisation du premier compte admin
+├── admin-create-user.sql       ← script pour la création de compte via admin
+└── keepalive.sql               ← RPC légère anti-pause (projets Free)
+
+api/
+├── export-braze.js             ← serverless Vercel : upload images → Braze Media Library
+└── supabase-keepalive.js       ← serverless Vercel : cron ping anti-pause Supabase Free
+```
+
+### Flux de données éditeur
+
+```
+EditorPage
+  ├── useNewsletter()           → charge le brouillon, gère le lock, auto-save, broadcast
+  ├── EditorPanel               → modifie sections[] localement → déclenche save
+  │     └── SectionEditor       → formulaires par type de bloc
+  └── PreviewPanel              → appelle buildEmail(draft) → HTML injecté dans <iframe>
+```
+
+---
+
+## Blocs disponibles
+
+| Type | Label UI | Description |
+|---|---|---|
+| `hero` | Hero | Titre principal, kicker, sous-titre, chips BTC/ETH/F&G |
+| `index` | Sommaire | Liste numérotée des sujets de l'édition |
+| `edito` | Édito + KPI | Corps éditorial + rangée de KPI chiffrés |
+| `chart` | Graphique | Graphique de cours synchronisé CoinGecko (7j/30j, EUR/USD) |
+| `fear_greed` | Fear & Greed | Jauge Fear & Greed Index avec valeur et label |
+| `signals` | Signaux | Grille de signaux (haussier / neutre / baissier) avec description |
+| `macro` | Macro / Citation | Bloc macro-économie ou mise en avant d'une citation |
+| `macro_bars` | Barres macro | Comparatif visuel sous forme de barres horizontales |
+| `commented_number` | Chiffre commenté | Grand chiffre mis en avant avec titre et commentaire |
+| `event` | Évènement | Carte évènement avec date, titre, lieu, description |
+| `focus` | Texte & Media | Composition libre d'items : texte riche, image, encadré, CTA |
+| `image_block` | Image | Bloc image pleine largeur avec légende optionnelle |
+| `text_block` | Texte | Paragraphe de texte libre (riche) |
+| `divider` | Séparateur | Séparateur visuel entre sections |
+
+### Bloc Texte & Media — items
+
+Le bloc `focus` est le plus flexible. Il peut contenir autant d'items que souhaité, de quatre types :
+
+- **text** — éditeur de texte riche (Slate.js)
+- **image** — image sélectionnée depuis le gestionnaire, avec légende optionnelle
+- **callout** — encadré avec 1 des **15 pictos** (info, décrypte, intuition, épingle, prudence, signal, contexte, lecture, timing, essentiel, dollar, euro, bitcoin, ethereum, question) et 1 des **9 couleurs** (cyan, menthe, bleu, rose, orange, corail, violet, jaune, blanc)
+- **cta** — bouton d'appel à l'action avec texte, URL, couleur de fond dégradé en PNG exporté
+
+---
+
+## Système d'export
+
+### Export ZIP
+
+Bouton **Exporter ZIP** dans la barre d'outils :
+
+1. `buildEmail(draft)` génère le HTML complet avec toutes les images référencées en chemin relatif `assets/…`
+2. Chaque image Supabase Storage est téléchargée et convertie en PNG
+3. Les boutons CTA gradient sont générés comme PNG via `<canvas>` (dégradé Décrypto)
+4. Archive ZIP produite avec `JSZip` : `newsletter.html` + dossier `assets/`
+5. Prêt à uploader sur un CDN ou à envoyer directement
+
+### Export Braze
+
+Bouton **Exporter Braze** (admins uniquement) :
+
+1. Appel à la serverless function Vercel `/api/export-braze`
+2. La fonction vérifie la session Supabase + flag `is_admin` côté serveur
+3. Chaque image est uploadée dans la **Braze Media Library** via l'API REST Braze
+4. Le HTML final utilise les URLs CDN Braze définitives
+5. La clé `BRAZE_API_KEY` ne transite jamais côté client
+
+### Export / Import JSON
+
+Menu **⋯ → Exporter JSON** : snapshot du brouillon complet exportable/réimportable, utile pour les sauvegardes ou transferts entre environnements.
+
+---
+
+## Collaboration en temps réel
+
+### Verrou d'édition
+
+Un seul utilisateur peut éditer un template à la fois :
+
+- À l'ouverture, `useNewsletter` tente d'acquérir le verrou via la RPC Postgres `acquire_lock`
+- Le verrou a un **TTL de 10 minutes** renouvelé automatiquement toutes les 4 minutes tant que l'onglet est actif
+- Si le verrou est pris, un **bandeau rouge** (`LockBanner`) s'affiche avec le nom du détenteur et la date d'expiration
+- Une fois le verrou expiré, n'importe quel autre utilisateur peut le prendre de force (**prise de contrôle forcée**)
+
+### Bandeau de demande d'accès (`LockRequestBanner`)
+
+Quand un second utilisateur (B) tente d'accéder à un template verrouillé par A :
+
+1. B voit le bandeau rouge et peut déclencher une **demande d'accès**
+2. Un event `lock-request` est broadcasté sur le canal Supabase Realtime `lock-requests:{newsletterId}`
+3. A reçoit un **bandeau ambre animé** (slide-in + fade) en haut de l'écran indiquant que B souhaite prendre la main
+4. Le bandeau se ferme automatiquement après 8 secondes ou manuellement
+
+### Notification de prise de contrôle
+
+Quand B prend de force le verrou :
+
+1. `takeOverLock` acquiert le verrou côté DB
+2. Un event `lock-taken` est broadcasté (avec le nom de B)
+3. A reçoit un **toast rouge** : *"[Nom de B] a pris la main sur l'édition."*
+4. A est basculé en lecture seule immédiatement
+
+### Canal Realtime stable
+
+Le canal Supabase Realtime est créé **une seule fois** par couple `(newsletterId, userId)` et maintenu via des refs React (`channelRef`, `channelReadyRef`, `lockedByOtherRef`, `forcedOutRef`) pour éviter les récréations intempestives ou les doublons d'events.
+
+---
+
+## Gestion des images
+
+### Upload
+
+- Modal **Gestionnaire d'images** (`ImageManagerModal`) accessible depuis tout champ image
+- Upload par glisser-déposer ou sélecteur de fichiers
+- **Compression automatique** côté client avant upload (qualité configurable)
+- Stockage dans le bucket Supabase Storage `newsletter-images`
+- Nommage par hash pour éviter les collisions
+- Vue grille, grille compacte et vue liste
+
+### Sélection
+
+- Sélection simple : clic sur une image → insérée dans le champ
+- **Multi-sélection** : mode multi-select avec bordure rose sur les cartes sélectionnées (pas de case à cocher)
+- Actions groupées disponibles en multi-select (ex. suppression)
+
+### Labels sur les images
+
+- Les images peuvent recevoir des **labels colorés** depuis le panneau de détail
+- Filtre par label(s) en OR dans la grille (barre de filtres en haut du modal)
+- Affichage des labels sur les cartes : pills colorées, ou pastilles si l'espace manque (détection overflow via `useLayoutEffect`)
+
+### Détail d'une image
+
+Panneau latéral d'une image sélectionnée :
+- Aperçu grande taille
+- Copie de l'URL
+- Assignation / retrait de labels (toggle pill)
+- Suppression
+
+---
+
+## Système de labels
+
+### Structure
+
+Labels globaux stockés dans la table `labels` (nom + couleur hex). Associés aux newsletters via `newsletter_labels` et aux images via `image_labels`.
+
+### Gestion
+
+- Page **Admin → Labels** : créer, renommer, recolorer, supprimer
+- 10 couleurs prédéfinies : rouge, orange, jaune, vert, cyan, bleu, violet, rose, ardoise, ambre
+
+### Affichage
+
+- Style cohérent sur toute l'app : `uppercase tracking-[0.12em] font-semibold` sur fond de la couleur à 20% d'opacité
+- Repli automatique en **pastilles de couleur** quand les pills débordent de la carte
+
+---
+
+## Schéma de base de données
+
+### Tables principales
+
+| Table | Description |
+|---|---|
+| `profiles` | Profils utilisateurs (full_name, is_approved, is_admin, avatar_url) |
+| `newsletters` | Brouillons de newsletters (title, content JSONB, status, created_by) |
+| `versions` | Historique de versions (newsletter_id, snapshot JSONB, name, comment, created_by) |
+| `locks` | Verrous d'édition (newsletter_id, locked_by, expires_at) |
+| `labels` | Labels colorés (name, color, created_by, updated_by) |
+| `newsletter_labels` | Association newsletters ↔ labels (newsletter_id, label_id, assigned_by) |
+| `image_labels` | Association images ↔ labels (image_path TEXT, label_id, assigned_by) |
+| `template_config` | Configuration du template par défaut (admin) |
+| `default_content` | Contenus par défaut par type de bloc (admin) |
+
+### RPC Postgres
+
+| Fonction | Description |
+|---|---|
+| `acquire_lock(newsletter_id, user_id, ttl_minutes)` | Acquiert ou renouvelle le verrou, retourne success/locked_by |
+| `release_lock(newsletter_id, user_id)` | Libère le verrou si détenu par cet utilisateur |
+| `supabase_keepalive()` | No-op légère pour le cron anti-pause |
+
+### RLS (Row Level Security)
+
+Toutes les tables ont des policies RLS activées :
+
+- `profiles` : lecture publique, écriture par le propriétaire ou admin
+- `newsletters` : lecture/écriture pour les utilisateurs approuvés (`is_approved = true`)
+- `locks` : lecture publique, modification via RPC uniquement
+- `labels` / `newsletter_labels` / `image_labels` : lecture publique, écriture pour les utilisateurs approuvés
+- `versions` : lecture/écriture pour les utilisateurs approuvés
+
+---
+
+## Setup local
 
 ### 1. Créer le projet Supabase
 
-1. Va sur [supabase.com](https://supabase.com), crée un projet.
-2. Région recommandée : **eu-central-1** (Francfort) pour la conformité RGPD.
+1. Créer un projet sur [supabase.com](https://supabase.com)
+2. Région recommandée : **eu-central-1** (Francfort) pour la conformité RGPD
 
 ### 2. Exécuter le schéma
 
-Dans **SQL Editor** du dashboard Supabase, exécute `supabase/schema.sql`. Cela crée :
-
-- Tables `profiles`, `newsletters`, `versions`, `locks`
-- RLS policies, RPC `acquire_lock` / `release_lock`, triggers
+Dans **SQL Editor** du dashboard Supabase, exécuter `supabase/schema.sql`. Ce script crée toutes les tables, policies RLS, RPCs et triggers.
 
 ### 3. Récupérer les clés API
 
@@ -74,7 +373,13 @@ Dans **Project Settings → API** :
 - `Project URL` → `VITE_SUPABASE_URL`
 - `anon public` key → `VITE_SUPABASE_ANON_KEY`
 
-### 4. Lancer en local
+### 4. Configurer le Storage
+
+Dans **Storage**, créer un bucket `newsletter-images` :
+- Public : oui (pour les URLs d'images dans les emails)
+- Policies : insertion/suppression pour les utilisateurs approuvés
+
+### 5. Lancer en local
 
 ```bash
 cp .env.example .env
@@ -83,100 +388,89 @@ npm install
 npm run dev
 ```
 
-### 5. Créer le premier compte admin
+Variables d'environnement nécessaires en local :
 
-1. Ouvre `http://localhost:5173`, saisis ton email.
-2. Clique le magic link reçu — compte en attente.
-3. Dans Supabase → SQL Editor, exécute `supabase/bootstrap-admin.sql` avec ton email.
-4. Recharge la page — accès à la liste.
+```env
+VITE_SUPABASE_URL=https://xxxx.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJ...
+VITE_AUTH_REDIRECT_URL=http://localhost:5173
+```
 
-### 6. Créer un compte depuis l'admin (optionnel)
+### 6. Créer le premier compte admin
 
-Exécute `supabase/admin-create-user.sql` dans le SQL Editor, puis utilise **Admin → Créer un compte**.
+1. Ouvrir `http://localhost:5173`, saisir son email
+2. Cliquer le magic link reçu → compte en attente d'approbation
+3. Dans Supabase → SQL Editor, exécuter `supabase/bootstrap-admin.sql` avec son email
+4. Recharger la page → accès complet
+
+### 7. Créer des comptes utilisateurs (optionnel)
+
+Via l'interface Admin → Créer un compte, ou en exécutant `supabase/admin-create-user.sql` dans le SQL Editor pour créer un compte avec mot de passe temporaire.
 
 ---
 
 ## Déploiement Vercel
 
-1. Push sur GitHub.
-2. Import Project sur Vercel → ton repo.
-3. Ajoute dans **Settings → Environment Variables** :
+### 1. Push sur GitHub et importer sur Vercel
+
+1. Pousser le repo sur GitHub
+2. Importer le projet sur [vercel.com](https://vercel.com)
+3. Build command : `npm run build`, Output directory : `dist`
+
+### 2. Variables d'environnement
+
+Dans **Vercel → Settings → Environment Variables** :
 
 | Variable | Description |
 |---|---|
 | `VITE_SUPABASE_URL` | URL du projet Supabase |
 | `VITE_SUPABASE_ANON_KEY` | Clé anon public Supabase |
-| `VITE_AUTH_REDIRECT_URL` | URL publique exacte de l'app |
-| `BRAZE_API_KEY` | Clé serveur Braze (`media_library.create`) |
+| `VITE_AUTH_REDIRECT_URL` | URL publique exacte de l'app (ex. `https://newsletter.decrypto.com`) |
+| `BRAZE_API_KEY` | Clé serveur Braze (permission `media_library.create`) |
 | `BRAZE_BASE_URL` | REST endpoint Braze (ex. `https://rest.fra-01.braze.eu`) |
-| `SUPABASE_URL` | Idem VITE_SUPABASE_URL (pour le keepalive serveur) |
-| `SUPABASE_ANON_KEY` | Idem VITE_SUPABASE_ANON_KEY (pour le keepalive serveur) |
+| `SUPABASE_URL` | Idem `VITE_SUPABASE_URL` (pour les fonctions serverless) |
+| `SUPABASE_ANON_KEY` | Idem `VITE_SUPABASE_ANON_KEY` (pour les fonctions serverless) |
+| `CRON_SECRET` | Secret optionnel pour sécuriser l'endpoint keepalive |
 
-4. Dans Supabase → **Authentication → URL Configuration**, ajoute l'URL Vercel dans **Redirect URLs**.
+> **Sécurité Braze** : la clé `BRAZE_API_KEY` n'est jamais exposée côté client (pas de préfixe `VITE_`). Le bouton Export Braze appelle `/api/export-braze` qui vérifie la session Supabase et le flag `is_admin` avant d'utiliser la clé.
 
-### Export Braze sécurisé
+### 3. Configurer les redirections Auth
 
-La clé Braze est serveur uniquement (jamais `VITE_*`). Le bouton Export Braze appelle `/api/export-braze` qui vérifie la session Supabase et le flag `is_admin` avant d'utiliser `BRAZE_API_KEY`.
+Dans **Supabase → Authentication → URL Configuration**, ajouter l'URL Vercel dans **Redirect URLs**.
 
-### Keepalive Supabase Free
+### 4. Keepalive anti-pause (projets Supabase Free)
 
-Les projets Supabase Free se mettent en pause après 7 jours d'inactivité. Un Cron Vercel appelle une RPC légère deux fois par semaine.
+Les projets Supabase Free se mettent en pause après 7 jours d'inactivité. Un Cron Vercel appelle une RPC légère deux fois par semaine :
 
-1. Exécute `supabase/keepalive.sql` dans le SQL Editor.
-2. Ajoute `CRON_SECRET` dans les variables Vercel (optionnel mais recommandé).
-3. Teste `GET /api/supabase-keepalive` après déploiement.
+1. Exécuter `supabase/keepalive.sql` dans le SQL Editor pour créer la fonction
+2. Ajouter `CRON_SECRET` dans les variables Vercel (optionnel mais recommandé)
+3. Le fichier `vercel.json` configure le cron automatiquement
+4. Tester avec `GET /api/supabase-keepalive` après déploiement
 
 ---
-
-## Structure du projet
-
-```
-src/
-  config/
-    theme.js              ← palette, polices, marque
-    schema.js             ← modèle de données + template par défaut
-    calloutPictos.js      ← 15 pictos + palette 9 couleurs pour les encadrés
-  contexts/
-    AuthContext.jsx        ← session + profil
-  lib/
-    supabase.js            ← client Supabase
-    useNewsletter.js       ← hook : load + lock + auto-save
-    templatePresets.js     ← presets de disposition admin
-    useLabels.js           ← labels colorés
-  pages/
-    LoginPage.jsx
-    PendingApprovalPage.jsx
-    NewslettersListPage.jsx
-    EditorPage.jsx
-    AdminPage.jsx
-  components/
-    EditorPanel.jsx        ← panneau gauche : liste des blocs + paramètres
-    SectionEditor.jsx      ← formulaires d'édition par type de bloc
-    PreviewPanel.jsx       ← prévisualisation temps réel
-    FormControls.jsx       ← éditeur de texte riche (Slate.js)
-    VersionsPanel.jsx      ← historique des versions
-    ImageManagerModal.jsx  ← gestionnaire d'images
-    Toolbar.jsx
-    Tooltip.jsx
-    Wordmark.jsx
-  render/
-    buildEmail.js          ← génération HTML email (tables, inline CSS, SVG)
-  App.jsx
-  main.jsx
-supabase/
-  schema.sql
-  admin-create-user.sql
-  bootstrap-admin.sql
-  keepalive.sql
-api/
-  export-braze.js          ← serverless function Vercel (upload images Braze)
-  supabase-keepalive.js    ← serverless function Vercel (cron ping)
-```
 
 ## Scripts
 
 ```bash
-npm run dev      # serveur de développement (http://localhost:5173)
-npm run build    # build de production
-npm run preview  # prévisualiser le build
+npm run dev      # Serveur de développement (http://localhost:5173)
+npm run build    # Build de production (dist/)
+npm run preview  # Prévisualiser le build de production localement
 ```
+
+---
+
+## Contribuer / Étendre
+
+### Ajouter un nouveau type de bloc
+
+1. Ajouter une entrée dans `src/config/schema.js` → `SECTION_TYPES` avec `label`, `icon` (nom Lucide), et `factory()`
+2. Ajouter la fonction de rendu dans `src/render/buildEmail.js`
+3. Ajouter le formulaire d'édition dans `src/components/SectionEditor.jsx`
+
+### Ajouter un picto d'encadré
+
+Ajouter une entrée dans `src/config/calloutPictos.js` → `CALLOUT_PICTOS` avec `id`, `num`, `label`, `color`, `bgRgb`, et `svgInner` (chemin SVG pour viewBox 24×24).
+
+### Modifier la palette de couleurs
+
+Éditer `src/config/theme.js` pour les couleurs de marque, et `tailwind.config.js` pour les tokens Tailwind.
