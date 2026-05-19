@@ -1136,6 +1136,56 @@ function renderTextBlock(data, number, anchor = "", isLastSection = false) {
     </tr>`;
 }
 
+function renderEditorialList(data, number, anchor = "", isLastSection = false) {
+  const isLightTheme = EMAIL_THEME === EMAIL_THEMES.light;
+  const rowBorder = isLightTheme ? "#E2E5EA" : "#24242C";
+  const numberColor = EMAIL_THEME.accentPrimary;
+  const kickerColor = EMAIL_THEME.accentPrimary;
+  const kicker = String(data.kicker || "").trim();
+  const kickerHtml = kicker
+    ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:12px 0 24px;">
+        <tr>
+          <td width="24" valign="middle" style="padding-right:10px;">
+            <table role="presentation" width="24" cellpadding="0" cellspacing="0" border="0">
+              <tr><td style="height:2px; line-height:2px; font-size:1px; background-color:${kickerColor};">&nbsp;</td></tr>
+            </table>
+          </td>
+          <td valign="middle" style="font-family:${FONTS.body}; font-size:11px; letter-spacing:0.18em; text-transform:uppercase; color:${kickerColor}; font-weight:700;">${escapeHtml(kicker)}</td>
+        </tr>
+      </table>`
+    : "";
+  const rows = (data.items || []).map((item, index, arr) => {
+    const isLast = index === arr.length - 1;
+    const tagColor = item.tag_color || EMAIL_THEME.accentPrimary;
+    return `<tr>
+      <td style="padding:18px 0; border-top:1px solid ${rowBorder}; ${isLast ? `border-bottom:1px solid ${rowBorder};` : ""}">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+          <tr>
+            <td class="em-editorial-num" valign="top" width="48" style="font-family:${FONTS.heading}; font-weight:700; font-size:24px; color:${numberColor}; letter-spacing:-0.02em; line-height:1;">${String(index + 1).padStart(2, "0")}</td>
+            <td valign="top" style="padding-right:14px;">
+              <p style="margin:0 0 4px; font-family:${FONTS.heading}; font-weight:600; font-size:17px; color:${EMAIL_THEME.textPrimary}; letter-spacing:-0.015em; line-height:1.25;">${escapeHtml(item.title || "")}</p>
+              <div style="margin:0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:13.5px; color:${EMAIL_THEME.textMuted}; line-height:1.55;">${sanitizeRichText(item.body || "")}</div>
+            </td>
+            ${item.tag ? `<td class="em-editorial-tag" valign="top" align="right" width="88" style="font-family:${FONTS.mono}; font-size:10px; color:${escapeAttr(tagColor)}; letter-spacing:0.08em; text-transform:uppercase; font-weight:700; line-height:1.35;">${escapeHtml(item.tag)}</td>` : ""}
+          </tr>
+        </table>
+      </td>
+    </tr>`;
+  }).join("");
+
+  return `
+    <tr>
+      <td class="em-px" style="padding:44px 36px;${sectionBottomBorder(isLastSection)}">
+        ${anchor}
+        ${sectionHeader(number, "")}
+        ${kickerHtml}
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+          ${rows}
+        </table>
+      </td>
+    </tr>`;
+}
+
 function renderDivider(data, isLastSection = false) {
   if (isLastSection) return "";
   if (data.style === "gradient") {
@@ -1164,6 +1214,7 @@ function renderSection(sec, allSections, assetMode, showSectionNumbers = true, i
     case "macro":      return renderMacro(sec.data, number, assetMode, anchor, isLastSection);
     case "macro_bars": return renderMacroBars(sec.data, isLastSection);
     case "commented_number": return renderCommentedNumber(sec.data, anchor, isLastSection);
+    case "editorial_list": return renderEditorialList(sec.data, number, anchor, isLastSection);
     case "event":      return renderEvent(sec.data, anchor, isLastSection);
     case "focus":      return renderFocus(sec.data, number, assetMode, anchor, isLastSection);
     case "image_block": return renderImageBlock(sec.data, isLastSection);
@@ -1295,6 +1346,8 @@ ${renderEmailFontFaces()}
     .em-kpi-grid td { display: block !important; width: 100% !important; box-sizing: border-box !important; border-right: none !important; border-bottom: 1px solid ${EMAIL_THEME.border} !important; }
     .em-signal-col { display: block !important; width: 100% !important; box-sizing: border-box !important; border-right: none !important; border-bottom: 1px solid ${EMAIL_THEME.border} !important; }
     .em-signal-col:last-child { border-bottom: none !important; }
+    .em-editorial-num { width: 40px !important; }
+    .em-editorial-tag { display: block !important; width: auto !important; text-align: left !important; padding-top: 8px !important; }
     .em-event-text { word-break: break-word !important; overflow-wrap: break-word !important; }
     .em-cn-num { width: 100% !important; max-width: 100% !important; box-sizing: border-box !important; border-right: none !important; border-bottom: 1px solid ${EMAIL_THEME.borderStrong} !important; border-radius: 12px 12px 0 0 !important; }
     .em-cn-text { width: 100% !important; max-width: 100% !important; box-sizing: border-box !important; padding: 24px !important; border-radius: 0 0 12px 12px !important; }

@@ -462,6 +462,127 @@ function EditoEditor({ data, set }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// LISTE ÉDITORIALE NUMÉROTÉE
+// ─────────────────────────────────────────────────────────────────────────────
+
+const EDITORIAL_TAG_COLORS = [
+  { label: "Mint", hex: "#03FFCF" },
+  { label: "Cyan", hex: "#00FFFF" },
+  { label: "Orange", hex: "#FF8B28" },
+  { label: "Violet", hex: "#C46BFF" },
+  { label: "Rose", hex: "#FF00AA" },
+];
+
+function EditorialListEditor({ data, set }) {
+  const items = data.items || [];
+  const helpers = listHelpers(items, set, () => ({
+    title: "Nouvelle entrée",
+    body: "",
+    tag: "Tag",
+    tag_color: "#FF00AA",
+  }));
+
+  const moveItem = (i, dir) => {
+    const j = i + dir;
+    if (j < 0 || j >= items.length) return;
+    const arr = [...items];
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+    set({ items: arr });
+  };
+
+  return (
+    <>
+      <Field label="Libellé">
+        <Input
+          value={data.kicker || ""}
+          onChange={(e) => set({ kicker: e.target.value })}
+          placeholder="Cinq raisons d'activer"
+        />
+      </Field>
+
+      <div className="space-y-3">
+        {items.map((item, i) => (
+          <div key={i} className="rounded-xl border border-line bg-d-panel2 p-3">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-xs font-semibold text-d-pink">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-d-fg4">
+                  Entrée
+                </span>
+              </div>
+              <div className="flex items-center gap-1">
+                <button type="button" onClick={() => moveItem(i, -1)} disabled={i === 0} className="p-1.5 text-d-fg4 hover:text-d-fg2 hover:bg-d-panel3 rounded-lg disabled:opacity-20">
+                  <ChevronUp size={14} />
+                </button>
+                <button type="button" onClick={() => moveItem(i, 1)} disabled={i === items.length - 1} className="p-1.5 text-d-fg4 hover:text-d-fg2 hover:bg-d-panel3 rounded-lg disabled:opacity-20">
+                  <ChevronDown size={14} />
+                </button>
+                <button type="button" onClick={() => helpers.remove(i)} className="p-1.5 text-d-fg4 hover:text-red-400 hover:bg-red-900/20 rounded-lg">
+                  <Trash2 size={14} />
+                </button>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_150px]">
+              <Field noMargin label="Titre">
+                <Input
+                  value={item.title || ""}
+                  onChange={(e) => helpers.set(i, { ...item, title: e.target.value })}
+                />
+              </Field>
+              <Field noMargin label="Tag">
+                <Input
+                  value={item.tag || ""}
+                  onChange={(e) => helpers.set(i, { ...item, tag: e.target.value })}
+                />
+              </Field>
+            </div>
+            <Field noMargin label="Description" hint="Éditeur riche">
+              <TextArea
+                rows={3}
+                value={item.body || ""}
+                onChange={(e) => helpers.set(i, { ...item, body: e.target.value })}
+              />
+            </Field>
+            <div className="mt-3">
+              <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-d-fg4">Couleur du tag</div>
+              <div className="flex flex-wrap gap-1.5">
+                {EDITORIAL_TAG_COLORS.map((color) => {
+                  const active = (item.tag_color || "#FF00AA").toUpperCase() === color.hex.toUpperCase();
+                  return (
+                    <Tooltip key={color.hex} label={color.label}>
+                      <button
+                        type="button"
+                        onClick={() => helpers.set(i, { ...item, tag_color: color.hex })}
+                        className={`h-6 w-6 rounded-full border-2 transition-all ${active ? "scale-110" : "opacity-55 hover:opacity-90"}`}
+                        style={{
+                          backgroundColor: color.hex,
+                          borderColor: active ? color.hex : "transparent",
+                          boxShadow: active ? "0 0 0 2px rgba(255,255,255,0.25)" : "none",
+                        }}
+                      />
+                    </Tooltip>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <button
+        type="button"
+        onClick={helpers.add}
+        className="w-full mt-3 flex items-center justify-center gap-2 px-4 py-2 border border-dashed border-line text-d-fg3 hover:border-line2 hover:text-d-fg2 rounded-xl text-[10px] uppercase tracking-[0.18em] transition-colors"
+      >
+        <Plus size={12} /> Ajouter une entrée
+      </button>
+    </>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // CHART — sliders pour les 7 points ou import auto CoinGecko
 // ─────────────────────────────────────────────────────────────────────────────
 
