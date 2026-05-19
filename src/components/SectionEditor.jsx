@@ -1685,13 +1685,13 @@ function FocusEditor({ data, set }) {
                               <button
                                 type="button"
                                 onClick={() => updateItem(item.id, { picto: p.id })}
-                                className={`w-full aspect-square rounded-lg border flex items-center justify-center transition-all ${
-                                  isSelected ? "opacity-100 scale-105" : "border-line bg-d-panel3 opacity-40 hover:opacity-80 hover:scale-105"
+                                className={`callout-picto-choice w-full aspect-square rounded-lg border flex items-center justify-center transition-all ${
+                                  isSelected ? "is-selected opacity-100 scale-105" : "opacity-75 hover:opacity-100 hover:scale-105"
                                 }`}
-                                style={isSelected ? {
-                                  background: `rgba(${rgb},0.16)`,
-                                  borderColor: `rgba(${rgb},0.4)`,
-                                } : {}}
+                                style={{
+                                  "--callout-picto-rgb": rgb,
+                                  "--callout-picto-color": activeColor,
+                                }}
                               >
                                 <span dangerouslySetInnerHTML={{ __html: buildPictoSvgHtml(p.svgInner, activeColor, 13) }} />
                               </button>

@@ -125,3 +125,23 @@ html, body {
   background: var(--d-ai-bg-hover);
   border-color: var(--d-ai-fg);
 }
+
+.callout-picto-choice {
+  background: rgb(var(--d-panel3));
+  border-color: var(--d-line);
+}
+
+.callout-picto-choice.is-selected {
+  background: rgba(var(--callout-picto-rgb), 0.16);
+  border-color: rgba(var(--callout-picto-rgb), 0.4);
+}
+
+:root.ui-light .callout-picto-choice {
+  background: rgba(var(--callout-picto-rgb), 0.12);
+  border-color: rgba(var(--callout-picto-rgb), 0.24);
+}
+
+:root.ui-light .callout-picto-choice.is-selected {
+  background: rgba(var(--callout-picto-rgb), 0.28);
+  border-color: rgba(var(--callout-picto-rgb), 0.58);
+}
