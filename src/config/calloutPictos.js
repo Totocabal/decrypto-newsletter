@@ -4,6 +4,22 @@
 
 export const CALLOUT_PICTOS = [
   {
+    id: "check",
+    num: "00",
+    label: "Coche",
+    color: "#03FFCF",
+    bgRgb: "3,255,207",
+    svgInner: `<path d="M20 6 9 17l-5-5"/>`,
+  },
+  {
+    id: "shield",
+    num: "00",
+    label: "Bouclier",
+    color: "#03FFCF",
+    bgRgb: "3,255,207",
+    svgInner: `<path d="M12 3 20 6.5v5.8c0 4.7-3.2 7.7-8 9.2-4.8-1.5-8-4.5-8-9.2V6.5Z"/><path d="M9 12l2 2 4-4"/>`,
+  },
+  {
     id: "info",
     num: "01",
     label: "À noter",

@@ -187,6 +187,49 @@ export const SECTION_TYPES = {
         "Premier flux net hebdo positif depuis trois semaines. BlackRock et Fidelity captent à eux deux <strong>62 %</strong> du volume — la concentration s'accentue.",
     }),
   },
+  feature_grid: {
+    label: "Grille bénéfices",
+    icon: "Grid2X2",
+    factory: () => ({
+      kicker: "Bloc visuel · Hiérarchisé",
+      featured: {
+        label: "Bénéfice n°1",
+        title: "Vos achats crypto, enfin sans friction bancaire.",
+        body: "Compte euro indépendant — fini les refus, les frais cachés, les appels du conseiller.",
+        picto: "check",
+        show_icon: true,
+        color: "#FF00AA",
+      },
+      bg_image_url: "",
+      bg_image_path: "",
+      items: [
+        {
+          title: "Moins de frais qu'avec votre carte",
+          body: "Virer depuis votre compte euro coûte moins cher que payer par CB.",
+          picto: "euro",
+          color: "#00FFFF",
+        },
+        {
+          title: "Achats récurrents sans rejet",
+          body: "Vos investissements programmés s'exécutent automatiquement.",
+          picto: "pin",
+          color: "#FF8B28",
+        },
+        {
+          title: "IBAN français FR76",
+          body: "Partenariat filiale Société Générale.",
+          picto: "shield",
+          color: "#B36BFF",
+        },
+        {
+          title: "Gratuit · 24h/24",
+          body: "Aucun frais de tenue de compte pour les particuliers.",
+          picto: "check",
+          color: "#03FFCF",
+        },
+      ],
+    }),
+  },
   editorial_list: {
     label: "Liste éditoriale",
     icon: "List",

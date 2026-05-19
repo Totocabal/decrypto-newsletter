@@ -739,6 +739,93 @@ function renderCommentedNumber(data, anchor = "", isLastSection = false) {
     </tr>`;
 }
 
+function renderPictoBadge(pictoId, color, size, assetMode) {
+  const picto = CALLOUT_PICTOS_MAP[pictoId || DEFAULT_PICTO_ID] || CALLOUT_PICTOS_MAP[DEFAULT_PICTO_ID];
+  const accent = color || DEFAULT_CALLOUT_COLOR;
+  const iconBg = EMAIL_THEME === EMAIL_THEMES.light
+    ? mixHex("#FFFFFF", accent, 0.18)
+    : mixHex(EMAIL_THEME.bgEmail || "#0B0B0D", accent, 0.22);
+  const iconBorder = EMAIL_THEME === EMAIL_THEMES.light
+    ? mixHex("#FFFFFF", accent, 0.42)
+    : mixHex(EMAIL_THEME.bgEmail || "#0B0B0D", accent, 0.48);
+  const icon = assetMode === "external"
+    ? `<img src="assets/${getCalloutPictoFilename(pictoId || DEFAULT_PICTO_ID, accent)}" width="${size}" height="${size}" alt="" style="display:block; width:${size}px; height:${size}px; border:0; margin:0 auto;" />`
+    : buildPictoSvgHtml(picto.svgInner, accent, size);
+  return `<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td width="${size + 18}" height="${size + 18}" align="center" valign="middle" bgcolor="${iconBg}" style="background-color:${iconBg}; border:1px solid ${iconBorder}; border-radius:10px; line-height:${size + 18}px;">${icon}</td></tr></table>`;
+}
+
+function renderFeatureGrid(data, number, assetMode, anchor = "", isLastSection = false) {
+  const featured = data.featured || {};
+  const items = (data.items || []).slice(0, 4);
+  const isLightTheme = EMAIL_THEME === EMAIL_THEMES.light;
+  const cardBg = isLightTheme ? "#FFFFFF" : "#101018";
+  const cardBorder = isLightTheme ? "#E4E7EE" : "#24242C";
+  const cardText = isLightTheme ? "#15151A" : EMAIL_THEME.textPrimary;
+  const cardMuted = isLightTheme ? "#596273" : EMAIL_THEME.textMuted;
+  const bgImg = String(data.bg_image_url || "").trim();
+  const effectiveBgImg = bgImg || (assetMode === "external"
+    ? "assets/macro-quote-bg.png"
+    : "https://decrypto-newsletter.vercel.app/macro-quote-bg.png");
+  const featuredColor = featured.color || EMAIL_THEME.accentPrimary;
+  const featuredIcon = featured.show_icon === false
+    ? ""
+    : `<td class="em-feature-icon" valign="top" width="58" style="padding-right:14px;">${renderPictoBadge(featured.picto, featuredColor, 18, assetMode)}</td>`;
+  const featuredLabel = featured.label
+    ? `<span style="display:inline-block; padding:4px 10px; border-radius:99px; background-color:${mixHex("#1a0c2e", featuredColor, 0.22)}; color:#FFE5F5; font-family:${FONTS.mono}; font-size:10px; letter-spacing:0.08em; font-weight:700; text-transform:uppercase; margin-bottom:8px;">${escapeHtml(featured.label)}</span>`
+    : "";
+  const featuredCard = `
+    <!--[if mso]>
+    <v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false" style="width:568px; border-radius:16px;">
+      <v:fill type="frame" src="${escapeAttr(effectiveBgImg)}" color="#1a0c2e" />
+      <v:textbox inset="0,0,0,0"><![endif]-->
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#1a0c2e" background="${escapeAttr(effectiveBgImg)}" style="background-color:#1a0c2e; background-image:url('${escapeAttr(effectiveBgImg)}'); background-size:cover; background-position:center; border-radius:16px; margin-bottom:12px;">
+      <tr>
+        <td style="padding:22px 24px; border-radius:16px;">
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+            <tr>
+              ${featuredIcon}
+              <td valign="top">
+                ${featuredLabel}
+                ${featured.title ? `<p style="margin:0; font-family:${FONTS.heading}; font-weight:600; font-size:18px; color:#ffffff; letter-spacing:-0.015em; line-height:1.25;">${escapeHtml(featured.title)}</p>` : ""}
+                ${featured.body ? `<div style="margin:8px 0 0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:13px; color:#D8DDE6; line-height:1.55;">${sanitizeRichText(featured.body)}</div>` : ""}
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+    <!--[if mso]></v:textbox></v:rect><![endif]-->`;
+  const cell = (item, index, side, isBottom) => {
+    const color = item.color || DEFAULT_CALLOUT_COLOR;
+    const sidePadding = side === "left" ? "padding-right:6px;" : "padding-left:6px;";
+    const bottomPadding = isBottom ? "" : "padding-bottom:12px;";
+    return `<td class="em-feature-cell" valign="top" width="50%" style="${sidePadding} ${bottomPadding}">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${cardBg}" style="background-color:${cardBg}; border:1px solid ${cardBorder}; border-radius:14px; height:100%;">
+        <tr><td style="padding:18px;">
+          <div style="margin-bottom:10px;">${renderPictoBadge(item.picto, color, 14, assetMode)}</div>
+          ${item.title ? `<p style="margin:0 0 4px; font-family:${FONTS.heading}; font-weight:600; font-size:13.5px; color:${cardText}; letter-spacing:-0.005em; line-height:1.28;">${escapeHtml(item.title)}</p>` : ""}
+          ${item.body ? `<div style="margin:0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:12px; color:${cardMuted}; line-height:1.5;">${sanitizeRichText(item.body)}</div>` : ""}
+        </td></tr>
+      </table>
+    </td>`;
+  };
+  const rows = [0, 2].map((start) => `<tr>
+    ${cell(items[start] || {}, start, "left", start === 2)}
+    ${cell(items[start + 1] || {}, start + 1, "right", start === 2)}
+  </tr>`).join("");
+
+  return `
+    <tr>
+      <td class="em-px" style="padding:44px 36px;${sectionBottomBorder(isLastSection)}">
+        ${anchor}
+        ${sectionHeader(number, data.kicker)}
+        <div style="height:18px; line-height:18px; font-size:1px;">&nbsp;</div>
+        ${featuredCard}
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${rows}</table>
+      </td>
+    </tr>`;
+}
+
 function renderMacro(data, number, assetMode, anchor = "", isLastSection = false) {
   const authorParts = String(data.quote_author || "").split(" · ");
   const authorName = authorParts.shift() || "";
@@ -1214,6 +1301,7 @@ function renderSection(sec, allSections, assetMode, showSectionNumbers = true, i
     case "macro":      return renderMacro(sec.data, number, assetMode, anchor, isLastSection);
     case "macro_bars": return renderMacroBars(sec.data, isLastSection);
     case "commented_number": return renderCommentedNumber(sec.data, anchor, isLastSection);
+    case "feature_grid": return renderFeatureGrid(sec.data, number, assetMode, anchor, isLastSection);
     case "editorial_list": return renderEditorialList(sec.data, number, anchor, isLastSection);
     case "event":      return renderEvent(sec.data, anchor, isLastSection);
     case "focus":      return renderFocus(sec.data, number, assetMode, anchor, isLastSection);
@@ -1346,6 +1434,8 @@ ${renderEmailFontFaces()}
     .em-kpi-grid td { display: block !important; width: 100% !important; box-sizing: border-box !important; border-right: none !important; border-bottom: 1px solid ${EMAIL_THEME.border} !important; }
     .em-signal-col { display: block !important; width: 100% !important; box-sizing: border-box !important; border-right: none !important; border-bottom: 1px solid ${EMAIL_THEME.border} !important; }
     .em-signal-col:last-child { border-bottom: none !important; }
+    .em-feature-cell { display: block !important; width: 100% !important; box-sizing: border-box !important; padding-left: 0 !important; padding-right: 0 !important; padding-bottom: 12px !important; }
+    .em-feature-icon { width: 48px !important; padding-right: 12px !important; }
     .em-editorial-num { width: 40px !important; }
     .em-editorial-tag { display: block !important; width: auto !important; text-align: left !important; padding-top: 8px !important; }
     .em-event-text { word-break: break-word !important; overflow-wrap: break-word !important; }

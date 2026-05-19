@@ -145,6 +145,24 @@ async function buildPngAssets(state) {
       const ext = guessImageExtension(sec.data.bg_image_url);
       focusImages.push({ sectionId: sec.id, kind: "macro_bg", originalUrl: sec.data.bg_image_url, filename: `macro-bg-${sec.id}.${ext}` });
     }
+    if (sec.type === "feature_grid") {
+      if (sec.data.bg_image_url) {
+        const ext = guessImageExtension(sec.data.bg_image_url);
+        focusImages.push({ sectionId: sec.id, kind: "feature_grid_bg", originalUrl: sec.data.bg_image_url, filename: `feature-grid-bg-${sec.id}.${ext}` });
+      }
+      const featureIcons = [
+        ...(sec.data.featured?.show_icon === false ? [] : [sec.data.featured || {}]),
+        ...(sec.data.items || []),
+      ];
+      featureIcons.forEach((item) => {
+        const pictoId = item.picto || DEFAULT_PICTO_ID;
+        const color = item.color || DEFAULT_CALLOUT_COLOR;
+        const filename = getCalloutPictoFilename(pictoId, color);
+        if (!calloutPictos.some((p) => p.filename === filename)) {
+          calloutPictos.push({ pictoId, color, filename });
+        }
+      });
+    }
     if (sec.type === "image_block" && sec.data.image_url) {
       const ext = guessImageExtension(sec.data.image_url);
       focusImages.push({ sectionId: sec.id, originalUrl: sec.data.image_url, filename: `image_block-${sec.id}.${ext}` });
@@ -231,7 +249,7 @@ async function buildPngAssets(state) {
   }
 
   const needMacroQuoteBg = (state.sections || []).some(
-    (sec) => sec.type === "macro" && !String(sec.data?.bg_image_url || "").trim()
+    (sec) => ["macro", "feature_grid"].includes(sec.type) && !String(sec.data?.bg_image_url || "").trim()
   );
   if (needMacroQuoteBg) {
     try {
@@ -273,6 +291,12 @@ function buildExternalAssetState(state, focusImages, assets, assetUrlMap = {}) {
       }
       if (sec.type === "macro" && sec.data.bg_image_url) {
         const fi = focusImages.find((f) => f.sectionId === sec.id && f.kind === "macro_bg");
+        if (fi && assets[fi.filename]) {
+          return { ...sec, data: { ...sec.data, bg_image_url: assetUrlMap[fi.filename] || `assets/${fi.filename}` } };
+        }
+      }
+      if (sec.type === "feature_grid" && sec.data.bg_image_url) {
+        const fi = focusImages.find((f) => f.sectionId === sec.id && f.kind === "feature_grid_bg");
         if (fi && assets[fi.filename]) {
           return { ...sec, data: { ...sec.data, bg_image_url: assetUrlMap[fi.filename] || `assets/${fi.filename}` } };
         }

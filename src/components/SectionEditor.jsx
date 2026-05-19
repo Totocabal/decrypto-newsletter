@@ -26,6 +26,7 @@ export function SectionEditor({ type, data, onChange, sections = [] }) {
     case "macro":      return <MacroEditor data={data} set={set} />;
     case "macro_bars": return <MacroBarsEditor data={data} set={set} />;
     case "commented_number": return <CommentedNumberEditor data={data} set={set} />;
+    case "feature_grid": return <FeatureGridEditor data={data} set={set} />;
     case "editorial_list": return <EditorialListEditor data={data} set={set} />;
     case "event":      return <EventEditor data={data} set={set} />;
     case "focus":      return <FocusEditor data={data} set={set} />;
@@ -578,6 +579,192 @@ function EditorialListEditor({ data, set }) {
       >
         <Plus size={12} /> Ajouter une entrée
       </button>
+    </>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// GRILLE BÉNÉFICES — 1 VEDETTE + 4 SECONDAIRES
+// ─────────────────────────────────────────────────────────────────────────────
+
+function PictoSelector({ value, color, onChange }) {
+  const activeColor = color || DEFAULT_CALLOUT_COLOR;
+  const rgb = hexToRgb(activeColor);
+  return (
+    <div className="grid grid-cols-8 gap-1.5">
+      {CALLOUT_PICTOS.map((p) => {
+        const isSelected = (value || DEFAULT_PICTO_ID) === p.id;
+        return (
+          <div key={p.id} className="relative group">
+            <button
+              type="button"
+              onClick={() => onChange(p.id)}
+              className={`callout-picto-choice w-full aspect-square rounded-lg border flex items-center justify-center transition-all ${
+                isSelected ? "is-selected opacity-100 scale-105" : "opacity-75 hover:opacity-100 hover:scale-105"
+              }`}
+              style={{
+                "--callout-picto-rgb": rgb,
+                "--callout-picto-color": activeColor,
+              }}
+            >
+              <span dangerouslySetInnerHTML={{ __html: buildPictoSvgHtml(p.svgInner, activeColor, 13) }} />
+            </button>
+            <div
+              className="pointer-events-none absolute bottom-[calc(100%+6px)] left-1/2 -translate-x-1/2 z-20 hidden h-10 w-10 items-center justify-center rounded-xl border shadow-xl group-hover:flex"
+              style={{
+                background: `rgba(${rgb},0.16)`,
+                borderColor: `rgba(${rgb},0.4)`,
+              }}
+            >
+              <span dangerouslySetInnerHTML={{ __html: buildPictoSvgHtml(p.svgInner, activeColor, 22) }} />
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function ColorSelector({ value, onChange }) {
+  const activeColor = value || DEFAULT_CALLOUT_COLOR;
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {CALLOUT_COLORS.map((c) => {
+        const isSelected = activeColor.toUpperCase() === c.hex.toUpperCase();
+        return (
+          <Tooltip key={c.hex} label={c.label}>
+            <button
+              type="button"
+              onClick={() => onChange(c.hex)}
+              className={`h-6 w-6 rounded-full border-2 transition-all ${isSelected ? "scale-110" : "opacity-50 hover:opacity-80"}`}
+              style={{
+                backgroundColor: c.hex,
+                borderColor: isSelected ? c.hex : "transparent",
+                boxShadow: isSelected ? "0 0 0 2px rgba(255,255,255,0.25)" : "none",
+              }}
+            />
+          </Tooltip>
+        );
+      })}
+    </div>
+  );
+}
+
+function FeatureGridEditor({ data, set }) {
+  const { profile } = useAuth();
+  const [bgImageManagerOpen, setBgImageManagerOpen] = useState(false);
+  const featured = data.featured || {};
+  const items = data.items || [];
+  const updateFeatured = (patch) => set({ ...data, featured: { ...featured, ...patch } });
+  const updateItem = (index, patch) => {
+    const nextItems = items.map((item, i) => (i === index ? { ...item, ...patch } : item));
+    set({ ...data, items: nextItems });
+  };
+
+  return (
+    <>
+      <Field label="Kicker">
+        <Input value={data.kicker || ""} onChange={(e) => set({ ...data, kicker: e.target.value })} />
+      </Field>
+
+      <div className="rounded-xl border border-line bg-d-panel2 p-3 space-y-3">
+        <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-d-pink">Carte vedette</div>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <Field noMargin label="Label">
+            <Input value={featured.label || ""} onChange={(e) => updateFeatured({ label: e.target.value })} />
+          </Field>
+          <Field noMargin label="Couleur">
+            <ColorSelector value={featured.color} onChange={(color) => updateFeatured({ color })} />
+          </Field>
+        </div>
+        <Field noMargin label="Titre">
+          <Input value={featured.title || ""} onChange={(e) => updateFeatured({ title: e.target.value })} />
+        </Field>
+        <Field noMargin label="Texte" hint="Éditeur riche">
+          <TextArea rows={3} value={featured.body || ""} onChange={(e) => updateFeatured({ body: e.target.value })} />
+        </Field>
+        <label className="flex items-center justify-between gap-4 rounded-xl border border-line bg-d-panel px-3 py-2.5 cursor-pointer">
+          <span className="text-xs font-semibold text-d-fg">Afficher le picto</span>
+          <span className="relative inline-flex h-6 w-11 flex-shrink-0 items-center">
+            <input
+              type="checkbox"
+              checked={featured.show_icon !== false}
+              onChange={(e) => updateFeatured({ show_icon: e.target.checked })}
+              className="peer sr-only"
+            />
+            <span className="absolute inset-0 rounded-full border border-line bg-d-panel transition-colors peer-checked:border-d-pink peer-checked:bg-d-pink/25" />
+            <span className="relative ml-1 h-4 w-4 rounded-full bg-d-fg4 transition-transform peer-checked:translate-x-5 peer-checked:bg-d-pink" />
+          </span>
+        </label>
+        {featured.show_icon !== false && (
+          <div>
+            <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.15em] text-d-fg4">Pictogramme</div>
+            <PictoSelector value={featured.picto} color={featured.color} onChange={(picto) => updateFeatured({ picto })} />
+          </div>
+        )}
+        <div>
+          <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.15em] text-d-fg4">Fond de la carte vedette</div>
+          {data.bg_image_url ? (
+            <div>
+              <div className="relative mb-2 overflow-hidden rounded-xl border border-line">
+                <img src={data.bg_image_url} alt="" className="h-28 w-full object-cover" />
+                <button
+                  type="button"
+                  onClick={() => set({ ...data, bg_image_url: "", bg_image_path: "" })}
+                  className="absolute right-2 top-2 rounded-lg border border-line bg-d-panel2 p-1.5 text-d-fg3 shadow-sm hover:border-red-500/30 hover:bg-red-900/20 hover:text-red-400"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+              <button type="button" onClick={() => setBgImageManagerOpen(true)} className="w-full rounded-xl border border-line px-3 py-2 text-[10px] uppercase tracking-[0.18em] text-d-fg3 transition-colors hover:bg-d-panel3">
+                Changer l'image
+              </button>
+            </div>
+          ) : (
+            <button type="button" onClick={() => setBgImageManagerOpen(true)} className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-line px-4 py-3 text-[10px] font-medium uppercase tracking-[0.18em] text-d-fg3 transition-colors hover:border-line2 hover:text-d-fg">
+              <Upload size={14} />
+              Choisir une image de fond
+            </button>
+          )}
+        </div>
+      </div>
+
+      <div className="mt-3 space-y-3">
+        {items.map((item, index) => (
+          <div key={index} className="rounded-xl border border-line bg-d-panel2 p-3 space-y-3">
+            <div className="flex items-center justify-between gap-3">
+              <span className="font-mono text-xs font-semibold text-d-cyan">{String(index + 1).padStart(2, "0")}</span>
+              <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-d-fg4">Carte secondaire</span>
+            </div>
+            <Field noMargin label="Titre">
+              <Input value={item.title || ""} onChange={(e) => updateItem(index, { title: e.target.value })} />
+            </Field>
+            <Field noMargin label="Texte" hint="Éditeur riche">
+              <TextArea rows={3} value={item.body || ""} onChange={(e) => updateItem(index, { body: e.target.value })} />
+            </Field>
+            <Field noMargin label="Couleur">
+              <ColorSelector value={item.color} onChange={(color) => updateItem(index, { color })} />
+            </Field>
+            <div>
+              <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.15em] text-d-fg4">Pictogramme</div>
+              <PictoSelector value={item.picto} color={item.color} onChange={(picto) => updateItem(index, { picto })} />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {bgImageManagerOpen && (
+        <ImageManagerModal
+          currentPath={data.bg_image_path}
+          onSelect={({ url, path }) => {
+            set({ ...data, bg_image_url: url, bg_image_path: path });
+            setBgImageManagerOpen(false);
+          }}
+          onClose={() => setBgImageManagerOpen(false)}
+          userId={profile?.id}
+          isAdmin={profile?.is_admin}
+        />
+      )}
     </>
   );
 }
