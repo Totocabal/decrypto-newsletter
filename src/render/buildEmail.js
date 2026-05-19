@@ -1244,6 +1244,9 @@ function renderEditorialList(data, number, anchor = "", isLastSection = false) {
   const rows = (data.items || []).map((item, index, arr) => {
     const isLast = index === arr.length - 1;
     const tagColor = item.tag_color || EMAIL_THEME.accentPrimary;
+    const tagHtml = item.tag
+      ? `<span style="font-family:${FONTS.mono}; font-size:10px; color:${escapeAttr(tagColor)}; letter-spacing:0.08em; text-transform:uppercase; font-weight:700; line-height:1.35;">${escapeHtml(item.tag)}</span>`
+      : "";
     return `<tr>
       <td style="padding:18px 0; border-top:1px solid ${rowBorder}; ${isLast ? `border-bottom:1px solid ${rowBorder};` : ""}">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
@@ -1252,8 +1255,9 @@ function renderEditorialList(data, number, anchor = "", isLastSection = false) {
             <td valign="top" style="padding-right:14px;">
               <p style="margin:0 0 4px; font-family:${FONTS.heading}; font-weight:600; font-size:17px; color:${EMAIL_THEME.textPrimary}; letter-spacing:-0.015em; line-height:1.25;">${escapeHtml(item.title || "")}</p>
               <div style="margin:0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:13.5px; color:${EMAIL_THEME.textMuted}; line-height:1.55;">${sanitizeRichText(item.body || "")}</div>
+              ${tagHtml ? `<div class="em-editorial-tag-mobile" style="display:none; max-height:0; overflow:hidden; mso-hide:all; padding-top:0;">${tagHtml}</div>` : ""}
             </td>
-            ${item.tag ? `<td class="em-editorial-tag" valign="top" align="right" width="88" style="font-family:${FONTS.mono}; font-size:10px; color:${escapeAttr(tagColor)}; letter-spacing:0.08em; text-transform:uppercase; font-weight:700; line-height:1.35;">${escapeHtml(item.tag)}</td>` : ""}
+            ${tagHtml ? `<td class="em-editorial-tag" valign="top" align="right" width="88" style="font-family:${FONTS.mono}; font-size:10px; color:${escapeAttr(tagColor)}; letter-spacing:0.08em; text-transform:uppercase; font-weight:700; line-height:1.35;">${escapeHtml(item.tag)}</td>` : ""}
           </tr>
         </table>
       </td>
@@ -1437,7 +1441,8 @@ ${renderEmailFontFaces()}
     .em-feature-cell { display: block !important; width: 100% !important; box-sizing: border-box !important; padding-left: 0 !important; padding-right: 0 !important; padding-bottom: 12px !important; }
     .em-feature-icon { width: 48px !important; padding-right: 12px !important; }
     .em-editorial-num { width: 40px !important; }
-    .em-editorial-tag { display: block !important; width: auto !important; text-align: left !important; padding-top: 8px !important; }
+    .em-editorial-tag { display: none !important; mso-hide: all !important; max-height: 0 !important; overflow: hidden !important; width: 0 !important; }
+    .em-editorial-tag-mobile { display: block !important; max-height: none !important; overflow: visible !important; padding-top: 10px !important; }
     .em-event-text { word-break: break-word !important; overflow-wrap: break-word !important; }
     .em-cn-num { width: 100% !important; max-width: 100% !important; box-sizing: border-box !important; border-right: none !important; border-bottom: 1px solid ${EMAIL_THEME.borderStrong} !important; border-radius: 12px 12px 0 0 !important; }
     .em-cn-text { width: 100% !important; max-width: 100% !important; box-sizing: border-box !important; padding: 24px !important; border-radius: 0 0 12px 12px !important; }
