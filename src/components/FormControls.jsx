@@ -10,6 +10,7 @@ import { supabase } from "../lib/supabase.js";
 import { Tooltip } from "./Tooltip.jsx";
 
 const EmbedBlot = Quill.import("blots/embed");
+const Delta = Quill.import("delta");
 
 class SoftBreakBlot extends EmbedBlot {
   static blotName = "softbreak";
@@ -211,6 +212,16 @@ const TOOLBAR_OPTIONS = [
   ["clean"],
 ];
 
+function insertSoftBreak(quill, range) {
+  if (!range) return false;
+  quill.updateContents(
+    new Delta().retain(range.index).delete(range.length || 0).insert({ softbreak: true }),
+    "user",
+  );
+  quill.setSelection(range.index + 1, 0, "silent");
+  return false;
+}
+
 function RichTextEditor({ showCount, onChange, value = "", rows = 3, placeholder, ...props }) {
   const holderRef = useRef(null);
   const quillRef = useRef(null);
@@ -228,21 +239,28 @@ function RichTextEditor({ showCount, onChange, value = "", rows = 3, placeholder
         toolbar: TOOLBAR_OPTIONS,
         keyboard: {
           bindings: {
-            shiftEnter: {
+            shiftEnterInList: {
               key: "Enter",
               shiftKey: true,
+              collapsed: true,
+              format: ["list"],
               handler(range) {
-                const formats = this.quill.getFormat(range);
-                if (!formats.list) return true;
-                this.quill.insertEmbed(range.index, "softbreak", true, "user");
-                this.quill.setSelection(range.index + 1, 0, "silent");
-                return false;
+                return insertSoftBreak(this.quill, range);
+              },
+            },
+            shiftEnterSelectionInList: {
+              key: "Enter",
+              shiftKey: true,
+              collapsed: false,
+              format: ["list"],
+              handler(range) {
+                return insertSoftBreak(this.quill, range);
               },
             },
           },
         },
       },
-      formats: ["bold", "italic", "underline", "strike", "link", "list", "indent"],
+      formats: ["bold", "italic", "underline", "strike", "link", "list", "indent", "softbreak"],
       placeholder: placeholder || "",
     });
 
