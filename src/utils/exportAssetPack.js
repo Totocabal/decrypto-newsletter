@@ -13,6 +13,7 @@ import JSZip from "jszip";
 import {
   buildEmailHtml,
   getCalloutPictoFilename,
+  getFeatureGridPictoFilename,
   getChartSvgFull,
   getGaugeSvgFull,
 } from "../render/buildEmail.js";
@@ -142,6 +143,7 @@ function buildStandalonePictoSvg(svgInner, color, size = 32) {
 async function buildPngAssets(state) {
   const assets = {};
   const calloutPictos = [];
+  const featureGridPictos = [];
 
   // Pour chaque section "chart" et "fear_greed" présente, on génère son PNG.
   let needChart = false;
@@ -189,9 +191,9 @@ async function buildPngAssets(state) {
       featureIcons.forEach((item) => {
         const pictoId = item.picto || DEFAULT_PICTO_ID;
         const color = item.color || DEFAULT_CALLOUT_COLOR;
-        const filename = getCalloutPictoFilename(pictoId, color);
-        if (!calloutPictos.some((p) => p.filename === filename)) {
-          calloutPictos.push({ pictoId, color, filename });
+        const filename = getFeatureGridPictoFilename(pictoId, color);
+        if (!featureGridPictos.some((p) => p.filename === filename)) {
+          featureGridPictos.push({ pictoId, color, filename });
         }
       });
     }
@@ -245,6 +247,12 @@ async function buildPngAssets(state) {
     const picto = CALLOUT_PICTOS_MAP[item.pictoId] || CALLOUT_PICTOS_MAP[DEFAULT_PICTO_ID];
     const stroke = readableTextOn(item.color);
     const svg = buildStandalonePictoSvg(picto.svgInner, stroke, 32);
+    assets[item.filename] = await svgToPngBlob(svg, 32, 32);
+  }
+
+  for (const item of featureGridPictos) {
+    const picto = CALLOUT_PICTOS_MAP[item.pictoId] || CALLOUT_PICTOS_MAP[DEFAULT_PICTO_ID];
+    const svg = buildStandalonePictoSvg(picto.svgInner, item.color, 32);
     assets[item.filename] = await svgToPngBlob(svg, 32, 32);
   }
 

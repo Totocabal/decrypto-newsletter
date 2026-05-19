@@ -400,6 +400,12 @@ export function getCalloutPictoFilename(pictoId = DEFAULT_PICTO_ID, color = DEFA
   return `callout-picto-${safePicto}-${safeColor}-${tone}.png`;
 }
 
+export function getFeatureGridPictoFilename(pictoId = DEFAULT_PICTO_ID, color = DEFAULT_CALLOUT_COLOR) {
+  const safePicto = String(pictoId || DEFAULT_PICTO_ID).replace(/[^a-z0-9_-]+/gi, "-").toLowerCase();
+  const safeColor = String(color || DEFAULT_CALLOUT_COLOR).replace(/[^a-f0-9]+/gi, "").toLowerCase() || "00ffff";
+  return `feature-grid-picto-${safePicto}-${safeColor}.png`;
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Rendu de chaque type de section
 // ─────────────────────────────────────────────────────────────────────────────
@@ -749,7 +755,7 @@ function renderPictoBadge(pictoId, color, size, assetMode) {
     ? mixHex("#FFFFFF", accent, 0.42)
     : mixHex(EMAIL_THEME.bgEmail || "#0B0B0D", accent, 0.48);
   const icon = assetMode === "external"
-    ? `<img src="assets/${getCalloutPictoFilename(pictoId || DEFAULT_PICTO_ID, accent)}" width="${size}" height="${size}" alt="" style="display:block; width:${size}px; height:${size}px; border:0; margin:0 auto;" />`
+    ? `<img src="assets/${getFeatureGridPictoFilename(pictoId || DEFAULT_PICTO_ID, accent)}" width="${size}" height="${size}" alt="" style="display:block; width:${size}px; height:${size}px; border:0; margin:0 auto;" />`
     : buildPictoSvgHtml(picto.svgInner, accent, size);
   return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:separate !important; border-spacing:0 !important; border-radius:10px; overflow:hidden;"><tr><td width="${size + 18}" height="${size + 18}" align="center" valign="middle" bgcolor="${iconBg}" style="background-color:${iconBg}; border:1px solid ${iconBorder}; border-radius:10px; line-height:${size + 18}px; border-collapse:separate !important;">${icon}</td></tr></table>`;
 }
