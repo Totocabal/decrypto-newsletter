@@ -103,6 +103,33 @@ function gradientCtaPngBlob() {
   });
 }
 
+function imageBlobToPngBlob(blob) {
+  return new Promise((resolve, reject) => {
+    const objectUrl = URL.createObjectURL(blob);
+    const img = new Image();
+    img.onload = () => {
+      const width = img.naturalWidth || img.width;
+      const height = img.naturalHeight || img.height;
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, width, height);
+      URL.revokeObjectURL(objectUrl);
+      canvas.toBlob(
+        (pngBlob) => pngBlob ? resolve(pngBlob) : reject(new Error("Conversion image → PNG échouée")),
+        "image/png",
+        1.0
+      );
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error("Chargement image → PNG échoué"));
+    };
+    img.src = objectUrl;
+  });
+}
+
 function buildStandalonePictoSvg(svgInner, color, size = 32) {
   const inner = svgInner.replace(/currentColor/g, color);
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${inner}</svg>`;
@@ -147,8 +174,13 @@ async function buildPngAssets(state) {
     }
     if (sec.type === "feature_grid") {
       if (sec.data.bg_image_url) {
-        const ext = guessImageExtension(sec.data.bg_image_url);
-        focusImages.push({ sectionId: sec.id, kind: "feature_grid_bg", originalUrl: sec.data.bg_image_url, filename: `feature-grid-bg-${sec.id}.${ext}` });
+        focusImages.push({
+          sectionId: sec.id,
+          kind: "feature_grid_bg",
+          originalUrl: sec.data.bg_image_url,
+          filename: `feature-grid-bg-${sec.id}.png`,
+          convertToPng: true,
+        });
       }
       const featureIcons = [
         ...(sec.data.featured?.show_icon === false ? [] : [sec.data.featured || {}]),
@@ -268,7 +300,7 @@ async function buildPngAssets(state) {
       const resp = await fetch(fi.originalUrl);
       if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
       const blob = await resp.blob();
-      assets[fi.filename] = blob;
+      assets[fi.filename] = fi.convertToPng ? await imageBlobToPngBlob(blob) : blob;
     } catch (e) {
       // Échec → on log, on continue, le HTML pointera vers l'URL originale
       // eslint-disable-next-line no-console
