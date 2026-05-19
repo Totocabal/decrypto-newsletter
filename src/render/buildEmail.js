@@ -959,7 +959,7 @@ function renderFocusItem(item, assetMode, isLastItem = false) {
   }
   if (item.type === "cta") {
     if (!item.label) return "";
-    const ctaText = escapeHtml(item.label) + (item.arrow ? " →" : "");
+    const ctaText = escapeHtml(item.label) + (item.arrow ? "&nbsp;→" : "");
     const align = item.centered ? "center" : "left";
 
     // Legacy: items with explicit style="secondary" render as standalone outline button
@@ -970,7 +970,7 @@ function renderFocusItem(item, assetMode, isLastItem = false) {
             <table role="presentation" cellpadding="0" cellspacing="0" border="0">
               <tr>
                 <td style="border:1px solid ${EMAIL_THEME.borderStrong}; border-radius:99px;">
-                  <a href="${escapeAttr(item.url || "#")}" style="display:inline-block; padding:12px 20px; font-family:${FONTS.heading}; font-weight:500; font-size:13px; color:${EMAIL_THEME.textSecondary}; text-decoration:none; border-radius:99px; letter-spacing:0.01em;">${ctaText}</a>
+                  <a class="em-cta-link" href="${escapeAttr(item.url || "#")}" style="display:inline-block; padding:12px 20px; font-family:${FONTS.heading}; font-weight:500; font-size:13px; line-height:1.25; color:${EMAIL_THEME.textSecondary}; text-decoration:none; border-radius:99px; letter-spacing:0.01em; text-align:center;">${ctaText}</a>
                 </td>
               </tr>
             </table>
@@ -986,24 +986,24 @@ function renderFocusItem(item, assetMode, isLastItem = false) {
             </v:roundrect>
             <![endif]-->
             <!--[if !mso]><!-->
-            <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+            <table role="presentation" class="em-cta-button" cellpadding="0" cellspacing="0" border="0">
               <tr>
                 <td bgcolor="${EMAIL_THEME.accentTertiary}" style="border-radius:99px; background-color:${EMAIL_THEME.accentTertiary}; background-image:${CTA_GRADIENT_URL ? `url('${CTA_GRADIENT_URL}'), ` : ""}linear-gradient(90deg, ${EMAIL_THEME.accentSecondary} 0%, ${EMAIL_THEME.accentTertiary} 50%, ${EMAIL_THEME.accentPrimary} 100%); background-size:100% 100%;">
-                  <a href="${escapeAttr(item.url || "#")}" style="display:inline-block; padding:13px 22px; font-family:${FONTS.heading}; font-weight:600; font-size:13px; color:#ffffff; text-decoration:none; border-radius:99px; letter-spacing:0.01em;">${ctaText}</a>
+                  <a class="em-cta-link" href="${escapeAttr(item.url || "#")}" style="display:inline-block; padding:13px 22px; font-family:${FONTS.heading}; font-weight:600; font-size:13px; line-height:1.25; color:#ffffff; text-decoration:none; border-radius:99px; letter-spacing:0.01em; text-align:center;">${ctaText}</a>
                 </td>
               </tr>
             </table>
             <!--<![endif]-->`;
 
     const secondaryText = item.secondary_label
-      ? escapeHtml(item.secondary_label) + (item.secondary_arrow ? " →" : "")
+      ? escapeHtml(item.secondary_label) + (item.secondary_arrow ? "&nbsp;→" : "")
       : "";
     const secondaryBtn = secondaryText
       ? `<td valign="middle" style="padding-left:10px;">
-            <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+            <table role="presentation" class="em-cta-button" cellpadding="0" cellspacing="0" border="0">
               <tr>
                 <td style="border:1px solid ${EMAIL_THEME.borderStrong}; border-radius:99px;">
-                  <a href="${escapeAttr(item.secondary_url || "#")}" style="display:inline-block; padding:12px 20px; font-family:${FONTS.heading}; font-weight:500; font-size:13px; color:${EMAIL_THEME.textSecondary}; text-decoration:none; border-radius:99px; letter-spacing:0.01em;">${secondaryText}</a>
+                  <a class="em-cta-link" href="${escapeAttr(item.secondary_url || "#")}" style="display:inline-block; padding:12px 20px; font-family:${FONTS.heading}; font-weight:500; font-size:13px; line-height:1.25; color:${EMAIL_THEME.textSecondary}; text-decoration:none; border-radius:99px; letter-spacing:0.01em; text-align:center;">${secondaryText}</a>
                 </td>
               </tr>
             </table>
@@ -1136,10 +1136,10 @@ function renderFocus(data, number, assetMode, anchor = "", isLastSection = false
         </v:roundrect>
         <![endif]-->
         <!--[if !mso]><!-->
-        <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+        <table role="presentation" class="em-cta-button" cellpadding="0" cellspacing="0" border="0">
           <tr>
             <td bgcolor="${EMAIL_THEME.accentTertiary}" style="border-radius:99px; background-color:${EMAIL_THEME.accentTertiary}; background-image:${CTA_GRADIENT_URL ? `url('${CTA_GRADIENT_URL}'), ` : ""}linear-gradient(90deg, ${EMAIL_THEME.accentSecondary} 0%, ${EMAIL_THEME.accentTertiary} 50%, ${EMAIL_THEME.accentPrimary} 100%); background-size:100% 100%;">
-              <a href="${escapeAttr(data.cta_primary_url || "#")}" style="display:inline-block; padding:13px 22px; font-family:${FONTS.heading}; font-weight:600; font-size:13px; color:#ffffff; text-decoration:none; border-radius:99px; letter-spacing:0.01em;">${escapeHtml(data.cta_primary_label)}</a>
+              <a class="em-cta-link" href="${escapeAttr(data.cta_primary_url || "#")}" style="display:inline-block; padding:13px 22px; font-family:${FONTS.heading}; font-weight:600; font-size:13px; line-height:1.25; color:#ffffff; text-decoration:none; border-radius:99px; letter-spacing:0.01em; text-align:center;">${escapeHtml(data.cta_primary_label).replace(/\s+→$/, "&nbsp;→")}</a>
             </td>
           </tr>
         </table>
@@ -1148,10 +1148,10 @@ function renderFocus(data, number, assetMode, anchor = "", isLastSection = false
     : "";
   const secondaryBtn = data.cta_secondary_label
     ? `<td valign="middle">
-        <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+        <table role="presentation" class="em-cta-button" cellpadding="0" cellspacing="0" border="0">
           <tr>
             <td style="border:1px solid #3C424D; border-radius:99px;">
-              <a href="${escapeAttr(data.cta_secondary_url || "#")}" style="display:inline-block; padding:12px 20px; font-family:${FONTS.heading}; font-weight:500; font-size:13px; color:#E9EEF2; text-decoration:none; border-radius:99px; letter-spacing:0.01em;">${escapeHtml(data.cta_secondary_label)}</a>
+              <a class="em-cta-link" href="${escapeAttr(data.cta_secondary_url || "#")}" style="display:inline-block; padding:12px 20px; font-family:${FONTS.heading}; font-weight:500; font-size:13px; line-height:1.25; color:#E9EEF2; text-decoration:none; border-radius:99px; letter-spacing:0.01em; text-align:center;">${escapeHtml(data.cta_secondary_label).replace(/\s+→$/, "&nbsp;→")}</a>
             </td>
           </tr>
         </table>
@@ -1443,6 +1443,11 @@ ${renderEmailFontFaces()}
     .em-editorial-num { width: 40px !important; }
     .em-editorial-tag { display: none !important; mso-hide: all !important; max-height: 0 !important; overflow: hidden !important; width: 0 !important; }
     .em-editorial-tag-mobile { display: block !important; max-height: none !important; overflow: visible !important; padding-top: 10px !important; }
+    .em-cta-row, .em-cta-row > tbody, .em-cta-row > tbody > tr { width: 100% !important; }
+    .em-cta-row > tbody > tr > td { display: block !important; width: 100% !important; box-sizing: border-box !important; padding-left: 0 !important; padding-right: 0 !important; padding-bottom: 10px !important; text-align: center !important; }
+    .em-cta-button { width: 100% !important; max-width: 300px !important; margin: 0 auto !important; }
+    .em-cta-button td { text-align: center !important; }
+    .em-cta-link { display: block !important; box-sizing: border-box !important; width: 100% !important; min-width: 0 !important; text-align: center !important; white-space: normal !important; word-break: normal !important; overflow-wrap: normal !important; line-height: 1.25 !important; }
     .em-event-text { word-break: break-word !important; overflow-wrap: break-word !important; }
     .em-cn-num { width: 100% !important; max-width: 100% !important; box-sizing: border-box !important; border-right: none !important; border-bottom: 1px solid ${EMAIL_THEME.borderStrong} !important; border-radius: 12px 12px 0 0 !important; }
     .em-cn-text { width: 100% !important; max-width: 100% !important; box-sizing: border-box !important; padding: 24px !important; border-radius: 0 0 12px 12px !important; }
