@@ -751,7 +751,7 @@ function renderPictoBadge(pictoId, color, size, assetMode) {
   const icon = assetMode === "external"
     ? `<img src="assets/${getCalloutPictoFilename(pictoId || DEFAULT_PICTO_ID, accent)}" width="${size}" height="${size}" alt="" style="display:block; width:${size}px; height:${size}px; border:0; margin:0 auto;" />`
     : buildPictoSvgHtml(picto.svgInner, accent, size);
-  return `<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td width="${size + 18}" height="${size + 18}" align="center" valign="middle" bgcolor="${iconBg}" style="background-color:${iconBg}; border:1px solid ${iconBorder}; border-radius:10px; line-height:${size + 18}px;">${icon}</td></tr></table>`;
+  return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:separate !important; border-spacing:0 !important; border-radius:10px; overflow:hidden;"><tr><td width="${size + 18}" height="${size + 18}" align="center" valign="middle" bgcolor="${iconBg}" style="background-color:${iconBg}; border:1px solid ${iconBorder}; border-radius:10px; line-height:${size + 18}px; border-collapse:separate !important;">${icon}</td></tr></table>`;
 }
 
 function renderFeatureGrid(data, number, assetMode, anchor = "", isLastSection = false) {
@@ -778,7 +778,7 @@ function renderFeatureGrid(data, number, assetMode, anchor = "", isLastSection =
     <v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false" style="width:568px; border-radius:16px;">
       <v:fill type="frame" src="${escapeAttr(effectiveBgImg)}" color="#1a0c2e" />
       <v:textbox inset="0,0,0,0"><![endif]-->
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#1a0c2e" background="${escapeAttr(effectiveBgImg)}" style="background-color:#1a0c2e; background-image:url('${escapeAttr(effectiveBgImg)}'); background-size:cover; background-position:center; border-radius:16px; margin-bottom:12px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#1a0c2e" background="${escapeAttr(effectiveBgImg)}" style="background-color:#1a0c2e; background-image:url('${escapeAttr(effectiveBgImg)}'); background-size:cover; background-position:center; border-radius:16px; margin-bottom:12px; border-collapse:separate !important; border-spacing:0 !important; overflow:hidden;">
       <tr>
         <td style="padding:22px 24px; border-radius:16px;">
           <table role="presentation" cellpadding="0" cellspacing="0" border="0">
@@ -800,8 +800,8 @@ function renderFeatureGrid(data, number, assetMode, anchor = "", isLastSection =
     const sidePadding = side === "left" ? "padding-right:6px;" : "padding-left:6px;";
     const bottomPadding = isBottom ? "" : "padding-bottom:12px;";
     return `<td class="em-feature-cell" valign="top" width="50%" style="${sidePadding} ${bottomPadding}">
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${cardBg}" style="background-color:${cardBg}; border:1px solid ${cardBorder}; border-radius:14px; height:100%;">
-        <tr><td style="padding:18px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${cardBg}" style="background-color:${cardBg}; border:1px solid ${cardBorder}; border-radius:14px; height:100%; border-collapse:separate !important; border-spacing:0 !important; overflow:hidden;">
+        <tr><td style="padding:18px; border-radius:14px;">
           <div style="margin-bottom:10px;">${renderPictoBadge(item.picto, color, 14, assetMode)}</div>
           ${item.title ? `<p style="margin:0 0 4px; font-family:${FONTS.heading}; font-weight:600; font-size:13.5px; color:${cardText}; letter-spacing:-0.005em; line-height:1.28;">${escapeHtml(item.title)}</p>` : ""}
           ${item.body ? `<div style="margin:0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:12px; color:${cardMuted}; line-height:1.5;">${sanitizeRichText(item.body)}</div>` : ""}
