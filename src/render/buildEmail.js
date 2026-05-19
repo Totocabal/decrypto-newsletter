@@ -786,7 +786,7 @@ function renderFeatureGrid(data, number, assetMode, anchor = "", isLastSection =
       <v:textbox inset="0,0,0,0"><![endif]-->
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#1a0c2e" background="${escapeAttr(effectiveBgImg)}" style="background-color:#1a0c2e; background-image:url('${escapeAttr(effectiveBgImg)}'); background-size:cover; background-position:center; border-radius:16px; margin-bottom:12px; border-collapse:separate !important; border-spacing:0 !important; overflow:hidden;">
       <tr>
-        <td style="padding:22px 24px; border-radius:16px;">
+        <td bgcolor="#1a0c2e" background="${escapeAttr(effectiveBgImg)}" style="padding:22px 24px; border-radius:16px; background-color:#1a0c2e; background-image:url('${escapeAttr(effectiveBgImg)}'); background-size:cover; background-position:center; background-repeat:no-repeat;">
           <table role="presentation" cellpadding="0" cellspacing="0" border="0">
             <tr>
               ${featuredIcon}
