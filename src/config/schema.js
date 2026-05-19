@@ -187,6 +187,45 @@ export const SECTION_TYPES = {
         "Premier flux net hebdo positif depuis trois semaines. BlackRock et Fidelity captent à eux deux <strong>62 %</strong> du volume — la concentration s'accentue.",
     }),
   },
+  editorial_list: {
+    label: "Liste éditoriale",
+    icon: "List",
+    factory: () => ({
+      kicker: "Cinq raisons d'activer",
+      items: [
+        {
+          title: "Vos achats crypto, sans friction bancaire",
+          body: "Compte indépendant. Plus de refus, plus d'appels du conseiller.",
+          tag: "Zéro blocage",
+          tag_color: "#03FFCF",
+        },
+        {
+          title: "Achetez moins cher qu'avec votre carte",
+          body: "Virer depuis votre compte euro réduit vos frais de transaction.",
+          tag: "Frais réduits",
+          tag_color: "#00FFFF",
+        },
+        {
+          title: "Programmez vos achats sans y penser",
+          body: "Vos investissements récurrents s'exécutent sans risque de rejet de CB.",
+          tag: "Auto",
+          tag_color: "#FF8B28",
+        },
+        {
+          title: "Un IBAN français à votre nom",
+          body: "FR76, adossé à un partenariat filiale Société Générale.",
+          tag: "FR76",
+          tag_color: "#C46BFF",
+        },
+        {
+          title: "Gratuit, disponible 24h/24",
+          body: "Aucun frais de tenue de compte pour les particuliers.",
+          tag: "0 €",
+          tag_color: "#FF00AA",
+        },
+      ],
+    }),
+  },
   event: {
     label: "Évènement",
     icon: "Calendar",

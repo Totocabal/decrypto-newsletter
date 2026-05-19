@@ -26,6 +26,7 @@ export function SectionEditor({ type, data, onChange, sections = [] }) {
     case "macro":      return <MacroEditor data={data} set={set} />;
     case "macro_bars": return <MacroBarsEditor data={data} set={set} />;
     case "commented_number": return <CommentedNumberEditor data={data} set={set} />;
+    case "editorial_list": return <EditorialListEditor data={data} set={set} />;
     case "event":      return <EventEditor data={data} set={set} />;
     case "focus":      return <FocusEditor data={data} set={set} />;
     case "image_block": return <ImageBlockEditor data={data} set={set} />;
