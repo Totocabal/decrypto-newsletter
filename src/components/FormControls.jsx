@@ -225,10 +225,15 @@ function insertSoftBreak(quill, range) {
 function RichTextEditor({ showCount, onChange, value = "", rows = 3, placeholder, ...props }) {
   const holderRef = useRef(null);
   const quillRef = useRef(null);
+  const onChangeRef = useRef(onChange);
   const lastEmittedRef = useRef(String(value ?? ""));
   const [plainTextCount, setPlainTextCount] = useState(() => countPlainText(value));
   const [correcting, setCorrecting] = useState(false);
   const [correctError, setCorrectError] = useState(null);
+
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
 
   useEffect(() => {
     injectQuillCss();
@@ -274,7 +279,7 @@ function RichTextEditor({ showCount, onChange, value = "", rows = 3, placeholder
       const html = getCleanHtml(quill);
       lastEmittedRef.current = html;
       setPlainTextCount(countPlainText(html));
-      onChange?.({ target: { value: html } });
+      onChangeRef.current?.({ target: { value: html } });
     });
 
     quillRef.current = quill;
@@ -325,7 +330,7 @@ function RichTextEditor({ showCount, onChange, value = "", rows = 3, placeholder
       quillRef.current.clipboard.dangerouslyPasteHTML(corrected || "");
       lastEmittedRef.current = corrected;
       setPlainTextCount(countPlainText(corrected));
-      onChange?.({ target: { value: corrected } });
+      onChangeRef.current?.({ target: { value: corrected } });
     } catch (err) {
       setCorrectError(err.message);
     } finally {
@@ -348,8 +353,7 @@ function RichTextEditor({ showCount, onChange, value = "", rows = 3, placeholder
               type="button"
               onMouseDown={(e) => { e.preventDefault(); handleCorrect(); }}
               disabled={correcting}
-              className="h-7 inline-flex items-center gap-1 px-2 rounded-lg border transition-colors disabled:opacity-40 text-[10px] font-semibold tracking-[0.1em] uppercase"
-              style={{ color: "#03FFCF", borderColor: "rgba(3,255,207,0.25)", background: "rgba(3,255,207,0.06)" }}
+              className="ai-action-button h-7 inline-flex items-center gap-1 px-2 rounded-lg border transition-colors disabled:opacity-40 text-[10px] font-semibold tracking-[0.1em] uppercase"
             >
               {correcting ? <Loader2 size={11} className="animate-spin" /> : <Sparkles size={11} />}
               Corriger

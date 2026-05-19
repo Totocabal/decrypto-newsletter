@@ -378,8 +378,7 @@ export function EditorPanel({ state, setState }) {
               type="button"
               onClick={handleGeneratePreviewText}
               disabled={previewGenerating}
-              className="flex items-center gap-1 text-[10px] uppercase tracking-[0.14em] font-semibold px-2 py-1 rounded-full border transition-colors disabled:opacity-50"
-              style={{ color: "#03FFCF", borderColor: "rgba(3,255,207,0.25)", background: "rgba(3,255,207,0.06)" }}
+              className="ai-action-button flex items-center gap-1 text-[10px] uppercase tracking-[0.14em] font-semibold px-2 py-1 rounded-full border transition-colors disabled:opacity-50"
             >
               {previewGenerating
                 ? <Loader2 size={10} className="animate-spin" />

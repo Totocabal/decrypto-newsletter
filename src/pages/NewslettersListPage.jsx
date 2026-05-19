@@ -816,8 +816,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                     onClick={handleGeneratePreviewTextForCreate}
                     disabled={previewGenerating || !newPreviewText.trim()}
                     title="Reformule le texte saisi en preheader optimisé"
-                    className="flex items-center gap-1 text-[10px] uppercase tracking-[0.14em] font-semibold px-2 py-1 rounded-full border transition-colors disabled:opacity-40"
-                    style={{ color: "#03FFCF", borderColor: "rgba(3,255,207,0.25)", background: "rgba(3,255,207,0.06)" }}
+                    className="ai-action-button flex items-center gap-1 text-[10px] uppercase tracking-[0.14em] font-semibold px-2 py-1 rounded-full border transition-colors disabled:opacity-40"
                   >
                     {previewGenerating ? <Loader2 size={10} className="animate-spin" /> : <Sparkles size={10} />}
                     Améliorer

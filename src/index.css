@@ -23,6 +23,20 @@
   --d-line2: rgba(255,255,255,0.10);
   --d-scroll-track: #1E1E22;
   --d-scroll-thumb: #2E2E34;
+  --d-ai-fg: #03FFCF;
+  --d-ai-bg: rgba(3,255,207,0.08);
+  --d-ai-border: rgba(3,255,207,0.28);
+  --d-ai-bg-hover: rgba(3,255,207,0.14);
+  --d-lock-bg: rgba(255,75,40,0.10);
+  --d-lock-border: rgba(255,75,40,0.26);
+  --d-lock-fg: #FFB8A0;
+  --d-lock-strong: #FFCFBD;
+  --d-lock-accent: #FF8466;
+  --d-request-bg: rgba(255,180,0,0.10);
+  --d-request-border: rgba(255,180,0,0.28);
+  --d-request-fg: #F5D060;
+  --d-request-strong: #FFE082;
+  --d-request-accent: #F5B800;
 }
 
 :root.ui-light {
@@ -44,6 +58,20 @@
   --d-line2: rgba(18,24,38,0.16);
   --d-scroll-track: #ECEEF2;
   --d-scroll-thumb: #C8CED8;
+  --d-ai-fg: #006F61;
+  --d-ai-bg: #DDF7F1;
+  --d-ai-border: #75D8C8;
+  --d-ai-bg-hover: #C9F1EA;
+  --d-lock-bg: #FFE8E2;
+  --d-lock-border: #FF9A82;
+  --d-lock-fg: #842713;
+  --d-lock-strong: #581507;
+  --d-lock-accent: #C73518;
+  --d-request-bg: #FFF2C6;
+  --d-request-border: #E0A800;
+  --d-request-fg: #6F4B00;
+  --d-request-strong: #3F2A00;
+  --d-request-accent: #9A6800;
 }
 
 @keyframes fadeSlideIn {
@@ -86,3 +114,14 @@ html, body {
 .border-line  { border-color: var(--d-line); }
 .border-line2 { border-color: var(--d-line2); }
 .divide-line > * + * { border-color: var(--d-line); }
+
+.ai-action-button {
+  color: var(--d-ai-fg);
+  border-color: var(--d-ai-border);
+  background: var(--d-ai-bg);
+}
+
+.ai-action-button:hover:not(:disabled) {
+  background: var(--d-ai-bg-hover);
+  border-color: var(--d-ai-fg);
+}

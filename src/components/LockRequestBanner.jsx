@@ -47,8 +47,8 @@ export function LockRequestBanner({ lockRequest, onDismiss }) {
       <div
         className="border-b px-4 py-3 sm:px-6"
         style={{
-          background: "rgba(255, 180, 0, 0.08)",
-          borderColor: "rgba(255, 180, 0, 0.22)",
+          background: "var(--d-request-bg)",
+          borderColor: "var(--d-request-border)",
           animation: visible ? "lock-request-slide 0.35s cubic-bezier(0.22,1,0.36,1) both" : "none",
           transition: visible ? "none" : "opacity 0.3s, transform 0.3s",
           opacity: visible ? 1 : 0,
@@ -56,9 +56,9 @@ export function LockRequestBanner({ lockRequest, onDismiss }) {
         }}
       >
         <div className="mx-auto flex w-full max-w-none items-center gap-3">
-          <Bell size={15} style={{ color: "#F5B800", flexShrink: 0 }} />
-          <p className="flex-1 text-sm" style={{ color: "#F5D060" }}>
-            <strong style={{ color: "#FFE082" }}>
+          <Bell size={15} style={{ color: "var(--d-request-accent)", flexShrink: 0 }} />
+          <p className="flex-1 text-sm" style={{ color: "var(--d-request-fg)" }}>
+            <strong style={{ color: "var(--d-request-strong)" }}>
               {lockRequest.requesterName}
             </strong>{" "}
             souhaite accéder à l'édition de cette newsletter.
@@ -66,7 +66,7 @@ export function LockRequestBanner({ lockRequest, onDismiss }) {
           <button
             onClick={handleDismiss}
             className="flex items-center justify-center rounded-full p-1 transition-opacity hover:opacity-70"
-            style={{ color: "#F5B800" }}
+            style={{ color: "var(--d-request-accent)" }}
             aria-label="Fermer"
           >
             <X size={15} />

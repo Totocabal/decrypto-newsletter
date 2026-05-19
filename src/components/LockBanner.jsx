@@ -29,14 +29,14 @@ export function LockBanner({ lockInfo, onTakeOver, onBack }) {
     <div
       className="border-b px-4 py-3 sm:px-6"
       style={{
-        background: "rgba(255,75,40,0.08)",
-        borderColor: "rgba(255,75,40,0.20)",
+        background: "var(--d-lock-bg)",
+        borderColor: "var(--d-lock-border)",
       }}
     >
       <div className="mx-auto flex w-full max-w-none flex-col gap-3 sm:flex-row sm:items-center">
-        <Lock size={16} style={{ color: "#FF8466", flexShrink: 0 }} />
-        <div className="flex-1 text-sm" style={{ color: "#FFB8A0" }}>
-          <strong style={{ color: "#FFCFBD" }}>
+        <Lock size={16} style={{ color: "var(--d-lock-accent)", flexShrink: 0 }} />
+        <div className="flex-1 text-sm" style={{ color: "var(--d-lock-fg)" }}>
+          <strong style={{ color: "var(--d-lock-strong)" }}>
             {lockInfo?.user_full_name || lockInfo?.user_email}
           </strong>{" "}
           édite cette newsletter
@@ -46,8 +46,8 @@ export function LockBanner({ lockInfo, onTakeOver, onBack }) {
           onClick={onBack}
           className="text-[10px] uppercase tracking-[0.18em] font-medium px-3 py-1.5 rounded-full transition-colors"
           style={{
-            color: "#FFB8A0",
-            border: "1px solid rgba(255,75,40,0.30)",
+            color: "var(--d-lock-fg)",
+            border: "1px solid var(--d-lock-border)",
           }}
         >
           Retour
