@@ -72,6 +72,33 @@ function chipLabelFromCoinGecko(cryptoId, result) {
   return `${symbol} ${sign} ${pct}`;
 }
 
+function padDatePart(value) {
+  return String(value).padStart(2, "0");
+}
+
+function formatIssueDateForHeader(date) {
+  return `${padDatePart(date.getDate())}.${padDatePart(date.getMonth() + 1)}.${date.getFullYear()}`;
+}
+
+function dateInputValueFromIssueDate(value = "") {
+  const text = String(value || "").trim();
+  const isoMatch = text.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (isoMatch) return text;
+  const dottedMatch = text.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
+  if (dottedMatch) {
+    const [, day, month, year] = dottedMatch;
+    return `${year}-${padDatePart(month)}-${padDatePart(day)}`;
+  }
+  return "";
+}
+
+function issueDateFromDateInput(value = "") {
+  const match = String(value || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return "";
+  const [, year, month, day] = match;
+  return `${day}.${month}.${year}`;
+}
+
 async function generatePreviewText(state) {
   const { data: { session } } = await supabase.auth.getSession();
   const token = session?.access_token;
@@ -324,10 +351,23 @@ export function EditorPanel({ state, setState }) {
             onChange={(e) => update({ brand_name: e.target.value })}
           />
         </Field>
-        <Field label="Date">
+        <Field
+          label="Date"
+          action={
+            <button
+              type="button"
+              onClick={() => update({ issue_date: formatIssueDateForHeader(new Date()) })}
+              className="inline-flex items-center gap-1.5 rounded-full border border-line px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-d-fg3 transition-colors hover:border-line2 hover:text-d-fg"
+            >
+              <Calendar size={10} />
+              Aujourd'hui
+            </button>
+          }
+        >
           <Input
-            value={state.issue_date}
-            onChange={(e) => update({ issue_date: e.target.value })}
+            type="date"
+            value={dateInputValueFromIssueDate(state.issue_date)}
+            onChange={(e) => update({ issue_date: issueDateFromDateInput(e.target.value) })}
           />
         </Field>
         <Field
