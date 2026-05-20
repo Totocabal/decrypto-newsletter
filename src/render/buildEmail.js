@@ -59,6 +59,7 @@ let EMAIL_THEME = THEME;
 // URL du PNG de dégradé CTA — null en mode inline (prévisualisation), renseigné en mode export
 let CTA_GRADIENT_URL = null;
 let SHOW_BLOCK_SEPARATORS = true;
+let CURRENT_SECTION_IS_FIRST = false;
 
 function getEmailThemeVariant(state = {}) {
   return state.theme_variant === "light" ? "light" : "dark";
@@ -359,8 +360,29 @@ function sectionBottomBorder(isLastSection) {
   return isLastSection || !SHOW_BLOCK_SEPARATORS ? "" : ` border-bottom:1px solid ${EMAIL_THEME.border};`;
 }
 
+function expandPadding(value) {
+  const parts = String(value || "").trim().split(/\s+/).filter(Boolean);
+  const [top = "0", right = top, bottom = top, left = right] = parts;
+  if (parts.length === 1) return { top, right: top, bottom: top, left: top };
+  if (parts.length === 2) return { top, right, bottom: top, left: right };
+  if (parts.length === 3) return { top, right, bottom, left: right };
+  return { top, right, bottom, left };
+}
+
+function formatPadding({ top, right, bottom, left }) {
+  if (top === bottom && right === left) {
+    return top === right ? top : `${top} ${right}`;
+  }
+  if (right === left) return `${top} ${right} ${bottom}`;
+  return `${top} ${right} ${bottom} ${left}`;
+}
+
 function sectionPadding(defaultPadding, compactPadding) {
-  return SHOW_BLOCK_SEPARATORS ? defaultPadding : compactPadding;
+  if (SHOW_BLOCK_SEPARATORS) return defaultPadding;
+  if (!CURRENT_SECTION_IS_FIRST) return compactPadding;
+  const defaultParts = expandPadding(defaultPadding);
+  const compactParts = expandPadding(compactPadding);
+  return formatPadding({ ...compactParts, top: defaultParts.top });
 }
 
 function plainTextFromRichText(text = "") {
@@ -1214,6 +1236,9 @@ function renderImageBlock(data, isLastSection = false) {
 }
 
 function renderTextBlock(data, number, anchor = "", isLastSection = false) {
+  const padding = isLastSection
+    ? "44px 36px"
+    : sectionPadding("44px 36px", "20px 36px");
   const ctaBtn = data.cta_label
     ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:28px;">
         <tr>
@@ -1226,7 +1251,7 @@ function renderTextBlock(data, number, anchor = "", isLastSection = false) {
 
   return `
     <tr>
-      <td class="em-px" style="padding:${sectionPadding("44px 36px", "20px 36px")};${sectionBottomBorder(isLastSection)}">
+      <td class="em-px" style="padding:${padding};${sectionBottomBorder(isLastSection)}">
         ${anchor}
         ${sectionHeader(number, data.kicker)}
         ${sectionTitle(data.title)}
@@ -1303,7 +1328,8 @@ function renderDivider(data, isLastSection = false) {
 // Dispatcher : section → fonction de rendu
 // ─────────────────────────────────────────────────────────────────────────────
 
-function renderSection(sec, allSections, assetMode, showSectionNumbers = true, isLastSection = false) {
+function renderSection(sec, allSections, assetMode, showSectionNumbers = true, isLastSection = false, isFirstSection = false) {
+  CURRENT_SECTION_IS_FIRST = isFirstSection;
   const number = showSectionNumbers === false
     ? null
     : computeSectionNumber(allSections, sec.id);
@@ -1409,9 +1435,19 @@ export function buildEmailHtml(state, options = {}) {
   const lastRenderedSectionIndex = renderedSections.length
     ? renderedSections[renderedSections.length - 1].index
     : -1;
+  const firstRenderedSectionIndex = renderedSections.length
+    ? renderedSections[0].index
+    : -1;
   const sectionsHtml = sections
     .map((section, index) =>
-      renderSection(section, sections, assetMode, showSectionNumbers, index === lastRenderedSectionIndex)
+      renderSection(
+        section,
+        sections,
+        assetMode,
+        showSectionNumbers,
+        index === lastRenderedSectionIndex,
+        index === firstRenderedSectionIndex
+      )
     )
     .join("");
 
