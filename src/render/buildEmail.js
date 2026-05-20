@@ -1000,13 +1000,14 @@ function renderFocusItem(item, assetMode, isLastItem = false) {
     if (!item.label) return "";
     const ctaText = escapeHtml(item.label) + (item.arrow ? "&nbsp;→" : "");
     const align = item.centered ? "center" : "left";
+    const ctaTableAlign = item.centered ? `align="center" style="margin:0 auto;"` : `align="left"`;
 
     // Legacy: items with explicit style="secondary" render as standalone outline button
     if (item.style === "secondary") {
       return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:${ctaMarginBottom};">
         <tr>
           <td align="${align}" valign="middle">
-            <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+            <table role="presentation" class="em-cta-button" cellpadding="0" cellspacing="0" border="0" ${ctaTableAlign}>
               <tr>
                 <td style="border:1px solid ${EMAIL_THEME.borderStrong}; border-radius:99px;">
                   <a class="em-cta-link" href="${escapeAttr(item.url || "#")}" style="display:inline-block; padding:12px 20px; font-family:${FONTS.heading}; font-weight:500; font-size:13px; line-height:1.25; color:${EMAIL_THEME.textSecondary}; text-decoration:none; border-radius:99px; letter-spacing:0.01em; text-align:center;">${ctaText}</a>
@@ -1052,7 +1053,7 @@ function renderFocusItem(item, assetMode, isLastItem = false) {
     return `<table role="presentation" class="em-cta-row" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:${ctaMarginBottom};">
         <tr>
           <td align="${align}" valign="middle">
-            <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" ${ctaTableAlign}>
               <tr>
                 <td valign="middle">${primaryBtn}</td>
                 ${secondaryBtn}
