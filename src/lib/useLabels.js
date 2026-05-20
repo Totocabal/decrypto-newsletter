@@ -2,9 +2,22 @@ import { useCallback, useEffect, useState } from "react";
 import { supabase } from "./supabase.js";
 
 export const LABEL_COLORS = [
-  "#EF4444", "#F97316", "#EAB308", "#22C55E",
-  "#06B6D4", "#3B82F6", "#8B5CF6", "#EC4899",
-  "#64748B", "#D97706",
+  "#FF00AA", // Magenta (Brand Primary)
+  "#4141FF", // Bleu électrique (Brand Secondary)
+  "#8701FF", // Violet (Brand Tertiary)
+  "#03FFCF", // Menthe / Cyan (Brand Positive)
+  "#FF4B28", // Orange / Rouge (Brand Warm)
+  "#FF8B28", // Orange chaud (Brand Warning)
+  "#B36BFF", // Violet callout
+  "#FFE600", // Jaune callout
+  "#00FFFF", // Cyan callout
+  "#10B981", // Émeraude soft
+  "#38BDF8", // Bleu ciel
+  "#F472B6", // Rose pastel
+  "#FB923C", // Abricot
+  "#A7F3D0", // Menthe clair
+  "#E2E8F0", // Gris ardoise clair
+  "#F43F5E", // Rose corail intense
 ];
 
 export function useLabels() {
