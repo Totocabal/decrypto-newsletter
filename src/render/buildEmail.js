@@ -359,6 +359,10 @@ function sectionBottomBorder(isLastSection) {
   return isLastSection || !SHOW_BLOCK_SEPARATORS ? "" : ` border-bottom:1px solid ${EMAIL_THEME.border};`;
 }
 
+function sectionPadding(defaultPadding, compactPadding) {
+  return SHOW_BLOCK_SEPARATORS ? defaultPadding : compactPadding;
+}
+
 function plainTextFromRichText(text = "") {
   return decodeStoredTextEntities(String(text).replace(/<[^>]*>/g, "")).trim();
 }
@@ -448,7 +452,7 @@ function renderHero(data, isLastSection = false) {
 
   return `
     <tr>
-      <td class="em-px" style="padding:56px 36px 40px;${sectionBottomBorder(isLastSection)}">
+      <td class="em-px" style="padding:${sectionPadding("56px 36px 40px", "42px 36px 28px")};${sectionBottomBorder(isLastSection)}">
         ${kickerHtml}
         <h1 class="em-h1" style="margin:0; font-family:${FONTS.heading}; font-weight:700; font-size:60px; line-height:0.98; letter-spacing:-0.035em; color:${EMAIL_THEME.textPrimary};">
           ${escapeHtml(data.title_part1)}<br />
@@ -464,7 +468,9 @@ function renderHero(data, isLastSection = false) {
 
 function renderIndex(data, allSections, isLastSection = false) {
   const rows = (data.items || []).map((item, i, arr) => {
-    const padding = i === arr.length - 1 ? "8px 0 28px" : "8px 0";
+    const padding = i === arr.length - 1
+      ? sectionPadding("8px 0 28px", "7px 0 18px")
+      : "7px 0";
     const href = indexHref(item, allSections);
     const number = escapeHtml(item.number);
     const title = escapeHtml(item.title);
@@ -488,10 +494,10 @@ function renderIndex(data, allSections, isLastSection = false) {
 
   return `
     <tr>
-      <td class="em-px" style="padding:0 36px;${sectionBottomBorder(isLastSection)}">
+      <td class="em-px" style="padding:${sectionPadding("0 36px", "0 36px")};${sectionBottomBorder(isLastSection)}">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
           <tr>
-            <td style="padding:28px 0 18px;">
+            <td style="padding:${sectionPadding("28px 0 18px", "20px 0 12px")};">
               <p style="margin:0; font-family:${FONTS.body}; font-size:11px; letter-spacing:0.18em; text-transform:uppercase; color:${EMAIL_THEME.textDim}; font-weight:500;">${escapeHtml(data.label)}</p>
             </td>
           </tr>
@@ -521,7 +527,7 @@ function renderEdito(data, number, anchor = "", isLastSection = false) {
 
   return `
     <tr>
-      <td class="em-px" style="padding:44px 36px;${sectionBottomBorder(isLastSection)}">
+      <td class="em-px" style="padding:${sectionPadding("44px 36px", "28px 36px")};${sectionBottomBorder(isLastSection)}">
         ${anchor}
         ${sectionHeader(number, data.kicker)}
         ${sectionTitle(data.title)}
@@ -550,7 +556,7 @@ function renderChart(data, assetMode, isLastSection = false) {
 
   return `
     <tr>
-      <td class="em-px" style="padding:36px 36px 28px; background-color:${EMAIL_THEME.bgSection};${sectionBottomBorder(isLastSection)}">
+      <td class="em-px" style="padding:${sectionPadding("36px 36px 28px", "24px 36px")}; background-color:${EMAIL_THEME.bgSection};${sectionBottomBorder(isLastSection)}">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
           <tr>
             <td valign="bottom">
@@ -598,7 +604,7 @@ function renderFearGreed(data, number, assetMode, anchor = "", isLastSection = f
 
   return `
     <tr>
-      <td class="em-px" style="padding:44px 36px;${sectionBottomBorder(isLastSection)}">
+      <td class="em-px" style="padding:${sectionPadding("44px 36px", "28px 36px")};${sectionBottomBorder(isLastSection)}">
         ${anchor}
         ${sectionHeader(number, data.kicker)}
         ${sectionTitleSpaced(data.title)}
@@ -662,7 +668,7 @@ function renderSignals(data, number, anchor = "", isLastSection = false) {
 
   return `
     <tr>
-      <td class="em-px" style="padding:44px 36px;${sectionBottomBorder(isLastSection)}">
+      <td class="em-px" style="padding:${sectionPadding("44px 36px", "28px 36px")};${sectionBottomBorder(isLastSection)}">
         ${anchor}
         ${sectionHeader(number, data.kicker)}
         ${sectionTitleSpaced(data.title)}
@@ -702,7 +708,7 @@ function renderMacroBars(data, isLastSection = false) {
   if (!content) return "";
   return `
     <tr>
-      <td class="em-px" style="padding:28px 36px; background-color:${EMAIL_THEME.bgSection};${sectionBottomBorder(isLastSection)}">
+      <td class="em-px" style="padding:${sectionPadding("28px 36px", "20px 36px")}; background-color:${EMAIL_THEME.bgSection};${sectionBottomBorder(isLastSection)}">
         ${content}
       </td>
     </tr>`;
@@ -721,7 +727,7 @@ function renderCommentedNumber(data, anchor = "", isLastSection = false) {
   const bodyColor = isLightTheme ? "#555E6E" : EMAIL_THEME.textMuted;
   return `
     <tr>
-      <td class="em-px" style="padding:36px;${sectionBottomBorder(isLastSection)}">
+      <td class="em-px" style="padding:${sectionPadding("36px", "24px 36px")};${sectionBottomBorder(isLastSection)}">
         ${anchor}
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${cardBg}" style="background-color:${cardBg}; border:1px solid ${cardBorder}; border-radius:14px; border-collapse:separate !important; border-spacing:0 !important; overflow:hidden;">
           <tr>
@@ -823,7 +829,7 @@ function renderFeatureGrid(data, number, assetMode, anchor = "", isLastSection =
 
   return `
     <tr>
-      <td class="em-px" style="padding:44px 36px;${sectionBottomBorder(isLastSection)}">
+      <td class="em-px" style="padding:${sectionPadding("44px 36px", "28px 36px")};${sectionBottomBorder(isLastSection)}">
         ${anchor}
         ${sectionHeader(number, data.kicker)}
         <div style="height:18px; line-height:18px; font-size:1px;">&nbsp;</div>
@@ -876,7 +882,7 @@ function renderMacro(data, number, assetMode, anchor = "", isLastSection = false
 
   return `
     <tr>
-      <td class="em-px" style="padding:44px 36px;${sectionBottomBorder(isLastSection)}">
+      <td class="em-px" style="padding:${sectionPadding("44px 36px", "28px 36px")};${sectionBottomBorder(isLastSection)}">
         ${anchor}
         ${sectionHeader(number, data.kicker)}
         ${sectionTitleSpaced(data.title)}
@@ -931,7 +937,7 @@ function renderEvent(data, anchor = "", isLastSection = false) {
 
   return `
     <tr>
-      <td class="em-px" style="padding:36px;${sectionBottomBorder(isLastSection)}">
+      <td class="em-px" style="padding:${sectionPadding("36px", "24px 36px")};${sectionBottomBorder(isLastSection)}">
         ${anchor}
         ${cardTable}
       </td>
@@ -1107,7 +1113,7 @@ function renderFocus(data, number, assetMode, anchor = "", isLastSection = false
     )).join("\n");
     return `
     <tr>
-      <td class="em-px" style="padding:44px 36px;${sectionBottomBorder(isLastSection)}">
+      <td class="em-px" style="padding:${sectionPadding("44px 36px", "28px 36px")};${sectionBottomBorder(isLastSection)}">
         ${anchor}
         ${sectionHeader(number, data.kicker)}
         ${sectionTitleSpaced(data.title)}
@@ -1172,7 +1178,7 @@ function renderFocus(data, number, assetMode, anchor = "", isLastSection = false
 
   return `
     <tr>
-      <td class="em-px" style="padding:44px 36px;${sectionBottomBorder(isLastSection)}">
+      <td class="em-px" style="padding:${sectionPadding("44px 36px", "28px 36px")};${sectionBottomBorder(isLastSection)}">
         ${anchor}
         ${sectionHeader(number, data.kicker)}
         ${sectionTitleSpaced(data.title)}
@@ -1195,7 +1201,7 @@ function renderImageBlock(data, isLastSection = false) {
 
   return `
     <tr>
-      <td class="em-px" style="padding:36px;${sectionBottomBorder(isLastSection)}">
+      <td class="em-px" style="padding:${sectionPadding("36px", "24px 36px")};${sectionBottomBorder(isLastSection)}">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
           <tr>
             <td>
@@ -1220,7 +1226,7 @@ function renderTextBlock(data, number, anchor = "", isLastSection = false) {
 
   return `
     <tr>
-      <td class="em-px" style="padding:44px 36px;${sectionBottomBorder(isLastSection)}">
+      <td class="em-px" style="padding:${sectionPadding("44px 36px", "28px 36px")};${sectionBottomBorder(isLastSection)}">
         ${anchor}
         ${sectionHeader(number, data.kicker)}
         ${sectionTitle(data.title)}
@@ -1273,7 +1279,7 @@ function renderEditorialList(data, number, anchor = "", isLastSection = false) {
 
   return `
     <tr>
-      <td class="em-px" style="padding:44px 36px;${sectionBottomBorder(isLastSection)}">
+      <td class="em-px" style="padding:${sectionPadding("44px 36px", "28px 36px")};${sectionBottomBorder(isLastSection)}">
         ${anchor}
         ${sectionHeader(number, "")}
         ${kickerHtml}

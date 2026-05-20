@@ -311,9 +311,12 @@ export function EditorPanel({ state, setState }) {
     <>
       <div className="mb-6 grid grid-cols-1 gap-2 px-1 sm:grid-cols-3">
         <label className="grid min-w-0 cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-xl border border-line bg-d-panel px-3 py-2.5">
-          <span className="flex min-w-0 items-center gap-2 text-xs font-semibold text-d-fg">
+          <span className="flex min-w-0 items-center gap-2 text-[11px] font-semibold text-d-fg lg:text-xs">
             <Palette size={13} className="flex-shrink-0" />
-            <span className="min-w-0 leading-tight">Fond blanc</span>
+            <span className="min-w-0 leading-tight">
+              <span className="hidden xl:inline">Fond blanc</span>
+              <span className="xl:hidden">Fond</span>
+            </span>
           </span>
           <span className="relative inline-flex h-6 w-11 flex-shrink-0 items-center">
             <input
@@ -327,9 +330,12 @@ export function EditorPanel({ state, setState }) {
           </span>
         </label>
         <label className="grid min-w-0 cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-xl border border-line bg-d-panel px-3 py-2.5">
-          <span className="flex min-w-0 items-center gap-2 text-xs font-semibold text-d-fg">
+          <span className="flex min-w-0 items-center gap-2 text-[11px] font-semibold text-d-fg lg:text-xs">
             <Hash size={13} className="flex-shrink-0" />
-            <span className="min-w-0 leading-tight">Numérotation</span>
+            <span className="min-w-0 leading-tight">
+              <span className="hidden xl:inline">Numérotation</span>
+              <span className="xl:hidden">N°</span>
+            </span>
           </span>
           <span className="relative inline-flex h-6 w-11 flex-shrink-0 items-center">
             <input
@@ -343,9 +349,12 @@ export function EditorPanel({ state, setState }) {
           </span>
         </label>
         <label className="grid min-w-0 cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-xl border border-line bg-d-panel px-3 py-2.5">
-          <span className="flex min-w-0 items-center gap-2 text-xs font-semibold text-d-fg">
+          <span className="flex min-w-0 items-center gap-2 text-[11px] font-semibold text-d-fg lg:text-xs">
             <Minus size={13} className="flex-shrink-0" />
-            <span className="min-w-0 leading-tight">Séparateurs</span>
+            <span className="min-w-0 leading-tight">
+              <span className="hidden xl:inline">Séparateurs</span>
+              <span className="xl:hidden">Filets</span>
+            </span>
           </span>
           <span className="relative inline-flex h-6 w-11 flex-shrink-0 items-center">
             <input
