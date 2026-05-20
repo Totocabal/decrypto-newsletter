@@ -121,7 +121,12 @@ export function AdminPage({ onBack }) {
       .from("profiles")
       .select("*")
       .order("created_at", { ascending: false });
-    setProfiles(data || []);
+    const sortedData = (data || []).sort((a, b) => {
+      const nameA = (a.full_name || a.email || "").toLowerCase();
+      const nameB = (b.full_name || b.email || "").toLowerCase();
+      return nameA.localeCompare(nameB, "fr", { sensitivity: "base" });
+    });
+    setProfiles(sortedData);
     setLoading(false);
   }, []);
 
