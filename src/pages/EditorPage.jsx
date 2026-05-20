@@ -583,10 +583,14 @@ function SaveIndicator({ saving, lastSavedAt, lockedByOther }) {
     });
     return (
       <div
-        className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em]"
-        style={{ color: "#03FFCF" }}
+        className="flex items-center gap-1.5 rounded-full border px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-[0.18em] shadow-sm"
+        style={{
+          color: "#007C66",
+          background: "#D9FFF7",
+          borderColor: "#00BB97",
+        }}
       >
-        <Cloud size={12} />
+        <Cloud size={12} strokeWidth={2.4} />
         <span className="hidden sm:inline">Sauvé · {time}</span>
       </div>
     );
