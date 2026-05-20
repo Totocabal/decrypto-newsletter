@@ -109,6 +109,7 @@ create table if not exists public.template_presets (
   sections jsonb not null default '[]'::jsonb,
   include_default_content boolean not null default true,
   show_section_numbers boolean not null default true,
+  show_block_separators boolean not null default true,
   theme_variant text not null default 'dark' check (theme_variant in ('dark', 'light')),
   show_issue_date boolean not null default true,
   created_at timestamptz not null default now(),
@@ -119,6 +120,9 @@ create table if not exists public.template_presets (
 
 alter table public.template_presets
   alter column created_by set default auth.uid();
+
+alter table public.template_presets
+  add column if not exists show_block_separators boolean not null default true;
 
 create index if not exists template_presets_name_idx
   on public.template_presets (lower(name));

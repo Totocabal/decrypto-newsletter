@@ -58,6 +58,7 @@ const RICH_TEXT_BOLD_WEIGHT = 700;
 let EMAIL_THEME = THEME;
 // URL du PNG de dégradé CTA — null en mode inline (prévisualisation), renseigné en mode export
 let CTA_GRADIENT_URL = null;
+let SHOW_BLOCK_SEPARATORS = true;
 
 function getEmailThemeVariant(state = {}) {
   return state.theme_variant === "light" ? "light" : "dark";
@@ -355,7 +356,7 @@ function sectionTitleSpaced(title) {
 }
 
 function sectionBottomBorder(isLastSection) {
-  return isLastSection ? "" : ` border-bottom:1px solid ${EMAIL_THEME.border};`;
+  return isLastSection || !SHOW_BLOCK_SEPARATORS ? "" : ` border-bottom:1px solid ${EMAIL_THEME.border};`;
 }
 
 function plainTextFromRichText(text = "") {
@@ -1387,6 +1388,7 @@ export function buildEmailHtml(state, options = {}) {
   const assetMode = options.assetMode || "inline"; // "inline" ou "external"
   CTA_GRADIENT_URL = options.ctaGradientUrl || null;
   const showSectionNumbers = state.show_section_numbers !== false;
+  SHOW_BLOCK_SEPARATORS = state.show_block_separators !== false;
   const themeVariant = getEmailThemeVariant(state);
   const emailColorScheme = themeVariant === "light" ? "light" : "dark";
   const sections = state.sections || [];

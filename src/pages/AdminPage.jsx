@@ -714,6 +714,9 @@ function DefaultSectionsEditor({ currentProfile, active: editorVisible = true })
   const [showSectionNumbers, setShowSectionNumbers] = useState(
     () => getDefaultNewsletterTemplate().showSectionNumbers
   );
+  const [showBlockSeparators, setShowBlockSeparators] = useState(
+    () => getDefaultNewsletterTemplate().showBlockSeparators
+  );
   const [themeVariant, setThemeVariant] = useState(
     () => getDefaultNewsletterTemplate().themeVariant
   );
@@ -855,7 +858,7 @@ function DefaultSectionsEditor({ currentProfile, active: editorVisible = true })
   };
 
   const handleSaveDefault = () => {
-    saveDefaultSectionTypes(active, includeDefaultContent, showSectionNumbers, themeVariant, includeIssueDate);
+    saveDefaultSectionTypes(active, includeDefaultContent, showSectionNumbers, showBlockSeparators, themeVariant, includeIssueDate);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
@@ -869,6 +872,7 @@ function DefaultSectionsEditor({ currentProfile, active: editorVisible = true })
         sections: active,
         includeDefaultContent,
         showSectionNumbers,
+        showBlockSeparators,
         themeVariant,
         includeIssueDate,
       });
@@ -897,6 +901,7 @@ function DefaultSectionsEditor({ currentProfile, active: editorVisible = true })
         sections: active,
         includeDefaultContent,
         showSectionNumbers,
+        showBlockSeparators,
         themeVariant,
         includeIssueDate,
       });
@@ -917,6 +922,7 @@ function DefaultSectionsEditor({ currentProfile, active: editorVisible = true })
     setActive(preset.sections);
     setIncludeDefaultContent(preset.includeDefaultContent);
     setShowSectionNumbers(preset.showSectionNumbers);
+    setShowBlockSeparators(preset.showBlockSeparators);
     setThemeVariant(preset.themeVariant);
     setIncludeIssueDate(preset.includeIssueDate);
     setEditingPresetId(preset.id);
@@ -939,6 +945,7 @@ function DefaultSectionsEditor({ currentProfile, active: editorVisible = true })
     setActive(INITIAL_SECTION_TEMPLATE.map((entry) => ({ ...entry })));
     setIncludeDefaultContent(true);
     setShowSectionNumbers(true);
+    setShowBlockSeparators(true);
     setThemeVariant("dark");
     setIncludeIssueDate(true);
     setEditingPresetId(null);
@@ -1215,6 +1222,16 @@ function DefaultSectionsEditor({ currentProfile, active: editorVisible = true })
                 }}
               />
               <PresetSettingRow
+                icon={Minus}
+                title="Séparateurs entre blocs"
+                hint="Affiche un liseret entre chaque bloc du mail."
+                checked={showBlockSeparators}
+                onChange={(checked) => {
+                  setShowBlockSeparators(checked);
+                  setSaved(false);
+                }}
+              />
+              <PresetSettingRow
                 icon={Calendar}
                 title="Date d'en-tête"
                 hint="Date préremplie à la création."
@@ -1223,7 +1240,6 @@ function DefaultSectionsEditor({ currentProfile, active: editorVisible = true })
                   setIncludeIssueDate(checked);
                   setSaved(false);
                 }}
-                last
               />
             </div>
           </div>
@@ -1282,7 +1298,7 @@ function DefaultSectionsEditor({ currentProfile, active: editorVisible = true })
                           {preset.name}
                         </span>
                         <span className="mt-0.5 block truncate font-mono text-[10px] text-d-fg4">
-                          {preset.sections.length} blocs · {preset.themeVariant === "light" ? "clair" : "sombre"} · {preset.includeIssueDate ? "daté" : "sans date"}
+                          {preset.sections.length} blocs · {preset.themeVariant === "light" ? "clair" : "sombre"} · {preset.showBlockSeparators ? "séparateurs" : "sans séparateurs"} · {preset.includeIssueDate ? "daté" : "sans date"}
                         </span>
                       </button>
                       {canDeletePreset ? (

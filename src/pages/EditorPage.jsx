@@ -240,6 +240,7 @@ export function EditorPage({ newsletterId, onBack }) {
         sections: state.sections || [],
         includeDefaultContent: true,
         showSectionNumbers: state.show_section_numbers !== false,
+        showBlockSeparators: state.show_block_separators !== false,
         themeVariant: state.theme_variant || "dark",
       });
       setPresetSaved(true);

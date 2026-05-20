@@ -174,6 +174,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
           ? { ...buildInitialStateFromTypes(preset.sections, {
               includeDefaultContent: preset.includeDefaultContent,
               showSectionNumbers: preset.showSectionNumbers,
+              showBlockSeparators: preset.showBlockSeparators,
               themeVariant: preset.themeVariant,
               includeIssueDate: preset.includeIssueDate,
             }), preview_text: newPreviewText }
@@ -182,6 +183,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
             return { ...buildInitialStateFromTypes(template.sections, {
               includeDefaultContent: template.includeDefaultContent,
               showSectionNumbers: template.showSectionNumbers,
+              showBlockSeparators: template.showBlockSeparators,
               themeVariant: template.themeVariant,
               includeIssueDate: template.includeIssueDate,
             }), preview_text: newPreviewText };
@@ -755,7 +757,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                           {preset.name}
                         </div>
                         <div className="text-[11px] text-d-fg4">
-                          {preset.sections.length} bloc{preset.sections.length > 1 ? "s" : ""} · {preset.includeDefaultContent ? "avec contenu" : "sans contenu"} · {preset.showSectionNumbers ? "numéroté" : "sans numérotation"} · {preset.themeVariant === "light" ? "fond blanc" : "fond sombre"} · {preset.includeIssueDate ? "avec date" : "sans date"}
+                          {preset.sections.length} bloc{preset.sections.length > 1 ? "s" : ""} · {preset.includeDefaultContent ? "avec contenu" : "sans contenu"} · {preset.showSectionNumbers ? "numéroté" : "sans numérotation"} · {preset.showBlockSeparators ? "séparateurs" : "sans séparateurs"} · {preset.themeVariant === "light" ? "fond blanc" : "fond sombre"} · {preset.includeIssueDate ? "avec date" : "sans date"}
                         </div>
                       </button>
                     ))}

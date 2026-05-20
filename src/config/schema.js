@@ -347,6 +347,7 @@ export const INITIAL_STATE = {
   preview_text:
     "Le marché reprend son souffle — F&G à 72, ETF +1,2 Md$, FED qui tempère.",
   show_section_numbers: true,
+  show_block_separators: true,
   theme_variant: "dark",
 
   // ── Sections modulaires ───────────────────────────────────────────────
@@ -386,6 +387,7 @@ export function migrateLegacyState(oldState) {
     return {
       ...oldState,
       show_section_numbers: oldState.show_section_numbers !== false,
+      show_block_separators: oldState.show_block_separators !== false,
       theme_variant: oldState.theme_variant === "light" ? "light" : "dark",
     };
   }
@@ -521,6 +523,7 @@ export function migrateLegacyState(oldState) {
     issue_date: o.issue_date ?? "",
     preview_text: o.preview_text ?? "",
     show_section_numbers: o.show_section_numbers !== false,
+    show_block_separators: o.show_block_separators !== false,
     theme_variant: o.theme_variant === "light" ? "light" : "dark",
     sections,
     footer: {
@@ -660,6 +663,7 @@ export function getDefaultNewsletterTemplate() {
             ? parsed.includeDefaultContent
             : DEFAULT_TEMPLATE_USES_CONTENT,
         showSectionNumbers: parsed?.showSectionNumbers !== false,
+        showBlockSeparators: parsed?.showBlockSeparators !== false,
         themeVariant: parsed?.themeVariant === "light" ? "light" : "dark",
         includeIssueDate: parsed?.includeIssueDate !== false,
       };
@@ -671,6 +675,7 @@ export function getDefaultNewsletterTemplate() {
     sections: INITIAL_SECTION_TEMPLATE.map((entry) => ({ ...entry })),
     includeDefaultContent: DEFAULT_TEMPLATE_USES_CONTENT,
     showSectionNumbers: true,
+    showBlockSeparators: true,
     themeVariant: "dark",
     includeIssueDate: true,
   };
@@ -684,6 +689,7 @@ export function saveDefaultSectionTypes(
   sections,
   includeDefaultContent = DEFAULT_TEMPLATE_USES_CONTENT,
   showSectionNumbers = true,
+  showBlockSeparators = true,
   themeVariant = "dark",
   includeIssueDate = true
 ) {
@@ -694,6 +700,7 @@ export function saveDefaultSectionTypes(
         sections: normalizeTemplateSections(sections),
         includeDefaultContent,
         showSectionNumbers: showSectionNumbers !== false,
+        showBlockSeparators: showBlockSeparators !== false,
         themeVariant: themeVariant === "light" ? "light" : "dark",
         includeIssueDate: includeIssueDate !== false,
       })
@@ -706,12 +713,14 @@ export function saveDefaultSectionTypes(
 export function buildInitialStateFromTypes(types, options = {}) {
   const includeDefaultContent = options.includeDefaultContent !== false;
   const showSectionNumbers = options.showSectionNumbers !== false;
+  const showBlockSeparators = options.showBlockSeparators !== false;
   const themeVariant = options.themeVariant === "light" ? "light" : "dark";
   const includeIssueDate = options.includeIssueDate !== false;
   const sections = normalizeTemplateSections(types);
   return {
     ...INITIAL_STATE,
     show_section_numbers: showSectionNumbers,
+    show_block_separators: showBlockSeparators,
     theme_variant: themeVariant,
     issue_date: includeIssueDate ? INITIAL_STATE.issue_date : "",
     sections: sections.map(({ type, counts_for_numbering }) => {
