@@ -60,6 +60,7 @@ let EMAIL_THEME = THEME;
 let CTA_GRADIENT_URL = null;
 let SHOW_BLOCK_SEPARATORS = true;
 let CURRENT_SECTION_IS_FIRST = false;
+let CURRENT_SECTION_IS_LAST = false;
 
 function getEmailThemeVariant(state = {}) {
   return state.theme_variant === "light" ? "light" : "dark";
@@ -379,10 +380,13 @@ function formatPadding({ top, right, bottom, left }) {
 
 function sectionPadding(defaultPadding, compactPadding) {
   if (SHOW_BLOCK_SEPARATORS) return defaultPadding;
-  if (!CURRENT_SECTION_IS_FIRST) return compactPadding;
   const defaultParts = expandPadding(defaultPadding);
   const compactParts = expandPadding(compactPadding);
-  return formatPadding({ ...compactParts, top: defaultParts.top });
+  return formatPadding({
+    ...compactParts,
+    top: CURRENT_SECTION_IS_FIRST ? defaultParts.top : compactParts.top,
+    bottom: CURRENT_SECTION_IS_LAST ? defaultParts.bottom : compactParts.bottom,
+  });
 }
 
 function plainTextFromRichText(text = "") {
@@ -1330,6 +1334,7 @@ function renderDivider(data, isLastSection = false) {
 
 function renderSection(sec, allSections, assetMode, showSectionNumbers = true, isLastSection = false, isFirstSection = false) {
   CURRENT_SECTION_IS_FIRST = isFirstSection;
+  CURRENT_SECTION_IS_LAST = isLastSection;
   const number = showSectionNumbers === false
     ? null
     : computeSectionNumber(allSections, sec.id);
