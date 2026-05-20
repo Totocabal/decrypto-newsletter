@@ -114,6 +114,8 @@ export function AdminPage({ onBack }) {
   const [createdAccount, setCreatedAccount] = useState(null);
   const [locks, setLocks] = useState([]);
   const [locksLoading, setLocksLoading] = useState(false);
+  const [accountsSort, setAccountsSort] = useState("name"); // "name" | "last_login"
+  const [accountsSearch, setAccountsSearch] = useState("");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -121,12 +123,7 @@ export function AdminPage({ onBack }) {
       .from("profiles")
       .select("*")
       .order("created_at", { ascending: false });
-    const sortedData = (data || []).sort((a, b) => {
-      const nameA = (a.full_name || a.email || "").toLowerCase();
-      const nameB = (b.full_name || b.email || "").toLowerCase();
-      return nameA.localeCompare(nameB, "fr", { sensitivity: "base" });
-    });
-    setProfiles(sortedData);
+    setProfiles(data || []);
     setLoading(false);
   }, []);
 
@@ -212,8 +209,33 @@ export function AdminPage({ onBack }) {
     }
   };
 
-  const pending = profiles.filter((p) => !p.approved);
-  const approved = profiles.filter((p) => p.approved);
+  const filteredAndSortedProfiles = [...profiles]
+    .filter((p) => {
+      const search = accountsSearch.trim().toLowerCase();
+      if (!search) return true;
+      const name = (p.full_name || "").toLowerCase();
+      const email = (p.email || "").toLowerCase();
+      return name.includes(search) || email.includes(search);
+    })
+    .sort((a, b) => {
+      if (accountsSort === "name") {
+        const nameA = (a.full_name || a.email || "").toLowerCase();
+        const nameB = (b.full_name || b.email || "").toLowerCase();
+        return nameA.localeCompare(nameB, "fr", { sensitivity: "base" });
+      } else {
+        const dateA = a.last_login_at ? new Date(a.last_login_at).getTime() : 0;
+        const dateB = b.last_login_at ? new Date(b.last_login_at).getTime() : 0;
+        if (dateB !== dateA) {
+          return dateB - dateA;
+        }
+        const nameA = (a.full_name || a.email || "").toLowerCase();
+        const nameB = (b.full_name || b.email || "").toLowerCase();
+        return nameA.localeCompare(nameB, "fr", { sensitivity: "base" });
+      }
+    });
+
+  const pending = filteredAndSortedProfiles.filter((p) => !p.approved);
+  const approved = filteredAndSortedProfiles.filter((p) => p.approved);
 
   const tabs = [
     { id: "accounts", label: "Gestion des comptes", icon: Users },
@@ -370,6 +392,59 @@ export function AdminPage({ onBack }) {
                     </button>
                   </div>
                 )}
+              </div>
+            </section>
+
+            {/* Recherche & Tri */}
+            <section className="bg-d-panel border border-line rounded-2xl p-4 flex flex-col sm:flex-row gap-4 justify-between items-center">
+              <div className="relative w-full sm:w-72">
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-d-fg4" />
+                <input
+                  type="text"
+                  placeholder="Rechercher un compte..."
+                  value={accountsSearch}
+                  onChange={(e) => setAccountsSearch(e.target.value)}
+                  className="w-full pl-9 pr-8 py-2 border border-line rounded-xl text-xs focus:outline-none focus:border-line2 bg-d-panel2 text-d-fg placeholder:text-d-fg4 transition-colors"
+                />
+                {accountsSearch && (
+                  <button
+                    type="button"
+                    onClick={() => setAccountsSearch("")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-d-fg4 hover:text-d-fg transition-colors"
+                  >
+                    <X size={12} />
+                  </button>
+                )}
+              </div>
+
+              <div className="flex w-full sm:w-auto items-center justify-between sm:justify-end gap-3">
+                <span className="text-[10px] uppercase tracking-[0.18em] text-d-fg4 font-semibold whitespace-nowrap">
+                  Trier par :
+                </span>
+                <div className="flex items-center rounded-full border border-line bg-d-panel2 p-0.5">
+                  <button
+                    type="button"
+                    onClick={() => setAccountsSort("name")}
+                    className={`rounded-full px-3 py-1.5 text-[10px] uppercase tracking-[0.12em] font-semibold transition-colors ${
+                      accountsSort === "name"
+                        ? "bg-white text-[#15151A]"
+                        : "text-d-fg3 hover:text-d-fg2"
+                    }`}
+                  >
+                    Nom
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAccountsSort("last_login")}
+                    className={`rounded-full px-3 py-1.5 text-[10px] uppercase tracking-[0.12em] font-semibold transition-colors ${
+                      accountsSort === "last_login"
+                        ? "bg-white text-[#15151A]"
+                        : "text-d-fg3 hover:text-d-fg2"
+                    }`}
+                  >
+                    Connexion
+                  </button>
+                </div>
               </div>
             </section>
 
