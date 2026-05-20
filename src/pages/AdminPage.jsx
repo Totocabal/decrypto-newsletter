@@ -166,7 +166,7 @@ export function AdminPage({ onBack }) {
       setLocksLoading(false);
       return;
     }
-    addToast(`${count} verrou${count > 1 ? "s" : ""} libéré${count > 1 ? "s" : ""}.`);
+    addToast(`${count} verrou${count > 1 ? "s" : ""} libéré${count > 1 ? "s" : ""}.`, "success");
     await loadLocks();
   };
 

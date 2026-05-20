@@ -77,10 +77,33 @@ function ToastItem({ toast, onRemove }) {
   const { id, message, type } = toast;
   const isError = type === "error";
   const isSuccess = type === "success";
+  const palette = isError
+    ? {
+        background: "#2A1212",
+        border: "rgba(255,80,60,0.4)",
+        icon: "#FF8466",
+        text: "#FFF1EC",
+        close: "#FFB8A0",
+      }
+    : isSuccess
+    ? {
+        background: "#121F18",
+        border: "rgba(3,255,207,0.35)",
+        icon: "#03FFCF",
+        text: "#E9FFF9",
+        close: "#A4E8DB",
+      }
+    : {
+        background: "#1E1E28",
+        border: "rgba(255,255,255,0.1)",
+        icon: "#D7DAE2",
+        text: "#F1F2F5",
+        close: "#B5B8C2",
+      };
   return (
     <div style={{
-      background: isError ? "#2A1212" : isSuccess ? "#121F18" : "#1E1E28",
-      border: `1px solid ${isError ? "rgba(255,80,60,0.4)" : isSuccess ? "rgba(3,255,207,0.35)" : "rgba(255,255,255,0.1)"}`,
+      background: palette.background,
+      border: `1px solid ${palette.border}`,
       borderRadius: 12,
       padding: "10px 12px 10px 14px",
       display: "flex",
@@ -92,12 +115,12 @@ function ToastItem({ toast, onRemove }) {
       animation: "fadeSlideIn 0.18s ease",
     }}>
       {isError
-        ? <AlertTriangle size={14} style={{ color: "#FF8466", flexShrink: 0, marginTop: 1 }} />
+        ? <AlertTriangle size={14} style={{ color: palette.icon, flexShrink: 0, marginTop: 1 }} />
         : isSuccess
-        ? <CheckCircle size={14} style={{ color: "#03FFCF", flexShrink: 0, marginTop: 1 }} />
-        : <Info size={14} style={{ color: "#aaa", flexShrink: 0, marginTop: 1 }} />}
-      <span style={{ fontSize: 13, color: "rgb(var(--d-fg))", flex: 1, lineHeight: 1.45 }}>{message}</span>
-      <button onClick={() => onRemove(id)} style={{ color: "rgb(var(--d-fg4))", background: "none", border: "none", cursor: "pointer", padding: "1px 0 0 4px", flexShrink: 0, lineHeight: 1 }}>
+        ? <CheckCircle size={14} style={{ color: palette.icon, flexShrink: 0, marginTop: 1 }} />
+        : <Info size={14} style={{ color: palette.icon, flexShrink: 0, marginTop: 1 }} />}
+      <span style={{ fontSize: 13, color: palette.text, flex: 1, lineHeight: 1.45 }}>{message}</span>
+      <button onClick={() => onRemove(id)} style={{ color: palette.close, background: "none", border: "none", cursor: "pointer", padding: "1px 0 0 4px", flexShrink: 0, lineHeight: 1 }}>
         <X size={12} />
       </button>
     </div>
