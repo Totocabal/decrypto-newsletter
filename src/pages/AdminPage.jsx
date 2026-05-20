@@ -1667,7 +1667,11 @@ function LabelsEditor() {
           <button
             type="submit"
             disabled={saving || !form.name.trim()}
-            className="flex items-center justify-center gap-2 text-[10px] uppercase tracking-[0.18em] font-semibold text-[#15151A] bg-white hover:bg-d-fg2 px-4 py-2.5 rounded-full disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className={`flex items-center justify-center gap-2 text-[10px] uppercase tracking-[0.18em] font-bold px-5 py-2.5 rounded-full transition-all duration-300 ${
+              saving || !form.name.trim()
+                ? "bg-d-panel2 text-d-fg4 border border-line cursor-not-allowed opacity-40"
+                : "bg-gradient-to-r from-[#4141FF] via-[#8701FF] to-[#FF00AA] hover:from-[#4f4fff] hover:via-[#951aff] hover:to-[#ff1ab3] text-white hover:scale-[1.02] active:scale-[0.98] shadow-md shadow-purple-950/10 hover:shadow-purple-950/30"
+            }`}
           >
             {saving ? <Loader2 size={12} className="animate-spin" /> : <Plus size={12} />}
             Créer
