@@ -310,10 +310,10 @@ export function EditorPanel({ state, setState }) {
   return (
     <>
       <div className="mb-6 grid grid-cols-1 gap-2 px-1 sm:grid-cols-3">
-        <label className="flex items-center justify-between gap-3 rounded-xl border border-line bg-d-panel px-3 py-2.5 cursor-pointer">
-          <span className="flex items-center gap-2 text-xs font-semibold text-d-fg">
-            <Palette size={13} />
-            Fond blanc
+        <label className="grid min-w-0 cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-xl border border-line bg-d-panel px-3 py-2.5">
+          <span className="flex min-w-0 items-center gap-2 text-xs font-semibold text-d-fg">
+            <Palette size={13} className="flex-shrink-0" />
+            <span className="min-w-0 leading-tight">Fond blanc</span>
           </span>
           <span className="relative inline-flex h-6 w-11 flex-shrink-0 items-center">
             <input
@@ -326,10 +326,10 @@ export function EditorPanel({ state, setState }) {
             <span className="relative ml-1 h-4 w-4 rounded-full bg-d-fg4 transition-transform peer-checked:translate-x-5 peer-checked:bg-d-pink" />
           </span>
         </label>
-        <label className="flex items-center justify-between gap-3 rounded-xl border border-line bg-d-panel px-3 py-2.5 cursor-pointer">
-          <span className="flex items-center gap-2 text-xs font-semibold text-d-fg">
-            <Hash size={13} />
-            Numérotation
+        <label className="grid min-w-0 cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-xl border border-line bg-d-panel px-3 py-2.5">
+          <span className="flex min-w-0 items-center gap-2 text-xs font-semibold text-d-fg">
+            <Hash size={13} className="flex-shrink-0" />
+            <span className="min-w-0 leading-tight">Numérotation</span>
           </span>
           <span className="relative inline-flex h-6 w-11 flex-shrink-0 items-center">
             <input
@@ -342,10 +342,10 @@ export function EditorPanel({ state, setState }) {
             <span className="relative ml-1 h-4 w-4 rounded-full bg-d-fg4 transition-transform peer-checked:translate-x-5 peer-checked:bg-d-pink" />
           </span>
         </label>
-        <label className="flex items-center justify-between gap-3 rounded-xl border border-line bg-d-panel px-3 py-2.5 cursor-pointer">
-          <span className="flex items-center gap-2 text-xs font-semibold text-d-fg">
-            <Minus size={13} />
-            Séparateurs
+        <label className="grid min-w-0 cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-xl border border-line bg-d-panel px-3 py-2.5">
+          <span className="flex min-w-0 items-center gap-2 text-xs font-semibold text-d-fg">
+            <Minus size={13} className="flex-shrink-0" />
+            <span className="min-w-0 leading-tight">Séparateurs</span>
           </span>
           <span className="relative inline-flex h-6 w-11 flex-shrink-0 items-center">
             <input
