@@ -527,7 +527,7 @@ function renderEdito(data, number, anchor = "", isLastSection = false) {
 
   return `
     <tr>
-      <td class="em-px" style="padding:${sectionPadding("44px 36px", "28px 36px")};${sectionBottomBorder(isLastSection)}">
+      <td class="em-px" style="padding:${sectionPadding("44px 36px", "20px 36px")};${sectionBottomBorder(isLastSection)}">
         ${anchor}
         ${sectionHeader(number, data.kicker)}
         ${sectionTitle(data.title)}
@@ -1113,7 +1113,7 @@ function renderFocus(data, number, assetMode, anchor = "", isLastSection = false
     )).join("\n");
     return `
     <tr>
-      <td class="em-px" style="padding:${sectionPadding("44px 36px", "28px 36px")};${sectionBottomBorder(isLastSection)}">
+      <td class="em-px" style="padding:${sectionPadding("44px 36px", "20px 36px")};${sectionBottomBorder(isLastSection)}">
         ${anchor}
         ${sectionHeader(number, data.kicker)}
         ${sectionTitleSpaced(data.title)}
@@ -1178,7 +1178,7 @@ function renderFocus(data, number, assetMode, anchor = "", isLastSection = false
 
   return `
     <tr>
-      <td class="em-px" style="padding:${sectionPadding("44px 36px", "28px 36px")};${sectionBottomBorder(isLastSection)}">
+      <td class="em-px" style="padding:${sectionPadding("44px 36px", "20px 36px")};${sectionBottomBorder(isLastSection)}">
         ${anchor}
         ${sectionHeader(number, data.kicker)}
         ${sectionTitleSpaced(data.title)}
@@ -1226,7 +1226,7 @@ function renderTextBlock(data, number, anchor = "", isLastSection = false) {
 
   return `
     <tr>
-      <td class="em-px" style="padding:${sectionPadding("44px 36px", "28px 36px")};${sectionBottomBorder(isLastSection)}">
+      <td class="em-px" style="padding:${sectionPadding("44px 36px", "20px 36px")};${sectionBottomBorder(isLastSection)}">
         ${anchor}
         ${sectionHeader(number, data.kicker)}
         ${sectionTitle(data.title)}
