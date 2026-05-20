@@ -468,10 +468,20 @@ function EditoEditor({ data, set }) {
 
 const EDITORIAL_TAG_COLORS = [
   { label: "Mint", hex: "#03FFCF" },
+  { label: "Vert", hex: "#00BB97" },
   { label: "Cyan", hex: "#00FFFF" },
+  { label: "Bleu", hex: "#4141FF" },
+  { label: "Bleu clair", hex: "#5EA7FF" },
+  { label: "Indigo", hex: "#6C63FF" },
   { label: "Orange", hex: "#FF8B28" },
+  { label: "Corail", hex: "#FF4B28" },
+  { label: "Jaune", hex: "#FFD43B" },
   { label: "Violet", hex: "#C46BFF" },
+  { label: "Mauve", hex: "#B36BFF" },
   { label: "Rose", hex: "#FF00AA" },
+  { label: "Rose clair", hex: "#FF6BCB" },
+  { label: "Rouge", hex: "#FF3B5F" },
+  { label: "Gris", hex: "#8B94A3" },
 ];
 
 function EditorialListEditor({ data, set }) {
@@ -548,7 +558,7 @@ function EditorialListEditor({ data, set }) {
             </Field>
             <div className="mt-3">
               <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-d-fg4">Couleur du tag</div>
-              <div className="flex flex-wrap gap-1.5">
+              <div className="grid grid-cols-8 gap-1.5 sm:grid-cols-10">
                 {EDITORIAL_TAG_COLORS.map((color) => {
                   const active = (item.tag_color || "#FF00AA").toUpperCase() === color.hex.toUpperCase();
                   return (
