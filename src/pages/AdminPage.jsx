@@ -1790,6 +1790,10 @@ function LabelsEditor() {
 }
 
 function LabelColorModal({ value, onSelect, onClose }) {
+  const normalizedValue = /^#[0-9A-F]{6}$/i.test(String(value || "")) ? value : LABEL_COLORS[0];
+  const [customColor, setCustomColor] = useState(normalizedValue);
+  const isValidCustomColor = /^#[0-9A-F]{6}$/i.test(customColor);
+
   return (
     <div
       className="fixed inset-0 z-[90] flex items-center justify-center p-4"
@@ -1834,6 +1838,41 @@ function LabelColorModal({ value, onSelect, onClose }) {
               </button>
             );
           })}
+        </div>
+        <div className="mt-5 rounded-2xl border border-line bg-d-panel2 p-3">
+          <div className="mb-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-d-fg4">
+            Couleur personnalisée
+          </div>
+          <div className="grid grid-cols-[44px_minmax(0,1fr)_auto] items-center gap-2">
+            <input
+              type="color"
+              value={isValidCustomColor ? customColor : normalizedValue}
+              onChange={(event) => setCustomColor(event.target.value.toUpperCase())}
+              className="h-10 w-11 cursor-pointer rounded-xl border border-line bg-transparent p-1"
+              aria-label="Sélecteur de couleur personnalisée"
+            />
+            <input
+              type="text"
+              value={customColor}
+              onChange={(event) => {
+                const next = event.target.value.trim();
+                setCustomColor(next.startsWith("#") ? next.toUpperCase() : `#${next.toUpperCase()}`);
+              }}
+              placeholder="#FF00AA"
+              className="h-10 min-w-0 rounded-xl border border-line bg-d-panel px-3 font-mono text-xs text-d-fg outline-none transition-colors placeholder:text-d-fg4 focus:border-line2"
+            />
+            <button
+              type="button"
+              onClick={() => isValidCustomColor && onSelect(customColor.toUpperCase())}
+              disabled={!isValidCustomColor}
+              className="h-10 rounded-full bg-[#FF00AA] px-4 text-[10px] font-bold uppercase tracking-[0.18em] text-white transition-colors hover:bg-[#E60098] disabled:cursor-not-allowed disabled:border disabled:border-line disabled:bg-d-panel disabled:text-d-fg4"
+            >
+              Appliquer
+            </button>
+          </div>
+          {!isValidCustomColor && (
+            <div className="mt-2 text-[11px] text-[#FF8466]">Format attendu : #RRGGBB</div>
+          )}
         </div>
       </div>
     </div>
