@@ -359,10 +359,10 @@ export function AdminPage({ onBack }) {
                   <button
                     type="submit"
                     disabled={creating || !createForm.email.trim()}
-                    className={`flex items-center justify-center gap-2 text-[10px] uppercase tracking-[0.18em] font-bold px-5 py-2.5 rounded-full transition-all duration-300 ${
+                    className={`flex items-center justify-center gap-2 rounded-full px-6 py-3 text-[11px] font-bold uppercase tracking-[0.22em] transition-all duration-200 ${
                       creating || !createForm.email.trim()
                         ? "bg-d-panel2 text-d-fg4 border border-line cursor-not-allowed opacity-40"
-                        : "bg-gradient-to-r from-[#4141FF] via-[#8701FF] to-[#FF00AA] hover:from-[#4f4fff] hover:via-[#951aff] hover:to-[#ff1ab3] text-white hover:scale-[1.02] active:scale-[0.98] shadow-md shadow-purple-950/10 hover:shadow-purple-950/30"
+                        : "bg-[#FF00AA] text-white shadow-md shadow-pink-950/10 hover:bg-[#E60098] hover:shadow-pink-950/25 active:scale-[0.98]"
                     }`}
                   >
                     {creating ? (
@@ -370,7 +370,7 @@ export function AdminPage({ onBack }) {
                     ) : (
                       <UserPlus size={12} />
                     )}
-                    Créer
+                    Créer un compte
                   </button>
                 </form>
 
@@ -1575,6 +1575,7 @@ function LabelsEditor() {
   const [saving, setSaving] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({ name: "", color: "" });
+  const [colorPicker, setColorPicker] = useState(null);
 
   const handleCreate = async (e) => {
     e.preventDefault();
@@ -1649,32 +1650,30 @@ function LabelsEditor() {
           </div>
           <div>
             <label className="text-[10px] uppercase tracking-[0.18em] text-d-fg3 font-medium block mb-2">Couleur</label>
-            <div className="flex flex-wrap gap-1.5">
-              {LABEL_COLORS.map((c) => (
-                <button
-                  key={c}
-                  type="button"
-                  onClick={() => setForm((f) => ({ ...f, color: c }))}
-                  className="h-6 w-6 rounded-full border-2 transition-transform hover:scale-110"
-                  style={{
-                    background: c,
-                    borderColor: form.color === c ? "#fff" : "transparent",
-                  }}
-                />
-              ))}
-            </div>
+            <button
+              type="button"
+              onClick={() => setColorPicker({ mode: "create", value: form.color })}
+              className="flex h-[42px] min-w-[150px] items-center justify-between gap-3 rounded-xl border border-line bg-d-panel2 px-3 text-xs font-semibold text-d-fg transition-colors hover:border-line2 hover:bg-d-panel3"
+              disabled={saving}
+            >
+              <span className="flex items-center gap-2">
+                <span className="h-4 w-4 rounded-full border border-white/40" style={{ background: form.color }} />
+                Choisir
+              </span>
+              <span className="font-mono text-[10px] text-d-fg4">{form.color}</span>
+            </button>
           </div>
           <button
             type="submit"
             disabled={saving || !form.name.trim()}
-            className={`flex items-center justify-center gap-2 text-[10px] uppercase tracking-[0.18em] font-bold px-5 py-2.5 rounded-full transition-all duration-300 ${
+            className={`flex items-center justify-center gap-2 rounded-full px-6 py-3 text-[11px] font-bold uppercase tracking-[0.22em] transition-all duration-200 ${
               saving || !form.name.trim()
                 ? "bg-d-panel2 text-d-fg4 border border-line cursor-not-allowed opacity-40"
-                : "bg-gradient-to-r from-[#4141FF] via-[#8701FF] to-[#FF00AA] hover:from-[#4f4fff] hover:via-[#951aff] hover:to-[#ff1ab3] text-white hover:scale-[1.02] active:scale-[0.98] shadow-md shadow-purple-950/10 hover:shadow-purple-950/30"
+                : "bg-[#FF00AA] text-white shadow-md shadow-pink-950/10 hover:bg-[#E60098] hover:shadow-pink-950/25 active:scale-[0.98]"
             }`}
           >
             {saving ? <Loader2 size={12} className="animate-spin" /> : <Plus size={12} />}
-            Créer
+            Créer un label
           </button>
         </form>
       </div>
@@ -1710,20 +1709,18 @@ function LabelsEditor() {
                         className="flex-1 px-3 py-2 border border-line rounded-xl text-sm focus:outline-none focus:border-line2 bg-d-panel2 text-d-fg transition-colors"
                         disabled={saving}
                       />
-                      <div className="flex flex-wrap gap-1.5">
-                        {LABEL_COLORS.map((c) => (
-                          <button
-                            key={c}
-                            type="button"
-                            onClick={() => setEditForm((f) => ({ ...f, color: c }))}
-                            className="h-5 w-5 rounded-full border-2 transition-transform hover:scale-110"
-                            style={{
-                              background: c,
-                              borderColor: editForm.color === c ? "#fff" : "transparent",
-                            }}
-                          />
-                        ))}
-                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setColorPicker({ mode: "edit", value: editForm.color })}
+                        className="flex h-[38px] min-w-[140px] items-center justify-between gap-3 rounded-xl border border-line bg-d-panel2 px-3 text-xs font-semibold text-d-fg transition-colors hover:border-line2 hover:bg-d-panel3"
+                        disabled={saving}
+                      >
+                        <span className="flex items-center gap-2">
+                          <span className="h-4 w-4 rounded-full border border-white/40" style={{ background: editForm.color }} />
+                          Couleur
+                        </span>
+                        <span className="font-mono text-[10px] text-d-fg4">{editForm.color}</span>
+                      </button>
                     </div>
                     <div className="flex items-center gap-2">
                       <button
@@ -1773,6 +1770,72 @@ function LabelsEditor() {
           </div>
         )}
       </div>
+
+      {colorPicker && (
+        <LabelColorModal
+          value={colorPicker.mode === "edit" ? editForm.color : form.color}
+          onClose={() => setColorPicker(null)}
+          onSelect={(color) => {
+            if (colorPicker.mode === "edit") {
+              setEditForm((f) => ({ ...f, color }));
+            } else {
+              setForm((f) => ({ ...f, color }));
+            }
+            setColorPicker(null);
+          }}
+        />
+      )}
     </section>
+  );
+}
+
+function LabelColorModal({ value, onSelect, onClose }) {
+  return (
+    <div
+      className="fixed inset-0 z-[90] flex items-center justify-center p-4"
+      style={{ background: "rgba(0,0,0,0.55)" }}
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-md rounded-2xl border border-line bg-d-panel p-5 shadow-2xl"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <div>
+            <h3 className="text-sm font-semibold text-d-fg" style={{ fontFamily: "'Sora', sans-serif" }}>
+              Choisir une couleur
+            </h3>
+            <p className="mt-1 text-xs text-d-fg4">Couleur utilisée pour les labels newsletters et images.</p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-d-fg4 transition-colors hover:bg-d-panel2 hover:text-d-fg"
+          >
+            <X size={16} />
+          </button>
+        </div>
+        <div className="grid grid-cols-4 gap-2 sm:grid-cols-8">
+          {LABEL_COLORS.map((color) => {
+            const active = String(value || "").toUpperCase() === color.toUpperCase();
+            return (
+              <button
+                key={color}
+                type="button"
+                onClick={() => onSelect(color)}
+                className="group flex aspect-square items-center justify-center rounded-xl border transition-all hover:scale-105"
+                style={{
+                  background: color,
+                  borderColor: active ? "#FFFFFF" : "rgba(255,255,255,0.18)",
+                  boxShadow: active ? `0 0 0 2px ${color}, 0 8px 24px rgba(0,0,0,0.24)` : "none",
+                }}
+              >
+                {active && <Check size={15} className="text-white drop-shadow" strokeWidth={3} />}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </div>
   );
 }
