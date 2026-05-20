@@ -151,6 +151,25 @@ export function AdminPage({ onBack }) {
     loadLocks();
   };
 
+  const releaseAllLocks = async () => {
+    const count = locks.length;
+    if (!count) return;
+    const ok = await confirm(
+      `Déverrouiller tous les templates actuellement verrouillés (${count}) ?`,
+      { danger: true, confirmLabel: "Tout déverrouiller" }
+    );
+    if (!ok) return;
+    setLocksLoading(true);
+    const { error } = await supabase.from("locks").delete().neq("newsletter_id", "00000000-0000-0000-0000-000000000000");
+    if (error) {
+      addToast("Erreur : " + error.message);
+      setLocksLoading(false);
+      return;
+    }
+    addToast(`${count} verrou${count > 1 ? "s" : ""} libéré${count > 1 ? "s" : ""}.`);
+    await loadLocks();
+  };
+
   const updateProfile = async (id, patch) => {
     const { error } = await supabase
       .from("profiles")
@@ -587,6 +606,18 @@ export function AdminPage({ onBack }) {
                   <RefreshCw size={11} className={locksLoading ? "animate-spin" : ""} />
                   Rafraîchir
                 </button>
+                {locks.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={releaseAllLocks}
+                    disabled={locksLoading}
+                    className="flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                    style={{ color: "#FF8466", borderColor: "rgba(255,75,40,0.28)" }}
+                  >
+                    <LockOpen size={11} />
+                    Tout déverrouiller
+                  </button>
+                )}
               </div>
               <div className="bg-d-panel border border-line rounded-2xl overflow-hidden">
                 {locksLoading ? (
