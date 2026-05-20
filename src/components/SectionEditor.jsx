@@ -675,8 +675,8 @@ function PictoSelector({ value, color, onChange }) {
 function ColorSelector({ value, onChange }) {
   const activeColor = value || DEFAULT_CALLOUT_COLOR;
   return (
-    <div className="flex flex-wrap gap-1.5">
-      {CALLOUT_COLORS.map((c) => {
+    <div className="grid grid-cols-8 gap-1.5 sm:grid-cols-10">
+      {EDITORIAL_TAG_COLORS.map((c) => {
         const isSelected = activeColor.toUpperCase() === c.hex.toUpperCase();
         return (
           <Tooltip key={c.hex} label={c.label}>
