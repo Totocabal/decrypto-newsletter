@@ -486,7 +486,15 @@ const EDITORIAL_TAG_COLORS = [
 
 function EditorialListEditor({ data, set }) {
   const items = data.items || [];
+  const [collapsed, setCollapsed] = useState(() => new Set());
+  const itemKey = (item, index) => item.id || `editorial-${index}`;
+  const toggleCollapse = (key) => setCollapsed((prev) => {
+    const next = new Set(prev);
+    next.has(key) ? next.delete(key) : next.add(key);
+    return next;
+  });
   const helpers = listHelpers(items, set, () => ({
+    id: focusNewId(),
     title: "Nouvelle entrée",
     body: "",
     tag: "Tag",
@@ -512,18 +520,44 @@ function EditorialListEditor({ data, set }) {
       </Field>
 
       <div className="space-y-3">
-        {items.map((item, i) => (
-          <div key={i} className="rounded-xl border border-line bg-d-panel2 p-3">
-            <div className="mb-3 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
+        {items.map((item, i) => {
+          const key = itemKey(item, i);
+          const isCollapsed = collapsed.has(key);
+          return (
+          <div key={key} className="overflow-hidden rounded-xl border border-line bg-d-panel2">
+            <div
+              className="flex cursor-pointer select-none items-center justify-between gap-3 px-3 py-2"
+              style={{ borderBottom: isCollapsed ? "none" : "1px solid var(--d-line)" }}
+              onClick={() => toggleCollapse(key)}
+            >
+              <div className="flex min-w-0 items-center gap-2">
+                <ChevronDown
+                  size={14}
+                  className="flex-shrink-0 text-d-fg3 transition-transform"
+                  style={{ transform: isCollapsed ? "rotate(-90deg)" : "rotate(0deg)" }}
+                />
                 <span className="font-mono text-xs font-semibold text-d-pink">
                   {String(i + 1).padStart(2, "0")}
                 </span>
                 <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-d-fg4">
                   Entrée
                 </span>
+                <span className="min-w-0 truncate text-xs font-semibold text-d-fg2">
+                  {item.title || "Nouvelle entrée"}
+                </span>
+                {item.tag ? (
+                  <span
+                    className="hidden max-w-[90px] truncate rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.12em] sm:inline"
+                    style={{
+                      color: item.tag_color || "#FF00AA",
+                      background: "rgb(var(--d-panel3))",
+                    }}
+                  >
+                    {item.tag}
+                  </span>
+                ) : null}
               </div>
-              <div className="flex items-center gap-1">
+              <div className="flex flex-shrink-0 items-center gap-1" onClick={(event) => event.stopPropagation()}>
                 <button type="button" onClick={() => moveItem(i, -1)} disabled={i === 0} className="p-1.5 text-d-fg4 hover:text-d-fg2 hover:bg-d-panel3 rounded-lg disabled:opacity-20">
                   <ChevronUp size={14} />
                 </button>
@@ -535,6 +569,7 @@ function EditorialListEditor({ data, set }) {
                 </button>
               </div>
             </div>
+            {!isCollapsed && <div className="space-y-3 p-3">
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_150px]">
               <Field noMargin label="Titre">
                 <Input
@@ -578,8 +613,10 @@ function EditorialListEditor({ data, set }) {
                 })}
               </div>
             </div>
+            </div>}
           </div>
-        ))}
+          );
+        })}
       </div>
 
       <button
