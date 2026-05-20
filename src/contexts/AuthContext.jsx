@@ -48,6 +48,44 @@ function getAuthRedirectUrl() {
   return DEFAULT_AUTH_REDIRECT_URL;
 }
 
+function getAuthProvider(user) {
+  return (
+    user?.app_metadata?.provider ||
+    user?.identities?.[0]?.provider ||
+    "email"
+  );
+}
+
+async function recordLogin(user) {
+  if (!user?.id) return;
+  const loggedAt = new Date().toISOString();
+  const profileName = user.user_metadata?.full_name || user.user_metadata?.name || null;
+  const authProvider = getAuthProvider(user);
+  const userAgent = typeof navigator !== "undefined" ? navigator.userAgent : null;
+
+  const [{ error: logError }, { error: profileError }] = await Promise.all([
+    supabase.from("login_logs").insert({
+      user_id: user.id,
+      email: user.email,
+      full_name: profileName,
+      auth_provider: authProvider,
+      user_agent: userAgent,
+      logged_at: loggedAt,
+    }),
+    supabase
+      .from("profiles")
+      .update({ last_login_at: loggedAt })
+      .eq("id", user.id),
+  ]);
+
+  if (logError || profileError) {
+    // La migration peut ne pas encore avoir été appliquée en prod : on ne bloque
+    // jamais la connexion pour un log de connexion.
+    // eslint-disable-next-line no-console
+    console.warn("[auth] login log indisponible:", logError?.message || profileError?.message);
+  }
+}
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
@@ -56,6 +94,7 @@ export function AuthProvider({ children }) {
   const [initError, setInitError] = useState(null);
   const userIdRef = useRef(null);
   const profileRef = useRef(null);
+  const loggedSignInRef = useRef(null);
 
   useEffect(() => {
     userIdRef.current = user?.id || null;
@@ -201,6 +240,16 @@ export function AuthProvider({ children }) {
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
       if (!mounted) return;
       const u = session?.user ?? null;
+      if (event === "SIGNED_IN" && u?.id) {
+        const logKey = `${u.id}:${session?.access_token?.slice(-16) || session?.expires_at || Date.now()}`;
+        if (loggedSignInRef.current !== logKey) {
+          loggedSignInRef.current = logKey;
+          recordLogin(u).catch((err) => {
+            // eslint-disable-next-line no-console
+            console.warn("[auth] login log error:", err?.message || err);
+          });
+        }
+      }
       const sameLoadedUser = Boolean(
         u?.id && userIdRef.current === u.id && profileRef.current
       );

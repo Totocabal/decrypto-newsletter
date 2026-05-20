@@ -85,6 +85,19 @@ function getAdminCreateErrorMessage(error) {
   return message;
 }
 
+function formatLastLogin(value) {
+  if (!value) return "Jamais connecté";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Date inconnue";
+  return date.toLocaleString("fr-FR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 export function AdminPage({ onBack }) {
   const { profile: currentProfile } = useAuth();
   const addToast = useToast();
@@ -386,6 +399,9 @@ export function AdminPage({ onBack }) {
                           )}
                         </div>
                         <div className="text-[11px] text-d-fg4">{p.email}</div>
+                        <div className="mt-0.5 text-[11px] text-d-fg4">
+                          Dernière connexion : {formatLastLogin(p.last_login_at)}
+                        </div>
                       </div>
                       <div className="flex flex-wrap items-center gap-1 sm:justify-end">
                         <button
@@ -436,6 +452,9 @@ export function AdminPage({ onBack }) {
                           )}
                         </div>
                         <div className="text-[11px] text-d-fg4">{p.email}</div>
+                        <div className="mt-0.5 text-[11px] text-d-fg4">
+                          Dernière connexion : {formatLastLogin(p.last_login_at)}
+                        </div>
                       </div>
                       {!isSelf && (
                         <div className="flex flex-wrap items-center gap-1 sm:justify-end">

@@ -19,6 +19,7 @@ create table if not exists public.profiles (
   is_admin boolean not null default false,
   password_set boolean not null default false,
   auth_provider text not null default 'email',
+  last_login_at timestamptz,
   created_at timestamptz not null default now()
 );
 
@@ -135,6 +136,25 @@ create table if not exists public.locks (
 );
 
 -- ─────────────────────────────────────────────────────────────────────────────
+-- login_logs : historique des connexions utilisateur
+-- ─────────────────────────────────────────────────────────────────────────────
+create table if not exists public.login_logs (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.profiles(id) on delete cascade,
+  email text,
+  full_name text,
+  auth_provider text,
+  user_agent text,
+  logged_at timestamptz not null default now()
+);
+
+create index if not exists login_logs_user_id_logged_at_idx
+  on public.login_logs (user_id, logged_at desc);
+
+create index if not exists profiles_last_login_at_idx
+  on public.profiles (last_login_at desc);
+
+-- ─────────────────────────────────────────────────────────────────────────────
 -- Fonctions utilitaires (SECURITY DEFINER → bypass RLS pour éviter la récursion)
 -- ─────────────────────────────────────────────────────────────────────────────
 -- Ces fonctions sont utilisées dans les policies RLS plus bas. En faisant
@@ -179,6 +199,7 @@ alter table public.newsletters enable row level security;
 alter table public.versions enable row level security;
 alter table public.template_presets enable row level security;
 alter table public.locks enable row level security;
+alter table public.login_logs enable row level security;
 
 -- ── profiles ──
 -- Lecture : tout user authentifié voit tous les profils (pour afficher noms
@@ -219,6 +240,8 @@ create policy "profiles_delete_admin"
   on public.profiles for delete
   to authenticated
   using (public.current_user_is_admin());
+
+grant update (last_login_at) on public.profiles to authenticated;
 
 -- Insert : géré exclusivement par le trigger handle_new_user (security definer).
 -- Pas de policy insert pour les clients → impossibles de créer un profil
@@ -332,6 +355,24 @@ create policy "locks_delete_own_or_expired"
     or expires_at < now()
     or public.current_user_is_admin()
   );
+
+-- ── login_logs ── l'utilisateur insère ses propres logs; les admins lisent tout.
+drop policy if exists "login_logs_insert_own" on public.login_logs;
+create policy "login_logs_insert_own"
+  on public.login_logs for insert
+  to authenticated
+  with check (user_id = auth.uid());
+
+drop policy if exists "login_logs_select_own_or_admin" on public.login_logs;
+create policy "login_logs_select_own_or_admin"
+  on public.login_logs for select
+  to authenticated
+  using (
+    user_id = auth.uid()
+    or public.current_user_is_admin()
+  );
+
+grant select, insert on public.login_logs to authenticated;
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- RPC : acquire_lock — pose / renouvelle un verrou avec gestion atomique
