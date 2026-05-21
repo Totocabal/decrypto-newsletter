@@ -1243,7 +1243,7 @@ function DefaultSectionsEditor({ currentProfile, active: editorVisible = true })
 
         </aside>
 
-        <main className="flex min-h-0 min-w-0 flex-col rounded-2xl border border-line bg-d-bg xl:max-h-[calc(100vh-220px)]">
+        <main className="flex min-h-0 min-w-0 flex-col rounded-2xl border border-line bg-d-bg">
           <div className="flex flex-col gap-2 border-b border-line px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-d-fg3">
@@ -1260,7 +1260,7 @@ function DefaultSectionsEditor({ currentProfile, active: editorVisible = true })
             </div>
           </div>
 
-          <div ref={activeListRef} className="min-h-[280px] flex-1 overflow-auto p-5 max-xl:max-h-[70vh]">
+          <div ref={activeListRef} className="min-h-[280px] flex-1 overflow-visible p-5">
             {active.length === 0 ? (
               <div className="rounded-xl border border-dashed border-line p-10 text-center">
                 <LayoutTemplate size={28} className="mx-auto mb-3 text-d-fg4" />
