@@ -2,7 +2,7 @@
 // AdminPage — gestion des comptes (approbation, droits admin)
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { DndContext, DragOverlay, PointerSensor, TouchSensor, useSensor, useSensors, closestCenter } from "@dnd-kit/core";
 import { SortableContext, useSortable, verticalListSortingStrategy, arrayMove } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -845,6 +845,8 @@ function DefaultSectionsEditor({ currentProfile, active: editorVisible = true })
   const [presetsError, setPresetsError] = useState(null);
   const [presetSaving, setPresetSaving] = useState(false);
   const [editingPresetId, setEditingPresetId] = useState(null);
+  const [presetSearch, setPresetSearch] = useState("");
+  const [presetSort, setPresetSort] = useState("updated_desc");
   const [activeDragId, setActiveDragId] = useState(null);
   const [accessRequest, setAccessRequest] = useState(null);
   const [accessRequestVisible, setAccessRequestVisible] = useState(false);
@@ -860,6 +862,29 @@ function DefaultSectionsEditor({ currentProfile, active: editorVisible = true })
   const filteredTypes = allTypes.filter((type) =>
     SECTION_TYPES[type].label.toLowerCase().includes(blockSearch.trim().toLowerCase())
   );
+  const filteredPresets = useMemo(() => {
+    const query = presetSearch.trim().toLowerCase();
+    const matches = presets.filter((preset) => {
+      if (!query) return true;
+      const haystack = [
+        preset.name,
+        preset.themeVariant === "light" ? "clair fond blanc light" : "sombre dark",
+        preset.showBlockSeparators ? "filets séparateurs" : "sans filets sans séparateurs",
+        preset.includeIssueDate ? "date daté" : "sans date",
+        preset.showSectionNumbers ? "numérotation numéroté" : "sans numérotation",
+      ].join(" ").toLowerCase();
+      return haystack.includes(query);
+    });
+    return [...matches].sort((a, b) => {
+      if (presetSort === "name_asc") return a.name.localeCompare(b.name, "fr", { sensitivity: "base" });
+      if (presetSort === "name_desc") return b.name.localeCompare(a.name, "fr", { sensitivity: "base" });
+      if (presetSort === "blocks_desc") return b.sections.length - a.sections.length || a.name.localeCompare(b.name, "fr", { sensitivity: "base" });
+      if (presetSort === "blocks_asc") return a.sections.length - b.sections.length || a.name.localeCompare(b.name, "fr", { sensitivity: "base" });
+      const dateA = new Date(a.updatedAt || a.createdAt || 0).getTime() || 0;
+      const dateB = new Date(b.updatedAt || b.createdAt || 0).getTime() || 0;
+      return dateB - dateA || a.name.localeCompare(b.name, "fr", { sensitivity: "base" });
+    });
+  }, [presetSearch, presetSort, presets]);
 
   useEffect(() => {
     if (!editorVisible || !currentProfile?.id) return undefined;
@@ -1338,8 +1363,8 @@ function DefaultSectionsEditor({ currentProfile, active: editorVisible = true })
               />
               <PresetSettingRow
                 icon={Minus}
-                title="Séparateurs entre blocs"
-                hint="Affiche un liseret entre chaque bloc du mail."
+                title="Filets entre blocs"
+                hint="Affiche ou masque le liseret entre chaque bloc du mail."
                 checked={showBlockSeparators}
                 onChange={(checked) => {
                   setShowBlockSeparators(checked);
@@ -1374,6 +1399,33 @@ function DefaultSectionsEditor({ currentProfile, active: editorVisible = true })
                 <RefreshCw size={12} className={presetsLoading ? "animate-spin" : ""} />
               </button>
             </div>
+            {presets.length > 0 && (
+              <div className="mb-3 grid gap-2">
+                <div className="relative">
+                  <Search size={13} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-d-fg4" />
+                  <input
+                    value={presetSearch}
+                    onChange={(event) => setPresetSearch(event.target.value)}
+                    placeholder="Rechercher un preset…"
+                    className="h-9 w-full rounded-lg border border-line bg-d-panel2 pl-9 pr-3 text-xs text-d-fg outline-none transition-colors placeholder:text-d-fg4 focus:border-line2"
+                  />
+                </div>
+                <select
+                  value={presetSort}
+                  onChange={(event) => setPresetSort(event.target.value)}
+                  className="h-9 w-full rounded-lg border border-line bg-d-panel2 px-3 text-xs text-d-fg outline-none transition-colors focus:border-line2"
+                >
+                  <option value="updated_desc">Tri : plus récents</option>
+                  <option value="name_asc">Tri : nom A → Z</option>
+                  <option value="name_desc">Tri : nom Z → A</option>
+                  <option value="blocks_desc">Tri : plus de blocs</option>
+                  <option value="blocks_asc">Tri : moins de blocs</option>
+                </select>
+                <div className="font-mono text-[10px] uppercase tracking-[0.14em] text-d-fg4">
+                  {filteredPresets.length} / {presets.length} preset{presets.length > 1 ? "s" : ""}
+                </div>
+              </div>
+            )}
 
             {presetsError && (
               <div className="mb-3 rounded-lg border border-red-500/20 bg-red-950/20 p-3 text-[11px] leading-relaxed text-red-300">
@@ -1390,9 +1442,13 @@ function DefaultSectionsEditor({ currentProfile, active: editorVisible = true })
               <div className="rounded-lg border border-dashed border-line p-4 text-center text-xs text-d-fg4">
                 Aucun preset partagé.
               </div>
+            ) : filteredPresets.length === 0 ? (
+              <div className="rounded-lg border border-dashed border-line p-4 text-center text-xs text-d-fg4">
+                Aucun preset ne correspond à cette recherche.
+              </div>
             ) : (
               <div className="flex flex-col gap-1.5">
-                {presets.map((preset) => {
+                {filteredPresets.map((preset) => {
                   const isActivePreset = editingPresetId === preset.id;
                   const canDeletePreset = currentProfile?.is_admin || preset.createdBy === currentProfile?.id;
                   return (
