@@ -258,6 +258,7 @@ export function AdminPage({ onBack }) {
 
   const tabs = [
     { id: "accounts", label: "Gestion des comptes", icon: Users },
+    { id: "locks", label: "Verrous", icon: Lock },
     { id: "template", label: "Template newsletter", icon: LayoutTemplate },
     { id: "labels", label: "Labels", icon: Tag },
   ];
@@ -586,96 +587,18 @@ export function AdminPage({ onBack }) {
               </div>
             </section>
 
-            {/* Verrous actifs */}
-            <section>
-              <div className="flex items-center gap-2 mb-3">
-                <h2 className="text-[10px] uppercase tracking-[0.18em] text-d-fg3 font-medium">
-                  Verrous actifs
-                </h2>
-                {locks.length > 0 && (
-                  <span className="text-[10px] bg-d-panel2 text-d-fg3 px-2 py-0.5 rounded-full font-medium border border-line">
-                    {locks.length}
-                  </span>
-                )}
-                <button
-                  type="button"
-                  onClick={loadLocks}
-                  disabled={locksLoading}
-                  className="ml-auto flex items-center gap-1 text-[10px] text-d-fg4 hover:text-d-fg transition-colors"
-                >
-                  <RefreshCw size={11} className={locksLoading ? "animate-spin" : ""} />
-                  Rafraîchir
-                </button>
-                {locks.length > 0 && (
-                  <button
-                    type="button"
-                    onClick={releaseAllLocks}
-                    disabled={locksLoading}
-                    className="flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] transition-colors disabled:cursor-not-allowed disabled:opacity-50"
-                    style={{ color: "#FF8466", borderColor: "rgba(255,75,40,0.28)" }}
-                  >
-                    <LockOpen size={11} />
-                    Tout déverrouiller
-                  </button>
-                )}
-              </div>
-              <div className="bg-d-panel border border-line rounded-2xl overflow-hidden">
-                {locksLoading ? (
-                  <div className="flex items-center justify-center gap-2 p-6 text-xs text-d-fg4">
-                    <Loader2 size={13} className="animate-spin" />
-                    Chargement…
-                  </div>
-                ) : locks.length === 0 ? (
-                  <div className="flex items-center gap-2 p-4 text-xs text-d-fg4">
-                    <LockOpen size={13} />
-                    Aucun verrou actif.
-                  </div>
-                ) : (
-                  <div className="divide-y" style={{ borderColor: "var(--d-line)" }}>
-                    {locks.map((lock) => {
-                      const isExpired = new Date(lock.expires_at) < new Date();
-                      return (
-                        <div key={lock.newsletter_id} className="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:gap-4">
-                          <div className="flex-1 min-w-0">
-                            <div className="flex min-w-0 flex-wrap items-center gap-2">
-                              <Lock size={12} className="shrink-0 text-d-fg4" />
-                              <span className="text-sm text-d-fg truncate">
-                                {lock.newsletters?.title || lock.newsletter_id}
-                              </span>
-                              {isExpired && (
-                                <span
-                                  className="text-[10px] uppercase tracking-[0.12em] font-semibold px-2 py-0.5 rounded-full"
-                                  style={{ background: "rgba(255,75,40,0.12)", color: "#FF8466" }}
-                                >
-                                  Expiré
-                                </span>
-                              )}
-                            </div>
-                            <div className="text-[11px] text-d-fg4 mt-0.5">
-                              {lock.user_full_name || lock.user_email}
-                              {lock.user_full_name && lock.user_email && ` · ${lock.user_email}`}
-                              {" · "}
-                              Expire {new Date(lock.expires_at).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
-                            </div>
-                          </div>
-                          <button
-                            onClick={async () => {
-                              if (await confirm(`Forcer la libération du verrou sur "${lock.newsletters?.title || lock.newsletter_id}" ?`, { danger: true, confirmLabel: "Libérer" }))
-                                releaseLock(lock.newsletter_id);
-                            }}
-                            className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] font-medium px-3 py-1.5 border rounded-full transition-colors shrink-0"
-                            style={{ color: "#FF8466", borderColor: "rgba(255,75,40,0.25)" }}
-                          >
-                            <LockOpen size={11} />
-                            Déverrouiller
-                          </button>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            </section>
+        </div>
+
+        {/* ── Onglet Verrous ── */}
+        <div className={tab !== "locks" ? "hidden" : ""}>
+          <LocksEditor
+            locks={locks}
+            locksLoading={locksLoading}
+            loadLocks={loadLocks}
+            releaseLock={releaseLock}
+            releaseAllLocks={releaseAllLocks}
+            confirm={confirm}
+          />
         </div>
 
         {/* ── Onglet Template newsletter ── */}
@@ -689,6 +612,115 @@ export function AdminPage({ onBack }) {
         </div>
       </main>
     </div>
+  );
+}
+
+function LocksEditor({ locks, locksLoading, loadLocks, releaseLock, releaseAllLocks, confirm }) {
+  return (
+    <section className="space-y-4">
+      <div className="flex flex-col gap-3 rounded-2xl border border-line bg-d-panel p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <h2 className="text-sm font-semibold text-d-fg mb-1" style={{ fontFamily: "'Sora', sans-serif" }}>
+            Gestion des verrous
+          </h2>
+          <p className="text-xs text-d-fg4 leading-relaxed">
+            Visualise et libère les newsletters actuellement ouvertes en édition.
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          {locks.length > 0 && (
+            <span className="rounded-full border border-line bg-d-panel2 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-d-fg3">
+              {locks.length} verrou{locks.length > 1 ? "s" : ""}
+            </span>
+          )}
+          <button
+            type="button"
+            onClick={loadLocks}
+            disabled={locksLoading}
+            className="flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-d-fg3 transition-colors hover:border-line2 hover:text-d-fg disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <RefreshCw size={11} className={locksLoading ? "animate-spin" : ""} />
+            Rafraîchir
+          </button>
+          {locks.length > 0 && (
+            <button
+              type="button"
+              onClick={releaseAllLocks}
+              disabled={locksLoading}
+              className="flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+              style={{ color: "#FF8466", borderColor: "rgba(255,75,40,0.28)" }}
+            >
+              <LockOpen size={11} />
+              Tout déverrouiller
+            </button>
+          )}
+        </div>
+      </div>
+
+      <div className="overflow-hidden rounded-2xl border border-line bg-d-panel">
+        {locksLoading ? (
+          <div className="flex items-center justify-center gap-2 p-8 text-xs text-d-fg4">
+            <Loader2 size={13} className="animate-spin" />
+            Chargement…
+          </div>
+        ) : locks.length === 0 ? (
+          <div className="flex items-center gap-2 p-5 text-xs text-d-fg4">
+            <LockOpen size={13} />
+            Aucun verrou actif.
+          </div>
+        ) : (
+          <div className="divide-y" style={{ borderColor: "var(--d-line)" }}>
+            {locks.map((lock) => {
+              const isExpired = new Date(lock.expires_at) < new Date();
+              return (
+                <div key={lock.newsletter_id} className="grid gap-3 px-4 py-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
+                  <div className="min-w-0">
+                    <div className="flex min-w-0 flex-wrap items-center gap-2">
+                      <Lock size={12} className="shrink-0 text-d-fg4" />
+                      <span className="truncate text-sm font-medium text-d-fg">
+                        {lock.newsletters?.title || lock.newsletter_id}
+                      </span>
+                      {isExpired && (
+                        <span
+                          className="rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em]"
+                          style={{ background: "rgba(255,75,40,0.12)", color: "#FF8466" }}
+                        >
+                          Expiré
+                        </span>
+                      )}
+                    </div>
+                    <div className="mt-1 text-[11px] text-d-fg4">
+                      {lock.user_full_name || lock.user_email}
+                      {lock.user_full_name && lock.user_email && ` · ${lock.user_email}`}
+                    </div>
+                    <div className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.12em] text-d-fg4">
+                      Expire {new Date(lock.expires_at).toLocaleString("fr-FR", {
+                        day: "2-digit",
+                        month: "2-digit",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </div>
+                  </div>
+                  <button
+                    onClick={async () => {
+                      if (await confirm(`Forcer la libération du verrou sur "${lock.newsletters?.title || lock.newsletter_id}" ?`, { danger: true, confirmLabel: "Libérer" })) {
+                        releaseLock(lock.newsletter_id);
+                      }
+                    }}
+                    className="flex w-fit items-center gap-1.5 rounded-full border px-3 py-1.5 text-[10px] font-medium uppercase tracking-[0.18em] transition-colors"
+                    style={{ color: "#FF8466", borderColor: "rgba(255,75,40,0.25)" }}
+                  >
+                    <LockOpen size={11} />
+                    Déverrouiller
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </section>
   );
 }
 
