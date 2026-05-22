@@ -21,6 +21,10 @@ import {
   ArrowUpDown,
   Sparkles,
   Loader2,
+  FileUp,
+  Hash,
+  Minus,
+  Palette,
 } from "lucide-react";
 import { supabase } from "../lib/supabase.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
@@ -31,6 +35,7 @@ import { Wordmark } from "../components/Wordmark.jsx";
 import { ImageManagerModal } from "../components/ImageManagerModal.jsx";
 import { Tooltip } from "../components/Tooltip.jsx";
 import { useLabels, assignLabel, removeLabel } from "../lib/useLabels.js";
+import { importNewsletterMarkdown } from "../utils/markdownImport.js";
 
 export function NewslettersListPage({ onOpen, onOpenAdmin }) {
   const { profile, signOut } = useAuth();
@@ -58,6 +63,8 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
   const [nlLabels, setNlLabels] = useState({});
   const [labelFilter, setLabelFilter] = useState([]);
   const [labelPickerOpen, setLabelPickerOpen] = useState(null);
+  const [importingMarkdown, setImportingMarkdown] = useState(false);
+  const [markdownImportDraft, setMarkdownImportDraft] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -207,6 +214,67 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
     setCreateChoiceOpen(false);
     setCreateNameOpen(false);
     onOpen(data.id);
+  };
+
+  const handleImportMarkdown = async (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file || !profile?.id) return;
+
+    setImportingMarkdown(true);
+    try {
+      const imported = importNewsletterMarkdown(await file.text());
+      setMarkdownImportDraft({ imported, fileName: file.name });
+    } catch (error) {
+      addToast("Import Markdown impossible : " + (error.message || error), "error");
+    } finally {
+      setImportingMarkdown(false);
+    }
+  };
+
+  const updateMarkdownImportState = (patch) =>
+    setMarkdownImportDraft((draft) =>
+      draft
+        ? {
+            ...draft,
+            imported: {
+              ...draft.imported,
+              state: { ...draft.imported.state, ...patch },
+            },
+          }
+        : draft
+    );
+
+  const handleConfirmMarkdownImport = async () => {
+    const imported = markdownImportDraft?.imported;
+    if (!imported || !profile?.id) return;
+
+    setImportingMarkdown(true);
+    try {
+      const { data, error } = await supabase
+        .from("newsletters")
+        .insert({
+          title: imported.title,
+          issue_number: imported.state.issue_number,
+          current_state: imported.state,
+          created_by: profile.id,
+          updated_by: profile.id,
+        })
+        .select()
+        .single();
+      if (error) throw error;
+
+      const warningSuffix = imported.warnings.length
+        ? ` ${imported.warnings.length} avertissement(s) à relire.`
+        : "";
+      addToast(`Newsletter Markdown importée.${warningSuffix}`, imported.warnings.length ? "info" : "success");
+      setMarkdownImportDraft(null);
+      onOpen(data.id);
+    } catch (error) {
+      addToast("Import Markdown impossible : " + (error.message || error), "error");
+    } finally {
+      setImportingMarkdown(false);
+    }
   };
 
   const handleDuplicate = async (nl) => {
@@ -373,15 +441,28 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                   : `${filteredNewsletters.length} / ${newsletters.length} newsletter${newsletters.length > 1 ? "s" : ""}`}
             </p>
           </div>
-          <button
-            onClick={() => setCreateChoiceOpen(true)}
-            disabled={creating}
-            className="flex w-full items-center justify-center gap-2 rounded-full px-5 py-2.5 text-[12px] uppercase tracking-[0.18em] font-semibold transition-colors disabled:opacity-50 sm:w-auto"
-            style={{ background: "#FFFFFF", color: "#15151A" }}
-          >
-            <Plus size={14} />
-            Nouveau Template
-          </button>
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+            <label className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-full border border-line2 px-5 py-2.5 text-[12px] font-semibold uppercase tracking-[0.18em] text-d-fg2 transition-colors hover:bg-d-panel2 has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-50 sm:w-auto">
+              {importingMarkdown ? <Loader2 size={14} className="animate-spin" /> : <FileUp size={14} />}
+              Importer Markdown
+              <input
+                type="file"
+                accept=".md,.markdown,text/markdown,text/plain"
+                disabled={importingMarkdown || creating}
+                onChange={handleImportMarkdown}
+                className="sr-only"
+              />
+            </label>
+            <button
+              onClick={() => setCreateChoiceOpen(true)}
+              disabled={creating || importingMarkdown}
+              className="flex w-full items-center justify-center gap-2 rounded-full px-5 py-2.5 text-[12px] uppercase tracking-[0.18em] font-semibold transition-colors disabled:opacity-50 sm:w-auto"
+              style={{ background: "#FFFFFF", color: "#15151A" }}
+            >
+              <Plus size={14} />
+              Nouveau Template
+            </button>
+          </div>
         </div>
 
         {/* Barre recherche + tri */}
@@ -771,6 +852,174 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                 Création…
               </div>
             )}
+          </div>
+        </div>
+      )}
+      {markdownImportDraft && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+          <div className="flex max-h-[calc(100vh-32px)] w-full max-w-xl flex-col overflow-hidden rounded-2xl border border-line bg-d-panel shadow-2xl">
+            <div className="flex items-start justify-between gap-4 border-b border-line px-6 py-5">
+              <div className="min-w-0">
+                <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-d-pink">
+                  Import Markdown
+                </div>
+                <h2 className="truncate text-xl font-semibold tracking-tight text-d-fg" style={{ fontFamily: "'Sora', sans-serif" }}>
+                  {markdownImportDraft.imported.title}
+                </h2>
+                <p className="mt-1 truncate text-xs text-d-fg4">
+                  {markdownImportDraft.fileName}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setMarkdownImportDraft(null)}
+                disabled={importingMarkdown}
+                className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-d-fg4 transition-colors hover:bg-d-panel2 hover:text-d-fg2 disabled:opacity-50"
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <div className="space-y-5 overflow-y-auto p-6">
+              <div>
+                <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-d-fg4">
+                  Sections détectées
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {markdownImportDraft.imported.state.sections.map((section, index) => (
+                    <span
+                      key={section.id}
+                      className="rounded-full border border-line bg-d-panel2 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-d-fg2"
+                    >
+                      {String(index + 1).padStart(2, "0")} {section.type}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div className="rounded-xl border border-line bg-d-panel2 px-4 py-3">
+                  <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-d-fg4">Date</div>
+                  <div className="mt-1 text-sm text-d-fg2">
+                    {markdownImportDraft.imported.state.issue_date || "Non renseignée"}
+                  </div>
+                </div>
+                <div className="rounded-xl border border-line bg-d-panel2 px-4 py-3">
+                  <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-d-fg4">Prévisualisation</div>
+                  <div className="mt-1 line-clamp-2 text-sm text-d-fg2">
+                    {markdownImportDraft.imported.state.preview_text || "Non renseignée"}
+                  </div>
+                </div>
+              </div>
+              <div>
+                <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-d-fg4">
+                  Mise en forme
+                </div>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                  <div className="rounded-xl border border-line bg-d-panel2 px-4 py-3">
+                    <div className="mb-2 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-d-fg4">
+                      <Palette size={12} />
+                      Fond
+                    </div>
+                    <div className="grid grid-cols-2 rounded-lg border border-line bg-d-panel p-0.5">
+                      {[
+                        { value: "dark", label: "Sombre" },
+                        { value: "light", label: "Clair" },
+                      ].map((option) => {
+                        const selected =
+                          markdownImportDraft.imported.state.theme_variant === option.value;
+                        return (
+                          <button
+                            key={option.value}
+                            type="button"
+                            onClick={() => updateMarkdownImportState({ theme_variant: option.value })}
+                            aria-pressed={selected}
+                            className={`min-h-8 rounded-md px-2 text-[11px] font-semibold transition-colors ${
+                              selected
+                                ? "bg-d-pink text-white"
+                                : "text-d-fg3 hover:text-d-fg"
+                            }`}
+                          >
+                            {option.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  <label className="grid cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-xl border border-line bg-d-panel2 px-4 py-3">
+                    <span className="min-w-0">
+                      <span className="mb-1 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-d-fg4">
+                        <Hash size={12} />
+                        Sections
+                      </span>
+                      <span className="block text-sm font-medium text-d-fg2">Numéros</span>
+                    </span>
+                    <span className="relative inline-flex h-6 w-11 flex-shrink-0 items-center">
+                      <input
+                        type="checkbox"
+                        checked={markdownImportDraft.imported.state.show_section_numbers !== false}
+                        onChange={(event) =>
+                          updateMarkdownImportState({ show_section_numbers: event.target.checked })
+                        }
+                        className="peer sr-only"
+                      />
+                      <span className="absolute inset-0 rounded-full border border-line bg-d-panel transition-colors peer-checked:border-d-pink peer-checked:bg-d-pink/25" />
+                      <span className="relative ml-1 h-4 w-4 rounded-full bg-d-fg4 transition-transform peer-checked:translate-x-5 peer-checked:bg-d-pink" />
+                    </span>
+                  </label>
+                  <label className="grid cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-xl border border-line bg-d-panel2 px-4 py-3">
+                    <span className="min-w-0">
+                      <span className="mb-1 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-d-fg4">
+                        <Minus size={12} />
+                        Blocs
+                      </span>
+                      <span className="block text-sm font-medium text-d-fg2">Filets</span>
+                    </span>
+                    <span className="relative inline-flex h-6 w-11 flex-shrink-0 items-center">
+                      <input
+                        type="checkbox"
+                        checked={markdownImportDraft.imported.state.show_block_separators !== false}
+                        onChange={(event) =>
+                          updateMarkdownImportState({ show_block_separators: event.target.checked })
+                        }
+                        className="peer sr-only"
+                      />
+                      <span className="absolute inset-0 rounded-full border border-line bg-d-panel transition-colors peer-checked:border-d-pink peer-checked:bg-d-pink/25" />
+                      <span className="relative ml-1 h-4 w-4 rounded-full bg-d-fg4 transition-transform peer-checked:translate-x-5 peer-checked:bg-d-pink" />
+                    </span>
+                  </label>
+                </div>
+              </div>
+              {markdownImportDraft.imported.warnings.length > 0 && (
+                <div className="rounded-xl border border-orange-400/20 bg-orange-500/10 px-4 py-3">
+                  <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-orange-200">
+                    Avertissements
+                  </div>
+                  <div className="space-y-1 text-xs leading-relaxed text-orange-100">
+                    {markdownImportDraft.imported.warnings.map((warning, index) => (
+                      <p key={`${index}-${warning}`}>{warning}</p>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+            <div className="flex flex-col-reverse gap-2 border-t border-line px-6 py-4 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={() => setMarkdownImportDraft(null)}
+                disabled={importingMarkdown}
+                className="rounded-xl border border-line px-4 py-2 text-xs font-semibold text-d-fg3 transition-colors hover:border-line2 hover:text-d-fg disabled:opacity-50"
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmMarkdownImport}
+                disabled={importingMarkdown}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-d-pink px-4 py-2 text-xs font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                {importingMarkdown && <Loader2 size={12} className="animate-spin" />}
+                Créer la newsletter
+              </button>
+            </div>
           </div>
         </div>
       )}

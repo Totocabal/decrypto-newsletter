@@ -13,15 +13,16 @@
 5. [Composants UI](#composants-ui)
 6. [Moteur de rendu email](#moteur-de-rendu-email)
 7. [Système d'export](#système-dexport)
-8. [Collaboration en temps réel](#collaboration-en-temps-réel)
-9. [Gestion des images](#gestion-des-images)
-10. [Données marché CoinGecko](#données-marché-coingecko)
-11. [Thème et identité visuelle](#thème-et-identité-visuelle)
-12. [Schéma de base de données](#schéma-de-base-de-données)
-13. [API serverless Vercel](#api-serverless-vercel)
-14. [Setup local](#setup-local)
-15. [Déploiement Vercel](#déploiement-vercel)
-16. [Scripts](#scripts)
+8. [Import Markdown](#import-markdown)
+9. [Collaboration en temps réel](#collaboration-en-temps-réel)
+10. [Gestion des images](#gestion-des-images)
+11. [Données marché CoinGecko](#données-marché-coingecko)
+12. [Thème et identité visuelle](#thème-et-identité-visuelle)
+13. [Schéma de base de données](#schéma-de-base-de-données)
+14. [API serverless Vercel](#api-serverless-vercel)
+15. [Setup local](#setup-local)
+16. [Déploiement Vercel](#déploiement-vercel)
+17. [Scripts](#scripts)
 
 ---
 
@@ -42,7 +43,7 @@
 | Icônes | Lucide React | ^0.383.0 |
 | Déploiement | Vercel | — |
 
-Module type : `"module"` (ESM pur). Pas de test runner.
+Module type : `"module"` (ESM pur). Les tests ciblés Markdown utilisent `node:test`.
 
 ---
 
@@ -92,6 +93,7 @@ src/
 ├── utils/
 │   ├── exportAssetPack.js      ← export ZIP + export Braze
 │   ├── exportImport.js         ← import/export JSON, téléchargement HTML, presse-papier
+│   ├── markdownImport.js       ← import Markdown structuré vers `current_state`
 │   └── storage.js              ← draft localStorage (clé v1, usage legacy)
 │
 └── App.jsx / main.jsx
@@ -528,6 +530,111 @@ Appel depuis `PreviewPanel` avec `{ html, device }` et le token Bearer. Génère
 
 ---
 
+## Import Markdown
+
+La liste des newsletters propose **Importer Markdown**. Le fichier est d'abord parsé côté client, puis une modale affiche le titre, le preheader, les sections détectées et les avertissements avant la création Supabase. Cette validation permet aussi d'ajuster le fond clair ou sombre, la numérotation des sections et les filets entre blocs.
+
+Le format accepte :
+
+- un front matter scalaire obligatoire avec `title` ;
+- les réglages globaux `theme_variant`, `show_section_numbers` et `show_block_separators` dans le front matter ;
+- du Markdown simple converti vers `hero`, `text_block`, `image_block` et `divider` ;
+- des directives `:::type` pour tous les blocs du catalogue, dont `chart` auto ou manuel, `focus` multi-items et `feature_grid` ;
+- les raffinements `hero_chips`, `edito_kpis` et `index` auto.
+
+Le parseur vit dans `src/utils/markdownImport.js`. Le contrat complet, les syntaxes et les limites sont documentés dans `MARKDOWN_IMPORT_SPEC.md`. Un fichier prêt à importer est disponible dans `examples/newsletter-markdown-import-complet.md`.
+
+Les graphiques auto importés créent un bloc CoinGecko configuré mais sans données fraîches. L'import affiche un avertissement et l'éditeur les remplit avec **Synchroniser** ou le bouton de rafraîchissement du bloc.
+
+### API `POST /api/import-markdown`
+
+Cette route crée une newsletter depuis du Markdown sans passer par la modale. Elle accepte deux modes d'authentification :
+
+- le `access_token` de la session Auth Supabase d'un utilisateur connecté et approuvé ;
+- le secret fixe `MARKDOWN_IMPORT_API_TOKEN` pour une intégration machine-to-machine.
+
+Le Personal Access Token Supabase du dashboard ne correspond à aucun de ces deux modes.
+
+#### Mode utilisateur
+
+Dans ce mode, l'API écrit avec le token utilisateur et les règles RLS normales.
+
+Depuis le code client de l'application :
+
+```js
+const {
+  data: { session },
+} = await supabase.auth.getSession();
+
+const response = await fetch("/api/import-markdown", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${session.access_token}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({ markdown }),
+});
+```
+
+Pour un test manuel depuis la console navigateur de l'app connectée :
+
+```js
+const { supabase } = await import("/src/lib/supabase.js");
+const { data: { session } } = await supabase.auth.getSession();
+copy(session.access_token);
+```
+
+Puis dans le terminal :
+
+```bash
+export SUPABASE_ACCESS_TOKEN="token_copie"
+
+curl -X POST http://127.0.0.1:5173/api/import-markdown \
+  -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+  -H "Content-Type: text/markdown" \
+  --data-binary @examples/newsletter-markdown-import-complet.md
+```
+
+#### Mode intégration
+
+Dans ce mode, le Bearer est le secret `MARKDOWN_IMPORT_API_TOKEN`. La route utilise un client Supabase serveur pour l'insertion et attribue la newsletter au profil technique `MARKDOWN_IMPORT_USER_ID`.
+
+Variables serveur requises :
+
+```env
+MARKDOWN_IMPORT_API_TOKEN=secret_long_et_aleatoire
+MARKDOWN_IMPORT_USER_ID=<uuid-du-profil-technique>
+SUPABASE_SECRET_KEY=<secret-key-supabase>
+```
+
+`SUPABASE_SERVICE_ROLE_KEY` reste accepté comme fallback legacy si le projet ne dispose pas encore de `SUPABASE_SECRET_KEY`. Ces clés sont uniquement serveur : ne pas les préfixer par `VITE_`.
+
+Appel :
+
+```bash
+curl -X POST https://decrypto-newsletter.vercel.app/api/import-markdown \
+  -H "Authorization: Bearer $MARKDOWN_IMPORT_API_TOKEN" \
+  -H "Content-Type: text/markdown" \
+  --data-binary @examples/newsletter-markdown-import-complet.md
+```
+
+Corps JSON :
+
+```json
+{
+  "markdown": "---\ntitle: \"Décrypto API\"\npreview_text: \"Import direct.\"\n---\n\n# Édition API\n",
+  "options": {
+    "theme_variant": "light",
+    "show_section_numbers": false,
+    "show_block_separators": true
+  }
+}
+```
+
+La route accepte aussi le Markdown brut avec `Content-Type: text/markdown`. En succès elle répond `201` avec `newsletter` et les `warnings` d'import.
+
+---
+
 ## Collaboration en temps réel
 
 ### Hook `useNewsletter` — constantes
@@ -912,6 +1019,10 @@ npm run dev
 | `VITE_AUTH_REDIRECT_URL` | URL publique de l'app |
 | `SUPABASE_URL` | Idem (pour les fonctions serverless) |
 | `SUPABASE_ANON_KEY` | Idem (pour les fonctions serverless) |
+| `SUPABASE_SECRET_KEY` | Clé Supabase serveur pour le mode intégration Markdown |
+| `SUPABASE_SERVICE_ROLE_KEY` | Fallback legacy pour le mode intégration Markdown |
+| `MARKDOWN_IMPORT_API_TOKEN` | Bearer fixe pour l'import Markdown machine-to-machine |
+| `MARKDOWN_IMPORT_USER_ID` | UUID du profil technique auteur des imports Markdown |
 | `BRAZE_API_KEY` | Clé serveur Braze (permission `media_library.create`) |
 | `BRAZE_BASE_URL` | REST endpoint Braze (ex. `https://rest.fra-01.braze.eu`) |
 | `CRON_SECRET` | Secret optionnel pour l'endpoint keepalive |
@@ -942,6 +1053,7 @@ Dans **Supabase → Authentication → URL Configuration**.
 npm run dev      # Serveur de développement (http://localhost:5173)
 npm run build    # Build de production (dist/)
 npm run preview  # Prévisualiser le build de production localement
+npm run test:markdown  # Tests ciblés du parseur d'import Markdown
 ```
 
 ---
