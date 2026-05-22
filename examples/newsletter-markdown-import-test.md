@@ -16,6 +16,18 @@ title_highlight: "souffle."
 subtitle: "Bitcoin se stabilise, les flux reviennent et la semaine s'annonce dense."
 :::
 
+:::hero_chips
+:::
+
+- btc | BTC a rafraichir
+- eth | ETH a rafraichir
+- fear_greed | F&G a synchroniser
+- manual | Macro prudente
+
+:::index
+label: "Au sommaire"
+:::
+
 ## Ce qu'il faut retenir
 
 Bitcoin reprend de la hauteur sans emballement. Les volumes restent selectifs,
@@ -48,6 +60,13 @@ les prises de risque restent mesurees et les catalyseurs sont mieux identifies.
 
 Les prochaines publications macro diront si ce rebond peut devenir une tendance
 plus durable.
+
+:::edito_kpis
+:::
+
+- BTC | 64 000 EUR | +2,93 % | positive
+- ETH | 3 100 EUR | +1,80 % | positive
+- Volatilite | Basse | Vigilance | warning
 
 :::fear_greed
 kicker: "INDICATEUR"

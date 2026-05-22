@@ -97,15 +97,16 @@ Les directives supportees sont :
 
 | Directive | Champs scalaires |
 | --- | --- |
-| `hero` | `kicker`, `title_part1`, `title_part2`, `title_highlight`, `subtitle` |
-| `edito` | `kicker`, `title`, puis corps Markdown |
+| `hero` | `kicker`, `title_part1`, `title_part2`, `title_highlight`, `subtitle`, puis `hero_chips` optionnel |
+| `index` | `label`, puis items generes depuis les sections importees |
+| `edito` | `kicker`, `title`, corps Markdown, puis `edito_kpis` optionnel |
 | `text_block` | `kicker`, `title`, `cta_label`, `cta_url`, puis corps Markdown |
 | `focus` | `kicker`, `title`, puis du texte ou des sous-directives `focus_*` |
 | `signals` | `kicker`, `title`, puis une ligne `- direction | titre | description` par signal |
 | `editorial_list` | `kicker`, puis une ligne `- tag | titre | description | couleur` par entree |
 | `image_block` | `image_url`, `image_alt`, `link_url` |
 | `divider` | `style`: `thin`, `thick` ou `gradient` |
-| `chart` | `chart_crypto`, `chart_currency`, `chart_days` en mode auto CoinGecko |
+| `chart` | parametres CoinGecko en auto, donnees d'affichage en manuel |
 | `macro` | `kicker`, `title`, `quote`, `quote_author`, `bg_image_url`, puis corps Markdown |
 | `macro_bars` | une ligne `- label | valeur | percent | legende` par barre |
 | `fear_greed` | `kicker`, `title`, `value`, `classification`, puis commentaire Markdown |
@@ -113,6 +114,45 @@ Les directives supportees sont :
 | `event` | `day`, `month`, `year`, `kicker`, `title`, `description`, `cta_label`, `cta_url`, `bg_image_url` |
 
 Chaque directive accepte aussi `counts_for_numbering: true` ou `false`.
+
+Les chips du hero sont optionnelles. Place `hero_chips` juste apres `hero` :
+
+```md
+:::hero
+title_part1: "Le marche"
+title_part2: "reprend son "
+title_highlight: "souffle."
+:::
+
+:::hero_chips
+:::
+
+- btc | BTC +2,93 %
+- eth | ETH +1,80 %
+- fear_greed | F&G 72 - Greed
+- manual | Macro prudente
+```
+
+Les types de chip acceptes sont `manual`, `btc`, `eth` et `fear_greed`.
+
+Les KPI de l'edito fonctionnent de la meme facon, apres le corps du bloc :
+
+```md
+:::edito
+kicker: "EDITO"
+title: "Les flux reviennent"
+:::
+
+Bitcoin retrouve un soutien plus visible.
+
+:::edito_kpis
+:::
+
+- BTC | 64 000 EUR | +2,93 % | positive
+- ETH | 3 100 EUR | -0,40 % | negative
+```
+
+Le ton KPI accepte `positive`, `negative`, `warning` ou `muted`.
 
 Les signaux utilisent `up` ou `down` comme direction :
 
@@ -196,9 +236,9 @@ Les barres macro attendent un pourcentage entre `0` et `100` :
 - Inflation coeur | 3,2 | 53 | cible 2 %
 ```
 
-Un graphique Markdown est toujours cree en mode auto. Il reprend les parametres
-CoinGecko, puis l'editeur rafraichit les donnees avec le bouton de sync global
-ou le bouton du bloc.
+Par defaut, un graphique Markdown est cree en mode auto. Il reprend les
+parametres CoinGecko, puis l'editeur rafraichit les donnees avec le bouton de
+sync global ou le bouton du bloc.
 
 ```md
 :::chart
@@ -210,9 +250,33 @@ chart_days: 7
 
 `chart_currency` accepte `eur` ou `usd`. `chart_days` accepte `7` ou `30`.
 
+Un graphique manuel accepte les valeurs affichees et deux listes separees par
+virgule pour `points` et `x_labels`. Chaque point est compris entre `0` et
+`100`.
+
+```md
+:::chart
+chart_mode: manual
+label: "BTC scenario"
+value: "Projection"
+delta: "Stable"
+delta_tone: muted
+points: "10, 45, 30, 80"
+x_labels: "Lun, Mar, Mer, Jeu"
+:::
+```
+
+Le sommaire est genere apres l'import depuis les sections numerotees :
+
+```md
+:::index
+label: "Au sommaire"
+:::
+```
+
 ## Hors perimetre
 
 - Front matter YAML avec tableaux ou objets imbriques.
-- Import de `index` et `feature_grid`.
+- Import de `feature_grid`.
 - Upload d'images locales vers Supabase.
 - Round trip parfait entre l'editeur et le Markdown source.

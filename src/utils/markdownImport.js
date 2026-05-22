@@ -1,10 +1,13 @@
 // Import Markdown: front matter scalar fields + newsletter directives.
 
-import { INITIAL_STATE, SECTION_TYPES } from "../config/schema.js";
+import { INITIAL_STATE, SECTION_TYPES, UNNUMBERED_TYPES } from "../config/schema.js";
 
 const SECTION_FIELDS = {
   hero: ["kicker", "title_part1", "title_part2", "title_highlight", "subtitle"],
+  hero_chips: [],
+  index: ["label"],
   edito: ["kicker", "title"],
+  edito_kpis: [],
   text_block: ["kicker", "title", "cta_label", "cta_url"],
   focus: ["kicker", "title"],
   focus_text: [],
@@ -31,7 +34,22 @@ const SECTION_FIELDS = {
   editorial_list: ["kicker"],
   image_block: ["image_url", "image_alt", "link_url"],
   divider: ["style"],
-  chart: ["chart_crypto", "chart_currency", "chart_days"],
+  chart: [
+    "chart_mode",
+    "chart_crypto",
+    "chart_currency",
+    "chart_days",
+    "label",
+    "value",
+    "price_start",
+    "price_high",
+    "price_low",
+    "delta",
+    "delta_tone",
+    "subdelta",
+    "points",
+    "x_labels",
+  ],
   macro: ["kicker", "title", "quote", "quote_author", "bg_image_url"],
   macro_bars: [],
   fear_greed: ["kicker", "title", "value", "classification"],
@@ -85,6 +103,9 @@ const FOCUS_ITEM_TYPES = new Set([
   "focus_callout",
   "focus_spacer",
 ]);
+const HERO_CHILD_TYPES = new Set(["hero_chips"]);
+const EDITO_CHILD_TYPES = new Set(["edito_kpis"]);
+const KPI_TONES = new Set(["positive", "negative", "warning", "muted"]);
 
 let nextImportedSectionId = 0;
 
@@ -223,6 +244,34 @@ function parsePipeItems(markdownBody, directive, expectedParts) {
   });
 }
 
+function parseCommaList(value = "") {
+  return String(value)
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function sectionTitle(section) {
+  const data = section.data || {};
+  return data.title || data.label || data.kicker || section.type;
+}
+
+function populateImportedIndexes(sections) {
+  const numbered = sections
+    .filter((section) => section.counts_for_numbering ?? !UNNUMBERED_TYPES.has(section.type))
+    .map((section, index) => ({
+      section_id: section.id,
+      number: String(index + 1).padStart(2, "0"),
+      title: sectionTitle(section),
+    }));
+
+  return sections.map((section) =>
+    section.type === "index"
+      ? { ...section, data: { ...section.data, items: numbered } }
+      : section
+  );
+}
+
 function focusTextItem(body) {
   const text = trimOuterBlankLines(body);
   return text ? { id: importId("focus"), type: "text", body: text } : null;
@@ -294,6 +343,28 @@ function focusItemFromDirective(token, body) {
   }
 
   throw new MarkdownImportError(`Directive :::${token.type} inconnue dans un focus.`);
+}
+
+function heroChipsFromDirective(token, body) {
+  return parsePipeItems(body, token.type, 2).map(([type, label]) => {
+    if (!["manual", "btc", "eth", "fear_greed"].includes(type)) {
+      throw new MarkdownImportError(
+        ':::hero_chips type doit valoir "manual", "btc", "eth" ou "fear_greed".'
+      );
+    }
+    return { type, label };
+  });
+}
+
+function editoKpisFromDirective(token, body) {
+  return parsePipeItems(body, token.type, 4).map(([label, value, delta, tone]) => {
+    if (!KPI_TONES.has(tone)) {
+      throw new MarkdownImportError(
+        ':::edito_kpis tone doit valoir "positive", "negative", "warning" ou "muted".'
+      );
+    }
+    return { label, value, delta, tone };
+  });
 }
 
 function createSection(type, data, extra = {}) {
@@ -469,7 +540,13 @@ function normalizeExplicitSection(token, body, warnings) {
   }
 
   if (type === "chart") {
-    data.chart_mode = "auto";
+    data.chart_mode = data.chart_mode || "auto";
+    if (!["auto", "manual"].includes(data.chart_mode)) {
+      throw new MarkdownImportError(':::chart chart_mode doit valoir "auto" ou "manual".');
+    }
+  }
+
+  if (type === "chart" && data.chart_mode === "auto") {
     data.chart_crypto = data.chart_crypto || "bitcoin";
     data.chart_currency = data.chart_currency || "eur";
     data.chart_days = data.chart_days || 7;
@@ -481,6 +558,27 @@ function normalizeExplicitSection(token, body, warnings) {
     }
     data.chart_days = Number(data.chart_days);
     warnings.push(`Directive :::chart: rafraîchis les données CoinGecko du graphique ${data.chart_crypto}.`);
+  }
+
+  if (type === "chart" && data.chart_mode === "manual") {
+    const points = parseCommaList(data.points).map(Number);
+    if (points.length < 2 || points.some((point) => !Number.isFinite(point) || point < 0 || point > 100)) {
+      throw new MarkdownImportError(":::chart manuel exige au moins deux points entre 0 et 100.");
+    }
+    data.points = points;
+    data.x_labels = parseCommaList(data.x_labels);
+    if (data.x_labels.length && data.x_labels.length !== points.length) {
+      throw new MarkdownImportError(":::chart manuel x_labels doit contenir autant d'entrées que points.");
+    }
+    if (!data.x_labels.length) {
+      data.x_labels = points.map((_, index) => `P${index + 1}`);
+    }
+    data.delta_tone = data.delta_tone || "muted";
+    if (!KPI_TONES.has(data.delta_tone)) {
+      throw new MarkdownImportError(
+        ':::chart manuel delta_tone doit valoir "positive", "negative", "warning" ou "muted".'
+      );
+    }
   }
 
   if (type === "fear_greed" && (data.value < 0 || data.value > 100)) {
@@ -570,8 +668,47 @@ function sectionsFromTokens(tokens, warnings) {
       continue;
     }
 
+    if (token.type === "hero") {
+      const heroSection = normalizeExplicitSection(token, "", warnings);
+
+      while (tokens[index + 1]?.kind === "directive" && HERO_CHILD_TYPES.has(tokens[index + 1].type)) {
+        const childToken = tokens[index + 1];
+        const bodyToken = tokens[index + 2]?.kind === "markdown" ? tokens[index + 2] : null;
+        if (!bodyToken) throw new MarkdownImportError(":::hero_chips exige des lignes de chips.");
+        heroSection.data.chips = heroChipsFromDirective(childToken, bodyToken.text);
+        index += 2;
+      }
+
+      sections.push(heroSection);
+      continue;
+    }
+
+    if (token.type === "edito") {
+      const next = tokens[index + 1];
+      const body = next?.kind === "markdown" ? next.text : "";
+      const editoSection = normalizeExplicitSection(token, body, warnings);
+      if (body) index += 1;
+
+      while (tokens[index + 1]?.kind === "directive" && EDITO_CHILD_TYPES.has(tokens[index + 1].type)) {
+        const childToken = tokens[index + 1];
+        const bodyToken = tokens[index + 2]?.kind === "markdown" ? tokens[index + 2] : null;
+        if (!bodyToken) throw new MarkdownImportError(":::edito_kpis exige des lignes de KPI.");
+        editoSection.data.kpis = editoKpisFromDirective(childToken, bodyToken.text);
+        index += 2;
+      }
+
+      sections.push(editoSection);
+      continue;
+    }
+
     if (FOCUS_ITEM_TYPES.has(token.type)) {
       throw new MarkdownImportError(`Directive :::${token.type} doit suivre une directive :::focus.`);
+    }
+    if (HERO_CHILD_TYPES.has(token.type)) {
+      throw new MarkdownImportError(`Directive :::${token.type} doit suivre une directive :::hero.`);
+    }
+    if (EDITO_CHILD_TYPES.has(token.type)) {
+      throw new MarkdownImportError(`Directive :::${token.type} doit suivre une directive :::edito.`);
     }
 
     const next = tokens[index + 1];
@@ -600,7 +737,9 @@ export function importNewsletterMarkdown(markdown) {
   const { meta, content } = extractFrontMatter(markdown, warnings);
   validateGlobalMeta(meta, warnings);
 
-  const sections = sectionsFromTokens(extractDirectives(content, warnings), warnings);
+  const sections = populateImportedIndexes(
+    sectionsFromTokens(extractDirectives(content, warnings), warnings)
+  );
   if (!sections.length) {
     throw new MarkdownImportError("Aucune section importable trouvée dans le Markdown.");
   }

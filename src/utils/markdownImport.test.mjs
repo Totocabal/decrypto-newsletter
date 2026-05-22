@@ -186,3 +186,76 @@ chart_days: 30
   assert.equal(chart.data.chart_days, 30);
   assert.ok(imported.warnings.some((warning) => warning.includes("CoinGecko")));
 });
+
+test("imports hero chips, edito KPI and generated index entries", () => {
+  const imported = importNewsletterMarkdown(`---
+title: "Rich block import"
+preview_text: "Rich blocks."
+---
+
+:::hero
+title_part1: "Market pulse"
+:::
+
+:::hero_chips
+:::
+
+- btc | BTC +2.1 %
+- fear_greed | F&G 72 - Greed
+
+:::index
+label: "Au sommaire"
+:::
+
+:::edito
+kicker: "EDITO"
+title: "Flows return"
+:::
+
+Body text.
+
+:::edito_kpis
+:::
+
+- BTC | 64 000 EUR | +2.1 % | positive
+- ETH | 3 100 EUR | -0.4 % | negative
+
+:::text_block
+title: "Next section"
+:::
+
+Details.
+`);
+
+  const [hero, index, edito, textBlock] = imported.state.sections;
+  assert.equal(hero.data.chips[0].type, "btc");
+  assert.equal(index.type, "index");
+  assert.deepEqual(
+    index.data.items.map((item) => item.title),
+    [edito.data.title, textBlock.data.title]
+  );
+  assert.equal(edito.data.kpis[1].tone, "negative");
+});
+
+test("imports manual chart points and labels", () => {
+  const imported = importNewsletterMarkdown(`---
+title: "Manual chart"
+preview_text: "Manual."
+---
+
+:::chart
+chart_mode: manual
+label: "BTC scenario"
+value: "Projection"
+delta: "Stable"
+delta_tone: muted
+points: "10, 45, 30, 80"
+x_labels: "Lun, Mar, Mer, Jeu"
+:::
+`);
+
+  const [chart] = imported.state.sections;
+  assert.equal(chart.data.chart_mode, "manual");
+  assert.deepEqual(chart.data.points, [10, 45, 30, 80]);
+  assert.deepEqual(chart.data.x_labels, ["Lun", "Mar", "Mer", "Jeu"]);
+});
