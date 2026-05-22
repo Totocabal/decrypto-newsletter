@@ -1,12 +1,13 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { Readable } from "node:stream";
 import test from "node:test";
 
 import {
   MarkdownImportError,
   importNewsletterMarkdown,
 } from "./markdownImport.js";
-import { importFromBody } from "../../api/import-markdown.js";
+import { importFromBody, parseRequestBody } from "../../api/import-markdown.js";
 
 test("imports the complete Markdown example", () => {
   const example = readFileSync(
@@ -67,6 +68,18 @@ show_block_separators: false
   assert.equal(imported.state.theme_variant, "light");
   assert.equal(imported.state.show_section_numbers, false);
   assert.equal(imported.state.show_block_separators, true);
+});
+
+test("reads raw text/markdown API request bodies", async () => {
+  const request = Readable.from([
+    Buffer.from("---\ntitle: \"Raw API\"\npreview_text: \"Raw.\"\n---\n\n# Raw API\n"),
+  ]);
+  request.headers = { "content-type": "text/markdown" };
+
+  const body = await parseRequestBody(request);
+
+  assert.match(body.markdown, /title: "Raw API"/);
+  assert.equal(importFromBody(body).title, "Raw API");
 });
 
 test("imports simple Markdown into newsletter sections", () => {
