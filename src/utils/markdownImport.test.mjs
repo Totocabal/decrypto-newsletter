@@ -164,3 +164,25 @@ height: 32
   assert.equal(macroBars.type, "macro_bars");
   assert.equal(macroBars.data.bars[1].percent, "53");
 });
+
+test("imports an auto chart directive with CoinGecko settings", () => {
+  const imported = importNewsletterMarkdown(`---
+title: "Chart import"
+preview_text: "Chart."
+---
+
+:::chart
+chart_crypto: solana
+chart_currency: usd
+chart_days: 30
+:::
+`);
+
+  const [chart] = imported.state.sections;
+  assert.equal(chart.type, "chart");
+  assert.equal(chart.data.chart_mode, "auto");
+  assert.equal(chart.data.chart_crypto, "solana");
+  assert.equal(chart.data.chart_currency, "usd");
+  assert.equal(chart.data.chart_days, 30);
+  assert.ok(imported.warnings.some((warning) => warning.includes("CoinGecko")));
+});

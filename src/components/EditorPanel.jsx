@@ -211,32 +211,41 @@ export function EditorPanel({ state, setState }) {
     setGlobalSyncing(true);
     try {
       const cryptoCache = {};
-      const getCrypto = async (cryptoId) => {
-        if (!cryptoCache[cryptoId]) {
-          cryptoCache[cryptoId] = await fetch7d(cryptoId);
+      const cryptoKey = (cryptoId, currency = "eur", days = 7) =>
+        `${cryptoId}:${currency}:${days}`;
+      const getCrypto = async (cryptoId, currency = "eur", days = 7) => {
+        const key = cryptoKey(cryptoId, currency, days);
+        if (!cryptoCache[key]) {
+          cryptoCache[key] = await fetch7d(cryptoId, currency, days);
         }
-        return cryptoCache[cryptoId];
+        return cryptoCache[key];
       };
 
-      const needsBitcoin = state.sections.some(
+      const bitcoinChips = state.sections.some(
         (sec) =>
           (sec.type === "hero" &&
-            (sec.data.chips || []).some((chip) => chip.type === "btc")) ||
-          (sec.type === "chart" &&
-            sec.data.chart_mode === "auto" &&
-            (sec.data.chart_crypto || "bitcoin") === "bitcoin")
+            (sec.data.chips || []).some((chip) => chip.type === "btc"))
       );
-      const needsEthereum = state.sections.some(
+      const ethereumChips = state.sections.some(
         (sec) =>
           (sec.type === "hero" &&
-            (sec.data.chips || []).some((chip) => chip.type === "eth")) ||
-          (sec.type === "chart" &&
-            sec.data.chart_mode === "auto" &&
-            sec.data.chart_crypto === "ethereum")
+            (sec.data.chips || []).some((chip) => chip.type === "eth"))
+      );
+      const autoCharts = state.sections.filter(
+        (sec) => sec.type === "chart" && sec.data.chart_mode === "auto"
       );
 
-      if (needsBitcoin) await getCrypto("bitcoin");
-      if (needsEthereum) await getCrypto("ethereum");
+      if (bitcoinChips) await getCrypto("bitcoin");
+      if (ethereumChips) await getCrypto("ethereum");
+      await Promise.all(
+        autoCharts.map((sec) =>
+          getCrypto(
+            sec.data.chart_crypto || "bitcoin",
+            sec.data.chart_currency || "eur",
+            sec.data.chart_days || 7
+          )
+        )
+      );
 
       setState((s) => {
         const fg = s.sections.find((sec) => sec.type === "fear_greed");
@@ -255,16 +264,18 @@ export function EditorPanel({ state, setState }) {
                 data: {
                   ...sec.data,
                   chips: (sec.data.chips || []).map((chip) => {
-                    if (chip.type === "btc" && cryptoCache.bitcoin) {
+                    if (chip.type === "btc" && cryptoCache[cryptoKey("bitcoin")]) {
+                      const bitcoin = cryptoCache[cryptoKey("bitcoin")];
                       return {
                         ...chip,
-                        label: chipLabelFromCoinGecko("bitcoin", cryptoCache.bitcoin),
+                        label: chipLabelFromCoinGecko("bitcoin", bitcoin),
                       };
                     }
-                    if (chip.type === "eth" && cryptoCache.ethereum) {
+                    if (chip.type === "eth" && cryptoCache[cryptoKey("ethereum")]) {
+                      const ethereum = cryptoCache[cryptoKey("ethereum")];
                       return {
                         ...chip,
-                        label: chipLabelFromCoinGecko("ethereum", cryptoCache.ethereum),
+                        label: chipLabelFromCoinGecko("ethereum", ethereum),
                       };
                     }
                     if (chip.type === "fear_greed" && fg) {
@@ -281,7 +292,9 @@ export function EditorPanel({ state, setState }) {
 
             if (sec.type === "chart" && sec.data.chart_mode === "auto") {
               const crypto = sec.data.chart_crypto || "bitcoin";
-              const result = cryptoCache[crypto];
+              const currency = sec.data.chart_currency || "eur";
+              const days = sec.data.chart_days || 7;
+              const result = cryptoCache[cryptoKey(crypto, currency, days)];
               if (result) return { ...sec, data: { ...sec.data, ...result } };
             }
 

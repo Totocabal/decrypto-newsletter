@@ -31,6 +31,7 @@ const SECTION_FIELDS = {
   editorial_list: ["kicker"],
   image_block: ["image_url", "image_alt", "link_url"],
   divider: ["style"],
+  chart: ["chart_crypto", "chart_currency", "chart_days"],
   macro: ["kicker", "title", "quote", "quote_author", "bg_image_url"],
   macro_bars: [],
   fear_greed: ["kicker", "title", "value", "classification"],
@@ -465,6 +466,21 @@ function normalizeExplicitSection(token, body, warnings) {
     if (!["thin", "thick", "gradient"].includes(data.style)) {
       throw new MarkdownImportError(":::divider style doit valoir thin, thick ou gradient.");
     }
+  }
+
+  if (type === "chart") {
+    data.chart_mode = "auto";
+    data.chart_crypto = data.chart_crypto || "bitcoin";
+    data.chart_currency = data.chart_currency || "eur";
+    data.chart_days = data.chart_days || 7;
+    if (!["eur", "usd"].includes(data.chart_currency)) {
+      throw new MarkdownImportError(':::chart chart_currency doit valoir "eur" ou "usd".');
+    }
+    if (![7, 30].includes(Number(data.chart_days))) {
+      throw new MarkdownImportError(":::chart chart_days doit valoir 7 ou 30.");
+    }
+    data.chart_days = Number(data.chart_days);
+    warnings.push(`Directive :::chart: rafraîchis les données CoinGecko du graphique ${data.chart_crypto}.`);
   }
 
   if (type === "fear_greed" && (data.value < 0 || data.value > 100)) {

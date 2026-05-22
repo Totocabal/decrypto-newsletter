@@ -31,6 +31,12 @@ image_alt: "Graphique Bitcoin sur sept jours"
 link_url: "https://www.coinhouse.com/"
 :::
 
+:::chart
+chart_crypto: bitcoin
+chart_currency: eur
+chart_days: 7
+:::
+
 :::edito
 kicker: "EDITO"
 title: "Une reprise encore prudente"

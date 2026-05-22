@@ -105,6 +105,7 @@ Les directives supportees sont :
 | `editorial_list` | `kicker`, puis une ligne `- tag | titre | description | couleur` par entree |
 | `image_block` | `image_url`, `image_alt`, `link_url` |
 | `divider` | `style`: `thin`, `thick` ou `gradient` |
+| `chart` | `chart_crypto`, `chart_currency`, `chart_days` en mode auto CoinGecko |
 | `macro` | `kicker`, `title`, `quote`, `quote_author`, `bg_image_url`, puis corps Markdown |
 | `macro_bars` | une ligne `- label | valeur | percent | legende` par barre |
 | `fear_greed` | `kicker`, `title`, `value`, `classification`, puis commentaire Markdown |
@@ -195,9 +196,23 @@ Les barres macro attendent un pourcentage entre `0` et `100` :
 - Inflation coeur | 3,2 | 53 | cible 2 %
 ```
 
+Un graphique Markdown est toujours cree en mode auto. Il reprend les parametres
+CoinGecko, puis l'editeur rafraichit les donnees avec le bouton de sync global
+ou le bouton du bloc.
+
+```md
+:::chart
+chart_crypto: bitcoin
+chart_currency: eur
+chart_days: 7
+:::
+```
+
+`chart_currency` accepte `eur` ou `usd`. `chart_days` accepte `7` ou `30`.
+
 ## Hors perimetre
 
 - Front matter YAML avec tableaux ou objets imbriques.
-- Import de `chart`, `index` et `feature_grid`.
+- Import de `index` et `feature_grid`.
 - Upload d'images locales vers Supabase.
 - Round trip parfait entre l'editeur et le Markdown source.
