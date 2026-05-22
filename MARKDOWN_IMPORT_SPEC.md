@@ -630,6 +630,47 @@ importe.
 La route exige un header `Authorization: Bearer <access_token>` Supabase pour un
 utilisateur approuve.
 
+Le `access_token` attendu est celui de la session Auth Supabase d'un utilisateur
+connecte a l'application. Ne pas utiliser ici un Personal Access Token Supabase
+du dashboard : ce token sert aux APIs de gestion Supabase, pas a representer un
+utilisateur de l'application.
+
+Dans l'application :
+
+```js
+const {
+  data: { session },
+} = await supabase.auth.getSession();
+
+const response = await fetch("/api/import-markdown", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${session.access_token}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({ markdown }),
+});
+```
+
+Pour un test manuel depuis la console navigateur de l'app connectee :
+
+```js
+const { supabase } = await import("/src/lib/supabase.js");
+const { data: { session } } = await supabase.auth.getSession();
+copy(session.access_token);
+```
+
+Puis dans un terminal :
+
+```bash
+export SUPABASE_ACCESS_TOKEN="token_copie"
+
+curl -X POST http://127.0.0.1:5173/api/import-markdown \
+  -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+  -H "Content-Type: text/markdown" \
+  --data-binary @examples/newsletter-markdown-import-complet.md
+```
+
 ### Corps JSON
 
 ```json

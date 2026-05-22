@@ -550,6 +550,44 @@ Les graphiques auto importés créent un bloc CoinGecko configuré mais sans don
 
 Cette route crée une newsletter depuis du Markdown sans passer par la modale. Elle reprend l'authentification Bearer Supabase des autres routes API et refuse les profils non approuvés.
 
+Le Bearer token attendu est le `access_token` de la session Auth Supabase d'un utilisateur connecté à l'application. Ce n'est pas un Personal Access Token Supabase du dashboard.
+
+Depuis le code client de l'application :
+
+```js
+const {
+  data: { session },
+} = await supabase.auth.getSession();
+
+const response = await fetch("/api/import-markdown", {
+  method: "POST",
+  headers: {
+    Authorization: `Bearer ${session.access_token}`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({ markdown }),
+});
+```
+
+Pour un test manuel depuis la console navigateur de l'app connectée :
+
+```js
+const { supabase } = await import("/src/lib/supabase.js");
+const { data: { session } } = await supabase.auth.getSession();
+copy(session.access_token);
+```
+
+Puis dans le terminal :
+
+```bash
+export SUPABASE_ACCESS_TOKEN="token_copie"
+
+curl -X POST http://127.0.0.1:5173/api/import-markdown \
+  -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+  -H "Content-Type: text/markdown" \
+  --data-binary @examples/newsletter-markdown-import-complet.md
+```
+
 Corps JSON :
 
 ```json
