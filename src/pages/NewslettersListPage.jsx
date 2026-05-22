@@ -22,6 +22,9 @@ import {
   Sparkles,
   Loader2,
   FileUp,
+  Hash,
+  Minus,
+  Palette,
 } from "lucide-react";
 import { supabase } from "../lib/supabase.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
@@ -228,6 +231,19 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
       setImportingMarkdown(false);
     }
   };
+
+  const updateMarkdownImportState = (patch) =>
+    setMarkdownImportDraft((draft) =>
+      draft
+        ? {
+            ...draft,
+            imported: {
+              ...draft.imported,
+              state: { ...draft.imported.state, ...patch },
+            },
+          }
+        : draft
+    );
 
   const handleConfirmMarkdownImport = async () => {
     const imported = markdownImportDraft?.imported;
@@ -891,6 +907,85 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                   <div className="mt-1 line-clamp-2 text-sm text-d-fg2">
                     {markdownImportDraft.imported.state.preview_text || "Non renseignée"}
                   </div>
+                </div>
+              </div>
+              <div>
+                <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-d-fg4">
+                  Mise en forme
+                </div>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                  <div className="rounded-xl border border-line bg-d-panel2 px-4 py-3">
+                    <div className="mb-2 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-d-fg4">
+                      <Palette size={12} />
+                      Fond
+                    </div>
+                    <div className="grid grid-cols-2 rounded-lg border border-line bg-d-panel p-0.5">
+                      {[
+                        { value: "dark", label: "Sombre" },
+                        { value: "light", label: "Clair" },
+                      ].map((option) => {
+                        const selected =
+                          markdownImportDraft.imported.state.theme_variant === option.value;
+                        return (
+                          <button
+                            key={option.value}
+                            type="button"
+                            onClick={() => updateMarkdownImportState({ theme_variant: option.value })}
+                            aria-pressed={selected}
+                            className={`min-h-8 rounded-md px-2 text-[11px] font-semibold transition-colors ${
+                              selected
+                                ? "bg-d-pink text-white"
+                                : "text-d-fg3 hover:text-d-fg"
+                            }`}
+                          >
+                            {option.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  <label className="grid cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-xl border border-line bg-d-panel2 px-4 py-3">
+                    <span className="min-w-0">
+                      <span className="mb-1 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-d-fg4">
+                        <Hash size={12} />
+                        Sections
+                      </span>
+                      <span className="block text-sm font-medium text-d-fg2">Numéros</span>
+                    </span>
+                    <span className="relative inline-flex h-6 w-11 flex-shrink-0 items-center">
+                      <input
+                        type="checkbox"
+                        checked={markdownImportDraft.imported.state.show_section_numbers !== false}
+                        onChange={(event) =>
+                          updateMarkdownImportState({ show_section_numbers: event.target.checked })
+                        }
+                        className="peer sr-only"
+                      />
+                      <span className="absolute inset-0 rounded-full border border-line bg-d-panel transition-colors peer-checked:border-d-pink peer-checked:bg-d-pink/25" />
+                      <span className="relative ml-1 h-4 w-4 rounded-full bg-d-fg4 transition-transform peer-checked:translate-x-5 peer-checked:bg-d-pink" />
+                    </span>
+                  </label>
+                  <label className="grid cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-xl border border-line bg-d-panel2 px-4 py-3">
+                    <span className="min-w-0">
+                      <span className="mb-1 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-d-fg4">
+                        <Minus size={12} />
+                        Blocs
+                      </span>
+                      <span className="block text-sm font-medium text-d-fg2">Filets</span>
+                    </span>
+                    <span className="relative inline-flex h-6 w-11 flex-shrink-0 items-center">
+                      <input
+                        type="checkbox"
+                        checked={markdownImportDraft.imported.state.show_block_separators !== false}
+                        onChange={(event) =>
+                          updateMarkdownImportState({ show_block_separators: event.target.checked })
+                        }
+                        className="peer sr-only"
+                      />
+                      <span className="absolute inset-0 rounded-full border border-line bg-d-panel transition-colors peer-checked:border-d-pink peer-checked:bg-d-pink/25" />
+                      <span className="relative ml-1 h-4 w-4 rounded-full bg-d-fg4 transition-transform peer-checked:translate-x-5 peer-checked:bg-d-pink" />
+                    </span>
+                  </label>
                 </div>
               </div>
               {markdownImportDraft.imported.warnings.length > 0 && (

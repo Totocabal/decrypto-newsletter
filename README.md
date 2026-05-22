@@ -532,11 +532,12 @@ Appel depuis `PreviewPanel` avec `{ html, device }` et le token Bearer. Génère
 
 ## Import Markdown
 
-La liste des newsletters propose **Importer Markdown**. Le fichier est d'abord parsé côté client, puis une modale affiche le titre, le preheader, les sections détectées et les avertissements avant la création Supabase.
+La liste des newsletters propose **Importer Markdown**. Le fichier est d'abord parsé côté client, puis une modale affiche le titre, le preheader, les sections détectées et les avertissements avant la création Supabase. Cette validation permet aussi d'ajuster le fond clair ou sombre, la numérotation des sections et les filets entre blocs.
 
 Le format accepte :
 
 - un front matter scalaire obligatoire avec `title` ;
+- les réglages globaux `theme_variant`, `show_section_numbers` et `show_block_separators` dans le front matter ;
 - du Markdown simple converti vers `hero`, `text_block`, `image_block` et `divider` ;
 - des directives `:::type` pour tous les blocs du catalogue, dont `chart` auto ou manuel, `focus` multi-items et `feature_grid` ;
 - les raffinements `hero_chips`, `edito_kpis` et `index` auto.

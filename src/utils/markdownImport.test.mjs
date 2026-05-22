@@ -48,6 +48,8 @@ test("imports simple Markdown into newsletter sections", () => {
 title: "Weekly import"
 preview_text: "The week in crypto."
 theme_variant: light
+show_section_numbers: false
+show_block_separators: false
 ---
 
 # The market pauses
@@ -65,6 +67,8 @@ Tail text.
 
   assert.equal(imported.title, "Weekly import");
   assert.equal(imported.state.theme_variant, "light");
+  assert.equal(imported.state.show_section_numbers, false);
+  assert.equal(imported.state.show_block_separators, false);
   assert.deepEqual(
     imported.state.sections.map((section) => section.type),
     ["hero", "text_block", "image_block", "divider", "text_block"]

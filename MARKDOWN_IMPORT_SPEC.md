@@ -62,11 +62,15 @@ show_block_separators: true
 | `issue_date` | non | Date affichee dans l'entete |
 | `preview_text` | non | Preheader email |
 | `brand_name` | non | Nom de marque affiche |
-| `theme_variant` | non | `dark` ou `light` |
+| `theme_variant` | non | `dark` ou `light` pour choisir le fond sombre ou clair |
 | `show_section_numbers` | non | Active la numerotation des sections |
-| `show_block_separators` | non | Active les separateurs automatiques |
+| `show_block_separators` | non | Active les filets separant les blocs |
 
 Si `preview_text` manque, l'import continue avec un avertissement.
+
+La modale de validation reprend `theme_variant`, `show_section_numbers` et
+`show_block_separators` depuis le front matter. Ces trois valeurs peuvent
+encore etre ajustees dans la modale avant la creation de la newsletter.
 
 ## Syntaxe commune
 

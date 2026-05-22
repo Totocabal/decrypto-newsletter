@@ -108,11 +108,12 @@ Avant création, une fenêtre de validation affiche :
 - le titre importé ;
 - les sections détectées ;
 - la date et le texte de prévisualisation ;
+- le fond clair ou sombre, la numérotation et les filets entre blocs ;
 - les avertissements à relire.
 
 Cliquer sur **Créer la newsletter** seulement après cette vérification.
 
-Le fichier doit commencer par un front matter contenant au minimum `title`. Il peut ensuite contenir du Markdown simple et des directives structurées pour les blocs avancés. Le fichier d'exemple `examples/newsletter-markdown-import-complet.md` couvre le format complet, et `MARKDOWN_IMPORT_SPEC.md` décrit la syntaxe de référence.
+Le fichier doit commencer par un front matter contenant au minimum `title`. Il peut aussi définir `theme_variant`, `show_section_numbers` et `show_block_separators`, qui restent modifiables dans la validation d'import. Le corps peut ensuite contenir du Markdown simple et des directives structurées pour les blocs avancés. Le fichier d'exemple `examples/newsletter-markdown-import-complet.md` couvre le format complet, et `MARKDOWN_IMPORT_SPEC.md` décrit la syntaxe de référence.
 
 Après import, utiliser **Synchroniser** si un avertissement signale un graphique CoinGecko à rafraîchir.
 
