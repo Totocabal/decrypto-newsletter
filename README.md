@@ -13,15 +13,16 @@
 5. [Composants UI](#composants-ui)
 6. [Moteur de rendu email](#moteur-de-rendu-email)
 7. [Système d'export](#système-dexport)
-8. [Collaboration en temps réel](#collaboration-en-temps-réel)
-9. [Gestion des images](#gestion-des-images)
-10. [Données marché CoinGecko](#données-marché-coingecko)
-11. [Thème et identité visuelle](#thème-et-identité-visuelle)
-12. [Schéma de base de données](#schéma-de-base-de-données)
-13. [API serverless Vercel](#api-serverless-vercel)
-14. [Setup local](#setup-local)
-15. [Déploiement Vercel](#déploiement-vercel)
-16. [Scripts](#scripts)
+8. [Import Markdown](#import-markdown)
+9. [Collaboration en temps réel](#collaboration-en-temps-réel)
+10. [Gestion des images](#gestion-des-images)
+11. [Données marché CoinGecko](#données-marché-coingecko)
+12. [Thème et identité visuelle](#thème-et-identité-visuelle)
+13. [Schéma de base de données](#schéma-de-base-de-données)
+14. [API serverless Vercel](#api-serverless-vercel)
+15. [Setup local](#setup-local)
+16. [Déploiement Vercel](#déploiement-vercel)
+17. [Scripts](#scripts)
 
 ---
 
@@ -42,7 +43,7 @@
 | Icônes | Lucide React | ^0.383.0 |
 | Déploiement | Vercel | — |
 
-Module type : `"module"` (ESM pur). Pas de test runner.
+Module type : `"module"` (ESM pur). Les tests ciblés Markdown utilisent `node:test`.
 
 ---
 
@@ -92,6 +93,7 @@ src/
 ├── utils/
 │   ├── exportAssetPack.js      ← export ZIP + export Braze
 │   ├── exportImport.js         ← import/export JSON, téléchargement HTML, presse-papier
+│   ├── markdownImport.js       ← import Markdown structuré vers `current_state`
 │   └── storage.js              ← draft localStorage (clé v1, usage legacy)
 │
 └── App.jsx / main.jsx
@@ -528,6 +530,23 @@ Appel depuis `PreviewPanel` avec `{ html, device }` et le token Bearer. Génère
 
 ---
 
+## Import Markdown
+
+La liste des newsletters propose **Importer Markdown**. Le fichier est d'abord parsé côté client, puis une modale affiche le titre, le preheader, les sections détectées et les avertissements avant la création Supabase.
+
+Le format accepte :
+
+- un front matter scalaire obligatoire avec `title` ;
+- du Markdown simple converti vers `hero`, `text_block`, `image_block` et `divider` ;
+- des directives `:::type` pour tous les blocs du catalogue, dont `chart` auto ou manuel, `focus` multi-items et `feature_grid` ;
+- les raffinements `hero_chips`, `edito_kpis` et `index` auto.
+
+Le parseur vit dans `src/utils/markdownImport.js`. Le contrat complet, les syntaxes et les limites sont documentés dans `MARKDOWN_IMPORT_SPEC.md`. Un fichier prêt à importer est disponible dans `examples/newsletter-markdown-import-test.md`.
+
+Les graphiques auto importés créent un bloc CoinGecko configuré mais sans données fraîches. L'import affiche un avertissement et l'éditeur les remplit avec **Synchroniser** ou le bouton de rafraîchissement du bloc.
+
+---
+
 ## Collaboration en temps réel
 
 ### Hook `useNewsletter` — constantes
@@ -942,6 +961,7 @@ Dans **Supabase → Authentication → URL Configuration**.
 npm run dev      # Serveur de développement (http://localhost:5173)
 npm run build    # Build de production (dist/)
 npm run preview  # Prévisualiser le build de production localement
+npm run test:markdown  # Tests ciblés du parseur d'import Markdown
 ```
 
 ---
