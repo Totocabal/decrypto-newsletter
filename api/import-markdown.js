@@ -121,10 +121,29 @@ async function authorizeMarkdownImport(req) {
   return { mode: "user", supabase, authorId: user.id };
 }
 
-function parseRequestBody(req) {
+async function readRequestText(req) {
+  const chunks = [];
+  let bytes = 0;
+
+  for await (const chunk of req) {
+    const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+    bytes += buffer.length;
+    if (bytes > MAX_MARKDOWN_CHARS * 4) {
+      const err = new Error(`Corps de requête trop long (${MAX_MARKDOWN_CHARS} caractères max).`);
+      err.status = 413;
+      throw err;
+    }
+    chunks.push(buffer);
+  }
+
+  return Buffer.concat(chunks).toString("utf8");
+}
+
+export async function parseRequestBody(req) {
   const contentType = String(req.headers["content-type"] || "").toLowerCase();
   if (contentType.includes("text/markdown") || contentType.includes("text/plain")) {
-    return { markdown: typeof req.body === "string" ? req.body : "" };
+    const markdown = typeof req.body === "string" ? req.body : await readRequestText(req);
+    return { markdown };
   }
 
   try {
@@ -203,7 +222,7 @@ export default async function handler(req, res) {
 
   try {
     const { supabase, authorId } = await authorizeMarkdownImport(req);
-    const imported = importFromBody(parseRequestBody(req));
+    const imported = importFromBody(await parseRequestBody(req));
     const { data, error } = await supabase
       .from("newsletters")
       .insert({
