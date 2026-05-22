@@ -1,10 +1,47 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 
 import {
   MarkdownImportError,
   importNewsletterMarkdown,
 } from "./markdownImport.js";
+
+test("imports the complete Markdown example", () => {
+  const example = readFileSync(
+    new URL("../../examples/newsletter-markdown-import-complet.md", import.meta.url),
+    "utf8"
+  );
+  const imported = importNewsletterMarkdown(example);
+
+  assert.equal(imported.title, "Exemple complet import Markdown - Decrypto");
+  assert.deepEqual(
+    imported.state.sections.map((section) => section.type),
+    [
+      "hero",
+      "index",
+      "text_block",
+      "image_block",
+      "chart",
+      "edito",
+      "fear_greed",
+      "signals",
+      "divider",
+      "focus",
+      "text_block",
+      "macro",
+      "macro_bars",
+      "editorial_list",
+      "chart",
+      "feature_grid",
+      "commented_number",
+      "event",
+    ]
+  );
+  assert.deepEqual(imported.warnings, [
+    "Directive :::chart: rafraîchis les données CoinGecko du graphique bitcoin.",
+  ]);
+});
 
 test("imports simple Markdown into newsletter sections", () => {
   const imported = importNewsletterMarkdown(`---

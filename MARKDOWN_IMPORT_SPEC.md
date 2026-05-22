@@ -1,28 +1,54 @@
 # Import Markdown newsletter
 
+Cette spec decrit le format lu par `src/utils/markdownImport.js`.
+
 L'import Markdown cree une nouvelle newsletter depuis la liste des newsletters.
-Le fichier est converti vers le modele interne `current_state.sections[]`, puis
-reste editable dans l'editeur visuel.
+Le fichier est parse cote client, une modale affiche le resultat detecte, puis
+la creation Supabase ne se fait qu'apres confirmation.
 
-## Fichier
+Le Markdown importe devient le modele interne `current_state.sections[]`. Une
+fois la newsletter creee, l'editeur visuel reste la source de verite.
 
-- Extension acceptee : `.md` ou `.markdown`.
-- Encodage attendu : UTF-8.
-- Le front matter est obligatoire et doit commencer a la premiere ligne.
-- Les images importees doivent utiliser des URLs absolues `http` ou `https`.
+## Fichiers de reference
 
-## Front matter
+- Exemple complet importable : `examples/newsletter-markdown-import-complet.md`
+- Parseur : `src/utils/markdownImport.js`
+- Tests : `src/utils/markdownImport.test.mjs`
 
-Le parser v1 accepte uniquement des champs scalaires `champ: valeur`. Les
-valeurs entre guillemets, les nombres et les booleens `true`/`false` sont
-acceptes. Les tableaux YAML et les objets imbriques ne le sont pas encore.
+## Format general
+
+### Fichier
+
+| Regle | Valeur |
+| --- | --- |
+| Extension UI | `.md` ou `.markdown` |
+| Encodage attendu | UTF-8 |
+| Front matter | obligatoire a la premiere ligne |
+| Images | URLs absolues `http` ou `https` |
+| Footer | footer legal par defaut de l'application |
+
+Le fichier contient :
+
+1. un front matter scalaire ;
+2. du Markdown simple optionnel ;
+3. des directives newsletter optionnelles.
+
+### Front matter
+
+Le front matter commence et se termine avec `---`.
+
+Le parseur accepte seulement des champs scalaires `champ: valeur`. Les valeurs
+entre guillemets, les nombres et les booleens `true` ou `false` sont acceptes.
+Les tableaux YAML, objets imbriques et valeurs multilignes YAML ne sont pas
+supportes.
 
 ```md
 ---
 title: "Decrypto - Semaine du 22 mai"
 issue_number: "42"
 issue_date: "22.05.2026"
-preview_text: "Les actifs crypto reprennent un peu d'air."
+preview_text: "Bitcoin reprend un peu d'air."
+brand_name: "COINHOUSE"
 theme_variant: dark
 show_section_numbers: true
 show_block_separators: true
@@ -40,23 +66,80 @@ show_block_separators: true
 | `show_section_numbers` | non | Active la numerotation des sections |
 | `show_block_separators` | non | Active les separateurs automatiques |
 
-Les champs inconnus sont ignores avec un avertissement. Le footer legal reste
-celui de l'application.
+Si `preview_text` manque, l'import continue avec un avertissement.
+
+## Syntaxe commune
+
+### Directives
+
+Une directive commence par `:::type`, contient zero ou plusieurs champs
+scalaires, puis se ferme avec `:::`.
+
+```md
+:::text_block
+kicker: "ANALYSE"
+title: "Le retour des flux"
+cta_label: "Lire l'analyse"
+cta_url: "https://example.com/analyse"
+:::
+
+Le corps Markdown suit la directive jusqu'a la prochaine directive.
+```
+
+Un champ inconnu dans le front matter ou dans une directive est ignore avec un
+avertissement.
+
+Toutes les directives de section acceptent aussi :
+
+```md
+counts_for_numbering: true
+```
+
+ou :
+
+```md
+counts_for_numbering: false
+```
+
+Cette valeur pilote la numerotation et le sommaire auto apres import.
+
+### Corps Markdown
+
+Pour les directives a corps texte, le bloc Markdown place juste apres la
+directive est copie dans le champ riche du bloc. Le rendu email sait gerer les
+paragraphes, les liens Markdown, le gras, l'italique et les listes simples.
+
+Une nouvelle directive termine le corps courant.
+
+### Listes a separateur `|`
+
+Plusieurs blocs repetitifs utilisent des lignes de liste :
+
+```md
+- colonne 1 | colonne 2 | colonne 3
+```
+
+Regles :
+
+- chaque entree commence par `- ` ;
+- le separateur de colonnes est `|` ;
+- les colonnes requises ne doivent pas etre vides ;
+- le caractere `|` ne peut pas etre utilise dans le texte d'une colonne.
 
 ## Markdown simple
 
-Sans directive, le corps du fichier utilise ces conversions :
+Du Markdown sans directive est converti automatiquement :
 
 | Markdown | Section creee |
 | --- | --- |
-| premier `# Titre` | `hero` |
-| `## Titre` et son contenu | `text_block` |
+| premier `# Titre` | `hero` simplifie |
+| `# Titre` apres un hero existant | `text_block` |
+| `## Titre` et son corps | `text_block` |
 | texte hors titre | `text_block` |
 | image seule `![Alt](https://...)` | `image_block` |
-| regle horizontale `---` | `divider` fin |
+| regle horizontale `---` | `divider` `thin` |
 
-Le corps des blocs texte conserve le Markdown utile au rendu email : paragraphes,
-gras, italique, liens et listes simples.
+Exemple minimal :
 
 ```md
 ---
@@ -76,67 +159,131 @@ Bitcoin repart legerement a la hausse.
 ![Graphique BTC](https://example.com/btc.png)
 ```
 
-## Directives supportees
+## Catalogue des sections
 
-Une directive commence par `:::type`, contient des champs scalaires, puis se
-ferme avec `:::`. Pour une directive texte, le Markdown place juste apres la
-fermeture devient son corps jusqu'a la directive suivante.
+| Section | Champs / corps |
+| --- | --- |
+| `hero` | `kicker`, `title_part1`, `title_part2`, `title_highlight`, `subtitle` |
+| `index` | `label` ; items generes apres import |
+| `edito` | `kicker`, `title`, corps Markdown |
+| `text_block` | `kicker`, `title`, `cta_label`, `cta_url`, corps Markdown |
+| `image_block` | `image_url`, `image_alt`, `link_url` |
+| `divider` | `style` |
+| `chart` | graphique auto CoinGecko ou graphique manuel |
+| `fear_greed` | `kicker`, `title`, `value`, `classification`, commentaire Markdown |
+| `signals` | `kicker`, `title`, liste de signaux |
+| `macro` | `kicker`, `title`, `quote`, `quote_author`, `bg_image_url`, corps Markdown |
+| `macro_bars` | liste de barres |
+| `commented_number` | `kicker`, `value`, `unit`, `caption`, `title`, corps Markdown |
+| `editorial_list` | `kicker`, liste d'entrees |
+| `focus` | `kicker`, `title`, texte et items `focus_*` |
+| `feature_grid` | `kicker`, `bg_image_url`, cartes secondaires et carte vedette |
+| `event` | `day`, `month`, `year`, `kicker`, `title`, `description`, `cta_label`, `cta_url`, `bg_image_url` |
+
+## Sections simples
+
+### `text_block`
 
 ```md
 :::text_block
 kicker: "ANALYSE"
-title: "Le retour des flux"
-cta_label: "Lire l'analyse"
+title: "Le signal a suivre"
+cta_label: "Lire la suite"
 cta_url: "https://example.com/analyse"
 :::
 
-Les flux ETF repartent apres plusieurs semaines hesitantes.
+Le corps du bloc reste en Markdown riche.
 ```
 
-Les directives supportees sont :
+`cta_url`, si renseigne, doit etre une URL `http` ou `https`.
 
-| Directive | Champs scalaires |
-| --- | --- |
-| `hero` | `kicker`, `title_part1`, `title_part2`, `title_highlight`, `subtitle`, puis `hero_chips` optionnel |
-| `index` | `label`, puis items generes depuis les sections importees |
-| `edito` | `kicker`, `title`, corps Markdown, puis `edito_kpis` optionnel |
-| `text_block` | `kicker`, `title`, `cta_label`, `cta_url`, puis corps Markdown |
-| `focus` | `kicker`, `title`, puis du texte ou des sous-directives `focus_*` |
-| `signals` | `kicker`, `title`, puis une ligne `- direction | titre | description` par signal |
-| `editorial_list` | `kicker`, puis une ligne `- tag | titre | description | couleur` par entree |
-| `feature_grid` | `kicker`, `bg_image_url`, cartes secondaires en lignes, puis `feature_grid_featured` |
-| `image_block` | `image_url`, `image_alt`, `link_url` |
-| `divider` | `style`: `thin`, `thick` ou `gradient` |
-| `chart` | parametres CoinGecko en auto, donnees d'affichage en manuel |
-| `macro` | `kicker`, `title`, `quote`, `quote_author`, `bg_image_url`, puis corps Markdown |
-| `macro_bars` | une ligne `- label | valeur | percent | legende` par barre |
-| `fear_greed` | `kicker`, `title`, `value`, `classification`, puis commentaire Markdown |
-| `commented_number` | `kicker`, `value`, `unit`, `caption`, `title`, puis corps Markdown |
-| `event` | `day`, `month`, `year`, `kicker`, `title`, `description`, `cta_label`, `cta_url`, `bg_image_url` |
+### `image_block`
 
-Chaque directive accepte aussi `counts_for_numbering: true` ou `false`.
+```md
+:::image_block
+image_url: "https://example.com/image.png"
+image_alt: "Graphique Bitcoin"
+link_url: "https://example.com/analyse"
+:::
+```
 
-Les chips du hero sont optionnelles. Place `hero_chips` juste apres `hero` :
+`image_url` est obligatoire et doit etre une URL `http` ou `https`.
+`link_url`, si renseigne, est valide de la meme facon.
+
+### `divider`
+
+```md
+:::divider
+style: gradient
+:::
+```
+
+`style` accepte `thin`, `thick` ou `gradient`. La valeur par defaut est
+`thin`.
+
+### `event`
+
+```md
+:::event
+day: "14"
+month: "JUIN"
+year: "2026"
+kicker: "EVENEMENT - PARIS"
+title: "Crypto pour Tous"
+description: "Une session pour revoir les fondamentaux."
+cta_label: "Decouvrir"
+cta_url: "https://example.com/event"
+:::
+```
+
+`cta_url`, si renseigne, doit etre une URL `http` ou `https`. Un event sans
+`title` est importe avec avertissement.
+
+## Hero, sommaire et edito
+
+### `hero` et `hero_chips`
 
 ```md
 :::hero
+kicker: "DECRYPTO"
 title_part1: "Le marche"
 title_part2: "reprend son "
 title_highlight: "souffle."
+subtitle: "Les flux reviennent."
 :::
 
 :::hero_chips
 :::
 
-- btc | BTC +2,93 %
-- eth | ETH +1,80 %
-- fear_greed | F&G 72 - Greed
+- btc | BTC a rafraichir
+- eth | ETH a rafraichir
+- fear_greed | F&G a synchroniser
 - manual | Macro prudente
 ```
 
-Les types de chip acceptes sont `manual`, `btc`, `eth` et `fear_greed`.
+`hero_chips` doit suivre directement son `hero`. Chaque ligne contient :
 
-Les KPI de l'edito fonctionnent de la meme facon, apres le corps du bloc :
+```md
+- type | label
+```
+
+`type` accepte `manual`, `btc`, `eth` ou `fear_greed`.
+
+### `index`
+
+```md
+:::index
+label: "Au sommaire"
+:::
+```
+
+Le sommaire ne prend pas de lignes d'items. Apres conversion de tout le
+fichier, ses items sont generes depuis les sections numerotees. Les types
+habituellement non numerotes (`hero`, `index`, `chart`, `macro_bars`,
+`image_block`, `divider`) restent hors sommaire sauf surcharge
+`counts_for_numbering`.
+
+### `edito` et `edito_kpis`
 
 ```md
 :::edito
@@ -153,9 +300,81 @@ Bitcoin retrouve un soutien plus visible.
 - ETH | 3 100 EUR | -0,40 % | negative
 ```
 
-Le ton KPI accepte `positive`, `negative`, `warning` ou `muted`.
+`edito_kpis` doit suivre le corps de son `edito`. Chaque ligne contient :
 
-Les signaux utilisent `up` ou `down` comme direction :
+```md
+- label | value | delta | tone
+```
+
+`tone` accepte `positive`, `negative`, `warning` ou `muted`.
+
+## Blocs marche
+
+### `chart` auto
+
+Sans `chart_mode`, un graphique est cree en mode auto :
+
+```md
+:::chart
+chart_crypto: bitcoin
+chart_currency: eur
+chart_days: 7
+:::
+```
+
+Regles :
+
+- `chart_currency` accepte `eur` ou `usd` ;
+- `chart_days` accepte `7` ou `30` ;
+- valeurs par defaut : `bitcoin`, `eur`, `7`.
+
+Le bloc auto est importe sans donnees CoinGecko fraiches. L'import ajoute un
+avertissement. Dans l'editeur, utiliser **Synchroniser** ou le bouton de
+rafraichissement du chart.
+
+### `chart` manuel
+
+```md
+:::chart
+chart_mode: manual
+label: "BTC scenario"
+value: "Projection"
+price_start: "62 000 EUR"
+price_high: "66 000 EUR"
+price_low: "61 000 EUR"
+delta: "Stable"
+delta_tone: muted
+subdelta: "Scenario 4 jours"
+points: "10, 45, 30, 80"
+x_labels: "Lun, Mar, Mer, Jeu"
+:::
+```
+
+Regles :
+
+- `chart_mode` vaut `manual` ;
+- `points` contient au moins deux nombres separes par virgules ;
+- chaque point est compris entre `0` et `100` ;
+- `x_labels`, si fourni, contient autant d'entrees que `points` ;
+- sans `x_labels`, le parseur genere `P1`, `P2`, etc. ;
+- `delta_tone` accepte `positive`, `negative`, `warning` ou `muted`.
+
+### `fear_greed`
+
+```md
+:::fear_greed
+kicker: "INDICATEUR"
+title: "Fear and Greed Index"
+value: 72
+classification: "GREED"
+:::
+
+Le sentiment progresse sans euphorie generale.
+```
+
+`value` doit etre compris entre `0` et `100`.
+
+### `signals`
 
 ```md
 :::signals
@@ -167,67 +386,31 @@ title: "Signaux a suivre"
 - down | Pression macro | Les taux restent eleves.
 ```
 
-La couleur est optionnelle pour la liste editoriale. Sans couleur, le tag
-utilise le rose par defaut.
+Chaque ligne contient :
 
 ```md
-:::editorial_list
-kicker: "Trois raisons de rester attentif"
-:::
-
-- ETF | Les flux reviennent | Le marche retrouve un soutien. | #03FFCF
-- Macro | Les taux comptent encore | Les publications inflation restent clefs.
+- direction | title | description
 ```
 
-Un `focus` peut rester un simple bloc de texte, ou enchainer des items dans
-l'ordre voulu :
+`direction` accepte `up` ou `down`.
+
+### `macro`
 
 ```md
-:::focus
-kicker: "FOCUS"
-title: "Le sujet de la semaine"
+:::macro
+kicker: "MACRO"
+title: "La Fed garde le tempo"
+quote: "La baisse des taux dependra encore des donnees."
+quote_author: "Synthese de marche"
+bg_image_url: "https://example.com/macro-bg.png"
 :::
 
-Texte d'ouverture du focus.
-
-:::focus_image
-image_url: "https://example.com/focus.png"
-image_alt: "Visuel focus"
-:::
-
-:::focus_cta
-label: "Lire la suite"
-url: "https://example.com/analyse"
-arrow: true
-secondary_label: "Voir l'academie"
-secondary_url: "https://example.com/academie"
-:::
-
-:::focus_callout
-label: "A retenir"
-picto: "target"
-callout_color: "#03FFCF"
-footer: "Source Coinhouse"
-:::
-
-Le callout accepte lui aussi un corps Markdown.
-
-:::focus_spacer
-height: 24
-:::
+Le corps Markdown devient l'analyse macro.
 ```
 
-Sous-directives `focus` :
+`bg_image_url`, si renseigne, doit etre une URL `http` ou `https`.
 
-| Directive | Champs |
-| --- | --- |
-| `focus_text` | corps Markdown |
-| `focus_image` | `image_url`, `image_alt`, `link_url` |
-| `focus_cta` | `label`, `url`, `arrow`, `centered`, `secondary_label`, `secondary_url`, `secondary_arrow` |
-| `focus_callout` | `label`, `footer`, `footer_url`, `show_icon`, `picto`, `callout_color`, puis corps Markdown |
-| `focus_spacer` | `height` entre `0` et `120` |
-
-Les barres macro attendent un pourcentage entre `0` et `100` :
+### `macro_bars`
 
 ```md
 :::macro_bars
@@ -237,46 +420,131 @@ Les barres macro attendent un pourcentage entre `0` et `100` :
 - Inflation coeur | 3,2 | 53 | cible 2 %
 ```
 
-Par defaut, un graphique Markdown est cree en mode auto. Il reprend les
-parametres CoinGecko, puis l'editeur rafraichit les donnees avec le bouton de
-sync global ou le bouton du bloc.
+Chaque ligne contient :
 
 ```md
-:::chart
-chart_crypto: bitcoin
-chart_currency: eur
-chart_days: 7
+- label | value | percent | caption
+```
+
+`percent` doit etre compris entre `0` et `100`.
+
+### `commented_number`
+
+```md
+:::commented_number
+kicker: "LE CHIFFRE"
+value: "+1,2"
+unit: "Md $"
+caption: "Flux ETF spot sur sept jours"
+title: "Les allocations institutionnelles reviennent."
+:::
+
+Le corps Markdown devient le commentaire.
+```
+
+## Blocs listes et focus
+
+### `editorial_list`
+
+```md
+:::editorial_list
+kicker: "Trois raisons de rester attentif"
+:::
+
+- ETF | Les flux reviennent | Le marche retrouve un soutien. | #03FFCF
+- Macro | Les taux comptent encore | Les publications restent clefs.
+```
+
+Chaque ligne contient :
+
+```md
+- tag | title | body | tag_color optionnel
+```
+
+Sans couleur, `tag_color` prend `#FF00AA`.
+
+### `focus`
+
+Un `focus` peut commencer par un corps Markdown simple :
+
+```md
+:::focus
+kicker: "FOCUS"
+title: "Le sujet de la semaine"
+:::
+
+Texte d'ouverture du focus.
+```
+
+Des sous-directives `focus_*` placees juste apres ce focus ajoutent des items
+dans l'ordre :
+
+| Sous-directive | Champs / corps |
+| --- | --- |
+| `focus_text` | corps Markdown |
+| `focus_image` | `image_url`, `image_alt`, `link_url` |
+| `focus_cta` | `label`, `url`, `arrow`, `centered`, `secondary_label`, `secondary_url`, `secondary_arrow` |
+| `focus_callout` | `label`, `footer`, `footer_url`, `show_icon`, `picto`, `callout_color`, corps Markdown |
+| `focus_spacer` | `height` |
+
+Exemple :
+
+```md
+:::focus
+kicker: "FOCUS"
+title: "Le sujet de la semaine"
+:::
+
+Texte d'ouverture.
+
+:::focus_image
+image_url: "https://example.com/focus.png"
+image_alt: "Visuel focus"
+link_url: "https://example.com/article"
+:::
+
+:::focus_cta
+label: "Lire la suite"
+url: "https://example.com/analyse"
+arrow: true
+centered: false
+secondary_label: "Voir l'academie"
+secondary_url: "https://example.com/academie"
+secondary_arrow: false
+:::
+
+:::focus_callout
+label: "A retenir"
+footer: "Source Coinhouse"
+footer_url: "https://example.com/source"
+show_icon: true
+picto: "target"
+callout_color: "#03FFCF"
+:::
+
+Le callout accepte un corps Markdown.
+
+:::focus_spacer
+height: 24
 :::
 ```
 
-`chart_currency` accepte `eur` ou `usd`. `chart_days` accepte `7` ou `30`.
+Regles :
 
-Un graphique manuel accepte les valeurs affichees et deux listes separees par
-virgule pour `points` et `x_labels`. Chaque point est compris entre `0` et
-`100`.
+- les sous-directives `focus_*` doivent suivre un `focus` ;
+- `focus_text` et `focus_callout` exigent un corps Markdown ;
+- `focus_image.image_url` est obligatoire et doit etre `http` ou `https` ;
+- les URLs de `focus_image`, `focus_cta` et `focus_callout` sont validees
+  quand elles sont renseignees ;
+- `focus_cta.label` est obligatoire ;
+- `focus_spacer.height` doit etre compris entre `0` et `120`.
 
-```md
-:::chart
-chart_mode: manual
-label: "BTC scenario"
-value: "Projection"
-delta: "Stable"
-delta_tone: muted
-points: "10, 45, 30, 80"
-x_labels: "Lun, Mar, Mer, Jeu"
-:::
-```
+## `feature_grid`
 
-Le sommaire est genere apres l'import depuis les sections numerotees :
+Une grille de benefices contient :
 
-```md
-:::index
-label: "Au sommaire"
-:::
-```
-
-Une grille de benefices accepte jusqu'a quatre cartes secondaires. La carte
-vedette se decrit avec la sous-directive suivante :
+1. jusqu'a quatre cartes secondaires ;
+2. une carte vedette decrite par `feature_grid_featured`.
 
 ```md
 :::feature_grid
@@ -299,8 +567,53 @@ color: "#03FFCF"
 Le corps Markdown devient le texte de la carte vedette.
 ```
 
+Chaque carte secondaire contient :
+
+```md
+- title | body | picto | color
+```
+
+Regles :
+
+- `feature_grid` exige au moins une carte secondaire ;
+- seules les quatre premieres cartes secondaires sont rendues ;
+- `bg_image_url`, si renseigne, doit etre `http` ou `https` ;
+- `feature_grid_featured` doit suivre son `feature_grid` ;
+- `feature_grid_featured.title` est obligatoire ;
+- une grille sans carte vedette est importee avec avertissement.
+
+## Validations et avertissements
+
+### Erreurs bloquantes
+
+L'import est refuse notamment si :
+
+- le front matter manque ou n'est pas ferme ;
+- `title` manque ;
+- une directive est inconnue ou non fermee ;
+- une sous-directive `focus_*`, `hero_chips`, `edito_kpis` ou
+  `feature_grid_featured` apparait hors de son parent ;
+- une URL validee n'est pas `http` ou `https` ;
+- une liste a separateur `|` manque de lignes ou de colonnes requises ;
+- `divider.style`, `chart_mode`, `chart_currency`, `chart_days`, les tons KPI
+  ou les directions `signals` ont une valeur non supportee ;
+- `fear_greed.value`, `macro_bars.percent`, les points chart manuels ou le
+  spacer focus sortent de leurs bornes.
+
+### Avertissements
+
+L'import continue avec avertissement pour :
+
+- `preview_text` absent ;
+- champ inconnu ignore ;
+- aucun hero importe ;
+- chart auto a rafraichir avec CoinGecko ;
+- event sans titre ;
+- grille `feature_grid` sans carte vedette ;
+- plus de quatre cartes secondaires dans `feature_grid`.
+
 ## Hors perimetre
 
 - Front matter YAML avec tableaux ou objets imbriques.
 - Upload d'images locales vers Supabase.
-- Round trip parfait entre l'editeur et le Markdown source.
+- Import depuis un Markdown visant un round trip parfait avec l'editeur.

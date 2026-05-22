@@ -1,5 +1,6 @@
 ---
-title: "Test import Markdown - Decrypto"
+title: "Exemple complet import Markdown - Decrypto"
+brand_name: "COINHOUSE"
 issue_number: "42"
 issue_date: "22.05.2026"
 preview_text: "Bitcoin reprend un peu d'air, les flux ETF reviennent et la macro reste prudente."
@@ -47,6 +48,7 @@ link_url: "https://www.coinhouse.com/"
 chart_crypto: bitcoin
 chart_currency: eur
 chart_days: 7
+counts_for_numbering: false
 :::
 
 :::edito
@@ -97,15 +99,29 @@ kicker: "FOCUS"
 title: "Trois questions pour la semaine"
 :::
 
+Le bloc peut commencer avec un texte d'introduction avant d'enchainer ses
+items composes.
+
+:::focus_text
+:::
+
 1. Les flux ETF peuvent-ils tenir plusieurs seances de suite ?
-2. Le dollar va-t-il laisser plus d'air aux actifs risqués ?
+2. Le dollar va-t-il laisser plus d'air aux actifs risques ?
 3. Les altcoins vont-ils enfin rattraper Bitcoin ?
+
+:::focus_image
+image_url: "https://placehold.co/568x240/111118/FF00AA?text=Focus+ETF"
+image_alt: "Illustration du focus ETF"
+link_url: "https://www.coinhouse.com/fr/academie"
+:::
 
 :::focus_callout
 label: "A retenir"
 picto: "target"
 callout_color: "#03FFCF"
 footer: "Point de vigilance"
+footer_url: "https://www.coinhouse.com/fr/academie"
+show_icon: true
 :::
 
 Un rebond lisible ne retire pas le besoin d'une allocation disciplinee.
@@ -114,8 +130,10 @@ Un rebond lisible ne retire pas le besoin d'une allocation disciplinee.
 label: "Voir les analyses Coinhouse"
 url: "https://www.coinhouse.com/fr/academie"
 arrow: true
+centered: false
 secondary_label: "Decouvrir Coinhouse"
 secondary_url: "https://www.coinhouse.com/"
+secondary_arrow: false
 :::
 
 :::focus_spacer
@@ -141,6 +159,7 @@ kicker: "MACRO"
 title: "La Fed garde le tempo"
 quote: "La baisse des taux dependra encore des donnees."
 quote_author: "Synthese de marche"
+bg_image_url: "https://placehold.co/568x320/181827/03FFCF?text=Contexte+macro"
 :::
 
 Les investisseurs attendent surtout de voir si l'inflation continue de ralentir
@@ -162,8 +181,23 @@ kicker: "Trois raisons de rester attentif"
 - Macro | Les taux comptent encore | Les donnees inflation restent decisives. | #FF8B28
 - Allocation | La discipline reste utile | Le rebond ne remplace pas une strategie.
 
+:::chart
+chart_mode: manual
+label: "Scenario BTC"
+value: "Projection"
+price_start: "62 000 EUR"
+price_high: "66 000 EUR"
+price_low: "61 000 EUR"
+delta: "Stable"
+delta_tone: muted
+subdelta: "Scenario de travail sur quatre jours"
+points: "10, 42, 28, 76"
+x_labels: "Lun, Mar, Mer, Jeu"
+:::
+
 :::feature_grid
 kicker: "Benefices"
+bg_image_url: "https://placehold.co/568x360/101018/03FFCF?text=Feature+grid"
 :::
 
 - Veille | Une lecture plus structuree de la semaine. | read | #00FFFF
@@ -202,4 +236,5 @@ title: "Crypto pour Tous"
 description: "Une session pour revoir les fondamentaux et les bons reflexes avant l'ete."
 cta_label: "Decouvrir l'evenement"
 cta_url: "https://www.coinhouse.com/"
+bg_image_url: "https://placehold.co/568x260/181827/FF00AA?text=Evenement"
 :::
