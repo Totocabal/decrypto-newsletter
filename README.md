@@ -546,6 +546,25 @@ Le parseur vit dans `src/utils/markdownImport.js`. Le contrat complet, les synta
 
 Les graphiques auto importés créent un bloc CoinGecko configuré mais sans données fraîches. L'import affiche un avertissement et l'éditeur les remplit avec **Synchroniser** ou le bouton de rafraîchissement du bloc.
 
+### API `POST /api/import-markdown`
+
+Cette route crée une newsletter depuis du Markdown sans passer par la modale. Elle reprend l'authentification Bearer Supabase des autres routes API et refuse les profils non approuvés.
+
+Corps JSON :
+
+```json
+{
+  "markdown": "---\ntitle: \"Décrypto API\"\npreview_text: \"Import direct.\"\n---\n\n# Édition API\n",
+  "options": {
+    "theme_variant": "light",
+    "show_section_numbers": false,
+    "show_block_separators": true
+  }
+}
+```
+
+La route accepte aussi le Markdown brut avec `Content-Type: text/markdown`. En succès elle répond `201` avec `newsletter` et les `warnings` d'import.
+
 ---
 
 ## Collaboration en temps réel

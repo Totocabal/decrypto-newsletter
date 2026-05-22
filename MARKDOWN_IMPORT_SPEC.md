@@ -621,3 +621,51 @@ L'import continue avec avertissement pour :
 - Front matter YAML avec tableaux ou objets imbriques.
 - Upload d'images locales vers Supabase.
 - Import depuis un Markdown visant un round trip parfait avec l'editeur.
+
+## API de creation
+
+`POST /api/import-markdown` cree directement une newsletter avec le Markdown
+importe.
+
+La route exige un header `Authorization: Bearer <access_token>` Supabase pour un
+utilisateur approuve.
+
+### Corps JSON
+
+```json
+{
+  "markdown": "---\ntitle: \"Decrypto API\"\npreview_text: \"Import direct.\"\n---\n\n# Edition API\n",
+  "options": {
+    "theme_variant": "light",
+    "show_section_numbers": false,
+    "show_block_separators": true
+  }
+}
+```
+
+`options` est optionnel. Ces valeurs surchargent le front matter juste avant la
+creation.
+
+### Corps Markdown brut
+
+La route accepte aussi un corps `text/markdown` ou `text/plain`. Dans ce mode,
+les reglages globaux viennent uniquement du front matter.
+
+### Reponse
+
+En succes, la route repond `201` :
+
+```json
+{
+  "newsletter": {
+    "id": "<uuid>",
+    "title": "Decrypto API",
+    "issue_number": "",
+    "current_state": {}
+  },
+  "warnings": []
+}
+```
+
+Les erreurs de format Markdown ou d'options repondent `400`. Une session absente
+ou invalide repond `401`, un profil non approuve `403`.

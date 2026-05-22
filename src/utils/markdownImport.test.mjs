@@ -6,6 +6,7 @@ import {
   MarkdownImportError,
   importNewsletterMarkdown,
 } from "./markdownImport.js";
+import { importFromBody } from "../../api/import-markdown.js";
 
 test("imports the complete Markdown example", () => {
   const example = readFileSync(
@@ -41,6 +42,31 @@ test("imports the complete Markdown example", () => {
   assert.deepEqual(imported.warnings, [
     "Directive :::chart: rafraîchis les données CoinGecko du graphique bitcoin.",
   ]);
+});
+
+test("applies API Markdown import options before creation", () => {
+  const imported = importFromBody({
+    markdown: `---
+title: "API import"
+preview_text: "API."
+theme_variant: dark
+show_section_numbers: true
+show_block_separators: false
+---
+
+# API edition
+`,
+    options: {
+      theme_variant: "light",
+      show_section_numbers: false,
+      show_block_separators: true,
+    },
+  });
+
+  assert.equal(imported.title, "API import");
+  assert.equal(imported.state.theme_variant, "light");
+  assert.equal(imported.state.show_section_numbers, false);
+  assert.equal(imported.state.show_block_separators, true);
 });
 
 test("imports simple Markdown into newsletter sections", () => {
