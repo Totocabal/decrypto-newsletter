@@ -100,12 +100,13 @@ Les directives supportees sont :
 | `hero` | `kicker`, `title_part1`, `title_part2`, `title_highlight`, `subtitle` |
 | `edito` | `kicker`, `title`, puis corps Markdown |
 | `text_block` | `kicker`, `title`, `cta_label`, `cta_url`, puis corps Markdown |
-| `focus` | `kicker`, `title`, puis un item texte Markdown |
+| `focus` | `kicker`, `title`, puis du texte ou des sous-directives `focus_*` |
 | `signals` | `kicker`, `title`, puis une ligne `- direction | titre | description` par signal |
 | `editorial_list` | `kicker`, puis une ligne `- tag | titre | description | couleur` par entree |
 | `image_block` | `image_url`, `image_alt`, `link_url` |
 | `divider` | `style`: `thin`, `thick` ou `gradient` |
 | `macro` | `kicker`, `title`, `quote`, `quote_author`, `bg_image_url`, puis corps Markdown |
+| `macro_bars` | une ligne `- label | valeur | percent | legende` par barre |
 | `fear_greed` | `kicker`, `title`, `value`, `classification`, puis commentaire Markdown |
 | `commented_number` | `kicker`, `value`, `unit`, `caption`, `title`, puis corps Markdown |
 | `event` | `day`, `month`, `year`, `kicker`, `title`, `description`, `cta_label`, `cta_url`, `bg_image_url` |
@@ -136,10 +137,67 @@ kicker: "Trois raisons de rester attentif"
 - Macro | Les taux comptent encore | Les publications inflation restent clefs.
 ```
 
+Un `focus` peut rester un simple bloc de texte, ou enchainer des items dans
+l'ordre voulu :
+
+```md
+:::focus
+kicker: "FOCUS"
+title: "Le sujet de la semaine"
+:::
+
+Texte d'ouverture du focus.
+
+:::focus_image
+image_url: "https://example.com/focus.png"
+image_alt: "Visuel focus"
+:::
+
+:::focus_cta
+label: "Lire la suite"
+url: "https://example.com/analyse"
+arrow: true
+secondary_label: "Voir l'academie"
+secondary_url: "https://example.com/academie"
+:::
+
+:::focus_callout
+label: "A retenir"
+picto: "target"
+callout_color: "#03FFCF"
+footer: "Source Coinhouse"
+:::
+
+Le callout accepte lui aussi un corps Markdown.
+
+:::focus_spacer
+height: 24
+:::
+```
+
+Sous-directives `focus` :
+
+| Directive | Champs |
+| --- | --- |
+| `focus_text` | corps Markdown |
+| `focus_image` | `image_url`, `image_alt`, `link_url` |
+| `focus_cta` | `label`, `url`, `arrow`, `centered`, `secondary_label`, `secondary_url`, `secondary_arrow` |
+| `focus_callout` | `label`, `footer`, `footer_url`, `show_icon`, `picto`, `callout_color`, puis corps Markdown |
+| `focus_spacer` | `height` entre `0` et `120` |
+
+Les barres macro attendent un pourcentage entre `0` et `100` :
+
+```md
+:::macro_bars
+:::
+
+- Baisses pricees | 1,5 | 38 | vs il y a un mois
+- Inflation coeur | 3,2 | 53 | cible 2 %
+```
+
 ## Hors perimetre
 
 - Front matter YAML avec tableaux ou objets imbriques.
-- Import de `chart`, `index`, `macro_bars` et `feature_grid`.
-- Items `focus` autres qu'un item texte importe depuis le corps Markdown.
+- Import de `chart`, `index` et `feature_grid`.
 - Upload d'images locales vers Supabase.
 - Round trip parfait entre l'editeur et le Markdown source.

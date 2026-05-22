@@ -7,11 +7,32 @@ const SECTION_FIELDS = {
   edito: ["kicker", "title"],
   text_block: ["kicker", "title", "cta_label", "cta_url"],
   focus: ["kicker", "title"],
+  focus_text: [],
+  focus_image: ["image_url", "image_alt", "link_url"],
+  focus_cta: [
+    "label",
+    "url",
+    "arrow",
+    "centered",
+    "secondary_label",
+    "secondary_url",
+    "secondary_arrow",
+  ],
+  focus_callout: [
+    "label",
+    "footer",
+    "footer_url",
+    "show_icon",
+    "picto",
+    "callout_color",
+  ],
+  focus_spacer: ["height"],
   signals: ["kicker", "title"],
   editorial_list: ["kicker"],
   image_block: ["image_url", "image_alt", "link_url"],
   divider: ["style"],
   macro: ["kicker", "title", "quote", "quote_author", "bg_image_url"],
+  macro_bars: [],
   fear_greed: ["kicker", "title", "value", "classification"],
   commented_number: ["kicker", "value", "unit", "caption", "title"],
   event: [
@@ -52,6 +73,16 @@ const BODY_DIRECTIVE_TYPES = new Set([
   "focus",
   "signals",
   "editorial_list",
+  "macro_bars",
+  "focus_text",
+  "focus_callout",
+]);
+const FOCUS_ITEM_TYPES = new Set([
+  "focus_text",
+  "focus_image",
+  "focus_cta",
+  "focus_callout",
+  "focus_spacer",
 ]);
 
 let nextImportedSectionId = 0;
@@ -189,6 +220,79 @@ function parsePipeItems(markdownBody, directive, expectedParts) {
     }
     return parts;
   });
+}
+
+function focusTextItem(body) {
+  const text = trimOuterBlankLines(body);
+  return text ? { id: importId("focus"), type: "text", body: text } : null;
+}
+
+function focusItemFromDirective(token, body) {
+  const data = token.fields;
+  const markdownBody = trimOuterBlankLines(body);
+
+  if (token.type === "focus_text") {
+    const item = focusTextItem(markdownBody);
+    if (!item) throw new MarkdownImportError(":::focus_text exige un corps Markdown.");
+    return item;
+  }
+
+  if (token.type === "focus_image") {
+    if (!data.image_url) throw new MarkdownImportError(":::focus_image exige image_url.");
+    assertHttpUrl(data.image_url, "image_url");
+    if (data.link_url) assertHttpUrl(data.link_url, "link_url");
+    return {
+      id: importId("focus"),
+      type: "image",
+      image_url: data.image_url,
+      image_path: "",
+      image_alt: data.image_alt || "Visuel importé",
+      link_url: data.link_url || "",
+    };
+  }
+
+  if (token.type === "focus_cta") {
+    if (!data.label) throw new MarkdownImportError(":::focus_cta exige label.");
+    if (data.url) assertHttpUrl(data.url, "url");
+    if (data.secondary_url) assertHttpUrl(data.secondary_url, "secondary_url");
+    return {
+      id: importId("focus"),
+      type: "cta",
+      label: data.label,
+      url: data.url || "",
+      arrow: data.arrow === true,
+      centered: data.centered === true,
+      secondary_label: data.secondary_label || "",
+      secondary_url: data.secondary_url || "",
+      secondary_arrow: data.secondary_arrow === true,
+    };
+  }
+
+  if (token.type === "focus_callout") {
+    if (!markdownBody) throw new MarkdownImportError(":::focus_callout exige un corps Markdown.");
+    if (data.footer_url) assertHttpUrl(data.footer_url, "footer_url");
+    return {
+      id: importId("focus"),
+      type: "callout",
+      label: data.label || "Note de la rédac",
+      body: markdownBody,
+      footer: data.footer || "",
+      footer_url: data.footer_url || "",
+      show_icon: data.show_icon !== false,
+      picto: data.picto || "info",
+      callout_color: data.callout_color || "#00FFFF",
+    };
+  }
+
+  if (token.type === "focus_spacer") {
+    const height = Number(data.height);
+    if (!Number.isFinite(height) || height < 0 || height > 120) {
+      throw new MarkdownImportError(":::focus_spacer height doit être compris entre 0 et 120.");
+    }
+    return { id: importId("focus"), type: "spacer", height };
+  }
+
+  throw new MarkdownImportError(`Directive :::${token.type} inconnue dans un focus.`);
 }
 
 function createSection(type, data, extra = {}) {
@@ -405,6 +509,17 @@ function normalizeExplicitSection(token, body, warnings) {
     return createSection(type, { ...data, items }, extra);
   }
 
+  if (type === "macro_bars") {
+    const bars = parsePipeItems(markdownBody, type, 4).map(([label, value, percent, caption]) => {
+      const width = Number(percent);
+      if (!Number.isFinite(width) || width < 0 || width > 100) {
+        throw new MarkdownImportError(":::macro_bars percent doit être compris entre 0 et 100.");
+      }
+      return { label, value, percent: String(percent), caption };
+    });
+    return createSection(type, { bars }, extra);
+  }
+
   const bodyField = BODY_FIELD_BY_TYPE[type];
   if (bodyField) data[bodyField] = markdownBody;
   return createSection(type, data, extra);
@@ -418,6 +533,29 @@ function sectionsFromTokens(tokens, warnings) {
     if (token.kind === "markdown") {
       sectionsFromSimpleMarkdown(token.text, sections);
       continue;
+    }
+
+    if (token.type === "focus") {
+      const next = tokens[index + 1];
+      const simpleBody = next?.kind === "markdown" ? next.text : "";
+      const focusSection = normalizeExplicitSection(token, simpleBody, warnings);
+      if (simpleBody) index += 1;
+
+      while (tokens[index + 1]?.kind === "directive" && FOCUS_ITEM_TYPES.has(tokens[index + 1].type)) {
+        const itemToken = tokens[index + 1];
+        const bodyToken = BODY_DIRECTIVE_TYPES.has(itemToken.type) && tokens[index + 2]?.kind === "markdown"
+          ? tokens[index + 2]
+          : null;
+        focusSection.data.items.push(focusItemFromDirective(itemToken, bodyToken?.text || ""));
+        index += bodyToken ? 2 : 1;
+      }
+
+      sections.push(focusSection);
+      continue;
+    }
+
+    if (FOCUS_ITEM_TYPES.has(token.type)) {
+      throw new MarkdownImportError(`Directive :::${token.type} doit suivre une directive :::focus.`);
     }
 
     const next = tokens[index + 1];

@@ -109,3 +109,58 @@ kicker: "Three reasons"
   assert.equal(editorialList.data.items[0].tag_color, "#03FFCF");
   assert.equal(editorialList.data.items[1].tag_color, "#FF00AA");
 });
+
+test("imports focus items and macro bars directives", () => {
+  const imported = importNewsletterMarkdown(`---
+title: "Focus import"
+preview_text: "Focus and bars."
+---
+
+:::focus
+kicker: "FOCUS"
+title: "Inside the block"
+:::
+
+Opening text.
+
+:::focus_image
+image_url: "https://example.com/focus.png"
+image_alt: "Focus visual"
+:::
+
+:::focus_cta
+label: "Read more"
+url: "https://example.com/read"
+arrow: true
+secondary_label: "Academy"
+secondary_url: "https://example.com/academy"
+:::
+
+:::focus_callout
+label: "To remember"
+picto: "target"
+callout_color: "#03FFCF"
+:::
+
+Stay disciplined.
+
+:::focus_spacer
+height: 32
+:::
+
+:::macro_bars
+:::
+
+- Cuts priced | 1.5 | 38 | vs last month
+- Inflation | 3.2 | 53 | target 2 percent
+`);
+
+  const [focus, macroBars] = imported.state.sections;
+  assert.deepEqual(
+    focus.data.items.map((item) => item.type),
+    ["text", "image", "cta", "callout", "spacer"]
+  );
+  assert.equal(focus.data.items[2].secondary_label, "Academy");
+  assert.equal(macroBars.type, "macro_bars");
+  assert.equal(macroBars.data.bars[1].percent, "53");
+});

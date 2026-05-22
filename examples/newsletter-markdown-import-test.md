@@ -76,6 +76,27 @@ title: "Trois questions pour la semaine"
 2. Le dollar va-t-il laisser plus d'air aux actifs risqués ?
 3. Les altcoins vont-ils enfin rattraper Bitcoin ?
 
+:::focus_callout
+label: "A retenir"
+picto: "target"
+callout_color: "#03FFCF"
+footer: "Point de vigilance"
+:::
+
+Un rebond lisible ne retire pas le besoin d'une allocation disciplinee.
+
+:::focus_cta
+label: "Voir les analyses Coinhouse"
+url: "https://www.coinhouse.com/fr/academie"
+arrow: true
+secondary_label: "Decouvrir Coinhouse"
+secondary_url: "https://www.coinhouse.com/"
+:::
+
+:::focus_spacer
+height: 18
+:::
+
 :::text_block
 kicker: "ANALYSE"
 title: "Le signal a surveiller"
@@ -100,6 +121,13 @@ quote_author: "Synthese de marche"
 Les investisseurs attendent surtout de voir si l'inflation continue de ralentir
 sans casser la croissance. Ce point reste central pour Bitcoin comme pour les
 actifs de risque.
+
+:::macro_bars
+:::
+
+- Baisses pricees | 1,5 | 38 | contre 3 il y a un mois
+- Inflation coeur | 3,2 | 53 | cible 2 %
+- Probabilite de baisse | 62 % | 62 | marche Fed Funds
 
 :::editorial_list
 kicker: "Trois raisons de rester attentif"
