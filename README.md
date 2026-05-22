@@ -532,7 +532,7 @@ Appel depuis `PreviewPanel` avec `{ html, device }` et le token Bearer. Génère
 
 ## Import Markdown
 
-La liste des newsletters propose **Importer Markdown**. Le fichier est d'abord parsé côté client, puis une modale affiche le titre, le preheader, les sections détectées et les avertissements avant la création Supabase. Cette validation permet aussi d'ajuster le fond clair ou sombre, la numérotation des sections et les filets entre blocs.
+La liste des newsletters propose **Importer Markdown** depuis un fichier `.md` ou un contenu collé. Le Markdown est d'abord parsé côté client, puis une modale affiche le titre, le preheader, les sections détectées et les avertissements avant la création Supabase. Cette validation permet aussi d'ajuster le fond clair ou sombre, la numérotation des sections et les filets entre blocs.
 
 Le format accepte :
 

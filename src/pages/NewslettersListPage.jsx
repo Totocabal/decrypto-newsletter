@@ -22,6 +22,7 @@ import {
   Sparkles,
   Loader2,
   FileUp,
+  ClipboardPaste,
   Hash,
   Minus,
   Palette,
@@ -64,6 +65,8 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
   const [labelFilter, setLabelFilter] = useState([]);
   const [labelPickerOpen, setLabelPickerOpen] = useState(null);
   const [importingMarkdown, setImportingMarkdown] = useState(false);
+  const [markdownImportSourceOpen, setMarkdownImportSourceOpen] = useState(false);
+  const [pastedMarkdown, setPastedMarkdown] = useState("");
   const [markdownImportDraft, setMarkdownImportDraft] = useState(null);
 
   const load = useCallback(async () => {
@@ -216,20 +219,34 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
     onOpen(data.id);
   };
 
-  const handleImportMarkdown = async (event) => {
-    const file = event.target.files?.[0];
-    event.target.value = "";
-    if (!file || !profile?.id) return;
-
+  const parseMarkdownImport = (markdown, sourceLabel) => {
+    if (!profile?.id) return;
     setImportingMarkdown(true);
     try {
-      const imported = importNewsletterMarkdown(await file.text());
-      setMarkdownImportDraft({ imported, fileName: file.name });
+      const imported = importNewsletterMarkdown(markdown);
+      setMarkdownImportDraft({ imported, fileName: sourceLabel });
+      setMarkdownImportSourceOpen(false);
+      setPastedMarkdown("");
     } catch (error) {
       addToast("Import Markdown impossible : " + (error.message || error), "error");
     } finally {
       setImportingMarkdown(false);
     }
+  };
+
+  const handleImportMarkdown = async (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    parseMarkdownImport(await file.text(), file.name);
+  };
+
+  const handlePasteMarkdownImport = () => {
+    if (!pastedMarkdown.trim()) {
+      addToast("Colle un contenu Markdown avant de continuer.", "error");
+      return;
+    }
+    parseMarkdownImport(pastedMarkdown, "Markdown collé");
   };
 
   const updateMarkdownImportState = (patch) =>
@@ -442,17 +459,15 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
             </p>
           </div>
           <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
-            <label className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-full border border-line2 px-5 py-2.5 text-[12px] font-semibold uppercase tracking-[0.18em] text-d-fg2 transition-colors hover:bg-d-panel2 has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-50 sm:w-auto">
+            <button
+              type="button"
+              onClick={() => setMarkdownImportSourceOpen(true)}
+              disabled={importingMarkdown || creating}
+              className="flex w-full items-center justify-center gap-2 rounded-full border border-line2 px-5 py-2.5 text-[12px] font-semibold uppercase tracking-[0.18em] text-d-fg2 transition-colors hover:bg-d-panel2 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+            >
               {importingMarkdown ? <Loader2 size={14} className="animate-spin" /> : <FileUp size={14} />}
               Importer Markdown
-              <input
-                type="file"
-                accept=".md,.markdown,text/markdown,text/plain"
-                disabled={importingMarkdown || creating}
-                onChange={handleImportMarkdown}
-                className="sr-only"
-              />
-            </label>
+            </button>
             <button
               onClick={() => setCreateChoiceOpen(true)}
               disabled={creating || importingMarkdown}
@@ -1018,6 +1033,90 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
               >
                 {importingMarkdown && <Loader2 size={12} className="animate-spin" />}
                 Créer la newsletter
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {markdownImportSourceOpen && !markdownImportDraft && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+          <div className="flex max-h-[calc(100vh-32px)] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-line bg-d-panel shadow-2xl">
+            <div className="flex items-start justify-between gap-4 border-b border-line px-6 py-5">
+              <div>
+                <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-d-pink">
+                  Import Markdown
+                </div>
+                <h2 className="text-xl font-semibold tracking-tight text-d-fg" style={{ fontFamily: "'Sora', sans-serif" }}>
+                  Ajouter une source
+                </h2>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setMarkdownImportSourceOpen(false);
+                  setPastedMarkdown("");
+                }}
+                disabled={importingMarkdown}
+                className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-d-fg4 transition-colors hover:bg-d-panel2 hover:text-d-fg2 disabled:opacity-50"
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <div className="space-y-4 overflow-y-auto p-6">
+              <label className="flex cursor-pointer items-center justify-between gap-4 rounded-xl border border-line bg-d-panel2 px-4 py-4 transition-colors hover:border-line2 has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-50">
+                <span className="flex min-w-0 items-center gap-3">
+                  <span className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg border border-line bg-d-panel text-d-fg2">
+                    <FileUp size={16} />
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-sm font-semibold text-d-fg">Choisir un fichier</span>
+                    <span className="block text-xs text-d-fg4">.md ou .markdown</span>
+                  </span>
+                </span>
+                <span className="rounded-lg border border-line px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-d-fg2">
+                  Parcourir
+                </span>
+                <input
+                  type="file"
+                  accept=".md,.markdown,text/markdown,text/plain"
+                  disabled={importingMarkdown || creating}
+                  onChange={handleImportMarkdown}
+                  className="sr-only"
+                />
+              </label>
+              <div className="rounded-xl border border-line bg-d-panel2 p-4">
+                <div className="mb-3 flex items-center gap-2">
+                  <ClipboardPaste size={14} className="text-d-fg3" />
+                  <div className="text-sm font-semibold text-d-fg">Coller le Markdown</div>
+                </div>
+                <textarea
+                  value={pastedMarkdown}
+                  onChange={(event) => setPastedMarkdown(event.target.value)}
+                  placeholder={"---\ntitle: \"Ma newsletter\"\npreview_text: \"...\"\n---\n\n# Titre"}
+                  className="min-h-64 w-full resize-y rounded-xl border border-line bg-d-panel px-3 py-3 font-mono text-xs leading-relaxed text-d-fg outline-none placeholder:text-d-fg4 focus:border-d-pink/60"
+                />
+              </div>
+            </div>
+            <div className="flex flex-col-reverse gap-2 border-t border-line px-6 py-4 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={() => {
+                  setMarkdownImportSourceOpen(false);
+                  setPastedMarkdown("");
+                }}
+                disabled={importingMarkdown}
+                className="rounded-xl border border-line px-4 py-2 text-xs font-semibold text-d-fg3 transition-colors hover:border-line2 hover:text-d-fg disabled:opacity-50"
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                onClick={handlePasteMarkdownImport}
+                disabled={importingMarkdown}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-d-pink px-4 py-2 text-xs font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                {importingMarkdown && <Loader2 size={12} className="animate-spin" />}
+                Valider le Markdown collé
               </button>
             </div>
           </div>

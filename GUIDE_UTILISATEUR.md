@@ -101,7 +101,7 @@ Cliquer sur **Créer** ouvre directement l'éditeur.
 
 ### Importer une newsletter Markdown
 
-Depuis la liste des newsletters, cliquer sur **Importer Markdown** puis choisir un fichier `.md` ou `.markdown`.
+Depuis la liste des newsletters, cliquer sur **Importer Markdown** puis choisir un fichier `.md` ou `.markdown`, ou coller directement le contenu Markdown dans la zone dédiée.
 
 Avant création, une fenêtre de validation affiche :
 
