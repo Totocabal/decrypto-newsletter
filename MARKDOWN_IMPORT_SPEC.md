@@ -104,6 +104,7 @@ Les directives supportees sont :
 | `focus` | `kicker`, `title`, puis du texte ou des sous-directives `focus_*` |
 | `signals` | `kicker`, `title`, puis une ligne `- direction | titre | description` par signal |
 | `editorial_list` | `kicker`, puis une ligne `- tag | titre | description | couleur` par entree |
+| `feature_grid` | `kicker`, `bg_image_url`, cartes secondaires en lignes, puis `feature_grid_featured` |
 | `image_block` | `image_url`, `image_alt`, `link_url` |
 | `divider` | `style`: `thin`, `thick` ou `gradient` |
 | `chart` | parametres CoinGecko en auto, donnees d'affichage en manuel |
@@ -274,9 +275,32 @@ label: "Au sommaire"
 :::
 ```
 
+Une grille de benefices accepte jusqu'a quatre cartes secondaires. La carte
+vedette se decrit avec la sous-directive suivante :
+
+```md
+:::feature_grid
+kicker: "Benefices"
+bg_image_url: "https://example.com/grid-bg.png"
+:::
+
+- Frais | Acheter sans friction bancaire. | euro | #00FFFF
+- Auto | Vos achats recurrents continuent. | pin | #FF8B28
+- IBAN | Un compte euro a votre nom. | shield | #B36BFF
+
+:::feature_grid_featured
+label: "Benefice principal"
+title: "Une experience crypto plus fluide"
+picto: "check"
+show_icon: true
+color: "#03FFCF"
+:::
+
+Le corps Markdown devient le texte de la carte vedette.
+```
+
 ## Hors perimetre
 
 - Front matter YAML avec tableaux ou objets imbriques.
-- Import de `feature_grid`.
 - Upload d'images locales vers Supabase.
 - Round trip parfait entre l'editeur et le Markdown source.

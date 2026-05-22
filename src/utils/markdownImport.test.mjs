@@ -259,3 +259,36 @@ x_labels: "Lun, Mar, Mer, Jeu"
   assert.deepEqual(chart.data.points, [10, 45, 30, 80]);
   assert.deepEqual(chart.data.x_labels, ["Lun", "Mar", "Mer", "Jeu"]);
 });
+
+test("imports feature grid featured card and secondary cards", () => {
+  const imported = importNewsletterMarkdown(`---
+title: "Feature import"
+preview_text: "Benefits."
+---
+
+:::feature_grid
+kicker: "Benefits"
+bg_image_url: "https://example.com/grid-bg.png"
+:::
+
+- Friction | Buy without card rejects. | euro | #00FFFF
+- Recurring | Keep your plan running. | pin | #FF8B28
+
+:::feature_grid_featured
+label: "Main benefit"
+title: "A calmer crypto workflow"
+picto: "shield"
+show_icon: true
+color: "#03FFCF"
+:::
+
+Security and clarity stay together.
+`);
+
+  const [featureGrid] = imported.state.sections;
+  assert.equal(featureGrid.type, "feature_grid");
+  assert.equal(featureGrid.data.featured.title, "A calmer crypto workflow");
+  assert.equal(featureGrid.data.featured.body, "Security and clarity stay together.");
+  assert.equal(featureGrid.data.items[0].picto, "euro");
+  assert.equal(featureGrid.data.items[1].color, "#FF8B28");
+});

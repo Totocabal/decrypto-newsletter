@@ -32,6 +32,8 @@ const SECTION_FIELDS = {
   focus_spacer: ["height"],
   signals: ["kicker", "title"],
   editorial_list: ["kicker"],
+  feature_grid: ["kicker", "bg_image_url"],
+  feature_grid_featured: ["label", "title", "picto", "show_icon", "color"],
   image_block: ["image_url", "image_alt", "link_url"],
   divider: ["style"],
   chart: [
@@ -105,6 +107,7 @@ const FOCUS_ITEM_TYPES = new Set([
 ]);
 const HERO_CHILD_TYPES = new Set(["hero_chips"]);
 const EDITO_CHILD_TYPES = new Set(["edito_kpis"]);
+const FEATURE_GRID_CHILD_TYPES = new Set(["feature_grid_featured"]);
 const KPI_TONES = new Set(["positive", "negative", "warning", "muted"]);
 
 let nextImportedSectionId = 0;
@@ -367,6 +370,21 @@ function editoKpisFromDirective(token, body) {
   });
 }
 
+function featureGridFeaturedFromDirective(token, body) {
+  const markdownBody = trimOuterBlankLines(body);
+  if (!token.fields.title) {
+    throw new MarkdownImportError(":::feature_grid_featured exige title.");
+  }
+  return {
+    label: token.fields.label || "",
+    title: token.fields.title,
+    body: markdownBody,
+    picto: token.fields.picto || "info",
+    show_icon: token.fields.show_icon !== false,
+    color: token.fields.color || "#FF00AA",
+  };
+}
+
 function createSection(type, data, extra = {}) {
   return {
     id: importId("section"),
@@ -592,6 +610,18 @@ function normalizeExplicitSection(token, body, warnings) {
 
   if (type === "text_block" && data.cta_url) assertHttpUrl(data.cta_url, "cta_url");
   if (type === "macro" && data.bg_image_url) assertHttpUrl(data.bg_image_url, "bg_image_url");
+  if (type === "feature_grid") {
+    if (data.bg_image_url) assertHttpUrl(data.bg_image_url, "bg_image_url");
+    const parsedItems = parsePipeItems(markdownBody, type, 4);
+    const items = parsedItems.slice(0, 4).map(([title, bodyText, picto, color]) => ({
+      title,
+      body: bodyText,
+      picto,
+      color,
+    }));
+    if (parsedItems.length > 4) warnings.push("Directive :::feature_grid: seules quatre cartes secondaires sont rendues.");
+    data.items = items;
+  }
 
   if (type === "focus") {
     return createSection(type, {
@@ -701,6 +731,25 @@ function sectionsFromTokens(tokens, warnings) {
       continue;
     }
 
+    if (token.type === "feature_grid") {
+      const next = tokens[index + 1];
+      const body = next?.kind === "markdown" ? next.text : "";
+      const featureGridSection = normalizeExplicitSection(token, body, warnings);
+      if (body) index += 1;
+
+      if (tokens[index + 1]?.kind === "directive" && FEATURE_GRID_CHILD_TYPES.has(tokens[index + 1].type)) {
+        const childToken = tokens[index + 1];
+        const bodyToken = tokens[index + 2]?.kind === "markdown" ? tokens[index + 2] : null;
+        featureGridSection.data.featured = featureGridFeaturedFromDirective(childToken, bodyToken?.text || "");
+        index += bodyToken ? 2 : 1;
+      } else {
+        warnings.push("Directive :::feature_grid: carte vedette absente.");
+      }
+
+      sections.push(featureGridSection);
+      continue;
+    }
+
     if (FOCUS_ITEM_TYPES.has(token.type)) {
       throw new MarkdownImportError(`Directive :::${token.type} doit suivre une directive :::focus.`);
     }
@@ -709,6 +758,9 @@ function sectionsFromTokens(tokens, warnings) {
     }
     if (EDITO_CHILD_TYPES.has(token.type)) {
       throw new MarkdownImportError(`Directive :::${token.type} doit suivre une directive :::edito.`);
+    }
+    if (FEATURE_GRID_CHILD_TYPES.has(token.type)) {
+      throw new MarkdownImportError(`Directive :::${token.type} doit suivre une directive :::feature_grid.`);
     }
 
     const next = tokens[index + 1];

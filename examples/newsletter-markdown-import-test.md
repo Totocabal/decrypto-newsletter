@@ -162,6 +162,26 @@ kicker: "Trois raisons de rester attentif"
 - Macro | Les taux comptent encore | Les donnees inflation restent decisives. | #FF8B28
 - Allocation | La discipline reste utile | Le rebond ne remplace pas une strategie.
 
+:::feature_grid
+kicker: "Benefices"
+:::
+
+- Veille | Une lecture plus structuree de la semaine. | read | #00FFFF
+- Signaux | Des reperes pour prioriser l'analyse. | signal | #03FFCF
+- Discipline | Une allocation qui reste explicable. | shield | #B36BFF
+- Timing | Des points de controle avant d'agir. | timing | #FF8B28
+
+:::feature_grid_featured
+label: "Vue d'ensemble"
+title: "Une newsletter qui relie contexte et action."
+picto: "target"
+show_icon: true
+color: "#FF00AA"
+:::
+
+Le bloc vedette permet de resumer le benefice principal avant les cartes
+secondaires.
+
 :::commented_number
 kicker: "LE CHIFFRE"
 value: "+1,2"
