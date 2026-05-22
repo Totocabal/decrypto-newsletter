@@ -548,9 +548,16 @@ Les graphiques auto importés créent un bloc CoinGecko configuré mais sans don
 
 ### API `POST /api/import-markdown`
 
-Cette route crée une newsletter depuis du Markdown sans passer par la modale. Elle reprend l'authentification Bearer Supabase des autres routes API et refuse les profils non approuvés.
+Cette route crée une newsletter depuis du Markdown sans passer par la modale. Elle accepte deux modes d'authentification :
 
-Le Bearer token attendu est le `access_token` de la session Auth Supabase d'un utilisateur connecté à l'application. Ce n'est pas un Personal Access Token Supabase du dashboard.
+- le `access_token` de la session Auth Supabase d'un utilisateur connecté et approuvé ;
+- le secret fixe `MARKDOWN_IMPORT_API_TOKEN` pour une intégration machine-to-machine.
+
+Le Personal Access Token Supabase du dashboard ne correspond à aucun de ces deux modes.
+
+#### Mode utilisateur
+
+Dans ce mode, l'API écrit avec le token utilisateur et les règles RLS normales.
 
 Depuis le code client de l'application :
 
@@ -584,6 +591,29 @@ export SUPABASE_ACCESS_TOKEN="token_copie"
 
 curl -X POST http://127.0.0.1:5173/api/import-markdown \
   -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+  -H "Content-Type: text/markdown" \
+  --data-binary @examples/newsletter-markdown-import-complet.md
+```
+
+#### Mode intégration
+
+Dans ce mode, le Bearer est le secret `MARKDOWN_IMPORT_API_TOKEN`. La route utilise un client Supabase serveur pour l'insertion et attribue la newsletter au profil technique `MARKDOWN_IMPORT_USER_ID`.
+
+Variables serveur requises :
+
+```env
+MARKDOWN_IMPORT_API_TOKEN=secret_long_et_aleatoire
+MARKDOWN_IMPORT_USER_ID=<uuid-du-profil-technique>
+SUPABASE_SECRET_KEY=<secret-key-supabase>
+```
+
+`SUPABASE_SERVICE_ROLE_KEY` reste accepté comme fallback legacy si le projet ne dispose pas encore de `SUPABASE_SECRET_KEY`. Ces clés sont uniquement serveur : ne pas les préfixer par `VITE_`.
+
+Appel :
+
+```bash
+curl -X POST https://decrypto-newsletter.vercel.app/api/import-markdown \
+  -H "Authorization: Bearer $MARKDOWN_IMPORT_API_TOKEN" \
   -H "Content-Type: text/markdown" \
   --data-binary @examples/newsletter-markdown-import-complet.md
 ```
@@ -989,6 +1019,10 @@ npm run dev
 | `VITE_AUTH_REDIRECT_URL` | URL publique de l'app |
 | `SUPABASE_URL` | Idem (pour les fonctions serverless) |
 | `SUPABASE_ANON_KEY` | Idem (pour les fonctions serverless) |
+| `SUPABASE_SECRET_KEY` | Clé Supabase serveur pour le mode intégration Markdown |
+| `SUPABASE_SERVICE_ROLE_KEY` | Fallback legacy pour le mode intégration Markdown |
+| `MARKDOWN_IMPORT_API_TOKEN` | Bearer fixe pour l'import Markdown machine-to-machine |
+| `MARKDOWN_IMPORT_USER_ID` | UUID du profil technique auteur des imports Markdown |
 | `BRAZE_API_KEY` | Clé serveur Braze (permission `media_library.create`) |
 | `BRAZE_BASE_URL` | REST endpoint Braze (ex. `https://rest.fra-01.braze.eu`) |
 | `CRON_SECRET` | Secret optionnel pour l'endpoint keepalive |

@@ -627,13 +627,23 @@ L'import continue avec avertissement pour :
 `POST /api/import-markdown` cree directement une newsletter avec le Markdown
 importe.
 
-La route exige un header `Authorization: Bearer <access_token>` Supabase pour un
-utilisateur approuve.
+La route exige un header `Authorization: Bearer <token>`.
 
-Le `access_token` attendu est celui de la session Auth Supabase d'un utilisateur
-connecte a l'application. Ne pas utiliser ici un Personal Access Token Supabase
-du dashboard : ce token sert aux APIs de gestion Supabase, pas a representer un
-utilisateur de l'application.
+Deux tokens sont acceptes :
+
+- le `access_token` de la session Auth Supabase d'un utilisateur connecte et
+  approuve ;
+- le Bearer fixe `MARKDOWN_IMPORT_API_TOKEN` pour une integration
+  machine-to-machine.
+
+Ne pas utiliser ici un Personal Access Token Supabase du dashboard : ce token
+sert aux APIs de gestion Supabase, pas a representer un utilisateur de
+l'application.
+
+### Mode utilisateur
+
+Dans ce mode, la route utilise la session Supabase et les droits RLS de
+l'utilisateur.
 
 Dans l'application :
 
@@ -667,6 +677,33 @@ export SUPABASE_ACCESS_TOKEN="token_copie"
 
 curl -X POST http://127.0.0.1:5173/api/import-markdown \
   -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+  -H "Content-Type: text/markdown" \
+  --data-binary @examples/newsletter-markdown-import-complet.md
+```
+
+### Mode integration
+
+Le token fixe doit etre configure cote serveur :
+
+```env
+MARKDOWN_IMPORT_API_TOKEN=secret_long_et_aleatoire
+MARKDOWN_IMPORT_USER_ID=<uuid-du-profil-technique>
+SUPABASE_SECRET_KEY=<secret-key-supabase>
+```
+
+La route accepte `SUPABASE_SERVICE_ROLE_KEY` comme fallback legacy si le projet
+ne dispose pas encore de `SUPABASE_SECRET_KEY`.
+
+`MARKDOWN_IMPORT_USER_ID` est obligatoire dans ce mode. La newsletter creee est
+attribuee a ce profil technique via `created_by` et `updated_by`.
+
+Les cles `SUPABASE_SECRET_KEY` et `SUPABASE_SERVICE_ROLE_KEY` sont des secrets
+serveur : ne pas les exposer dans le frontend et ne pas les prefixer par
+`VITE_`.
+
+```bash
+curl -X POST https://decrypto-newsletter.vercel.app/api/import-markdown \
+  -H "Authorization: Bearer $MARKDOWN_IMPORT_API_TOKEN" \
   -H "Content-Type: text/markdown" \
   --data-binary @examples/newsletter-markdown-import-complet.md
 ```

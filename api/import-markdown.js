@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { timingSafeEqual } from "node:crypto";
 import {
   MarkdownImportError,
   importNewsletterMarkdown,
@@ -23,14 +24,50 @@ function getBearerToken(req) {
   return match?.[1] || "";
 }
 
-function getSupabaseServerClient(accessToken) {
+function serverSupabaseUrl() {
   const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+  if (!url) throw new Error("Configuration Supabase serveur manquante");
+  return url;
+}
+
+function getSupabaseServerClient(accessToken) {
   const key = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
-  if (!url || !key) throw new Error("Configuration Supabase serveur manquante");
-  return createClient(url, key, {
+  if (!key) throw new Error("Configuration Supabase serveur manquante");
+  return createClient(serverSupabaseUrl(), key, {
     auth: { persistSession: false, autoRefreshToken: false },
     global: accessToken ? { headers: { Authorization: `Bearer ${accessToken}` } } : undefined,
   });
+}
+
+function getSupabaseIntegrationClient() {
+  const key = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!key) {
+    const err = new Error(
+      "Mode intégration non configuré : SUPABASE_SECRET_KEY ou SUPABASE_SERVICE_ROLE_KEY manquant."
+    );
+    err.status = 500;
+    throw err;
+  }
+  return createClient(serverSupabaseUrl(), key, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+}
+
+function tokenMatches(value, expected) {
+  if (!value || !expected) return false;
+  const valueBytes = Buffer.from(String(value));
+  const expectedBytes = Buffer.from(String(expected));
+  return valueBytes.length === expectedBytes.length && timingSafeEqual(valueBytes, expectedBytes);
+}
+
+function integrationAuthorId() {
+  const id = String(process.env.MARKDOWN_IMPORT_USER_ID || "").trim();
+  if (!id) {
+    const err = new Error("Mode intégration non configuré : MARKDOWN_IMPORT_USER_ID manquant.");
+    err.status = 500;
+    throw err;
+  }
+  return id;
 }
 
 async function requireApprovedUser(req) {
@@ -62,6 +99,26 @@ async function requireApprovedUser(req) {
   }
 
   return { supabase, user: userData.user };
+}
+
+async function authorizeMarkdownImport(req) {
+  const token = getBearerToken(req);
+  if (!token) {
+    const err = new Error("Authentification requise");
+    err.status = 401;
+    throw err;
+  }
+
+  if (tokenMatches(token, process.env.MARKDOWN_IMPORT_API_TOKEN)) {
+    return {
+      mode: "integration",
+      supabase: getSupabaseIntegrationClient(),
+      authorId: integrationAuthorId(),
+    };
+  }
+
+  const { supabase, user } = await requireApprovedUser(req);
+  return { mode: "user", supabase, authorId: user.id };
 }
 
 function parseRequestBody(req) {
@@ -145,7 +202,7 @@ export default async function handler(req, res) {
   if (req.method !== "POST") return json(res, 405, { error: "Méthode non autorisée" });
 
   try {
-    const { supabase, user } = await requireApprovedUser(req);
+    const { supabase, authorId } = await authorizeMarkdownImport(req);
     const imported = importFromBody(parseRequestBody(req));
     const { data, error } = await supabase
       .from("newsletters")
@@ -153,8 +210,8 @@ export default async function handler(req, res) {
         title: imported.title,
         issue_number: imported.state.issue_number,
         current_state: imported.state,
-        created_by: user.id,
-        updated_by: user.id,
+        created_by: authorId,
+        updated_by: authorId,
       })
       .select("id, title, issue_number, current_state")
       .single();
