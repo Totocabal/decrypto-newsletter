@@ -77,3 +77,35 @@ image_url: "file:///tmp/chart.png"
       error.message.startsWith("image_url doit")
   );
 });
+
+test("imports structured signals and editorial list directives", () => {
+  const imported = importNewsletterMarkdown(`---
+title: "Structured list import"
+preview_text: "Lists."
+---
+
+:::signals
+kicker: "ANALYSE"
+title: "Signals"
+:::
+
+- up | ETF flows | Allocations return.
+- down | Macro | Rates stay high.
+
+:::editorial_list
+kicker: "Three reasons"
+:::
+
+- ETF | Flows return | Support comes back. | #03FFCF
+- Macro | Inflation matters | Data remains decisive.
+`);
+
+  const [signals, editorialList] = imported.state.sections;
+  assert.deepEqual(
+    signals.data.signals.map((signal) => signal.direction),
+    ["up", "down"]
+  );
+  assert.equal(signals.data.signals[0].title, "ETF flows");
+  assert.equal(editorialList.data.items[0].tag_color, "#03FFCF");
+  assert.equal(editorialList.data.items[1].tag_color, "#FF00AA");
+});

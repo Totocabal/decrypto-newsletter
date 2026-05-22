@@ -1,4 +1,4 @@
-# Import Markdown newsletter v1
+# Import Markdown newsletter
 
 L'import Markdown cree une nouvelle newsletter depuis la liste des newsletters.
 Le fichier est converti vers le modele interne `current_state.sections[]`, puis
@@ -93,7 +93,7 @@ cta_url: "https://example.com/analyse"
 Les flux ETF repartent apres plusieurs semaines hesitantes.
 ```
 
-Les directives v1 sont :
+Les directives supportees sont :
 
 | Directive | Champs scalaires |
 | --- | --- |
@@ -101,6 +101,8 @@ Les directives v1 sont :
 | `edito` | `kicker`, `title`, puis corps Markdown |
 | `text_block` | `kicker`, `title`, `cta_label`, `cta_url`, puis corps Markdown |
 | `focus` | `kicker`, `title`, puis un item texte Markdown |
+| `signals` | `kicker`, `title`, puis une ligne `- direction | titre | description` par signal |
+| `editorial_list` | `kicker`, puis une ligne `- tag | titre | description | couleur` par entree |
 | `image_block` | `image_url`, `image_alt`, `link_url` |
 | `divider` | `style`: `thin`, `thick` ou `gradient` |
 | `macro` | `kicker`, `title`, `quote`, `quote_author`, `bg_image_url`, puis corps Markdown |
@@ -110,11 +112,34 @@ Les directives v1 sont :
 
 Chaque directive accepte aussi `counts_for_numbering: true` ou `false`.
 
-## Hors perimetre v1
+Les signaux utilisent `up` ou `down` comme direction :
+
+```md
+:::signals
+kicker: "ANALYSE"
+title: "Signaux a suivre"
+:::
+
+- up | Flux ETF | Les allocations reviennent.
+- down | Pression macro | Les taux restent eleves.
+```
+
+La couleur est optionnelle pour la liste editoriale. Sans couleur, le tag
+utilise le rose par defaut.
+
+```md
+:::editorial_list
+kicker: "Trois raisons de rester attentif"
+:::
+
+- ETF | Les flux reviennent | Le marche retrouve un soutien. | #03FFCF
+- Macro | Les taux comptent encore | Les publications inflation restent clefs.
+```
+
+## Hors perimetre
 
 - Front matter YAML avec tableaux ou objets imbriques.
-- Import de `chart`, `signals`, `index`, `macro_bars`, `feature_grid` et
-  `editorial_list`.
+- Import de `chart`, `index`, `macro_bars` et `feature_grid`.
 - Items `focus` autres qu'un item texte importe depuis le corps Markdown.
 - Upload d'images locales vers Supabase.
 - Round trip parfait entre l'editeur et le Markdown source.

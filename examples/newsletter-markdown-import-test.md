@@ -53,6 +53,16 @@ classification: "GREED"
 Le sentiment progresse. La zone **Greed** invite a rester discipline plutot qu'a
 confondre confiance et emballement.
 
+:::signals
+kicker: "ANALYSE"
+title: "Les signaux a suivre"
+:::
+
+- up | Flux ETF | Les allocations reviennent progressivement.
+- up | Liquidite | Les volumes remontent sur Bitcoin.
+- down | Pression macro | Les taux restent au centre du jeu.
+- down | Rotation altcoins | Le rattrapage reste incomplet.
+
 :::divider
 style: gradient
 :::
@@ -90,6 +100,14 @@ quote_author: "Synthese de marche"
 Les investisseurs attendent surtout de voir si l'inflation continue de ralentir
 sans casser la croissance. Ce point reste central pour Bitcoin comme pour les
 actifs de risque.
+
+:::editorial_list
+kicker: "Trois raisons de rester attentif"
+:::
+
+- ETF | Les flux reviennent | Un soutien plus regulier peut stabiliser le marche. | #03FFCF
+- Macro | Les taux comptent encore | Les donnees inflation restent decisives. | #FF8B28
+- Allocation | La discipline reste utile | Le rebond ne remplace pas une strategie.
 
 :::commented_number
 kicker: "LE CHIFFRE"

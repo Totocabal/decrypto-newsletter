@@ -1,4 +1,4 @@
-// Import Markdown v1: front matter scalar fields + a small set of newsletter directives.
+// Import Markdown: front matter scalar fields + newsletter directives.
 
 import { INITIAL_STATE, SECTION_TYPES } from "../config/schema.js";
 
@@ -7,6 +7,8 @@ const SECTION_FIELDS = {
   edito: ["kicker", "title"],
   text_block: ["kicker", "title", "cta_label", "cta_url"],
   focus: ["kicker", "title"],
+  signals: ["kicker", "title"],
+  editorial_list: ["kicker"],
   image_block: ["image_url", "image_alt", "link_url"],
   divider: ["style"],
   macro: ["kicker", "title", "quote", "quote_author", "bg_image_url"],
@@ -48,6 +50,8 @@ const IMAGE_MARKDOWN_RE = /^!\[([^\]]*)\]\((https?:\/\/[^\s)]+)\)\s*$/i;
 const BODY_DIRECTIVE_TYPES = new Set([
   ...Object.keys(BODY_FIELD_BY_TYPE),
   "focus",
+  "signals",
+  "editorial_list",
 ]);
 
 let nextImportedSectionId = 0;
@@ -162,6 +166,29 @@ function assertHttpUrl(url, fieldName) {
     // Error below keeps the message focused on the field.
   }
   throw new MarkdownImportError(`${fieldName} doit être une URL http(s) valide.`);
+}
+
+function parsePipeItems(markdownBody, directive, expectedParts) {
+  const lines = splitLines(markdownBody).filter((line) => line.trim());
+  if (!lines.length) {
+    throw new MarkdownImportError(`:::${directive} exige au moins une entrée.`);
+  }
+
+  return lines.map((line, index) => {
+    const bullet = line.match(/^\s*-\s+(.+)$/);
+    if (!bullet) {
+      throw new MarkdownImportError(
+        `:::${directive}: entrée ${index + 1} invalide. Commence chaque ligne par "- ".`
+      );
+    }
+    const parts = bullet[1].split("|").map((part) => part.trim());
+    if (parts.length < expectedParts || parts.slice(0, expectedParts).some((part) => !part)) {
+      throw new MarkdownImportError(
+        `:::${directive}: entrée ${index + 1} incomplète.`
+      );
+    }
+    return parts;
+  });
 }
 
 function createSection(type, data, extra = {}) {
@@ -314,7 +341,7 @@ function extractDirectives(content, warnings) {
 function normalizeExplicitSection(token, body, warnings) {
   const { type, fields } = token;
   if (!SECTION_FIELDS[type]) {
-    throw new MarkdownImportError(`Directive :::${type} inconnue dans le format Markdown v1.`);
+    throw new MarkdownImportError(`Directive :::${type} inconnue dans le format Markdown.`);
   }
 
   const { counts_for_numbering: countsForNumbering, ...data } = fields;
@@ -355,6 +382,27 @@ function normalizeExplicitSection(token, body, warnings) {
         ? [{ id: importId("focus"), type: "text", body: markdownBody }]
         : [],
     }, extra);
+  }
+
+  if (type === "signals") {
+    const signals = parsePipeItems(markdownBody, type, 3).map(([direction, title, description]) => {
+      if (!["up", "down"].includes(direction)) {
+        throw new MarkdownImportError(':::signals direction doit valoir "up" ou "down".');
+      }
+      return { direction, title, description };
+    });
+    return createSection(type, { ...data, signals }, extra);
+  }
+
+  if (type === "editorial_list") {
+    const items = parsePipeItems(markdownBody, type, 3).map(([tag, title, body, tagColor]) => ({
+      id: importId("editorial"),
+      tag,
+      title,
+      body,
+      tag_color: tagColor || "#FF00AA",
+    }));
+    return createSection(type, { ...data, items }, extra);
   }
 
   const bodyField = BODY_FIELD_BY_TYPE[type];
