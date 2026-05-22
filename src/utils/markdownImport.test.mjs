@@ -1,0 +1,79 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+
+import {
+  MarkdownImportError,
+  importNewsletterMarkdown,
+} from "./markdownImport.js";
+
+test("imports simple Markdown into newsletter sections", () => {
+  const imported = importNewsletterMarkdown(`---
+title: "Weekly import"
+preview_text: "The week in crypto."
+theme_variant: light
+---
+
+# The market pauses
+
+## Signals
+
+Bitcoin **holds** its range.
+
+![BTC chart](https://example.com/btc.png)
+
+---
+
+Tail text.
+`);
+
+  assert.equal(imported.title, "Weekly import");
+  assert.equal(imported.state.theme_variant, "light");
+  assert.deepEqual(
+    imported.state.sections.map((section) => section.type),
+    ["hero", "text_block", "image_block", "divider", "text_block"]
+  );
+  assert.equal(imported.state.sections[1].data.title, "Signals");
+  assert.equal(imported.state.sections[1].data.body, "Bitcoin **holds** its range.");
+  assert.equal(imported.state.sections[2].data.image_alt, "BTC chart");
+});
+
+test("imports directive metadata and Markdown body", () => {
+  const imported = importNewsletterMarkdown(`---
+title: "Directive import"
+---
+
+:::text_block
+kicker: "ANALYSE"
+title: "Flows"
+cta_label: "Read"
+cta_url: "https://example.com/read"
+counts_for_numbering: false
+:::
+
+- ETF flows return
+- Macro remains tight
+`);
+
+  const [section] = imported.state.sections;
+  assert.equal(section.type, "text_block");
+  assert.equal(section.counts_for_numbering, false);
+  assert.equal(section.data.kicker, "ANALYSE");
+  assert.equal(section.data.body, "- ETF flows return\n- Macro remains tight");
+  assert.deepEqual(imported.warnings, ["Front matter: preview_text absent.", "Aucun hero importé."]);
+});
+
+test("rejects unsupported image URLs", () => {
+  assert.throws(
+    () => importNewsletterMarkdown(`---
+title: "Bad image"
+---
+
+:::image_block
+image_url: "file:///tmp/chart.png"
+:::
+`),
+    (error) =>
+      error instanceof MarkdownImportError &&
+      error.message.startsWith("image_url doit")
+  );
+});

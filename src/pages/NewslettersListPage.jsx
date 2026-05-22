@@ -21,6 +21,7 @@ import {
   ArrowUpDown,
   Sparkles,
   Loader2,
+  FileUp,
 } from "lucide-react";
 import { supabase } from "../lib/supabase.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
@@ -31,6 +32,7 @@ import { Wordmark } from "../components/Wordmark.jsx";
 import { ImageManagerModal } from "../components/ImageManagerModal.jsx";
 import { Tooltip } from "../components/Tooltip.jsx";
 import { useLabels, assignLabel, removeLabel } from "../lib/useLabels.js";
+import { importNewsletterMarkdown } from "../utils/markdownImport.js";
 
 export function NewslettersListPage({ onOpen, onOpenAdmin }) {
   const { profile, signOut } = useAuth();
@@ -58,6 +60,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
   const [nlLabels, setNlLabels] = useState({});
   const [labelFilter, setLabelFilter] = useState([]);
   const [labelPickerOpen, setLabelPickerOpen] = useState(null);
+  const [importingMarkdown, setImportingMarkdown] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -207,6 +210,39 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
     setCreateChoiceOpen(false);
     setCreateNameOpen(false);
     onOpen(data.id);
+  };
+
+  const handleImportMarkdown = async (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file || !profile?.id) return;
+
+    setImportingMarkdown(true);
+    try {
+      const imported = importNewsletterMarkdown(await file.text());
+      const { data, error } = await supabase
+        .from("newsletters")
+        .insert({
+          title: imported.title,
+          issue_number: imported.state.issue_number,
+          current_state: imported.state,
+          created_by: profile.id,
+          updated_by: profile.id,
+        })
+        .select()
+        .single();
+      if (error) throw error;
+
+      const warningSuffix = imported.warnings.length
+        ? ` ${imported.warnings.length} avertissement(s) à relire.`
+        : "";
+      addToast(`Newsletter Markdown importée.${warningSuffix}`, imported.warnings.length ? "info" : "success");
+      onOpen(data.id);
+    } catch (error) {
+      addToast("Import Markdown impossible : " + (error.message || error), "error");
+    } finally {
+      setImportingMarkdown(false);
+    }
   };
 
   const handleDuplicate = async (nl) => {
@@ -373,15 +409,28 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                   : `${filteredNewsletters.length} / ${newsletters.length} newsletter${newsletters.length > 1 ? "s" : ""}`}
             </p>
           </div>
-          <button
-            onClick={() => setCreateChoiceOpen(true)}
-            disabled={creating}
-            className="flex w-full items-center justify-center gap-2 rounded-full px-5 py-2.5 text-[12px] uppercase tracking-[0.18em] font-semibold transition-colors disabled:opacity-50 sm:w-auto"
-            style={{ background: "#FFFFFF", color: "#15151A" }}
-          >
-            <Plus size={14} />
-            Nouveau Template
-          </button>
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+            <label className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-full border border-line2 px-5 py-2.5 text-[12px] font-semibold uppercase tracking-[0.18em] text-d-fg2 transition-colors hover:bg-d-panel2 has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-50 sm:w-auto">
+              {importingMarkdown ? <Loader2 size={14} className="animate-spin" /> : <FileUp size={14} />}
+              Importer Markdown
+              <input
+                type="file"
+                accept=".md,.markdown,text/markdown,text/plain"
+                disabled={importingMarkdown || creating}
+                onChange={handleImportMarkdown}
+                className="sr-only"
+              />
+            </label>
+            <button
+              onClick={() => setCreateChoiceOpen(true)}
+              disabled={creating || importingMarkdown}
+              className="flex w-full items-center justify-center gap-2 rounded-full px-5 py-2.5 text-[12px] uppercase tracking-[0.18em] font-semibold transition-colors disabled:opacity-50 sm:w-auto"
+              style={{ background: "#FFFFFF", color: "#15151A" }}
+            >
+              <Plus size={14} />
+              Nouveau Template
+            </button>
+          </div>
         </div>
 
         {/* Barre recherche + tri */}
