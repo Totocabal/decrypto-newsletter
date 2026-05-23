@@ -103,7 +103,7 @@ Cliquer sur **Créer** ouvre directement l'éditeur.
 
 Depuis la liste des newsletters, cliquer sur **Importer Markdown** puis choisir une source :
 
-- créer un contenu CRM depuis une intention courte avec Gemini, puis générer le Markdown importable ;
+- créer des variantes de contenu CRM depuis une intention courte avec Gemini, choisir une variante, puis générer le Markdown importable ;
 - choisir un fichier `.md` ou `.markdown` ;
 - coller directement le contenu Markdown dans la zone dédiée.
 

@@ -107,6 +107,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
   const [markdownBriefShowNumbers, setMarkdownBriefShowNumbers] = useState(false);
   const [markdownBriefShowSeparators, setMarkdownBriefShowSeparators] = useState(false);
   const [generatingCrmBrief, setGeneratingCrmBrief] = useState(false);
+  const [crmBriefVariants, setCrmBriefVariants] = useState(null);
   const [generatingMarkdownBrief, setGeneratingMarkdownBrief] = useState(false);
   const [markdownGenerationLog, setMarkdownGenerationLog] = useState(null);
   const [markdownImportDraft, setMarkdownImportDraft] = useState(null);
@@ -270,6 +271,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
       setMarkdownImportSourceOpen(false);
       setPastedMarkdown("");
       setMarkdownBrief("");
+      setCrmBriefVariants(null);
       setMarkdownGenerationLog(null);
     } catch (error) {
       addToast("Import Markdown impossible : " + (error.message || error), "error");
@@ -297,7 +299,14 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
     setMarkdownImportSourceOpen(false);
     setPastedMarkdown("");
     setMarkdownBrief("");
+    setCrmBriefVariants(null);
     setMarkdownGenerationLog(null);
+  };
+
+  const handleUseCrmVariant = (variant) => {
+    setMarkdownBrief(variant.content || "");
+    setCrmBriefVariants(null);
+    addToast("Variante sélectionnée. Tu peux maintenant générer le Markdown.", "success");
   };
 
   const handleGenerateCrmBrief = async () => {
@@ -324,8 +333,16 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(payload.error || "Génération du contenu impossible.");
 
-      setMarkdownBrief(payload.content || "");
-      addToast("Contenu CRM généré. Tu peux maintenant le convertir en Markdown.", "success");
+      const variants = Array.isArray(payload.variants) && payload.variants.length
+        ? payload.variants
+        : [{ id: "full", title: "Contenu généré", content: payload.content || "" }];
+      setCrmBriefVariants({
+        variants,
+        fullContent: payload.content || "",
+        traceId: payload.trace_id || "",
+        model: payload.model || "",
+      });
+      addToast("Contenu CRM généré. Sélectionne une variante.", "success");
     } catch (error) {
       addToast("Génération du contenu impossible : " + (error.message || error), "error");
     } finally {
@@ -1474,6 +1491,84 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                 {importingMarkdown && <Loader2 size={12} className="animate-spin" />}
                 Valider le Markdown collé
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {crmBriefVariants && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
+          <div className="flex max-h-[calc(100vh-32px)] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-line bg-d-panel shadow-2xl">
+            <div className="flex items-start justify-between gap-4 border-b border-line px-6 py-5">
+              <div>
+                <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-d-pink">
+                  Contenu Gemini
+                </div>
+                <h2 className="text-xl font-semibold tracking-tight text-d-fg" style={{ fontFamily: "'Sora', sans-serif" }}>
+                  Choisir une variante
+                </h2>
+                {(crmBriefVariants.traceId || crmBriefVariants.model) && (
+                  <div className="mt-2 font-mono text-[11px] text-d-fg4">
+                    {crmBriefVariants.traceId && `trace_id=${crmBriefVariants.traceId}`}
+                    {crmBriefVariants.traceId && crmBriefVariants.model && " | "}
+                    {crmBriefVariants.model && `model=${crmBriefVariants.model}`}
+                  </div>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => setCrmBriefVariants(null)}
+                className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-d-fg4 transition-colors hover:bg-d-panel2 hover:text-d-fg2"
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <div className="grid grid-cols-1 gap-4 overflow-y-auto p-6 lg:grid-cols-3">
+              {crmBriefVariants.variants.map((variant, index) => (
+                <div
+                  key={variant.id || index}
+                  className="flex min-h-0 flex-col rounded-xl border border-line bg-d-panel2 p-4"
+                >
+                  <div className="mb-3">
+                    <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-d-fg4">
+                      Variante {index + 1}
+                    </div>
+                    <div className="mt-1 text-sm font-semibold text-d-fg">
+                      {variant.title || `Variante ${index + 1}`}
+                    </div>
+                  </div>
+                  <pre className="max-h-96 min-h-64 flex-1 overflow-auto whitespace-pre-wrap break-words rounded-lg border border-line bg-d-panel px-3 py-3 text-[11px] leading-relaxed text-d-fg2">
+                    {variant.content}
+                  </pre>
+                  <button
+                    type="button"
+                    onClick={() => handleUseCrmVariant(variant)}
+                    className="mt-4 inline-flex items-center justify-center gap-2 rounded-xl bg-d-pink px-4 py-2 text-xs font-semibold text-white transition-opacity hover:opacity-90"
+                  >
+                    Utiliser cette variante
+                  </button>
+                </div>
+              ))}
+            </div>
+            <div className="flex flex-col-reverse gap-2 border-t border-line px-6 py-4 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={() => setCrmBriefVariants(null)}
+                className="rounded-xl border border-line px-4 py-2 text-xs font-semibold text-d-fg3 transition-colors hover:border-line2 hover:text-d-fg"
+              >
+                Fermer
+              </button>
+              {crmBriefVariants.fullContent && (
+                <button
+                  type="button"
+                  onClick={() => handleUseCrmVariant({
+                    title: "Toutes les variantes",
+                    content: crmBriefVariants.fullContent,
+                  })}
+                  className="rounded-xl border border-line px-4 py-2 text-xs font-semibold text-d-fg2 transition-colors hover:border-line2 hover:text-d-fg"
+                >
+                  Utiliser tout le contenu
+                </button>
+              )}
             </div>
           </div>
         </div>

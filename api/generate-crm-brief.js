@@ -59,6 +59,43 @@ function parseBody(req) {
   }
 }
 
+function cleanHeadingLabel(label = "") {
+  return String(label || "")
+    .replace(/^#+\s*/, "")
+    .replace(/^\*\*|\*\*$/g, "")
+    .trim();
+}
+
+function splitVariants(content) {
+  const text = String(content || "").trim();
+  if (!text) return [];
+
+  const matches = [...text.matchAll(/^##\s*(?:Variante|Variant)\s+([^\n]+)$/gim)];
+  if (!matches.length) {
+    const numberedMatches = [...text.matchAll(/^(?:\*\*)?(?:Variante|Variant)\s+([0-9][^\n]*?)(?:\*\*)?\s*$/gim)];
+    if (!numberedMatches.length) return [{ id: "full", title: "Contenu généré", content: text }];
+    return numberedMatches.map((match, index) => {
+      const start = match.index;
+      const end = numberedMatches[index + 1]?.index ?? text.length;
+      return {
+        id: `variant-${index + 1}`,
+        title: cleanHeadingLabel(match[0]),
+        content: text.slice(start, end).trim(),
+      };
+    });
+  }
+
+  return matches.map((match, index) => {
+    const start = match.index;
+    const end = matches[index + 1]?.index ?? text.length;
+    return {
+      id: `variant-${index + 1}`,
+      title: cleanHeadingLabel(match[0]),
+      content: text.slice(start, end).trim(),
+    };
+  });
+}
+
 function buildPrompt(input) {
   return `# Rôle & Expertise
 
@@ -157,7 +194,7 @@ Produis uniquement le contenu CRM en Markdown clair, sans introduction technique
 
 Pour chaque demande de copy, produis systématiquement :
 
-1. 2 à 3 variantes numérotées avec framework utilisé indiqué (AIDA / PAS / BAB)
+1. 2 à 3 variantes numérotées avec framework utilisé indiqué (AIDA / PAS / BAB). Chaque variante doit commencer par un titre Markdown de niveau 2 exactement sous la forme : ## Variante 1 — Framework AIDA · Angle court
 2. Pour chaque variante :
 - Objet + comptage de caractères
 - Pré-header + comptage de caractères
@@ -220,7 +257,12 @@ export default async function handler(req, res) {
     const content = String(data?.candidates?.[0]?.content?.parts?.[0]?.text || "").trim();
     if (!content) return json(res, 502, { error: "Gemini n'a pas retourné de contenu.", trace_id: traceId });
 
-    return json(res, 200, { content, trace_id: traceId, model: GEMINI_MODEL });
+    return json(res, 200, {
+      content,
+      variants: splitVariants(content),
+      trace_id: traceId,
+      model: GEMINI_MODEL,
+    });
   } catch (err) {
     return json(res, err.status || 500, { error: err.message || "Erreur interne", trace_id: traceId });
   }
