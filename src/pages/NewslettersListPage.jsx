@@ -1038,11 +1038,11 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                 </div>
               </div>
               {markdownImportDraft.imported.warnings.length > 0 && (
-                <div className="rounded-xl border border-orange-400/20 bg-orange-500/10 px-4 py-3">
-                  <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-orange-200">
+                <div className="rounded-xl border border-[#FF8B28]/35 bg-[#FFF5E8] px-4 py-3 dark:bg-[#2A1A0A]">
+                  <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#9A4F00] dark:text-[#FFD6A6]">
                     Avertissements
                   </div>
-                  <div className="space-y-1 text-xs leading-relaxed text-orange-100">
+                  <div className="space-y-1 text-xs leading-relaxed text-[#5C3300] dark:text-[#FFE3C2]">
                     {markdownImportDraft.imported.warnings.map((warning, index) => (
                       <p key={`${index}-${warning}`}>{warning}</p>
                     ))}
