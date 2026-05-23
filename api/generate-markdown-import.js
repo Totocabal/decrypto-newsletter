@@ -199,6 +199,66 @@ function repairIncompletePipeItems(markdown) {
   return repaired.join("\n");
 }
 
+function stripMarkdownDecorators(value = "") {
+  return String(value || "")
+    .trim()
+    .replace(/^["']|["']$/g, "")
+    .replace(/^\*\*\s*/, "")
+    .replace(/\s*\*\*$/, "")
+    .trim();
+}
+
+function repairFrontMatterValues(markdown) {
+  const lines = String(markdown || "").split(/\r?\n/);
+  if (lines[0]?.trim() !== "---") return markdown;
+  const end = lines.findIndex((line, index) => index > 0 && line.trim() === "---");
+  if (end === -1) return markdown;
+
+  for (let index = 1; index < end; index += 1) {
+    const match = lines[index].match(/^(title|preview_text)\s*:\s*(.*)$/i);
+    if (!match) continue;
+    const value = stripMarkdownDecorators(match[2]);
+    lines[index] = `${match[1]}: ${quoteFrontMatterValue(value)}`;
+  }
+  return lines.join("\n");
+}
+
+function repairFocusCtaLabels(markdown) {
+  const lines = String(markdown || "").split(/\r?\n/);
+  const repaired = [];
+
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = lines[index];
+    const isFocusCta = /^:::focus_cta\s*$/i.test(line.trim());
+    if (!isFocusCta) {
+      repaired.push(line);
+      continue;
+    }
+
+    const closeIndex = lines.findIndex((candidate, lineIndex) =>
+      lineIndex > index && candidate.trim() === ":::"
+    );
+    if (closeIndex === -1) {
+      repaired.push(line);
+      continue;
+    }
+
+    const blockLines = lines.slice(index + 1, closeIndex);
+    const labelIndex = blockLines.findIndex((candidate) => /^label\s*:/i.test(candidate.trim()));
+    const hasLabel = labelIndex > -1 && stripMarkdownDecorators(blockLines[labelIndex].split(":").slice(1).join(":"));
+    repaired.push(line);
+    if (!hasLabel) repaired.push('label: "Découvrir"');
+    blockLines.forEach((candidate, blockIndex) => {
+      if (blockIndex === labelIndex && !hasLabel) return;
+      repaired.push(candidate);
+    });
+    repaired.push(lines[closeIndex]);
+    index = closeIndex;
+  }
+
+  return repaired.join("\n");
+}
+
 function quoteFrontMatterValue(value) {
   return `"${String(value || "").replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`;
 }
@@ -248,6 +308,8 @@ export function cleanGeneratedMarkdown(text = "") {
   markdown = markdown.replace(DIRECTIVE_LINE_FIX_RE, ":::$1");
   markdown = repairBodyLinesInsideDirectives(markdown);
   markdown = repairIncompletePipeItems(markdown);
+  markdown = repairFocusCtaLabels(markdown);
+  markdown = repairFrontMatterValues(markdown);
   return markdown;
 }
 
@@ -290,6 +352,7 @@ kicker: "EN 3 ETAPES"
 
 - 01 | Alimentez votre compte | Par virement SEPA ou carte de paiement. | #03FFCF
 - focus_cta, focus_callout, focus_image, focus_text et focus_spacer doivent toujours suivre une directive :::focus.
+- focus_cta exige toujours label. Si le CTA source est entre crochets, ce texte devient label. Si aucun libellé n'est disponible, utilise label: "Découvrir".
 - hero_chips doit suivre directement :::hero.
 - edito_kpis doit suivre directement le corps de :::edito.
 - feature_grid_featured doit suivre directement :::feature_grid.
@@ -304,6 +367,7 @@ kicker: "EN 3 ETAPES"
 
 Mapping recommandé :
 - Accroche intro + salutation : text_block.
+- N'utilise hero que pour les mails éditoriaux ou newsletters de marché. Pour un email CRM transactionnel, onboarding, activation, upsell ou relance, commence par text_block.
 - Listes à puces, étapes, bénéfices, arguments produit ou points pédagogiques : privilégier editorial_list dès qu'il y a 2 à 4 items.
 - Comparaison d'offres, grille d'avantages ou fonctionnalités parallèles : utiliser feature_grid seulement si chaque carte a un titre et un corps explicatif.
 - Pour editorial_list, convertir chaque puce en tag court, titre clair et corps explicatif obligatoire. Exemple : - 01 | Alimentez votre compte | Par virement SEPA ou carte de paiement. | #03FFCF

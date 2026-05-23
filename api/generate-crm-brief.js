@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 const GEMINI_MODEL = "gemini-3.1-flash-lite";
 const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 const MAX_INPUT_CHARS = 30_000;
+const MAX_SITE_CONTEXT_CHARS = 6_000;
 
 function json(res, status, body) {
   res.statusCode = status;
@@ -96,7 +97,36 @@ function splitVariants(content) {
   });
 }
 
-function buildPrompt(input) {
+function textFromHtml(html = "") {
+  return String(html || "")
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&euro;/g, "€")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+async function fetchCoinhouseContext() {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 2500);
+  try {
+    const response = await fetch("https://www.coinhouse.com/", {
+      signal: controller.signal,
+      headers: { "User-Agent": "decrypto-newsletter-gemini-context/1.0" },
+    });
+    if (!response.ok) return "";
+    return textFromHtml(await response.text()).slice(0, MAX_SITE_CONTEXT_CHARS);
+  } catch {
+    return "";
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+function buildPrompt(input, siteContext = "") {
   return `# Rôle & Expertise
 
 Tu es un expert en Copywriting CRM et Stratégie d'Engagement spécialisé dans l'univers crypto. Tu maîtrises :
@@ -180,13 +210,19 @@ Content Card :
 - Titre max 40 caractères
 - Corps max 200 caractères
 
+## Contexte Coinhouse.com
+
+${siteContext
+  ? `Voici un extrait récupéré depuis coinhouse.com. Utilise-le uniquement pour affiner les informations produit, sans inventer de faits non présents dans le brief ou le contexte.\n\n${siteContext}`
+  : "Aucun extrait de coinhouse.com n'est disponible pour cette génération. Appuie-toi uniquement sur le brief et le référentiel fourni."}
+
 ## Bibliothèque de blocs newsletter Décrypto
 
 Tu dois rédiger en pensant à la conversion future vers l'éditeur newsletter Markdown Décrypto. Ne produis pas les directives techniques :::, mais structure naturellement le contenu pour qu'il puisse être mappé vers ces blocs.
 
 Blocs disponibles et usages recommandés :
 
-- hero : accroche principale, promesse éditoriale, angle fort de la newsletter.
+- hero : réservé aux newsletters éditoriales, de type Décrypto, édito de marché, prise de parole éditoriale ou contenu média. Ne jamais le suggérer pour les emails CRM transactionnels, onboarding, upsell, activation, rétention ou relance.
 - hero_chips : 3 à 4 repères courts associés au hero, par exemple offre, bénéfice, profil, marché.
 - index : sommaire si le contenu comporte plusieurs sections nettes.
 - text_block : paragraphes simples, introduction, explication, disclaimer légal, signature.
@@ -216,9 +252,10 @@ Mapping éditorial à privilégier :
 - Un CTA doit être explicite, court et isolable.
 - Un disclaimer réglementaire doit être isolé en fin de variante.
 - Si un chiffre est central, le présenter comme un chiffre commenté plutôt que l'enterrer dans un paragraphe.
+- Pour les emails CRM non éditoriaux, la structure suggérée commence généralement par text_block, jamais par hero.
 
 Pour chaque variante, ajoute une ligne courte après le CTA :
-Structure suggérée : hero / text_block / editorial_list / focus_cta / text_block légal
+Structure suggérée : text_block / editorial_list / focus_cta / text_block légal
 Adapte cette ligne aux blocs réellement pertinents pour la variante.
 
 ## Contraintes réglementaires
@@ -272,11 +309,12 @@ export default async function handler(req, res) {
     if (!input) return json(res, 400, { error: "Champ 'input' vide ou manquant." });
     if (input.length > MAX_INPUT_CHARS) return json(res, 413, { error: `Demande trop longue (${MAX_INPUT_CHARS} caractères max).` });
 
+    const siteContext = await fetchCoinhouseContext();
     const geminiRes = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: buildPrompt(input) }] }],
+        contents: [{ parts: [{ text: buildPrompt(input, siteContext) }] }],
         generationConfig: { maxOutputTokens: 8000, temperature: 0.45 },
       }),
     });

@@ -168,6 +168,31 @@ kicker: "OFFRES"
   assert.equal(featureGrid.data.items[2].color, "#03FFCF");
 });
 
+test("repairs Gemini focus CTA without label and cleans front matter markdown", () => {
+  const markdown = cleanGeneratedMarkdown(`---
+brand_name: "COINHOUSE"
+title: "** Optimisez vos frais de transaction"
+preview_text: "**Découvrez l'offre Investisseur.**"
+---
+
+:::focus
+title: "Passez à l'action"
+:::
+
+:::focus_cta
+url: "https://www.coinhouse.com/"
+arrow: true
+:::
+`);
+  const imported = importNewsletterMarkdown(markdown);
+  const [focus] = imported.state.sections;
+
+  assert.equal(imported.title, "Optimisez vos frais de transaction");
+  assert.equal(imported.state.preview_text, "Découvrez l'offre Investisseur.");
+  assert.equal(focus.data.items[0].type, "cta");
+  assert.equal(focus.data.items[0].label, "Découvrir");
+});
+
 test("imports simple Markdown into newsletter sections", () => {
   const imported = importNewsletterMarkdown(`---
 title: "Weekly import"
