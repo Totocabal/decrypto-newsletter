@@ -73,6 +73,100 @@ Le corps du bloc reste en Markdown riche.
 - Autre point clé
 `;
 
+function cleanInlineMarkdown(text = "") {
+  return String(text || "").replace(/\*\*/g, "").replace(/\*/g, "").trim();
+}
+
+function renderCrmLine(line, key) {
+  const trimmed = line.trim();
+  if (!trimmed) return null;
+  const strongMeta = trimmed.match(/^\*\*(Objet|Pré-header|Pre-header)\s*:\s*(.*?)\*\*$/i);
+  if (strongMeta) {
+    return (
+      <div key={key} className="rounded-lg border border-line bg-d-panel2 px-3 py-2">
+        <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-d-fg4">
+          {strongMeta[1]}
+        </div>
+        <div className="mt-1 text-sm font-semibold text-d-fg">
+          {cleanInlineMarkdown(strongMeta[2])}
+        </div>
+      </div>
+    );
+  }
+  const meta = trimmed.match(/^(Objet|Pré-header|Pre-header|CTA)\s*:\s*(.*)$/i);
+  if (meta) {
+    return (
+      <div key={key} className="rounded-lg border border-line bg-d-panel2 px-3 py-2">
+        <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-d-fg4">
+          {meta[1]}
+        </div>
+        <div className="mt-1 text-sm font-semibold text-d-fg">
+          {cleanInlineMarkdown(meta[2])}
+        </div>
+      </div>
+    );
+  }
+  if (/^\[.+\]$/.test(trimmed)) {
+    return (
+      <div key={key} className="inline-flex w-fit rounded-lg bg-d-pink px-3 py-2 text-xs font-semibold text-white">
+        {trimmed.slice(1, -1)}
+      </div>
+    );
+  }
+  if (/^_?Avertissement\s*:/i.test(cleanInlineMarkdown(trimmed))) {
+    return (
+      <div key={key} className="rounded-lg border border-[#FF8B28]/30 bg-[#FFF5E8] px-3 py-2 text-xs leading-relaxed text-[#5C3300] dark:bg-[#2A1A0A] dark:text-[#FFE3C2]">
+        {cleanInlineMarkdown(trimmed)}
+      </div>
+    );
+  }
+  return (
+    <p key={key} className="text-sm leading-relaxed text-d-fg2">
+      {cleanInlineMarkdown(trimmed)}
+    </p>
+  );
+}
+
+function CrmVariantPreview({ content }) {
+  const blocks = [];
+  let listItems = [];
+  const flushList = () => {
+    if (!listItems.length) return;
+    const items = listItems;
+    listItems = [];
+    blocks.push(
+      <ul key={`list-${blocks.length}`} className="space-y-2 rounded-lg border border-line bg-d-panel2 px-4 py-3">
+        {items.map((item, index) => (
+          <li key={`${index}-${item}`} className="flex gap-2 text-sm leading-relaxed text-d-fg2">
+            <span className="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-d-pink" />
+            <span>{cleanInlineMarkdown(item)}</span>
+          </li>
+        ))}
+      </ul>
+    );
+  };
+
+  String(content || "").split(/\r?\n/).forEach((line, index) => {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed === "---") {
+      flushList();
+      return;
+    }
+    if (/^#{1,6}\s+/.test(trimmed)) return;
+    const bullet = trimmed.match(/^(?:[-*]|·)\s+(.*)$/);
+    if (bullet) {
+      listItems.push(bullet[1]);
+      return;
+    }
+    flushList();
+    const rendered = renderCrmLine(trimmed, `line-${index}`);
+    if (rendered) blocks.push(rendered);
+  });
+  flushList();
+
+  return <div className="space-y-3">{blocks}</div>;
+}
+
 export function NewslettersListPage({ onOpen, onOpenAdmin }) {
   const { profile, signOut } = useAuth();
   const addToast = useToast();
@@ -1559,7 +1653,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                 <X size={16} />
               </button>
             </div>
-            <div className="grid grid-cols-1 gap-4 overflow-y-auto p-6 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4 overflow-y-auto p-6 xl:grid-cols-3">
               {crmBriefVariants.variants.map((variant, index) => (
                 <div
                   key={variant.id || index}
@@ -1573,9 +1667,9 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                       {variant.title || `Variante ${index + 1}`}
                     </div>
                   </div>
-                  <pre className="max-h-96 min-h-64 flex-1 overflow-auto whitespace-pre-wrap break-words rounded-lg border border-line bg-d-panel px-3 py-3 text-[11px] leading-relaxed text-d-fg2">
-                    {variant.content}
-                  </pre>
+                  <div className="max-h-[520px] min-h-64 flex-1 overflow-auto rounded-lg border border-line bg-d-panel px-4 py-4">
+                    <CrmVariantPreview content={variant.content} />
+                  </div>
                   <button
                     type="button"
                     onClick={() => handleUseCrmVariant(variant)}
