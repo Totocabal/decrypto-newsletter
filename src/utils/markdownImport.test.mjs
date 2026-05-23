@@ -101,6 +101,25 @@ title_highlight: "Coinhouse"
   assert.equal(imported.state.sections[0].data.title_part1, "Bienvenue");
 });
 
+test("moves Gemini body lines out of directive metadata", () => {
+  const markdown = cleanGeneratedMarkdown(`---
+title: "Gemini import"
+preview_text: "Preview."
+---
+
+:::editorial_list
+kicker: "EN 3 ETAPES"
+- 01 | Alimentez votre compte | Par virement SEPA ou carte de paiement. | #03FFCF
+- 02 | Choisissez votre crypto-actif | Bitcoin, Ethereum et plus de 100 autres actifs. | #FF8B28
+:::
+`);
+  const imported = importNewsletterMarkdown(markdown);
+
+  assert.equal(imported.state.sections[0].type, "editorial_list");
+  assert.equal(imported.state.sections[0].data.items.length, 2);
+  assert.equal(imported.state.sections[0].data.items[0].title, "Alimentez votre compte");
+});
+
 test("imports simple Markdown into newsletter sections", () => {
   const imported = importNewsletterMarkdown(`---
 title: "Weekly import"

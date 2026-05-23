@@ -33,6 +33,22 @@ const DIRECTIVE_TYPES = [
   "event",
 ];
 const DIRECTIVE_LINE_FIX_RE = new RegExp(`^:::(${DIRECTIVE_TYPES.join("|")}):\\s*$`, "gim");
+const BODY_DIRECTIVE_TYPES = new Set([
+  "edito",
+  "text_block",
+  "macro",
+  "fear_greed",
+  "commented_number",
+  "focus",
+  "focus_text",
+  "focus_callout",
+  "signals",
+  "editorial_list",
+  "macro_bars",
+  "feature_grid",
+  "feature_grid_featured",
+]);
+const SCALAR_FIELD_RE = /^([a-zA-Z][a-zA-Z0-9_]*)\s*:\s*(.*)$/;
 
 function json(res, status, body) {
   res.statusCode = status;
@@ -94,6 +110,50 @@ function parseBody(req) {
   }
 }
 
+function repairBodyLinesInsideDirectives(markdown) {
+  const lines = markdown.split(/\r?\n/);
+  const repaired = [];
+
+  for (let index = 0; index < lines.length; index += 1) {
+    const open = lines[index].match(/^:::([a-z_][a-z0-9_]*)\s*$/i);
+    if (!open || !BODY_DIRECTIVE_TYPES.has(open[1])) {
+      repaired.push(lines[index]);
+      continue;
+    }
+
+    const closeIndex = lines.findIndex((line, lineIndex) => lineIndex > index && line.trim() === ":::");
+    if (closeIndex === -1) {
+      repaired.push(lines[index]);
+      continue;
+    }
+
+    const metadataLines = [];
+    const bodyLines = [];
+    let foundBody = false;
+    lines.slice(index + 1, closeIndex).forEach((line) => {
+      const trimmed = line.trim();
+      const isMetadataLine = !trimmed || trimmed.startsWith("#") || SCALAR_FIELD_RE.test(line);
+      if (!foundBody && isMetadataLine) {
+        metadataLines.push(line);
+        return;
+      }
+      foundBody = true;
+      bodyLines.push(line);
+    });
+
+    if (!bodyLines.some((line) => line.trim())) {
+      repaired.push(...lines.slice(index, closeIndex + 1));
+      index = closeIndex;
+      continue;
+    }
+
+    repaired.push(lines[index], ...metadataLines, ":::", "", ...bodyLines);
+    index = closeIndex;
+  }
+
+  return repaired.join("\n");
+}
+
 export function cleanGeneratedMarkdown(text = "") {
   let markdown = String(text || "").trim();
   markdown = markdown.replace(/^```(?:md|markdown)?\s*/i, "").replace(/\s*```$/i, "").trim();
@@ -102,6 +162,7 @@ export function cleanGeneratedMarkdown(text = "") {
   const noteIndex = markdown.search(/\n(?:Notes?|Choix structurels?)\s*:/i);
   if (noteIndex > -1) markdown = markdown.slice(0, noteIndex).trim();
   markdown = markdown.replace(DIRECTIVE_LINE_FIX_RE, ":::$1");
+  markdown = repairBodyLinesInsideDirectives(markdown);
   return markdown;
 }
 
@@ -135,6 +196,13 @@ Règles critiques :
 - N'utilise que ces directives : hero, hero_chips, index, edito, edito_kpis, text_block, image_block, divider, chart, fear_greed, signals, macro, macro_bars, commented_number, editorial_list, focus, focus_text, focus_image, focus_cta, focus_callout, focus_spacer, feature_grid, feature_grid_featured, event.
 - Une ligne d'ouverture de directive doit contenir uniquement les trois deux-points et le type, par exemple :::hero. N'écris jamais :::hero:, :::text_block: ou :::focus_cta:.
 - Les paramètres d'une directive sont toujours sur les lignes suivantes au format champ: "valeur", puis une ligne ::: ferme le bloc.
+- Le contenu Markdown d'une directive body doit être placé après la ligne de fermeture :::, jamais entre l'ouverture et la fermeture.
+- Exemple correct editorial_list :
+:::editorial_list
+kicker: "EN 3 ETAPES"
+:::
+
+- 01 | Alimentez votre compte | Par virement SEPA ou carte de paiement. | #03FFCF
 - focus_cta, focus_callout, focus_image, focus_text et focus_spacer doivent toujours suivre une directive :::focus.
 - hero_chips doit suivre directement :::hero.
 - edito_kpis doit suivre directement le corps de :::edito.
