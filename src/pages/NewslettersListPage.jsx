@@ -1225,10 +1225,15 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
               </button>
             </div>
             <div className="space-y-4 overflow-y-auto p-6">
-              <div className="rounded-xl border border-line bg-d-panel2 p-4">
+              <div className="rounded-xl border border-d-pink/30 bg-d-panel2 p-4">
                 <div className="mb-3 flex items-center gap-2">
                   <Sparkles size={14} className="text-d-pink" />
-                  <div className="text-sm font-semibold text-d-fg">Générer depuis un brief libre</div>
+                  <div>
+                    <div className="text-sm font-semibold text-d-fg">Assistant de génération Gemini</div>
+                    <div className="mt-0.5 text-xs text-d-fg4">
+                      Crée un contenu CRM puis transforme-le en Markdown importable.
+                    </div>
+                  </div>
                 </div>
                 <textarea
                   value={markdownBrief}
@@ -1361,31 +1366,40 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                   </div>
                 )}
               </div>
-              <label className="flex cursor-pointer items-center justify-between gap-4 rounded-xl border border-line bg-d-panel2 px-4 py-4 transition-colors hover:border-line2 has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-50">
-                <span className="flex min-w-0 items-center gap-3">
-                  <span className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg border border-line bg-d-panel text-d-fg2">
-                    <FileUp size={16} />
-                  </span>
-                  <span className="min-w-0">
-                    <span className="block text-sm font-semibold text-d-fg">Choisir un fichier</span>
-                    <span className="block text-xs text-d-fg4">.md ou .markdown</span>
-                  </span>
-                </span>
-                <span className="rounded-lg border border-line px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-d-fg2">
-                  Parcourir
-                </span>
-                <input
-                  type="file"
-                accept=".md,.markdown,text/markdown,text/plain"
-                  disabled={importingMarkdown || creating || generatingCrmBrief || generatingMarkdownBrief}
-                  onChange={handleImportMarkdown}
-                  className="sr-only"
-                />
-              </label>
               <div className="rounded-xl border border-line bg-d-panel2 p-4">
                 <div className="mb-3 flex items-center gap-2">
+                  <FileUp size={14} className="text-d-fg3" />
+                  <div>
+                    <div className="text-sm font-semibold text-d-fg">Importer un Markdown existant</div>
+                    <div className="mt-0.5 text-xs text-d-fg4">
+                      Choisis un fichier ou colle directement un contenu `.md`.
+                    </div>
+                  </div>
+                </div>
+                <label className="flex cursor-pointer items-center justify-between gap-4 rounded-xl border border-line bg-d-panel px-4 py-4 transition-colors hover:border-line2 has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-50">
+                  <span className="flex min-w-0 items-center gap-3">
+                    <span className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg border border-line bg-d-panel2 text-d-fg2">
+                      <FileUp size={16} />
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block text-sm font-semibold text-d-fg">Choisir un fichier</span>
+                      <span className="block text-xs text-d-fg4">.md ou .markdown</span>
+                    </span>
+                  </span>
+                  <span className="rounded-lg border border-line px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-d-fg2">
+                    Parcourir
+                  </span>
+                  <input
+                    type="file"
+                    accept=".md,.markdown,text/markdown,text/plain"
+                    disabled={importingMarkdown || creating || generatingCrmBrief || generatingMarkdownBrief}
+                    onChange={handleImportMarkdown}
+                    className="sr-only"
+                  />
+                </label>
+                <div className="mb-3 mt-4 flex items-center gap-2">
                   <ClipboardPaste size={14} className="text-d-fg3" />
-                  <div className="text-sm font-semibold text-d-fg">Coller le Markdown</div>
+                  <div className="text-sm font-semibold text-d-fg">Coller un Markdown</div>
                 </div>
                 <textarea
                   value={pastedMarkdown}

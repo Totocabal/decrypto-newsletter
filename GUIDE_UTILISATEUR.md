@@ -101,11 +101,10 @@ Cliquer sur **Créer** ouvre directement l'éditeur.
 
 ### Importer une newsletter Markdown
 
-Depuis la liste des newsletters, cliquer sur **Importer Markdown** puis choisir une source :
+Depuis la liste des newsletters, cliquer sur **Importer Markdown**. La fenêtre est séparée en deux modules :
 
-- créer des variantes de contenu CRM depuis une intention courte avec Gemini, choisir une variante, puis générer le Markdown importable ;
-- choisir un fichier `.md` ou `.markdown` ;
-- coller directement le contenu Markdown dans la zone dédiée.
+- **Assistant de génération Gemini** : créer des variantes de contenu CRM depuis une intention courte, choisir une variante, puis générer le Markdown importable ;
+- **Importer un Markdown existant** : choisir un fichier `.md` ou `.markdown`, ou coller directement le contenu Markdown dans la zone dédiée.
 
 Si Gemini produit un Markdown invalide, un encart de diagnostic affiche l'erreur, le `trace_id`, le Markdown généré et, si utile, la sortie brute Gemini. Le Markdown est aussi recopié dans la zone de collage pour pouvoir le corriger ou ajuster le prompt.
 
