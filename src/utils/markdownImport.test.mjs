@@ -127,7 +127,7 @@ kicker: "EN 3 ETAPES"
 test("uses the Gemini email subject as imported newsletter title", () => {
   const brief = `## Variante 1 — Framework AIDA
 
-**Objet : Bienvenue chez Coinhouse, {{first_name}} ! (38 caractères)**
+**Objet : [Bienvenue chez **Coinhouse**, {{first_name}} !](https://www.coinhouse.com/) (38 caractères)**
 **Pré-header : Découvrez comment piloter vos crypto-actifs avec sérénité. (68 caractères)**
 `;
   const markdown = applyEmailSubjectTitle(`---
@@ -139,7 +139,7 @@ preview_text: "Preview."
 `, brief);
   const imported = importNewsletterMarkdown(markdown);
 
-  assert.equal(extractEmailSubject(brief), "Bienvenue chez Coinhouse, {{first_name}} !");
+  assert.equal(extractEmailSubject(brief), "[Bienvenue chez **Coinhouse**, {{first_name}} !](https://www.coinhouse.com/) (38 caractères)");
   assert.equal(imported.title, "Bienvenue chez Coinhouse, {{first_name}} !");
 });
 
@@ -172,7 +172,7 @@ test("repairs Gemini focus CTA without label and cleans front matter markdown", 
   const markdown = cleanGeneratedMarkdown(`---
 brand_name: "COINHOUSE"
 title: "** Optimisez vos frais de transaction"
-preview_text: "**Découvrez l'offre Investisseur.**"
+preview_text: "**Découvrez [l'offre Investisseur](https://www.coinhouse.com/).**"
 ---
 
 :::focus

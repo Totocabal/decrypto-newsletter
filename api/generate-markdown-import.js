@@ -203,8 +203,11 @@ function stripMarkdownDecorators(value = "") {
   return String(value || "")
     .trim()
     .replace(/^["']|["']$/g, "")
-    .replace(/^\*\*\s*/, "")
-    .replace(/\s*\*\*$/, "")
+    .replace(/^#{1,6}\s+/, "")
+    .replace(/!\[([^\]]*)\]\([^)]+\)/g, "$1")
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+    .replace(/[`*~]/g, "")
+    .replace(/\s*\((?:\d+\s*)?(?:caractères?|car\.?)\)\s*$/i, "")
     .trim();
 }
 
@@ -273,12 +276,11 @@ export function extractEmailSubject(text = "") {
   return subjectLine
     .replace(/^\s*(?:[-*]\s*)?(?:\*\*)?Objet\s*:\s*/i, "")
     .replace(/\*\*\s*$/g, "")
-    .replace(/\s*\((?:\d+\s*)?(?:caractères?|car\.?)\)\s*$/i, "")
     .trim();
 }
 
 export function applyEmailSubjectTitle(markdown, sourceText) {
-  const subject = extractEmailSubject(sourceText);
+  const subject = stripMarkdownDecorators(extractEmailSubject(sourceText));
   if (!subject) return markdown;
 
   const lines = String(markdown || "").split(/\r?\n/);
