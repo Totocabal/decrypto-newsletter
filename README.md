@@ -532,7 +532,7 @@ Appel depuis `PreviewPanel` avec `{ html, device }` et le token Bearer. Génère
 
 ## Import Markdown
 
-La liste des newsletters propose **Importer Markdown** depuis un fichier `.md` ou un contenu collé. Le Markdown est d'abord parsé côté client, puis une modale affiche le titre, le preheader, les sections détectées et les avertissements avant la création Supabase. Cette validation permet aussi d'ajuster le fond clair ou sombre, la numérotation des sections et les filets entre blocs.
+La liste des newsletters propose **Importer Markdown** depuis un brief libre généré avec Gemini, un fichier `.md` ou un contenu collé. Le Markdown est d'abord généré ou parsé côté client, puis une modale affiche le titre, le preheader, les sections détectées et les avertissements avant la création Supabase. Cette validation permet aussi d'ajuster le fond clair ou sombre, la numérotation des sections et les filets entre blocs.
 
 Le format accepte :
 
@@ -543,6 +543,8 @@ Le format accepte :
 - les raffinements `hero_chips`, `edito_kpis` et `index` auto.
 
 Le parseur vit dans `src/utils/markdownImport.js`. Le contrat complet, les syntaxes et les limites sont documentés dans `MARKDOWN_IMPORT_SPEC.md`. Un fichier prêt à importer est disponible dans `examples/newsletter-markdown-import-complet.md`.
+
+La génération depuis un brief libre appelle `POST /api/generate-markdown-import` avec Gemini 3.1 Flash Lite. Elle nécessite `GEMINI_API_KEY` côté serveur, puis valide le Markdown généré avec le parseur avant d'ouvrir la modale de création. Si le Markdown généré est invalide, l'interface affiche l'erreur de validation, un `trace_id`, le Markdown généré et la sortie brute Gemini disponible ; le serveur écrit aussi un log structuré `[generate-markdown-import] invalid_markdown`.
 
 Les graphiques auto importés créent un bloc CoinGecko configuré mais sans données fraîches. L'import affiche un avertissement et l'éditeur les remplit avec **Synchroniser** ou le bouton de rafraîchissement du bloc.
 
@@ -1023,6 +1025,7 @@ npm run dev
 | `SUPABASE_SERVICE_ROLE_KEY` | Fallback legacy pour le mode intégration Markdown |
 | `MARKDOWN_IMPORT_API_TOKEN` | Bearer fixe pour l'import Markdown machine-to-machine |
 | `MARKDOWN_IMPORT_USER_ID` | UUID du profil technique auteur des imports Markdown |
+| `GEMINI_API_KEY` | Clé serveur Gemini pour générer un Markdown depuis un brief libre |
 | `BRAZE_API_KEY` | Clé serveur Braze (permission `media_library.create`) |
 | `BRAZE_BASE_URL` | REST endpoint Braze (ex. `https://rest.fra-01.braze.eu`) |
 | `CRON_SECRET` | Secret optionnel pour l'endpoint keepalive |
