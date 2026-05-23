@@ -390,6 +390,7 @@ Mapping recommandé :
 - N'utilise hero que pour les mails éditoriaux ou newsletters de marché. Pour un email CRM transactionnel, onboarding, activation, upsell ou relance, commence par text_block.
 - Listes à puces, étapes, bénéfices, arguments produit ou points pédagogiques : privilégier editorial_list dès qu'il y a 2 à 4 items.
 - Comparaison d'offres, grille d'avantages ou fonctionnalités parallèles : utiliser feature_grid seulement si chaque carte a un titre et un corps explicatif.
+- Citation explicite attribuée à une personne : utiliser macro avec quote et quote_author. Exemple : "Citation de Nicolas Louvet, CEO : ..." devient :::macro avec quote_author: "Nicolas Louvet, CEO". Ce bloc est autorisé pour une prise de parole corporate, pas seulement pour la macroéconomie.
 - Utilise commented_number uniquement si le brief contient explicitement "Chiffre clé :" ou si un nombre est clairement le message central d'une section. Ne transforme pas automatiquement chaque prix, plafond, pourcentage ou durée en chiffre commenté.
 - Si le brief contient "Chiffre clé :", crée obligatoirement un bloc commented_number avec value, unit, caption, title et un court commentaire.
 - Pour editorial_list, convertir chaque puce en tag court, titre clair et corps explicatif obligatoire. Exemple : - 01 | Alimentez votre compte | Par virement SEPA ou carte de paiement. | #03FFCF

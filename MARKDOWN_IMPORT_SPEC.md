@@ -400,6 +400,10 @@ Chaque ligne contient :
 
 ### `macro`
 
+Bloc de contexte macroeconomique ou de citation mise en avant. Il peut aussi
+servir pour une prise de parole corporate explicitement attribuee dans le brief,
+par exemple une citation de CEO.
+
 ```md
 :::macro
 kicker: "MACRO"

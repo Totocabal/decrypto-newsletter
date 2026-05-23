@@ -241,7 +241,7 @@ Blocs disponibles et usages recommandés :
 - chart : graphique de marché automatique ou manuel si le brief contient une donnée crypto/marché exploitable.
 - fear_greed : indicateur de sentiment si le brief mentionne le sentiment de marché.
 - signals : signaux à suivre, avec direction positive ou négative.
-- macro : contexte macroéconomique ou citation.
+- macro : contexte macroéconomique ou citation mise en avant. À utiliser dès que le brief contient une citation explicite attribuée à une personne, par exemple "Citation de Nicolas Louvet, CEO : ...", même si l'email est CRM et non macroéconomique.
 - macro_bars : comparaison de données chiffrées en barres.
 
 Mapping éditorial à privilégier :
@@ -249,6 +249,7 @@ Mapping éditorial à privilégier :
 - Une liste de bénéfices, étapes ou arguments produit doit être pensée comme editorial_list plutôt que comme simple liste Markdown.
 - Une comparaison d'offres doit être pensée comme feature_grid.
 - Un argument principal ou une offre prioritaire doit être isolé en focus.
+- Une citation explicite attribuée doit être isolée comme citation et la ligne Structure suggérée doit inclure macro.
 - Un CTA doit être explicite, court et isolable.
 - Un disclaimer réglementaire doit être isolé en fin de variante.
 - Si le brief de départ demande explicitement un chiffre clé ou si tout l'angle créatif repose sur un nombre, ajoute une ligne "Chiffre clé : valeur + unité — légende — commentaire".

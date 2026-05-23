@@ -271,6 +271,8 @@ Rendu en grille 2×2. Idéal pour 4 signaux.
 
 ### 7. `macro` — Macro / Citation
 
+À utiliser pour un contexte macroéconomique, mais aussi pour une citation corporate ou dirigeant explicitement fournie dans un brief. Exemple : `Citation de Nicolas Louvet, CEO : "..."` doit être converti en bloc `macro` avec `quote` et `quote_author`.
+
 | Champ | Type | Description |
 |---|---|---|
 | `kicker` | string | Kicker |
