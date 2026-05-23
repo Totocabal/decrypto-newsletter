@@ -1627,18 +1627,18 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
         </div>
       )}
       {crmBriefVariants && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
-          <div className="flex max-h-[calc(100vh-32px)] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-line bg-d-panel shadow-2xl">
-            <div className="flex items-start justify-between gap-4 border-b border-line px-6 py-5">
-              <div>
+        <div className="fixed inset-0 z-[60] flex items-stretch justify-center bg-black/70 p-2 backdrop-blur-sm sm:items-center sm:p-4">
+          <div className="flex max-h-full w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-line bg-d-panel shadow-2xl sm:max-h-[calc(100vh-32px)]">
+            <div className="flex flex-shrink-0 items-start justify-between gap-4 border-b border-line px-4 py-4 sm:px-6 sm:py-5">
+              <div className="min-w-0">
                 <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-d-pink">
                   Contenu Gemini
                 </div>
-                <h2 className="text-xl font-semibold tracking-tight text-d-fg" style={{ fontFamily: "'Sora', sans-serif" }}>
+                <h2 className="text-lg font-semibold tracking-tight text-d-fg sm:text-xl" style={{ fontFamily: "'Sora', sans-serif" }}>
                   Choisir une variante
                 </h2>
                 {(crmBriefVariants.traceId || crmBriefVariants.model) && (
-                  <div className="mt-2 font-mono text-[11px] text-d-fg4">
+                  <div className="mt-2 break-all font-mono text-[10px] text-d-fg4 sm:text-[11px]">
                     {crmBriefVariants.traceId && `trace_id=${crmBriefVariants.traceId}`}
                     {crmBriefVariants.traceId && crmBriefVariants.model && " | "}
                     {crmBriefVariants.model && `model=${crmBriefVariants.model}`}
@@ -1653,21 +1653,21 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                 <X size={16} />
               </button>
             </div>
-            <div className="grid grid-cols-1 gap-4 overflow-y-auto p-6 xl:grid-cols-3">
+            <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 overflow-y-auto p-4 sm:gap-4 sm:p-6 xl:grid-cols-3">
               {crmBriefVariants.variants.map((variant, index) => (
                 <div
                   key={variant.id || index}
-                  className="flex min-h-0 flex-col rounded-xl border border-line bg-d-panel2 p-4"
+                  className="flex min-h-0 flex-col rounded-xl border border-line bg-d-panel2 p-3 sm:p-4"
                 >
                   <div className="mb-3">
                     <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-d-fg4">
                       Variante {index + 1}
                     </div>
-                    <div className="mt-1 text-sm font-semibold text-d-fg">
+                    <div className="mt-1 text-sm font-semibold leading-snug text-d-fg">
                       {variant.title || `Variante ${index + 1}`}
                     </div>
                   </div>
-                  <div className="max-h-[520px] min-h-64 flex-1 overflow-auto rounded-lg border border-line bg-d-panel px-4 py-4">
+                  <div className="max-h-none flex-1 overflow-visible rounded-lg border border-line bg-d-panel px-3 py-3 sm:max-h-[520px] sm:min-h-64 sm:overflow-auto sm:px-4 sm:py-4">
                     <CrmVariantPreview content={variant.content} />
                   </div>
                   <button
@@ -1680,7 +1680,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                 </div>
               ))}
             </div>
-            <div className="flex flex-col-reverse gap-2 border-t border-line px-6 py-4 sm:flex-row sm:justify-end">
+            <div className="flex flex-shrink-0 flex-col-reverse gap-2 border-t border-line px-4 py-3 sm:flex-row sm:justify-end sm:px-6 sm:py-4">
               <button
                 type="button"
                 onClick={() => setCrmBriefVariants(null)}
