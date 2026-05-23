@@ -218,6 +218,28 @@ arrow: true
   assert.equal(focus.data.items[0].label, "Découvrir");
 });
 
+test("closes trailing Gemini metadata directives", () => {
+  const markdown = cleanGeneratedMarkdown(`---
+title: "CTA import"
+preview_text: "Preview."
+---
+
+:::focus
+:::
+
+:::focus_cta
+label: "Découvrir notre engagement"
+url: "https://www.coinhouse.com/"
+arrow: true
+`);
+  const imported = importNewsletterMarkdown(markdown);
+  const [focus] = imported.state.sections;
+
+  assert.equal(focus.type, "focus");
+  assert.equal(focus.data.items[0].type, "cta");
+  assert.equal(focus.data.items[0].label, "Découvrir notre engagement");
+});
+
 test("imports simple Markdown into newsletter sections", () => {
   const imported = importNewsletterMarkdown(`---
 title: "Weekly import"

@@ -279,6 +279,32 @@ function repairFocusCtaLabels(markdown) {
   return repaired.join("\n");
 }
 
+function closeTrailingMetadataDirective(markdown) {
+  const lines = String(markdown || "").split(/\r?\n/);
+  let openIndex = -1;
+  let openType = "";
+
+  lines.forEach((line, index) => {
+    const open = line.trim().match(/^:::([a-z_][a-z0-9_]*)$/i);
+    if (open) {
+      openIndex = index;
+      openType = open[1];
+      return;
+    }
+    if (line.trim() === ":::") {
+      openIndex = -1;
+      openType = "";
+    }
+  });
+
+  if (openIndex === -1 || !DIRECTIVE_TYPES.includes(openType)) return markdown;
+  const tail = lines.slice(openIndex + 1).filter((line) => line.trim());
+  if (!tail.length) return markdown;
+  const onlyMetadata = tail.every((line) => SCALAR_FIELD_RE.test(line));
+  if (!onlyMetadata) return markdown;
+  return `${markdown.trimEnd()}\n:::`;
+}
+
 function quoteFrontMatterValue(value) {
   return `"${String(value || "").replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`;
 }
@@ -327,6 +353,7 @@ export function cleanGeneratedMarkdown(text = "") {
   markdown = markdown.replace(DIRECTIVE_LINE_FIX_RE, ":::$1");
   markdown = repairBodyLinesInsideDirectives(markdown);
   markdown = repairIncompletePipeItems(markdown);
+  markdown = closeTrailingMetadataDirective(markdown);
   markdown = repairFocusCtaLabels(markdown);
   markdown = repairFrontMatterValues(markdown);
   return markdown;
@@ -363,6 +390,7 @@ Règles critiques :
 - N'utilise que ces directives : hero, hero_chips, index, edito, edito_kpis, text_block, image_block, divider, chart, fear_greed, signals, macro, macro_bars, commented_number, editorial_list, focus, focus_text, focus_image, focus_cta, focus_callout, focus_spacer, feature_grid, feature_grid_featured, event.
 - Une ligne d'ouverture de directive doit contenir uniquement les trois deux-points et le type, par exemple :::hero. N'écris jamais :::hero:, :::text_block: ou :::focus_cta:.
 - Les paramètres d'une directive sont toujours sur les lignes suivantes au format champ: "valeur", puis une ligne ::: ferme le bloc.
+- Toute directive ouverte doit obligatoirement être fermée par une ligne :::, y compris focus_cta, focus_callout, focus_image, focus_text, focus_spacer, divider et image_block.
 - Le contenu Markdown d'une directive body doit être placé après la ligne de fermeture :::, jamais entre l'ouverture et la fermeture.
 - Exemple correct editorial_list :
 :::editorial_list
