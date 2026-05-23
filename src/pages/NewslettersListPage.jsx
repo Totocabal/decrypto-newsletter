@@ -38,6 +38,40 @@ import { Tooltip } from "../components/Tooltip.jsx";
 import { useLabels, assignLabel, removeLabel } from "../lib/useLabels.js";
 import { importNewsletterMarkdown } from "../utils/markdownImport.js";
 
+const MARKDOWN_IMPORT_TEMPLATE = `---
+title: "Ma newsletter"
+preview_text: "Le texte de prévisualisation email."
+brand_name: "COINHOUSE"
+issue_number: "42"
+issue_date: "22.05.2026"
+theme_variant: dark
+show_section_numbers: true
+show_block_separators: true
+---
+
+:::hero
+kicker: "DECRYPTO"
+title_part1: "Le marché"
+title_part2: "reprend son "
+title_highlight: "souffle."
+subtitle: "Résumé d'ouverture."
+:::
+
+:::index
+label: "Au sommaire"
+:::
+
+:::text_block
+kicker: "ANALYSE"
+title: "Ce qu'il faut retenir"
+:::
+
+Le corps du bloc reste en Markdown riche.
+
+- Point clé
+- Autre point clé
+`;
+
 export function NewslettersListPage({ onOpen, onOpenAdmin }) {
   const { profile, signOut } = useAuth();
   const addToast = useToast();
@@ -1095,6 +1129,82 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                   placeholder={"---\ntitle: \"Ma newsletter\"\npreview_text: \"...\"\n---\n\n# Titre"}
                   className="min-h-64 w-full resize-y rounded-xl border border-line bg-d-panel px-3 py-3 font-mono text-xs leading-relaxed text-d-fg outline-none placeholder:text-d-fg4 focus:border-d-pink/60"
                 />
+              </div>
+              <div className="rounded-xl border border-line bg-d-panel2 p-4">
+                <div className="mb-3 flex items-start justify-between gap-3">
+                  <div>
+                    <div className="text-sm font-semibold text-d-fg">Spécifications du fichier Markdown</div>
+                    <div className="mt-1 text-xs leading-relaxed text-d-fg4">
+                      Le fichier doit commencer par un front matter, puis du Markdown simple ou des directives.
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setPastedMarkdown(MARKDOWN_IMPORT_TEMPLATE)}
+                    className="inline-flex flex-shrink-0 items-center gap-2 rounded-lg border border-line px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-d-fg2 transition-colors hover:border-line2 hover:text-d-fg"
+                  >
+                    <Copy size={12} />
+                    Insérer exemple
+                  </button>
+                </div>
+                <div className="grid grid-cols-1 gap-3 text-xs leading-relaxed text-d-fg3 lg:grid-cols-2">
+                  <div className="rounded-lg border border-line bg-d-panel px-3 py-3">
+                    <div className="mb-2 font-semibold uppercase tracking-[0.14em] text-d-fg4">Front matter</div>
+                    <div className="space-y-1">
+                      <p><code className="text-d-fg">title</code> obligatoire</p>
+                      <p><code className="text-d-fg">preview_text</code>, <code className="text-d-fg">brand_name</code>, <code className="text-d-fg">issue_number</code>, <code className="text-d-fg">issue_date</code></p>
+                      <p><code className="text-d-fg">theme_variant</code> : <code>dark</code> ou <code>light</code></p>
+                      <p><code className="text-d-fg">show_section_numbers</code> et <code className="text-d-fg">show_block_separators</code> : <code>true</code> ou <code>false</code></p>
+                    </div>
+                  </div>
+                  <div className="rounded-lg border border-line bg-d-panel px-3 py-3">
+                    <div className="mb-2 font-semibold uppercase tracking-[0.14em] text-d-fg4">Markdown simple</div>
+                    <div className="space-y-1">
+                      <p>Premier <code className="text-d-fg"># Titre</code> : hero</p>
+                      <p><code className="text-d-fg">## Titre</code> ou texte : bloc texte</p>
+                      <p><code className="text-d-fg">![Alt](https://...)</code> : image</p>
+                      <p><code className="text-d-fg">---</code> hors front matter : séparateur fin</p>
+                    </div>
+                  </div>
+                </div>
+                <details className="mt-3 rounded-lg border border-line bg-d-panel px-3 py-3 text-xs leading-relaxed text-d-fg3">
+                  <summary className="cursor-pointer font-semibold uppercase tracking-[0.14em] text-d-fg4">
+                    Directives et règles avancées
+                  </summary>
+                  <div className="mt-3 grid grid-cols-1 gap-3 lg:grid-cols-2">
+                    <div>
+                      <div className="mb-1 font-semibold text-d-fg2">Sections supportées</div>
+                      <p>
+                        <code>hero</code>, <code>index</code>, <code>edito</code>, <code>text_block</code>, <code>image_block</code>, <code>divider</code>, <code>chart</code>, <code>fear_greed</code>, <code>signals</code>, <code>macro</code>, <code>macro_bars</code>, <code>commented_number</code>, <code>editorial_list</code>, <code>focus</code>, <code>feature_grid</code>, <code>event</code>.
+                      </p>
+                    </div>
+                    <div>
+                      <div className="mb-1 font-semibold text-d-fg2">Sous-directives</div>
+                      <p>
+                        <code>hero_chips</code>, <code>edito_kpis</code>, <code>focus_text</code>, <code>focus_image</code>, <code>focus_cta</code>, <code>focus_callout</code>, <code>focus_spacer</code>, <code>feature_grid_featured</code>.
+                      </p>
+                    </div>
+                    <div>
+                      <div className="mb-1 font-semibold text-d-fg2">Listes structurées</div>
+                      <p>
+                        Les blocs répétés utilisent des lignes <code>- colonne 1 | colonne 2 | colonne 3</code>. Le caractère <code>|</code> sépare les colonnes et ne doit pas être utilisé dans leur texte.
+                      </p>
+                    </div>
+                    <div>
+                      <div className="mb-1 font-semibold text-d-fg2">URLs et graphiques</div>
+                      <p>
+                        Les images et CTA attendent des URLs <code>http</code> ou <code>https</code>. Un <code>chart</code> auto sera importé puis rafraîchi avec CoinGecko dans l'éditeur.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="mt-3 rounded-lg bg-d-panel2 px-3 py-2 font-mono text-[11px] text-d-fg2">
+                    :::text_block<br />
+                    kicker: "ANALYSE"<br />
+                    title: "Titre du bloc"<br />
+                    :::<br /><br />
+                    Corps Markdown du bloc.
+                  </div>
+                </details>
               </div>
             </div>
             <div className="flex flex-col-reverse gap-2 border-t border-line px-6 py-4 sm:flex-row sm:justify-end">
