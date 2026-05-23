@@ -27,6 +27,8 @@ import {
   Minus,
   Palette,
   AlertTriangle,
+  Maximize2,
+  MessageSquare,
 } from "lucide-react";
 import { supabase } from "../lib/supabase.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
@@ -203,6 +205,10 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
   const [markdownBriefShowSeparators, setMarkdownBriefShowSeparators] = useState(false);
   const [generatingCrmBrief, setGeneratingCrmBrief] = useState(false);
   const [crmBriefVariants, setCrmBriefVariants] = useState(null);
+  const [expandedCrmVariant, setExpandedCrmVariant] = useState(null);
+  const [crmVariantRefineDraft, setCrmVariantRefineDraft] = useState(null);
+  const [crmVariantRefineComments, setCrmVariantRefineComments] = useState("");
+  const [refiningCrmVariant, setRefiningCrmVariant] = useState(false);
   const [generatingMarkdownBrief, setGeneratingMarkdownBrief] = useState(false);
   const [markdownGenerationLog, setMarkdownGenerationLog] = useState(null);
   const [markdownImportDraft, setMarkdownImportDraft] = useState(null);
@@ -395,6 +401,9 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
     setPastedMarkdown("");
     setMarkdownBrief("");
     setCrmBriefVariants(null);
+    setExpandedCrmVariant(null);
+    setCrmVariantRefineDraft(null);
+    setCrmVariantRefineComments("");
     setMarkdownGenerationLog(null);
   };
 
@@ -406,7 +415,15 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
   const handleUseCrmVariant = (variant) => {
     setMarkdownBrief(variant.content || "");
     setCrmBriefVariants(null);
+    setExpandedCrmVariant(null);
+    setCrmVariantRefineDraft(null);
+    setCrmVariantRefineComments("");
     addToast("Variante sélectionnée. Tu peux maintenant générer le Markdown.", "success");
+  };
+
+  const openCrmVariantRefine = (variant, index) => {
+    setCrmVariantRefineDraft({ variant, index });
+    setCrmVariantRefineComments("");
   };
 
   const handleGenerateCrmBrief = async () => {
@@ -441,12 +458,79 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
         fullContent: payload.content || "",
         traceId: payload.trace_id || "",
         model: payload.model || "",
+        originalInput: input,
       });
       addToast("Contenu CRM généré. Sélectionne une variante.", "success");
     } catch (error) {
       addToast("Génération du contenu impossible : " + (error.message || error), "error");
     } finally {
       setGeneratingCrmBrief(false);
+    }
+  };
+
+  const handleRefineCrmVariant = async () => {
+    if (!crmVariantRefineDraft) return;
+    const comments = crmVariantRefineComments.trim();
+    if (!comments) {
+      addToast("Ajoute un commentaire pour guider Gemini.", "error");
+      return;
+    }
+
+    setRefiningCrmVariant(true);
+    setMarkdownGenerationLog(null);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) throw new Error("Session expirée. Reconnecte-toi pour utiliser Gemini.");
+
+      const response = await fetch("/api/generate-crm-brief", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          mode: "refine",
+          input: crmBriefVariants?.originalInput || markdownBrief || "Améliorer la variante sélectionnée.",
+          variant: crmVariantRefineDraft.variant.content || "",
+          comments,
+        }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.error || "Amélioration de la variante impossible.");
+
+      const refinedVariant = (Array.isArray(payload.variants) && payload.variants[0]) || {
+        id: `${crmVariantRefineDraft.variant.id || "variant"}-refined`,
+        title: "Variante améliorée",
+        content: payload.content || "",
+      };
+      const nextVariant = {
+        ...refinedVariant,
+        id: `${crmVariantRefineDraft.variant.id || `variant-${crmVariantRefineDraft.index + 1}`}-refined-${Date.now()}`,
+        title: refinedVariant.title || `${crmVariantRefineDraft.variant.title || "Variante"} · améliorée`,
+      };
+
+      setCrmBriefVariants((current) => {
+        if (!current) return current;
+        const variants = current.variants.map((variant, index) =>
+          index === crmVariantRefineDraft.index ? nextVariant : variant
+        );
+        return {
+          ...current,
+          variants,
+          traceId: payload.trace_id || current.traceId,
+          model: payload.model || current.model,
+        };
+      });
+      setExpandedCrmVariant((current) =>
+        current?.index === crmVariantRefineDraft.index ? { variant: nextVariant, index: crmVariantRefineDraft.index } : current
+      );
+      setCrmVariantRefineDraft(null);
+      setCrmVariantRefineComments("");
+      addToast("Variante améliorée avec Gemini.", "success");
+    } catch (error) {
+      addToast("Amélioration impossible : " + (error.message || error), "error");
+    } finally {
+      setRefiningCrmVariant(false);
     }
   };
 
@@ -1647,7 +1731,12 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
               </div>
               <button
                 type="button"
-                onClick={() => setCrmBriefVariants(null)}
+                onClick={() => {
+                  setCrmBriefVariants(null);
+                  setExpandedCrmVariant(null);
+                  setCrmVariantRefineDraft(null);
+                  setCrmVariantRefineComments("");
+                }}
                 className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-d-fg4 transition-colors hover:bg-d-panel2 hover:text-d-fg2"
               >
                 <X size={16} />
@@ -1670,20 +1759,43 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                   <div className="max-h-none flex-1 overflow-visible rounded-lg border border-line bg-d-panel px-3 py-3 sm:max-h-[520px] sm:min-h-64 sm:overflow-auto sm:px-4 sm:py-4">
                     <CrmVariantPreview content={variant.content} />
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => handleUseCrmVariant(variant)}
-                    className="mt-4 inline-flex items-center justify-center gap-2 rounded-xl bg-d-pink px-4 py-2 text-xs font-semibold text-white transition-opacity hover:opacity-90"
-                  >
-                    Utiliser cette variante
-                  </button>
+                  <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-3">
+                    <button
+                      type="button"
+                      onClick={() => setExpandedCrmVariant({ variant, index })}
+                      className="inline-flex items-center justify-center gap-2 rounded-xl border border-line px-3 py-2 text-xs font-semibold text-d-fg2 transition-colors hover:border-line2 hover:text-d-fg"
+                    >
+                      <Maximize2 size={13} />
+                      Agrandir
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => openCrmVariantRefine(variant, index)}
+                      className="inline-flex items-center justify-center gap-2 rounded-xl border border-line px-3 py-2 text-xs font-semibold text-d-fg2 transition-colors hover:border-line2 hover:text-d-fg"
+                    >
+                      <MessageSquare size={13} />
+                      Améliorer
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleUseCrmVariant(variant)}
+                      className="inline-flex items-center justify-center gap-2 rounded-xl bg-d-pink px-3 py-2 text-xs font-semibold text-white transition-opacity hover:opacity-90"
+                    >
+                      Utiliser
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
             <div className="flex flex-shrink-0 flex-col-reverse gap-2 border-t border-line px-4 py-3 sm:flex-row sm:justify-end sm:px-6 sm:py-4">
               <button
                 type="button"
-                onClick={() => setCrmBriefVariants(null)}
+                onClick={() => {
+                  setCrmBriefVariants(null);
+                  setExpandedCrmVariant(null);
+                  setCrmVariantRefineDraft(null);
+                  setCrmVariantRefineComments("");
+                }}
                 className="rounded-xl border border-line px-4 py-2 text-xs font-semibold text-d-fg3 transition-colors hover:border-line2 hover:text-d-fg"
               >
                 Fermer
@@ -1700,6 +1812,129 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                   Utiliser tout le contenu
                 </button>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+      {expandedCrmVariant && (
+        <div className="fixed inset-0 z-[70] flex items-stretch justify-center bg-black/75 p-2 backdrop-blur-sm sm:items-center sm:p-4">
+          <div className="flex max-h-full w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-line bg-d-panel shadow-2xl sm:max-h-[calc(100vh-32px)]">
+            <div className="flex flex-shrink-0 items-start justify-between gap-4 border-b border-line px-4 py-4 sm:px-6 sm:py-5">
+              <div className="min-w-0">
+                <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-d-pink">
+                  Variante {expandedCrmVariant.index + 1}
+                </div>
+                <h2 className="text-lg font-semibold tracking-tight text-d-fg sm:text-2xl" style={{ fontFamily: "'Sora', sans-serif" }}>
+                  {expandedCrmVariant.variant.title || `Variante ${expandedCrmVariant.index + 1}`}
+                </h2>
+              </div>
+              <button
+                type="button"
+                onClick={() => setExpandedCrmVariant(null)}
+                className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-d-fg4 transition-colors hover:bg-d-panel2 hover:text-d-fg2"
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-8 sm:py-6">
+              <div className="mx-auto max-w-3xl rounded-xl border border-line bg-d-panel2 px-4 py-4 sm:px-6 sm:py-6">
+                <CrmVariantPreview content={expandedCrmVariant.variant.content} />
+              </div>
+            </div>
+            <div className="flex flex-shrink-0 flex-col-reverse gap-2 border-t border-line px-4 py-3 sm:flex-row sm:justify-end sm:px-6 sm:py-4">
+              <button
+                type="button"
+                onClick={() => setExpandedCrmVariant(null)}
+                className="rounded-xl border border-line px-4 py-2 text-xs font-semibold text-d-fg3 transition-colors hover:border-line2 hover:text-d-fg"
+              >
+                Fermer
+              </button>
+              <button
+                type="button"
+                onClick={() => openCrmVariantRefine(expandedCrmVariant.variant, expandedCrmVariant.index)}
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-line px-4 py-2 text-xs font-semibold text-d-fg2 transition-colors hover:border-line2 hover:text-d-fg"
+              >
+                <MessageSquare size={13} />
+                Améliorer
+              </button>
+              <button
+                type="button"
+                onClick={() => handleUseCrmVariant(expandedCrmVariant.variant)}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-d-pink px-4 py-2 text-xs font-semibold text-white transition-opacity hover:opacity-90"
+              >
+                Utiliser cette variante
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {crmVariantRefineDraft && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
+          <div className="flex max-h-[calc(100vh-32px)] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-line bg-d-panel shadow-2xl">
+            <div className="flex items-start justify-between gap-4 border-b border-line px-5 py-4 sm:px-6">
+              <div className="min-w-0">
+                <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-d-pink">
+                  Amélioration Gemini
+                </div>
+                <h2 className="text-lg font-semibold tracking-tight text-d-fg" style={{ fontFamily: "'Sora', sans-serif" }}>
+                  Comment ajuster cette variante ?
+                </h2>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  if (refiningCrmVariant) return;
+                  setCrmVariantRefineDraft(null);
+                  setCrmVariantRefineComments("");
+                }}
+                disabled={refiningCrmVariant}
+                className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-d-fg4 transition-colors hover:bg-d-panel2 hover:text-d-fg2 disabled:opacity-50"
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <div className="min-h-0 overflow-y-auto p-5 sm:p-6">
+              <div className="mb-4 rounded-xl border border-line bg-d-panel2 px-4 py-3">
+                <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-d-fg4">
+                  Variante sélectionnée
+                </div>
+                <div className="mt-1 text-sm font-semibold text-d-fg">
+                  {crmVariantRefineDraft.variant.title || `Variante ${crmVariantRefineDraft.index + 1}`}
+                </div>
+              </div>
+              <label className="mb-2 block text-[10px] font-semibold uppercase tracking-[0.15em] text-d-fg4">
+                Commentaires
+              </label>
+              <textarea
+                value={crmVariantRefineComments}
+                onChange={(event) => setCrmVariantRefineComments(event.target.value)}
+                disabled={refiningCrmVariant}
+                rows={7}
+                className="w-full resize-none rounded-xl border border-line bg-d-panel2 px-4 py-3 text-sm leading-relaxed text-d-fg outline-none transition-colors placeholder:text-d-fg4 focus:border-d-pink disabled:opacity-50"
+                placeholder="Ex. plus court, ton plus premium, renforcer la preuve MiCA, ajouter une citation, CTA plus direct..."
+              />
+            </div>
+            <div className="flex flex-col-reverse gap-2 border-t border-line px-5 py-4 sm:flex-row sm:justify-end sm:px-6">
+              <button
+                type="button"
+                onClick={() => {
+                  setCrmVariantRefineDraft(null);
+                  setCrmVariantRefineComments("");
+                }}
+                disabled={refiningCrmVariant}
+                className="rounded-xl border border-line px-4 py-2 text-xs font-semibold text-d-fg3 transition-colors hover:border-line2 hover:text-d-fg disabled:opacity-50"
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                onClick={handleRefineCrmVariant}
+                disabled={refiningCrmVariant || !crmVariantRefineComments.trim()}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-d-pink px-4 py-2 text-xs font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                {refiningCrmVariant && <Loader2 size={13} className="animate-spin" />}
+                Améliorer avec Gemini
+              </button>
             </div>
           </div>
         </div>

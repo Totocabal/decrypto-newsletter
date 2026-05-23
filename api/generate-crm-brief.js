@@ -5,6 +5,8 @@ const GEMINI_MODEL = "gemini-3.1-flash-lite";
 const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 const MAX_INPUT_CHARS = 30_000;
 const MAX_SITE_CONTEXT_CHARS = 6_000;
+const MAX_VARIANT_CHARS = 20_000;
+const MAX_COMMENTS_CHARS = 4_000;
 
 function json(res, status, body) {
   res.statusCode = status;
@@ -293,6 +295,31 @@ Demande utilisateur à traiter :
 ${input}`;
 }
 
+function buildRefinePrompt({ input, variant, comments, siteContext = "" }) {
+  return `${buildPrompt(input || "Améliorer une variante CRM existante.", siteContext)}
+
+## Mission spécifique
+
+Cette mission spécifique remplace la section "Format de sortie attendu" précédente.
+Tu ne dois pas créer 2 à 3 nouvelles variantes.
+Tu dois améliorer uniquement la variante fournie ci-dessous en appliquant les commentaires utilisateur.
+
+Contraintes :
+- Conserve le format de sortie d'une variante CRM Coinhouse.
+- Commence par un titre Markdown de niveau 2 exactement sous la forme : ## Variante 1 — Framework AIDA · Angle court
+- Garde un seul objet, un seul pré-header, un corps, un CTA et la ligne "Structure suggérée".
+- Respecte les contraintes de marque, réglementaires et les règles de mapping vers les blocs Décrypto.
+- Ne produis pas de tableau comparatif ni de notes de production.
+- Ne commente pas tes changements.
+- Si le commentaire utilisateur demande une direction contraire aux règles Coinhouse, applique la version conforme la plus proche.
+
+Variante actuelle :
+${variant}
+
+Commentaires utilisateur à appliquer :
+${comments}`;
+}
+
 export default async function handler(req, res) {
   const traceId = randomUUID();
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -308,16 +335,28 @@ export default async function handler(req, res) {
     if (!apiKey) return json(res, 500, { error: "Clé Gemini non configurée (variable GEMINI_API_KEY manquante)." });
 
     const body = parseBody(req);
+    const mode = String(body.mode || "generate");
     const input = String(body.input || "").trim();
     if (!input) return json(res, 400, { error: "Champ 'input' vide ou manquant." });
     if (input.length > MAX_INPUT_CHARS) return json(res, 413, { error: `Demande trop longue (${MAX_INPUT_CHARS} caractères max).` });
+    const variant = String(body.variant || "").trim();
+    const comments = String(body.comments || "").trim();
+    if (mode === "refine") {
+      if (!variant) return json(res, 400, { error: "Champ 'variant' vide ou manquant." });
+      if (!comments) return json(res, 400, { error: "Champ 'comments' vide ou manquant." });
+      if (variant.length > MAX_VARIANT_CHARS) return json(res, 413, { error: `Variante trop longue (${MAX_VARIANT_CHARS} caractères max).` });
+      if (comments.length > MAX_COMMENTS_CHARS) return json(res, 413, { error: `Commentaires trop longs (${MAX_COMMENTS_CHARS} caractères max).` });
+    }
 
     const siteContext = await fetchCoinhouseContext();
+    const prompt = mode === "refine"
+      ? buildRefinePrompt({ input, variant, comments, siteContext })
+      : buildPrompt(input, siteContext);
     const geminiRes = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: buildPrompt(input, siteContext) }] }],
+        contents: [{ parts: [{ text: prompt }] }],
         generationConfig: { maxOutputTokens: 8000, temperature: 0.45 },
       }),
     });
