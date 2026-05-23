@@ -467,6 +467,8 @@ Chaque ligne contient :
 
 Sans couleur, `tag_color` prend `#FF00AA`.
 
+Pour la génération depuis un brief libre, les listes à puces de 2 à 4 items sont à privilégier sous forme `editorial_list` lorsqu'elles décrivent des étapes, bénéfices, arguments produit ou points pédagogiques. Les listes Markdown simples restent plutôt réservées aux puces très courtes, non éditorialisables, ou aux listes longues.
+
 ### `focus`
 
 Un `focus` peut commencer par un corps Markdown simple :

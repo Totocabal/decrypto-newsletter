@@ -217,8 +217,9 @@ kicker: "EN 3 ETAPES"
 
 Mapping recommandé :
 - Accroche intro + salutation : text_block.
-- Liste pédagogique 3 à 4 items explicatifs : editorial_list.
-- Arguments produit en bullet points : text_block avec liste Markdown.
+- Listes à puces, étapes, bénéfices, arguments produit ou points pédagogiques : privilégier editorial_list dès qu'il y a 2 à 4 items.
+- Pour editorial_list, convertir chaque puce en tag court, titre clair et corps explicatif obligatoire. Exemple : - 01 | Alimentez votre compte | Par virement SEPA ou carte de paiement. | #03FFCF
+- Utiliser text_block avec liste Markdown seulement si les puces sont très courtes, non éditorialisables, ou s'il y a plus de 4 items.
 - CTA principal : focus + focus_cta avec arrow: true.
 - Disclaimer légal : text_block avec kicker "INFORMATION LÉGALE" et title "".
 - Séparateur visuel : divider style gradient ou thin.
