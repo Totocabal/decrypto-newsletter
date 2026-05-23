@@ -397,7 +397,7 @@ Mapping recommandé :
 - Exemple interdit editorial_list : - 01 | Alimentez votre compte | #03FFCF. Il manque le body, la couleur serait affichee.
 - Utiliser text_block avec liste Markdown seulement si les puces sont très courtes, non éditorialisables, ou s'il y a plus de 4 items.
 - CTA principal : focus + focus_cta avec arrow: true.
-- Disclaimer légal : text_block avec kicker "INFORMATION LÉGALE" et title "".
+- Ne crée pas de bloc "INFORMATION LÉGALE", "Avertissement" ou disclaimer, sauf si le brief le demande explicitement. Le footer légal est déjà inclus par défaut dans tous les templates.
 - Séparateur visuel : divider style gradient ou thin.
 - Encadré à retenir : focus + focus_callout.
 

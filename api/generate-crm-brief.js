@@ -227,7 +227,7 @@ Blocs disponibles et usages recommandés :
 - hero : réservé aux newsletters éditoriales, de type Décrypto, édito de marché, prise de parole éditoriale ou contenu média. Ne jamais le suggérer pour les emails CRM transactionnels, onboarding, upsell, activation, rétention ou relance.
 - hero_chips : 3 à 4 repères courts associés au hero, par exemple offre, bénéfice, profil, marché.
 - index : sommaire si le contenu comporte plusieurs sections nettes.
-- text_block : paragraphes simples, introduction, explication, disclaimer légal, signature.
+- text_block : paragraphes simples, introduction, explication, signature.
 - editorial_list : listes de 2 à 4 étapes, bénéfices, arguments produit, raisons de passer à l'action. Chaque item doit pouvoir devenir tag court + titre + corps explicatif.
 - focus : encadré central pour une idée clé, une offre, une recommandation ou un message à retenir.
 - focus_callout : point d'attention, à retenir, preuve, rappel réglementaire ou élément de réassurance.
@@ -253,21 +253,21 @@ Mapping éditorial à privilégier :
 - Un argument principal ou une offre prioritaire doit être isolé en focus.
 - Une citation explicite attribuée doit être isolée comme citation et la ligne Structure suggérée doit inclure macro.
 - Un CTA doit être explicite, court et isolable.
-- Un disclaimer réglementaire doit être isolé en fin de variante.
+- Ne crée pas de section "Information légale", "Avertissement", "Disclaimer" ou équivalent en fin de variante, sauf si le brief le demande explicitement. Le footer légal est ajouté par défaut dans tous les templates.
 - Si le brief de départ demande explicitement un chiffre clé ou si tout l'angle créatif repose sur un nombre, ajoute une ligne "Chiffre clé : valeur + unité — légende — commentaire".
 - Ne crée pas de ligne "Chiffre clé" pour chaque prix, plafond, durée ou pourcentage mentionné. Un chiffre mentionné dans une offre peut rester dans le corps de l'email.
 - La ligne Structure suggérée inclut commented_number uniquement si la variante contient une ligne "Chiffre clé".
 - Pour les emails CRM non éditoriaux, la structure suggérée commence généralement par text_block, jamais par hero.
 
 Pour chaque variante, ajoute une ligne courte après le CTA :
-Structure suggérée : text_block / editorial_list / focus_cta / text_block légal
+Structure suggérée : text_block / editorial_list / focus_cta
 Adapte cette ligne aux blocs réellement pertinents pour la variante.
 
 ## Contraintes réglementaires
 
 - Ne jamais promettre de rendement garanti
-- Sous-entendre systématiquement que les crypto-actifs comportent un risque de perte en capital
-- Mention explicite si email marketing
+- Le footer légal par défaut couvre les mentions réglementaires communes, dont le risque de perte en capital.
+- Ne pas ajouter de disclaimer légal dans le corps de l'email sauf demande explicite du brief ou contrainte juridique spécifique à signaler.
 - Ne pas utiliser de superlatifs non étayés
 - Préférer "crypto-actifs" à "token"
 
@@ -284,7 +284,7 @@ Pour chaque demande de copy, produis systématiquement :
 - Corps avec variable Liquid Braze {{\${first_name} | default: "là"}}
 - CTA
 - Structure suggérée avec les blocs newsletter pertinents
-- Disclaimer réglementaire si email marketing
+- Pas de disclaimer réglementaire dans le corps, sauf demande explicite du brief. Les mentions légales communes sont déjà incluses dans le footer par défaut.
 3. Tableau comparatif : Variante / Ton / Angle / Type de CTA / Usage recommandé
 4. Notes de production : variables Braze à confirmer, liens de destination CTA, points à soumettre à validation juridique, recommandation A/B avec métrique taux de clic
 
