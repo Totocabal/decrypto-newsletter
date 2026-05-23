@@ -143,6 +143,31 @@ preview_text: "Preview."
   assert.equal(imported.title, "Bienvenue chez Coinhouse, {{first_name}} !");
 });
 
+test("repairs incomplete Gemini feature grid items", () => {
+  const markdown = cleanGeneratedMarkdown(`---
+title: "Feature grid import"
+preview_text: "Preview."
+---
+
+:::feature_grid
+kicker: "OFFRES"
+:::
+
+- Classique
+- Investisseur | Optimisez vos frais chaque mois.
+- Gestion Privée | Accompagnement patrimonial | user
+`);
+  const imported = importNewsletterMarkdown(markdown);
+  const [featureGrid] = imported.state.sections;
+
+  assert.equal(featureGrid.type, "feature_grid");
+  assert.equal(featureGrid.data.items.length, 3);
+  assert.equal(featureGrid.data.items[0].title, "Classique");
+  assert.equal(featureGrid.data.items[0].body, "Classique");
+  assert.equal(featureGrid.data.items[1].picto, "target");
+  assert.equal(featureGrid.data.items[2].color, "#03FFCF");
+});
+
 test("imports simple Markdown into newsletter sections", () => {
   const imported = importNewsletterMarkdown(`---
 title: "Weekly import"

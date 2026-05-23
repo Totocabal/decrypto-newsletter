@@ -154,6 +154,51 @@ function repairBodyLinesInsideDirectives(markdown) {
   return repaired.join("\n");
 }
 
+function repairIncompletePipeItems(markdown) {
+  const lines = markdown.split(/\r?\n/);
+  const repaired = [];
+  let directive = "";
+  let bodyDirective = "";
+
+  lines.forEach((line) => {
+    const open = line.match(/^:::([a-z_][a-z0-9_]*)\s*$/i);
+    if (open) {
+      directive = open[1];
+      bodyDirective = "";
+      repaired.push(line);
+      return;
+    }
+    if (line.trim() === ":::" && directive) {
+      bodyDirective = BODY_DIRECTIVE_TYPES.has(directive) ? directive : "";
+      directive = "";
+      repaired.push(line);
+      return;
+    }
+
+    const activeDirective = directive || bodyDirective;
+    if (activeDirective === "feature_grid" && /^\s*-\s+/.test(line)) {
+      const [, , rawItem] = line.match(/^(\s*-\s+)(.*)$/);
+      const parts = rawItem.split("|").map((part) => part.trim());
+      if (parts.length === 1) {
+        repaired.push(`- ${parts[0]} | ${parts[0]} | target | #03FFCF`);
+        return;
+      }
+      if (parts.length === 2) {
+        repaired.push(`- ${parts[0]} | ${parts[1]} | target | #03FFCF`);
+        return;
+      }
+      if (parts.length === 3) {
+        repaired.push(`- ${parts[0]} | ${parts[1]} | ${parts[2] || "target"} | #03FFCF`);
+        return;
+      }
+    }
+
+    repaired.push(line);
+  });
+
+  return repaired.join("\n");
+}
+
 function quoteFrontMatterValue(value) {
   return `"${String(value || "").replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`;
 }
@@ -202,6 +247,7 @@ export function cleanGeneratedMarkdown(text = "") {
   if (noteIndex > -1) markdown = markdown.slice(0, noteIndex).trim();
   markdown = markdown.replace(DIRECTIVE_LINE_FIX_RE, ":::$1");
   markdown = repairBodyLinesInsideDirectives(markdown);
+  markdown = repairIncompletePipeItems(markdown);
   return markdown;
 }
 
@@ -248,6 +294,7 @@ kicker: "EN 3 ETAPES"
 - edito_kpis doit suivre directement le corps de :::edito.
 - feature_grid_featured doit suivre directement :::feature_grid.
 - editorial_list utilise exactement : - tag | title | body obligatoire | tag_color optionnel. Les 3 colonnes tag, title et body ne doivent jamais être vides.
+- feature_grid utilise exactement : - title | body obligatoire | picto | color. Les 4 colonnes doivent être présentes. Picto par défaut si incertain : target. Couleurs par défaut : #03FFCF, #FF8B28, #B36BFF, #00FFFF.
 - signals direction : up ou down uniquement.
 - divider.style : thin, thick ou gradient uniquement.
 - chart_currency : eur ou usd uniquement. chart_days : 7 ou 30 uniquement.
@@ -258,6 +305,7 @@ kicker: "EN 3 ETAPES"
 Mapping recommandé :
 - Accroche intro + salutation : text_block.
 - Listes à puces, étapes, bénéfices, arguments produit ou points pédagogiques : privilégier editorial_list dès qu'il y a 2 à 4 items.
+- Comparaison d'offres, grille d'avantages ou fonctionnalités parallèles : utiliser feature_grid seulement si chaque carte a un titre et un corps explicatif.
 - Pour editorial_list, convertir chaque puce en tag court, titre clair et corps explicatif obligatoire. Exemple : - 01 | Alimentez votre compte | Par virement SEPA ou carte de paiement. | #03FFCF
 - Utiliser text_block avec liste Markdown seulement si les puces sont très courtes, non éditorialisables, ou s'il y a plus de 4 items.
 - CTA principal : focus + focus_cta avec arrow: true.
