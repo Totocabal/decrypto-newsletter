@@ -743,6 +743,15 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [newsletters, search, sortBy, labelFilter, nlLabels]);
 
+  const crmVariantGridClass = [
+    "grid min-h-0 flex-1 grid-cols-1 gap-3 overflow-y-auto overscroll-contain px-4 py-3 sm:gap-4 sm:p-6",
+    (crmBriefVariants?.variants?.length || 0) === 2
+      ? "lg:grid-cols-2"
+      : (crmBriefVariants?.variants?.length || 0) > 2
+        ? "xl:grid-cols-3"
+        : "lg:grid-cols-1",
+  ].join(" ");
+
   return (
     <div className="min-h-screen bg-d-bg">
       {/* Header */}
@@ -1742,7 +1751,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                 <X size={16} />
               </button>
             </div>
-            <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 overflow-y-auto overscroll-contain px-4 py-3 sm:gap-4 sm:p-6 xl:grid-cols-3">
+            <div className={crmVariantGridClass}>
               {crmBriefVariants.variants.map((variant, index) => (
                 <div
                   key={variant.id || index}
