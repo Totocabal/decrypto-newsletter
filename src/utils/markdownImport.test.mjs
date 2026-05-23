@@ -7,6 +7,7 @@ import {
   MarkdownImportError,
   importNewsletterMarkdown,
 } from "./markdownImport.js";
+import { cleanGeneratedMarkdown } from "../../api/generate-markdown-import.js";
 import { importFromBody, parseRequestBody } from "../../api/import-markdown.js";
 
 test("imports the complete Markdown example", () => {
@@ -80,6 +81,24 @@ test("reads raw text/markdown API request bodies", async () => {
 
   assert.match(body.markdown, /title: "Raw API"/);
   assert.equal(importFromBody(body).title, "Raw API");
+});
+
+test("cleans Gemini directive openings with a trailing colon", () => {
+  const markdown = cleanGeneratedMarkdown(`---
+title: "Gemini import"
+preview_text: "Preview."
+---
+
+:::hero:
+title_part1: "Bienvenue"
+title_part2: ""
+title_highlight: "Coinhouse"
+:::
+`);
+  const imported = importNewsletterMarkdown(markdown);
+
+  assert.equal(imported.state.sections[0].type, "hero");
+  assert.equal(imported.state.sections[0].data.title_part1, "Bienvenue");
 });
 
 test("imports simple Markdown into newsletter sections", () => {

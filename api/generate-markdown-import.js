@@ -6,6 +6,33 @@ const GEMINI_MODEL = "gemini-3.1-flash-lite";
 const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 const MAX_BRIEF_CHARS = 60_000;
 const MAX_DEBUG_OUTPUT_CHARS = 20_000;
+const DIRECTIVE_TYPES = [
+  "hero",
+  "hero_chips",
+  "index",
+  "edito",
+  "edito_kpis",
+  "text_block",
+  "image_block",
+  "divider",
+  "chart",
+  "fear_greed",
+  "signals",
+  "macro",
+  "macro_bars",
+  "commented_number",
+  "editorial_list",
+  "focus",
+  "focus_text",
+  "focus_image",
+  "focus_cta",
+  "focus_callout",
+  "focus_spacer",
+  "feature_grid",
+  "feature_grid_featured",
+  "event",
+];
+const DIRECTIVE_LINE_FIX_RE = new RegExp(`^:::(${DIRECTIVE_TYPES.join("|")}):\\s*$`, "gim");
 
 function json(res, status, body) {
   res.statusCode = status;
@@ -67,13 +94,14 @@ function parseBody(req) {
   }
 }
 
-function cleanGeneratedMarkdown(text = "") {
+export function cleanGeneratedMarkdown(text = "") {
   let markdown = String(text || "").trim();
   markdown = markdown.replace(/^```(?:md|markdown)?\s*/i, "").replace(/\s*```$/i, "").trim();
   const start = markdown.indexOf("---");
   if (start > 0) markdown = markdown.slice(start).trim();
   const noteIndex = markdown.search(/\n(?:Notes?|Choix structurels?)\s*:/i);
   if (noteIndex > -1) markdown = markdown.slice(0, noteIndex).trim();
+  markdown = markdown.replace(DIRECTIVE_LINE_FIX_RE, ":::$1");
   return markdown;
 }
 
@@ -105,6 +133,8 @@ Règles critiques :
 - preview_text est obligatoire.
 - Toute URL doit être absolue http ou https. Si aucune URL n'est fournie, utiliser https://www.coinhouse.com/.
 - N'utilise que ces directives : hero, hero_chips, index, edito, edito_kpis, text_block, image_block, divider, chart, fear_greed, signals, macro, macro_bars, commented_number, editorial_list, focus, focus_text, focus_image, focus_cta, focus_callout, focus_spacer, feature_grid, feature_grid_featured, event.
+- Une ligne d'ouverture de directive doit contenir uniquement les trois deux-points et le type, par exemple :::hero. N'écris jamais :::hero:, :::text_block: ou :::focus_cta:.
+- Les paramètres d'une directive sont toujours sur les lignes suivantes au format champ: "valeur", puis une ligne ::: ferme le bloc.
 - focus_cta, focus_callout, focus_image, focus_text et focus_spacer doivent toujours suivre une directive :::focus.
 - hero_chips doit suivre directement :::hero.
 - edito_kpis doit suivre directement le corps de :::edito.
