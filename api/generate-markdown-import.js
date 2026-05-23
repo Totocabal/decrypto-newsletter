@@ -370,6 +370,8 @@ Mapping recommandé :
 - N'utilise hero que pour les mails éditoriaux ou newsletters de marché. Pour un email CRM transactionnel, onboarding, activation, upsell ou relance, commence par text_block.
 - Listes à puces, étapes, bénéfices, arguments produit ou points pédagogiques : privilégier editorial_list dès qu'il y a 2 à 4 items.
 - Comparaison d'offres, grille d'avantages ou fonctionnalités parallèles : utiliser feature_grid seulement si chaque carte a un titre et un corps explicatif.
+- Chiffre clé, prix, plafond, pourcentage, durée ou preuve chiffrée : utiliser commented_number plutôt qu'un simple text_block. Déclencheurs forts : 0 %, 3 000 €/mois, 8 000 €/mois, 9,90 €/mois, 29 €/mois, 798 €/an, 5 minutes, 100 crypto-actifs.
+- Si le brief contient "Chiffre clé :", crée obligatoirement un bloc commented_number avec value, unit, caption, title et un court commentaire.
 - Pour editorial_list, convertir chaque puce en tag court, titre clair et corps explicatif obligatoire. Exemple : - 01 | Alimentez votre compte | Par virement SEPA ou carte de paiement. | #03FFCF
 - Utiliser text_block avec liste Markdown seulement si les puces sont très courtes, non éditorialisables, ou s'il y a plus de 4 items.
 - CTA principal : focus + focus_cta avec arrow: true.

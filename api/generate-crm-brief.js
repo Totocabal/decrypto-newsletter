@@ -232,7 +232,7 @@ Blocs disponibles et usages recommandés :
 - focus_cta : CTA principal ou secondaire.
 - feature_grid : comparaison de fonctionnalités, avantages d'une offre, différences entre Classique / Investisseur / Gestion Privée.
 - feature_grid_featured : carte mise en avant pour l'offre ou le bénéfice prioritaire.
-- commented_number : chiffre fort avec commentaire, par exemple frais évités, plafond mensuel, prix d'abonnement, volume ou durée.
+- commented_number : chiffre fort avec commentaire. À privilégier dès qu'un nombre peut porter l'argument : 0 %, 3 000 €/mois, 8 000 €/mois, 9,90 €/mois, 29 €/mois, 798 €/an, 5 minutes, 100 crypto-actifs, 500 000 clients, une date limite, un montant ou un pourcentage.
 - event : rendez-vous, webinar, échéance, session d'accompagnement ou temps fort daté.
 - image_block : visuel utile si le brief mentionne une image ou une ressource graphique.
 - divider : respiration entre deux parties.
@@ -251,7 +251,9 @@ Mapping éditorial à privilégier :
 - Un argument principal ou une offre prioritaire doit être isolé en focus.
 - Un CTA doit être explicite, court et isolable.
 - Un disclaimer réglementaire doit être isolé en fin de variante.
-- Si un chiffre est central, le présenter comme un chiffre commenté plutôt que l'enterrer dans un paragraphe.
+- Si un chiffre est central, il doit avoir sa propre ligne "Chiffre clé : valeur + unité — légende — commentaire". Ne l'enterre pas dans un paragraphe.
+- Pour les offres Investisseur et Gestion Privée, utilise presque toujours un chiffre commenté si la variante mentionne 0 %, 3 000 €/mois, 8 000 €/mois, 9,90 €/mois, 29 €/mois ou 798 €/an.
+- Si une variante contient une preuve chiffrée, la ligne Structure suggérée doit inclure commented_number.
 - Pour les emails CRM non éditoriaux, la structure suggérée commence généralement par text_block, jamais par hero.
 
 Pour chaque variante, ajoute une ligne courte après le CTA :
