@@ -106,6 +106,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
   const [markdownBriefTheme, setMarkdownBriefTheme] = useState("light");
   const [markdownBriefShowNumbers, setMarkdownBriefShowNumbers] = useState(false);
   const [markdownBriefShowSeparators, setMarkdownBriefShowSeparators] = useState(false);
+  const [generatingCrmBrief, setGeneratingCrmBrief] = useState(false);
   const [generatingMarkdownBrief, setGeneratingMarkdownBrief] = useState(false);
   const [markdownGenerationLog, setMarkdownGenerationLog] = useState(null);
   const [markdownImportDraft, setMarkdownImportDraft] = useState(null);
@@ -297,6 +298,39 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
     setPastedMarkdown("");
     setMarkdownBrief("");
     setMarkdownGenerationLog(null);
+  };
+
+  const handleGenerateCrmBrief = async () => {
+    const input = markdownBrief.trim();
+    if (!input) {
+      addToast("Indique une intention, une cible ou un objectif avant de créer le contenu.", "error");
+      return;
+    }
+
+    setGeneratingCrmBrief(true);
+    setMarkdownGenerationLog(null);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) throw new Error("Session expirée. Reconnecte-toi pour utiliser Gemini.");
+
+      const response = await fetch("/api/generate-crm-brief", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ input }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.error || "Génération du contenu impossible.");
+
+      setMarkdownBrief(payload.content || "");
+      addToast("Contenu CRM généré. Tu peux maintenant le convertir en Markdown.", "success");
+    } catch (error) {
+      addToast("Génération du contenu impossible : " + (error.message || error), "error");
+    } finally {
+      setGeneratingCrmBrief(false);
+    }
   };
 
   const handleGenerateMarkdownFromBrief = async () => {
@@ -1167,7 +1201,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                 onClick={() => {
                   resetMarkdownSourceModal();
                 }}
-                disabled={importingMarkdown || generatingMarkdownBrief}
+                disabled={importingMarkdown || generatingCrmBrief || generatingMarkdownBrief}
                 className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-d-fg4 transition-colors hover:bg-d-panel2 hover:text-d-fg2 disabled:opacity-50"
               >
                 <X size={16} />
@@ -1182,7 +1216,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                 <textarea
                   value={markdownBrief}
                   onChange={(event) => setMarkdownBrief(event.target.value)}
-                  placeholder="Colle ici un brief, un brouillon email, un échange ou une consigne. Gemini 3.1 Flash Lite le transformera en Markdown importable."
+                  placeholder="Écris une intention CRM courte, colle un brief, un brouillon email, un échange ou une consigne. Gemini peut d'abord créer le contenu, puis le transformer en Markdown importable."
                   className="min-h-40 w-full resize-y rounded-xl border border-line bg-d-panel px-3 py-3 text-xs leading-relaxed text-d-fg outline-none placeholder:text-d-fg4 focus:border-d-pink/60"
                 />
                 <div className="mt-3 grid grid-cols-1 gap-3 lg:grid-cols-3">
@@ -1244,11 +1278,20 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                     </span>
                   </label>
                 </div>
-                <div className="mt-3 flex justify-end">
+                <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:justify-end">
+                  <button
+                    type="button"
+                    onClick={handleGenerateCrmBrief}
+                    disabled={generatingCrmBrief || generatingMarkdownBrief || importingMarkdown}
+                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-line bg-d-panel px-4 py-2 text-xs font-semibold text-d-fg2 transition-colors hover:border-line2 hover:text-d-fg disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    {generatingCrmBrief ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
+                    Créer le contenu avec Gemini
+                  </button>
                   <button
                     type="button"
                     onClick={handleGenerateMarkdownFromBrief}
-                    disabled={generatingMarkdownBrief || importingMarkdown}
+                    disabled={generatingCrmBrief || generatingMarkdownBrief || importingMarkdown}
                     className="inline-flex items-center justify-center gap-2 rounded-xl bg-d-pink px-4 py-2 text-xs font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     {generatingMarkdownBrief ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
@@ -1316,8 +1359,8 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                 </span>
                 <input
                   type="file"
-                  accept=".md,.markdown,text/markdown,text/plain"
-                  disabled={importingMarkdown || creating || generatingMarkdownBrief}
+                accept=".md,.markdown,text/markdown,text/plain"
+                  disabled={importingMarkdown || creating || generatingCrmBrief || generatingMarkdownBrief}
                   onChange={handleImportMarkdown}
                   className="sr-only"
                 />
@@ -1417,7 +1460,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                 onClick={() => {
                   resetMarkdownSourceModal();
                 }}
-                disabled={importingMarkdown || generatingMarkdownBrief}
+                disabled={importingMarkdown || generatingCrmBrief || generatingMarkdownBrief}
                 className="rounded-xl border border-line px-4 py-2 text-xs font-semibold text-d-fg3 transition-colors hover:border-line2 hover:text-d-fg disabled:opacity-50"
               >
                 Annuler
@@ -1425,7 +1468,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
               <button
                 type="button"
                 onClick={handlePasteMarkdownImport}
-                disabled={importingMarkdown || generatingMarkdownBrief}
+                disabled={importingMarkdown || generatingCrmBrief || generatingMarkdownBrief}
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-d-pink px-4 py-2 text-xs font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 {importingMarkdown && <Loader2 size={12} className="animate-spin" />}

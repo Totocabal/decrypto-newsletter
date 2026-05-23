@@ -532,7 +532,7 @@ Appel depuis `PreviewPanel` avec `{ html, device }` et le token Bearer. Génère
 
 ## Import Markdown
 
-La liste des newsletters propose **Importer Markdown** depuis un brief libre généré avec Gemini, un fichier `.md` ou un contenu collé. Le Markdown est d'abord généré ou parsé côté client, puis une modale affiche le titre, le preheader, les sections détectées et les avertissements avant la création Supabase. Cette validation permet aussi d'ajuster le fond clair ou sombre, la numérotation des sections et les filets entre blocs.
+La liste des newsletters propose **Importer Markdown** depuis un brief libre généré avec Gemini, un fichier `.md` ou un contenu collé. Le flux Gemini peut d'abord créer un contenu CRM Coinhouse B2C depuis une intention courte, puis convertir ce contenu en Markdown importable. Le Markdown est ensuite généré ou parsé côté client, puis une modale affiche le titre, le preheader, les sections détectées et les avertissements avant la création Supabase. Cette validation permet aussi d'ajuster le fond clair ou sombre, la numérotation des sections et les filets entre blocs.
 
 Le format accepte :
 
@@ -546,7 +546,7 @@ Dans la génération Gemini, les listes à puces de 2 à 4 items sont orientées
 
 Le parseur vit dans `src/utils/markdownImport.js`. Le contrat complet, les syntaxes et les limites sont documentés dans `MARKDOWN_IMPORT_SPEC.md`. Un fichier prêt à importer est disponible dans `examples/newsletter-markdown-import-complet.md`.
 
-La génération depuis un brief libre appelle `POST /api/generate-markdown-import` avec Gemini 3.1 Flash Lite. Elle nécessite `GEMINI_API_KEY` côté serveur, puis valide le Markdown généré avec le parseur avant d'ouvrir la modale de création. Si le Markdown généré est invalide, l'interface affiche l'erreur de validation, un `trace_id`, le Markdown généré et la sortie brute Gemini disponible ; le serveur écrit aussi un log structuré `[generate-markdown-import] invalid_markdown`.
+La création du contenu CRM appelle `POST /api/generate-crm-brief`, puis la génération Markdown appelle `POST /api/generate-markdown-import`. Les deux routes utilisent Gemini 3.1 Flash Lite et nécessitent `GEMINI_API_KEY` côté serveur. La génération Markdown valide ensuite le résultat avec le parseur avant d'ouvrir la modale de création. Si le Markdown généré est invalide, l'interface affiche l'erreur de validation, un `trace_id`, le Markdown généré et la sortie brute Gemini disponible ; le serveur écrit aussi un log structuré `[generate-markdown-import] invalid_markdown`.
 
 Les graphiques auto importés créent un bloc CoinGecko configuré mais sans données fraîches. L'import affiche un avertissement et l'éditeur les remplit avec **Synchroniser** ou le bouton de rafraîchissement du bloc.
 
