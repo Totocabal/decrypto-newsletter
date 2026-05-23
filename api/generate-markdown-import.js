@@ -154,6 +154,45 @@ function repairBodyLinesInsideDirectives(markdown) {
   return repaired.join("\n");
 }
 
+function quoteFrontMatterValue(value) {
+  return `"${String(value || "").replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`;
+}
+
+export function extractEmailSubject(text = "") {
+  const lines = String(text || "").split(/\r?\n/);
+  const subjectLine = lines.find((line) =>
+    /^\s*(?:[-*]\s*)?(?:\*\*)?Objet\s*:/i.test(line.trim())
+  );
+  if (!subjectLine) return "";
+
+  return subjectLine
+    .replace(/^\s*(?:[-*]\s*)?(?:\*\*)?Objet\s*:\s*/i, "")
+    .replace(/\*\*\s*$/g, "")
+    .replace(/\s*\((?:\d+\s*)?(?:caractères?|car\.?)\)\s*$/i, "")
+    .trim();
+}
+
+export function applyEmailSubjectTitle(markdown, sourceText) {
+  const subject = extractEmailSubject(sourceText);
+  if (!subject) return markdown;
+
+  const lines = String(markdown || "").split(/\r?\n/);
+  if (lines[0]?.trim() !== "---") return markdown;
+  const end = lines.findIndex((line, index) => index > 0 && line.trim() === "---");
+  if (end === -1) return markdown;
+
+  const titleIndex = lines.findIndex((line, index) =>
+    index > 0 && index < end && /^title\s*:/i.test(line)
+  );
+  const titleLine = `title: ${quoteFrontMatterValue(subject)}`;
+  if (titleIndex > -1) {
+    lines[titleIndex] = titleLine;
+  } else {
+    lines.splice(1, 0, titleLine);
+  }
+  return lines.join("\n");
+}
+
 export function cleanGeneratedMarkdown(text = "") {
   let markdown = String(text || "").trim();
   markdown = markdown.replace(/^```(?:md|markdown)?\s*/i, "").replace(/\s*```$/i, "").trim();
@@ -191,6 +230,7 @@ Règles critiques :
 - show_section_numbers vaut ${sectionNumbers ? "true" : "false"}.
 - show_block_separators vaut ${blockSeparators ? "true" : "false"}.
 - title = objet email, sans suffixe de comptage de caractères.
+- Si le brief contient une ligne "Objet :", le champ front matter title doit reprendre exactement cet objet, sans le comptage entre parenthèses.
 - preview_text est obligatoire.
 - Toute URL doit être absolue http ou https. Si aucune URL n'est fournie, utiliser https://www.coinhouse.com/.
 - N'utilise que ces directives : hero, hero_chips, index, edito, edito_kpis, text_block, image_block, divider, chart, fear_greed, signals, macro, macro_bars, commented_number, editorial_list, focus, focus_text, focus_image, focus_cta, focus_callout, focus_spacer, feature_grid, feature_grid_featured, event.
@@ -291,7 +331,7 @@ export default async function handler(req, res) {
 
     const data = await geminiRes.json();
     const rawOutput = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
-    const markdown = cleanGeneratedMarkdown(rawOutput);
+    const markdown = applyEmailSubjectTitle(cleanGeneratedMarkdown(rawOutput), brief);
     if (!markdown) {
       logGenerationIssue("empty_markdown", {
         trace_id: traceId,

@@ -7,7 +7,11 @@ import {
   MarkdownImportError,
   importNewsletterMarkdown,
 } from "./markdownImport.js";
-import { cleanGeneratedMarkdown } from "../../api/generate-markdown-import.js";
+import {
+  applyEmailSubjectTitle,
+  cleanGeneratedMarkdown,
+  extractEmailSubject,
+} from "../../api/generate-markdown-import.js";
 import { importFromBody, parseRequestBody } from "../../api/import-markdown.js";
 
 test("imports the complete Markdown example", () => {
@@ -118,6 +122,25 @@ kicker: "EN 3 ETAPES"
   assert.equal(imported.state.sections[0].type, "editorial_list");
   assert.equal(imported.state.sections[0].data.items.length, 2);
   assert.equal(imported.state.sections[0].data.items[0].title, "Alimentez votre compte");
+});
+
+test("uses the Gemini email subject as imported newsletter title", () => {
+  const brief = `## Variante 1 — Framework AIDA
+
+**Objet : Bienvenue chez Coinhouse, {{first_name}} ! (38 caractères)**
+**Pré-header : Découvrez comment piloter vos crypto-actifs avec sérénité. (68 caractères)**
+`;
+  const markdown = applyEmailSubjectTitle(`---
+title: "Variante 1"
+preview_text: "Preview."
+---
+
+# Bienvenue
+`, brief);
+  const imported = importNewsletterMarkdown(markdown);
+
+  assert.equal(extractEmailSubject(brief), "Bienvenue chez Coinhouse, {{first_name}} !");
+  assert.equal(imported.title, "Bienvenue chez Coinhouse, {{first_name}} !");
 });
 
 test("imports simple Markdown into newsletter sections", () => {
