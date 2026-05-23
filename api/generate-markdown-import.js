@@ -159,6 +159,7 @@ function repairIncompletePipeItems(markdown) {
   const repaired = [];
   let directive = "";
   let bodyDirective = "";
+  const isHexColor = (value = "") => /^#[0-9a-f]{3}(?:[0-9a-f]{3})?$/i.test(String(value).trim());
 
   lines.forEach((line) => {
     const open = line.match(/^:::([a-z_][a-z0-9_]*)\s*$/i);
@@ -189,6 +190,22 @@ function repairIncompletePipeItems(markdown) {
       }
       if (parts.length === 3) {
         repaired.push(`- ${parts[0]} | ${parts[1]} | ${parts[2] || "target"} | #03FFCF`);
+        return;
+      }
+    }
+    if (activeDirective === "editorial_list" && /^\s*-\s+/.test(line)) {
+      const [, , rawItem] = line.match(/^(\s*-\s+)(.*)$/);
+      const parts = rawItem.split("|").map((part) => part.trim());
+      if (parts.length === 3 && isHexColor(parts[2])) {
+        repaired.push(`- ${parts[0]} | ${parts[1]} | ${parts[1]} | ${parts[2]}`);
+        return;
+      }
+      if (parts.length === 4 && !parts[2] && isHexColor(parts[3])) {
+        repaired.push(`- ${parts[0]} | ${parts[1]} | ${parts[1]} | ${parts[3]}`);
+        return;
+      }
+      if (parts.length === 4 && isHexColor(parts[2]) && !parts[3]) {
+        repaired.push(`- ${parts[0]} | ${parts[1]} | ${parts[1]} | ${parts[2]}`);
         return;
       }
     }
@@ -359,6 +376,7 @@ kicker: "EN 3 ETAPES"
 - edito_kpis doit suivre directement le corps de :::edito.
 - feature_grid_featured doit suivre directement :::feature_grid.
 - editorial_list utilise exactement : - tag | title | body obligatoire | tag_color optionnel. Les 3 colonnes tag, title et body ne doivent jamais être vides.
+- Dans editorial_list, la couleur hexadecimale est uniquement la 4e colonne tag_color. Ne mets jamais #03FFCF, #FF8B28, #B36BFF ou #00FFFF dans la colonne body, sinon elle sera affichee comme texte.
 - feature_grid utilise exactement : - title | body obligatoire | picto | color. Les 4 colonnes doivent être présentes. Picto par défaut si incertain : target. Couleurs par défaut : #03FFCF, #FF8B28, #B36BFF, #00FFFF.
 - signals direction : up ou down uniquement.
 - divider.style : thin, thick ou gradient uniquement.
@@ -375,6 +393,7 @@ Mapping recommandé :
 - Chiffre clé, prix, plafond, pourcentage, durée ou preuve chiffrée : utiliser commented_number plutôt qu'un simple text_block. Déclencheurs forts : 0 %, 3 000 €/mois, 8 000 €/mois, 9,90 €/mois, 29 €/mois, 798 €/an, 5 minutes, 100 crypto-actifs.
 - Si le brief contient "Chiffre clé :", crée obligatoirement un bloc commented_number avec value, unit, caption, title et un court commentaire.
 - Pour editorial_list, convertir chaque puce en tag court, titre clair et corps explicatif obligatoire. Exemple : - 01 | Alimentez votre compte | Par virement SEPA ou carte de paiement. | #03FFCF
+- Exemple interdit editorial_list : - 01 | Alimentez votre compte | #03FFCF. Il manque le body, la couleur serait affichee.
 - Utiliser text_block avec liste Markdown seulement si les puces sont très courtes, non éditorialisables, ou s'il y a plus de 4 items.
 - CTA principal : focus + focus_cta avec arrow: true.
 - Disclaimer légal : text_block avec kicker "INFORMATION LÉGALE" et title "".

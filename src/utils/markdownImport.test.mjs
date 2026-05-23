@@ -124,6 +124,31 @@ kicker: "EN 3 ETAPES"
   assert.equal(imported.state.sections[0].data.items[0].title, "Alimentez votre compte");
 });
 
+test("repairs misplaced editorial list colors from Gemini output", () => {
+  const markdown = cleanGeneratedMarkdown(`---
+title: "Gemini colors"
+preview_text: "Preview."
+---
+
+:::editorial_list
+kicker: "POINTS CLES"
+:::
+
+- REACTIVITE TOTALE | Vos fonds sont disponibles immediatement pour vos achats. | #03FFCF
+- STRATEGIE DCA | Mettez en place vos achats recurrents en quelques clics. | | #FF8B28
+- GESTION SIMPLIFIEE | Un compte a votre nom pour piloter vos investissements. | #B36BFF |
+`);
+  const imported = importNewsletterMarkdown(markdown);
+  const items = imported.state.sections[0].data.items;
+
+  assert.equal(items[0].body, "Vos fonds sont disponibles immediatement pour vos achats.");
+  assert.equal(items[0].tag_color, "#03FFCF");
+  assert.equal(items[1].body, "Mettez en place vos achats recurrents en quelques clics.");
+  assert.equal(items[1].tag_color, "#FF8B28");
+  assert.equal(items[2].body, "Un compte a votre nom pour piloter vos investissements.");
+  assert.equal(items[2].tag_color, "#B36BFF");
+});
+
 test("uses the Gemini email subject as imported newsletter title", () => {
   const brief = `## Variante 1 — Framework AIDA
 
