@@ -1742,7 +1742,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                 <X size={16} />
               </button>
             </div>
-            <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 overflow-y-auto p-4 sm:gap-4 sm:p-6 xl:grid-cols-3">
+            <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 overflow-y-auto overscroll-contain px-4 py-3 sm:gap-4 sm:p-6 xl:grid-cols-3">
               {crmBriefVariants.variants.map((variant, index) => (
                 <div
                   key={variant.id || index}
@@ -1756,38 +1756,38 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                       {variant.title || `Variante ${index + 1}`}
                     </div>
                   </div>
-                  <div className="max-h-none flex-1 overflow-visible rounded-lg border border-line bg-d-panel px-3 py-3 sm:max-h-[520px] sm:min-h-64 sm:overflow-auto sm:px-4 sm:py-4">
+                  <div className="max-h-72 flex-1 overflow-hidden rounded-lg border border-line bg-d-panel px-3 py-3 [mask-image:linear-gradient(to_bottom,#000_78%,transparent)] sm:max-h-[520px] sm:min-h-64 sm:overflow-auto sm:px-4 sm:py-4 sm:[mask-image:none]">
                     <CrmVariantPreview content={variant.content} />
                   </div>
-                  <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-3">
+                  <div className="mt-3 grid grid-cols-3 gap-2 sm:mt-4">
                     <button
                       type="button"
                       onClick={() => setExpandedCrmVariant({ variant, index })}
-                      className="inline-flex items-center justify-center gap-2 rounded-xl border border-line px-3 py-2 text-xs font-semibold text-d-fg2 transition-colors hover:border-line2 hover:text-d-fg"
+                      className="inline-flex min-w-0 items-center justify-center gap-1.5 rounded-xl border border-line px-2 py-2 text-[11px] font-semibold text-d-fg2 transition-colors hover:border-line2 hover:text-d-fg sm:gap-2 sm:px-3 sm:text-xs"
                     >
                       <Maximize2 size={13} />
-                      Agrandir
+                      <span className="truncate">Agrandir</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => openCrmVariantRefine(variant, index)}
-                      className="inline-flex items-center justify-center gap-2 rounded-xl border border-line px-3 py-2 text-xs font-semibold text-d-fg2 transition-colors hover:border-line2 hover:text-d-fg"
+                      className="inline-flex min-w-0 items-center justify-center gap-1.5 rounded-xl border border-line px-2 py-2 text-[11px] font-semibold text-d-fg2 transition-colors hover:border-line2 hover:text-d-fg sm:gap-2 sm:px-3 sm:text-xs"
                     >
                       <MessageSquare size={13} />
-                      Améliorer
+                      <span className="truncate">Améliorer</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => handleUseCrmVariant(variant)}
-                      className="inline-flex items-center justify-center gap-2 rounded-xl bg-d-pink px-3 py-2 text-xs font-semibold text-white transition-opacity hover:opacity-90"
+                      className="inline-flex min-w-0 items-center justify-center gap-1.5 rounded-xl bg-d-pink px-2 py-2 text-[11px] font-semibold text-white transition-opacity hover:opacity-90 sm:gap-2 sm:px-3 sm:text-xs"
                     >
-                      Utiliser
+                      <span className="truncate">Utiliser</span>
                     </button>
                   </div>
                 </div>
               ))}
             </div>
-            <div className="flex flex-shrink-0 flex-col-reverse gap-2 border-t border-line px-4 py-3 sm:flex-row sm:justify-end sm:px-6 sm:py-4">
+            <div className="flex flex-shrink-0 gap-2 border-t border-line px-4 py-3 sm:flex-row sm:justify-end sm:px-6 sm:py-4">
               <button
                 type="button"
                 onClick={() => {
@@ -1796,7 +1796,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                   setCrmVariantRefineDraft(null);
                   setCrmVariantRefineComments("");
                 }}
-                className="rounded-xl border border-line px-4 py-2 text-xs font-semibold text-d-fg3 transition-colors hover:border-line2 hover:text-d-fg"
+                className="flex-1 rounded-xl border border-line px-4 py-2 text-xs font-semibold text-d-fg3 transition-colors hover:border-line2 hover:text-d-fg sm:flex-none"
               >
                 Fermer
               </button>
@@ -1807,9 +1807,9 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                     title: "Toutes les variantes",
                     content: crmBriefVariants.fullContent,
                   })}
-                  className="rounded-xl border border-line px-4 py-2 text-xs font-semibold text-d-fg2 transition-colors hover:border-line2 hover:text-d-fg"
+                  className="flex-1 rounded-xl border border-line px-4 py-2 text-xs font-semibold text-d-fg2 transition-colors hover:border-line2 hover:text-d-fg sm:flex-none"
                 >
-                  Utiliser tout le contenu
+                  Tout utiliser
                 </button>
               )}
             </div>
