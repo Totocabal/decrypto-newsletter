@@ -542,7 +542,7 @@ Le format accepte :
 - des directives `:::type` pour tous les blocs du catalogue, dont `chart` auto ou manuel, `focus` multi-items et `feature_grid` ;
 - les raffinements `hero_chips`, `edito_kpis` et `index` auto.
 
-Dans la génération Gemini, les listes à puces de 2 à 4 items sont orientées vers le bloc `editorial_list` quand elles représentent des étapes, bénéfices, arguments produit ou points pédagogiques.
+Dans la génération Gemini, le prompt CRM intègre la bibliothèque de blocs Décrypto afin de proposer des variantes déjà pensées pour la conversion Markdown : hero, text_block, editorial_list, focus, feature_grid, commented_number, event, signaux, blocs marché et CTA. Les listes à puces de 2 à 4 items sont orientées vers le bloc `editorial_list` quand elles représentent des étapes, bénéfices, arguments produit ou points pédagogiques.
 
 Le parseur vit dans `src/utils/markdownImport.js`. Le contrat complet, les syntaxes et les limites sont documentés dans `MARKDOWN_IMPORT_SPEC.md`. Un fichier prêt à importer est disponible dans `examples/newsletter-markdown-import-complet.md`.
 
