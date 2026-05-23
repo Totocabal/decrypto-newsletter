@@ -101,6 +101,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
   const [labelPickerOpen, setLabelPickerOpen] = useState(null);
   const [importingMarkdown, setImportingMarkdown] = useState(false);
   const [markdownImportSourceOpen, setMarkdownImportSourceOpen] = useState(false);
+  const [markdownImportMode, setMarkdownImportMode] = useState("markdown");
   const [pastedMarkdown, setPastedMarkdown] = useState("");
   const [markdownBrief, setMarkdownBrief] = useState("");
   const [markdownBriefTheme, setMarkdownBriefTheme] = useState("light");
@@ -301,6 +302,11 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
     setMarkdownBrief("");
     setCrmBriefVariants(null);
     setMarkdownGenerationLog(null);
+  };
+
+  const openMarkdownImportSource = (mode) => {
+    setMarkdownImportMode(mode);
+    setMarkdownImportSourceOpen(true);
   };
 
   const handleUseCrmVariant = (variant) => {
@@ -624,8 +630,17 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
           <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
             <button
               type="button"
-              onClick={() => setMarkdownImportSourceOpen(true)}
-              disabled={importingMarkdown || creating}
+              onClick={() => openMarkdownImportSource("gemini")}
+              disabled={importingMarkdown || creating || generatingCrmBrief || generatingMarkdownBrief}
+              className="flex w-full items-center justify-center gap-2 rounded-full border border-d-pink/60 px-5 py-2.5 text-[12px] font-semibold uppercase tracking-[0.18em] text-d-pink transition-colors hover:bg-d-pink/10 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+            >
+              {generatingCrmBrief || generatingMarkdownBrief ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+              Assistant Gemini
+            </button>
+            <button
+              type="button"
+              onClick={() => openMarkdownImportSource("markdown")}
+              disabled={importingMarkdown || creating || generatingCrmBrief || generatingMarkdownBrief}
               className="flex w-full items-center justify-center gap-2 rounded-full border border-line2 px-5 py-2.5 text-[12px] font-semibold uppercase tracking-[0.18em] text-d-fg2 transition-colors hover:bg-d-panel2 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
             >
               {importingMarkdown ? <Loader2 size={14} className="animate-spin" /> : <FileUp size={14} />}
@@ -1210,7 +1225,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                   Import Markdown
                 </div>
                 <h2 className="text-xl font-semibold tracking-tight text-d-fg" style={{ fontFamily: "'Sora', sans-serif" }}>
-                  Ajouter une source
+                  {markdownImportMode === "gemini" ? "Assistant de génération" : "Importer un Markdown"}
                 </h2>
               </div>
               <button
@@ -1225,6 +1240,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
               </button>
             </div>
             <div className="space-y-4 overflow-y-auto p-6">
+              {markdownImportMode === "gemini" && (
               <div className="rounded-xl border border-d-pink/30 bg-d-panel2 p-4">
                 <div className="mb-3 flex items-center gap-2">
                   <Sparkles size={14} className="text-d-pink" />
@@ -1366,6 +1382,9 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                   </div>
                 )}
               </div>
+              )}
+              {markdownImportMode === "markdown" && (
+              <>
               <div className="rounded-xl border border-line bg-d-panel2 p-4">
                 <div className="mb-3 flex items-center gap-2">
                   <FileUp size={14} className="text-d-fg3" />
@@ -1484,6 +1503,8 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                   </div>
                 </details>
               </div>
+              </>
+              )}
             </div>
             <div className="flex flex-col-reverse gap-2 border-t border-line px-6 py-4 sm:flex-row sm:justify-end">
               <button
@@ -1496,6 +1517,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
               >
                 Annuler
               </button>
+              {markdownImportMode === "markdown" && (
               <button
                 type="button"
                 onClick={handlePasteMarkdownImport}
@@ -1505,6 +1527,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                 {importingMarkdown && <Loader2 size={12} className="animate-spin" />}
                 Valider le Markdown collé
               </button>
+              )}
             </div>
           </div>
         </div>

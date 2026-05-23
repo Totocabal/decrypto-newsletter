@@ -532,7 +532,7 @@ Appel depuis `PreviewPanel` avec `{ html, device }` et le token Bearer. Génère
 
 ## Import Markdown
 
-La liste des newsletters propose **Importer Markdown** depuis un brief libre généré avec Gemini, un fichier `.md` ou un contenu collé. Le flux Gemini peut d'abord créer plusieurs variantes de contenu CRM Coinhouse B2C depuis une intention courte, les afficher dans une modale de sélection, puis convertir la variante choisie en Markdown importable. Le Markdown est ensuite généré ou parsé côté client, puis une modale affiche le titre, le preheader, les sections détectées et les avertissements avant la création Supabase. Cette validation permet aussi d'ajuster le fond clair ou sombre, la numérotation des sections et les filets entre blocs.
+La liste des newsletters propose deux entrées : **Assistant Gemini** pour créer plusieurs variantes de contenu CRM Coinhouse B2C depuis une intention courte, puis convertir la variante choisie en Markdown importable ; et **Importer Markdown** pour charger un fichier `.md` ou coller un contenu Markdown existant. Le Markdown est ensuite généré ou parsé côté client, puis une modale affiche le titre, le preheader, les sections détectées et les avertissements avant la création Supabase. Cette validation permet aussi d'ajuster le fond clair ou sombre, la numérotation des sections et les filets entre blocs.
 
 Le format accepte :
 
