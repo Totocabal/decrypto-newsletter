@@ -544,7 +544,7 @@ Le format accepte :
 
 Le parseur vit dans `src/utils/markdownImport.js`. Le contrat complet, les syntaxes et les limites sont documentés dans `MARKDOWN_IMPORT_SPEC.md`. Un fichier prêt à importer est disponible dans `examples/newsletter-markdown-import-complet.md`.
 
-La génération depuis un brief libre appelle `POST /api/generate-markdown-import` avec Gemini 3.1 Flash Lite. Elle nécessite `GEMINI_API_KEY` côté serveur, puis valide le Markdown généré avec le parseur avant d'ouvrir la modale de création.
+La génération depuis un brief libre appelle `POST /api/generate-markdown-import` avec Gemini 3.1 Flash Lite. Elle nécessite `GEMINI_API_KEY` côté serveur, puis valide le Markdown généré avec le parseur avant d'ouvrir la modale de création. Si le Markdown généré est invalide, l'interface affiche l'erreur de validation, un `trace_id`, le Markdown généré et la sortie brute Gemini disponible ; le serveur écrit aussi un log structuré `[generate-markdown-import] invalid_markdown`.
 
 Les graphiques auto importés créent un bloc CoinGecko configuré mais sans données fraîches. L'import affiche un avertissement et l'éditeur les remplit avec **Synchroniser** ou le bouton de rafraîchissement du bloc.
 

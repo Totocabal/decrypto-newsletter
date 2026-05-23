@@ -107,6 +107,8 @@ Depuis la liste des newsletters, cliquer sur **Importer Markdown** puis choisir 
 - choisir un fichier `.md` ou `.markdown` ;
 - coller directement le contenu Markdown dans la zone dédiée.
 
+Si Gemini produit un Markdown invalide, un encart de diagnostic affiche l'erreur, le `trace_id`, le Markdown généré et, si utile, la sortie brute Gemini. Le Markdown est aussi recopié dans la zone de collage pour pouvoir le corriger ou ajuster le prompt.
+
 Avant création, une fenêtre de validation affiche :
 
 - le titre importé ;

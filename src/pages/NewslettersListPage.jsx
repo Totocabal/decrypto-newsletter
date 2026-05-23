@@ -26,6 +26,7 @@ import {
   Hash,
   Minus,
   Palette,
+  AlertTriangle,
 } from "lucide-react";
 import { supabase } from "../lib/supabase.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
@@ -106,6 +107,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
   const [markdownBriefShowNumbers, setMarkdownBriefShowNumbers] = useState(false);
   const [markdownBriefShowSeparators, setMarkdownBriefShowSeparators] = useState(false);
   const [generatingMarkdownBrief, setGeneratingMarkdownBrief] = useState(false);
+  const [markdownGenerationLog, setMarkdownGenerationLog] = useState(null);
   const [markdownImportDraft, setMarkdownImportDraft] = useState(null);
 
   const load = useCallback(async () => {
@@ -267,6 +269,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
       setMarkdownImportSourceOpen(false);
       setPastedMarkdown("");
       setMarkdownBrief("");
+      setMarkdownGenerationLog(null);
     } catch (error) {
       addToast("Import Markdown impossible : " + (error.message || error), "error");
     } finally {
@@ -293,6 +296,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
     setMarkdownImportSourceOpen(false);
     setPastedMarkdown("");
     setMarkdownBrief("");
+    setMarkdownGenerationLog(null);
   };
 
   const handleGenerateMarkdownFromBrief = async () => {
@@ -303,6 +307,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
     }
 
     setGeneratingMarkdownBrief(true);
+    setMarkdownGenerationLog(null);
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.access_token) throw new Error("Session expirée. Reconnecte-toi pour utiliser Gemini.");
@@ -325,12 +330,31 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
         if (payload.markdown) setPastedMarkdown(payload.markdown);
+        setMarkdownGenerationLog({
+          error: payload.error || "Génération Markdown impossible.",
+          validationError: payload.validation_error || "",
+          traceId: payload.trace_id || "",
+          model: payload.model || "",
+          markdown: payload.markdown || "",
+          rawOutput: payload.raw_output || "",
+        });
         throw new Error(payload.error || "Génération Markdown impossible.");
       }
 
+      setMarkdownGenerationLog(null);
       setPastedMarkdown(payload.markdown);
       parseMarkdownImport(payload.markdown, "Brief généré avec Gemini");
     } catch (error) {
+      setMarkdownGenerationLog((current) =>
+        current || {
+          error: error.message || String(error),
+          validationError: "",
+          traceId: "",
+          model: "",
+          markdown: "",
+          rawOutput: "",
+        }
+      );
       addToast("Génération Markdown impossible : " + (error.message || error), "error");
     } finally {
       setGeneratingMarkdownBrief(false);
@@ -1231,6 +1255,51 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                     Générer et valider
                   </button>
                 </div>
+                {markdownGenerationLog && (
+                  <div className="mt-4 rounded-xl border border-[#FF4B28]/40 bg-[#FFF3EE] p-4 text-[#3A1A12]">
+                    <div className="mb-2 flex items-center gap-2">
+                      <AlertTriangle size={14} className="text-[#D93B19]" />
+                      <div className="text-sm font-semibold">Logs d'erreur du Markdown généré</div>
+                    </div>
+                    <div className="space-y-1 text-xs leading-relaxed">
+                      <p>{markdownGenerationLog.error}</p>
+                      {markdownGenerationLog.validationError && (
+                        <p>
+                          <span className="font-semibold">Validation :</span> {markdownGenerationLog.validationError}
+                        </p>
+                      )}
+                      {(markdownGenerationLog.traceId || markdownGenerationLog.model) && (
+                        <p className="font-mono text-[11px] text-[#7A3A28]">
+                          {markdownGenerationLog.traceId && `trace_id=${markdownGenerationLog.traceId}`}
+                          {markdownGenerationLog.traceId && markdownGenerationLog.model && " | "}
+                          {markdownGenerationLog.model && `model=${markdownGenerationLog.model}`}
+                        </p>
+                      )}
+                    </div>
+                    {markdownGenerationLog.markdown && (
+                      <div className="mt-3">
+                        <div className="mb-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#A5482D]">
+                          Markdown généré
+                        </div>
+                        <textarea
+                          readOnly
+                          value={markdownGenerationLog.markdown}
+                          className="max-h-72 min-h-40 w-full resize-y rounded-lg border border-[#FFB29D] bg-white px-3 py-3 font-mono text-[11px] leading-relaxed text-[#24100B] outline-none"
+                        />
+                      </div>
+                    )}
+                    {markdownGenerationLog.rawOutput && markdownGenerationLog.rawOutput !== markdownGenerationLog.markdown && (
+                      <details className="mt-3 rounded-lg border border-[#FFB29D] bg-white px-3 py-3">
+                        <summary className="cursor-pointer text-[10px] font-semibold uppercase tracking-[0.14em] text-[#A5482D]">
+                          Sortie brute Gemini
+                        </summary>
+                        <pre className="mt-2 max-h-56 overflow-auto whitespace-pre-wrap break-words font-mono text-[11px] leading-relaxed text-[#24100B]">
+                          {markdownGenerationLog.rawOutput}
+                        </pre>
+                      </details>
+                    )}
+                  </div>
+                )}
               </div>
               <label className="flex cursor-pointer items-center justify-between gap-4 rounded-xl border border-line bg-d-panel2 px-4 py-4 transition-colors hover:border-line2 has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-50">
                 <span className="flex min-w-0 items-center gap-3">

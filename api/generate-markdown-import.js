@@ -1,14 +1,22 @@
 import { createClient } from "@supabase/supabase-js";
+import { randomUUID } from "node:crypto";
 import { importNewsletterMarkdown } from "../src/utils/markdownImport.js";
 
 const GEMINI_MODEL = "gemini-3.1-flash-lite";
 const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 const MAX_BRIEF_CHARS = 60_000;
+const MAX_DEBUG_OUTPUT_CHARS = 20_000;
 
 function json(res, status, body) {
   res.statusCode = status;
   res.setHeader("Content-Type", "application/json");
   res.end(JSON.stringify(body));
+}
+
+function logGenerationIssue(type, payload) {
+  // Keep logs structured so Vercel/Supabase logs can be filtered by trace_id.
+  // eslint-disable-next-line no-console
+  console.error(`[generate-markdown-import] ${type}`, payload);
 }
 
 function getBearerToken(req) {
@@ -140,6 +148,7 @@ function normalizeOptions(options = {}) {
 }
 
 export default async function handler(req, res) {
+  const traceId = randomUUID();
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
@@ -170,19 +179,56 @@ export default async function handler(req, res) {
 
     if (!geminiRes.ok) {
       const err = await geminiRes.text();
-      return json(res, 502, { error: `Erreur Gemini (${geminiRes.status}) : ${err.slice(0, 200)}` });
+      logGenerationIssue("gemini_error", {
+        trace_id: traceId,
+        status: geminiRes.status,
+        body_preview: err.slice(0, 1000),
+      });
+      return json(res, 502, {
+        error: `Erreur Gemini (${geminiRes.status}) : ${err.slice(0, 200)}`,
+        trace_id: traceId,
+      });
     }
 
     const data = await geminiRes.json();
-    const markdown = cleanGeneratedMarkdown(data?.candidates?.[0]?.content?.parts?.[0]?.text);
-    if (!markdown) return json(res, 502, { error: "Gemini n'a pas retourné de Markdown." });
+    const rawOutput = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    const markdown = cleanGeneratedMarkdown(rawOutput);
+    if (!markdown) {
+      logGenerationIssue("empty_markdown", {
+        trace_id: traceId,
+        model: GEMINI_MODEL,
+        brief_length: brief.length,
+        raw_output_preview: String(rawOutput).slice(0, 1000),
+      });
+      return json(res, 502, {
+        error: "Gemini n'a pas retourné de Markdown.",
+        trace_id: traceId,
+        model: GEMINI_MODEL,
+        raw_output: String(rawOutput).slice(0, MAX_DEBUG_OUTPUT_CHARS),
+      });
+    }
 
     try {
       importNewsletterMarkdown(markdown);
     } catch (error) {
+      const validationError = error.message || String(error);
+      logGenerationIssue("invalid_markdown", {
+        trace_id: traceId,
+        model: GEMINI_MODEL,
+        options,
+        brief_length: brief.length,
+        validation_error: validationError,
+        markdown_preview: markdown.slice(0, 4000),
+        raw_output_preview: String(rawOutput).slice(0, 4000),
+      });
       return json(res, 422, {
-        error: `Markdown généré invalide : ${error.message}`,
+        error: `Markdown généré invalide : ${validationError}`,
+        validation_error: validationError,
         markdown,
+        raw_output: String(rawOutput).slice(0, MAX_DEBUG_OUTPUT_CHARS),
+        trace_id: traceId,
+        model: GEMINI_MODEL,
+        options,
       });
     }
 
