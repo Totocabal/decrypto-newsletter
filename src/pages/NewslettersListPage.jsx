@@ -456,6 +456,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
       setCrmBriefVariants({
         variants,
         fullContent: payload.content || "",
+        appendix: payload.appendix || "",
         traceId: payload.trace_id || "",
         model: payload.model || "",
         originalInput: input,
@@ -517,6 +518,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
         return {
           ...current,
           variants,
+          appendix: payload.appendix || current.appendix || "",
           traceId: payload.trace_id || current.traceId,
           model: payload.model || current.model,
         };
@@ -1795,6 +1797,16 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                   </div>
                 </div>
               ))}
+              {crmBriefVariants.appendix && (
+                <details className="rounded-xl border border-line bg-d-panel2 p-3 sm:p-4 lg:col-span-2 xl:col-span-3">
+                  <summary className="cursor-pointer text-[10px] font-semibold uppercase tracking-[0.18em] text-d-fg4 transition-colors hover:text-d-fg2">
+                    Informations de génération
+                  </summary>
+                  <div className="mt-3 max-h-72 overflow-auto rounded-lg border border-line bg-d-panel px-3 py-3 sm:px-4 sm:py-4">
+                    <CrmVariantPreview content={crmBriefVariants.appendix} />
+                  </div>
+                </details>
+              )}
             </div>
             <div className="flex flex-shrink-0 gap-2 border-t border-line px-4 py-3 sm:flex-row sm:justify-end sm:px-6 sm:py-4">
               <button

@@ -69,32 +69,44 @@ function cleanHeadingLabel(label = "") {
     .trim();
 }
 
+function splitCrmAppendix(content = "") {
+  const text = String(content || "").trim();
+  const match = text.match(/^##\s*(?:Tableau comparatif|Notes? de production)\b/im);
+  if (!match) return { main: text, appendix: "" };
+  return {
+    main: text.slice(0, match.index).trim(),
+    appendix: text.slice(match.index).trim(),
+  };
+}
+
 function splitVariants(content) {
   const text = String(content || "").trim();
   if (!text) return [];
+  const { main } = splitCrmAppendix(text);
+  const variantText = main || text;
 
-  const matches = [...text.matchAll(/^##\s*(?:Variante|Variant)\s+([^\n]+)$/gim)];
+  const matches = [...variantText.matchAll(/^##\s*(?:Variante|Variant)\s+([^\n]+)$/gim)];
   if (!matches.length) {
-    const numberedMatches = [...text.matchAll(/^(?:\*\*)?(?:Variante|Variant)\s+([0-9][^\n]*?)(?:\*\*)?\s*$/gim)];
-    if (!numberedMatches.length) return [{ id: "full", title: "Contenu généré", content: text }];
+    const numberedMatches = [...variantText.matchAll(/^(?:\*\*)?(?:Variante|Variant)\s+([0-9][^\n]*?)(?:\*\*)?\s*$/gim)];
+    if (!numberedMatches.length) return [{ id: "full", title: "Contenu généré", content: variantText }];
     return numberedMatches.map((match, index) => {
       const start = match.index;
-      const end = numberedMatches[index + 1]?.index ?? text.length;
+      const end = numberedMatches[index + 1]?.index ?? variantText.length;
       return {
         id: `variant-${index + 1}`,
         title: cleanHeadingLabel(match[0]),
-        content: text.slice(start, end).trim(),
+        content: variantText.slice(start, end).trim(),
       };
     });
   }
 
   return matches.map((match, index) => {
     const start = match.index;
-    const end = matches[index + 1]?.index ?? text.length;
+    const end = matches[index + 1]?.index ?? variantText.length;
     return {
       id: `variant-${index + 1}`,
       title: cleanHeadingLabel(match[0]),
-      content: text.slice(start, end).trim(),
+      content: variantText.slice(start, end).trim(),
     };
   });
 }
@@ -288,6 +300,8 @@ Pour chaque demande de copy, produis systématiquement :
 3. Tableau comparatif : Variante / Ton / Angle / Type de CTA / Usage recommandé
 4. Notes de production : variables Braze à confirmer, liens de destination CTA, points à soumettre à validation juridique, recommandation A/B avec métrique taux de clic
 
+Important : le tableau comparatif et les notes de production doivent être placés uniquement après toutes les variantes, dans des sections séparées "## Tableau comparatif" et "## Notes de production". Ne les inclus jamais dans le contenu d'une variante.
+
 Signale tout terme ambigu ou à risque réglementaire avec la mention "A VALIDER JURIDIQUEMENT".
 Ne génère pas de contenu hors du cadre CRM Coinhouse B2C particuliers.
 
@@ -378,10 +392,12 @@ export default async function handler(req, res) {
     const data = await geminiRes.json();
     const content = String(data?.candidates?.[0]?.content?.parts?.[0]?.text || "").trim();
     if (!content) return json(res, 502, { error: "Gemini n'a pas retourné de contenu.", trace_id: traceId });
+    const appendix = splitCrmAppendix(content).appendix;
 
     return json(res, 200, {
       content,
       variants: splitVariants(content),
+      appendix,
       trace_id: traceId,
       model: GEMINI_MODEL,
     });
