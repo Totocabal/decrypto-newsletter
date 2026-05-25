@@ -303,6 +303,42 @@ arrow: true
   assert.equal(cta.label, "Activer");
 });
 
+test("absorbs focus_text body into preceding focus_callout without body", () => {
+  const raw = `---
+title: "Callout body merge"
+preview_text: "Preview."
+---
+
+:::focus
+:::focus_callout
+label: "Ce qu'il faut retenir"
+:::
+:::focus_text
+- Un IBAN français à votre nom et gratuit
+- Moins de frais
+- Achats récurrents possibles
+:::
+:::focus_cta
+label: "Activer"
+url: "https://www.coinhouse.com/"
+arrow: true
+:::
+:::
+`;
+  const markdown = cleanGeneratedMarkdown(raw);
+  const imported = importNewsletterMarkdown(markdown);
+  const sections = imported.state.sections.filter((s) => s.type === "focus");
+
+  const callout = sections.flatMap((s) => s.data.items).find((i) => i.type === "callout");
+  const cta = sections.flatMap((s) => s.data.items).find((i) => i.type === "cta");
+
+  assert.ok(callout, "callout item should exist");
+  assert.equal(callout.label, "Ce qu'il faut retenir");
+  assert.match(callout.body, /IBAN/);
+  assert.ok(cta, "cta item should exist");
+  assert.equal(cta.label, "Activer");
+});
+
 test("moves focus callout markdown out of directive metadata", () => {
   const markdown = cleanGeneratedMarkdown(`---
 title: "Callout import"

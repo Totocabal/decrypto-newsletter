@@ -227,6 +227,58 @@ function repairBodyLinesInsideDirectives(markdown) {
   return repaired.join("\n");
 }
 
+function repairFocusCalloutBody(markdown) {
+  const lines = markdown.split(/\r?\n/);
+  const repaired = [];
+
+  for (let index = 0; index < lines.length; index += 1) {
+    const open = lines[index].match(/^:::focus_callout\s*$/i);
+    if (!open) {
+      repaired.push(lines[index]);
+      continue;
+    }
+
+    const calloutCloseIndex = lines.findIndex((line, i) => i > index && line.trim() === ":::");
+    if (calloutCloseIndex === -1) {
+      repaired.push(lines[index]);
+      continue;
+    }
+
+    // Find the first non-blank content after the close
+    let afterClose = calloutCloseIndex + 1;
+    while (afterClose < lines.length && !lines[afterClose].trim()) afterClose += 1;
+    const nextLine = lines[afterClose]?.trim() || "";
+
+    // If there's already body text (not a directive), nothing to fix
+    if (nextLine && !/^:::([a-z_][a-z0-9_]*)\s*$/i.test(nextLine) && nextLine !== ":::") {
+      repaired.push(...lines.slice(index, calloutCloseIndex + 1));
+      index = calloutCloseIndex;
+      continue;
+    }
+
+    // If the next directive is :::focus_text, absorb its body as the callout body
+    if (!/^:::focus_text\s*$/i.test(nextLine)) {
+      repaired.push(...lines.slice(index, calloutCloseIndex + 1));
+      index = calloutCloseIndex;
+      continue;
+    }
+
+    const focusTextOpen = afterClose;
+    const focusTextClose = lines.findIndex((line, i) => i > focusTextOpen && line.trim() === ":::");
+    if (focusTextClose === -1) {
+      repaired.push(...lines.slice(index, calloutCloseIndex + 1));
+      index = calloutCloseIndex;
+      continue;
+    }
+
+    repaired.push(...lines.slice(index, calloutCloseIndex + 1));
+    repaired.push(...lines.slice(focusTextOpen + 1, focusTextClose));
+    index = focusTextClose;
+  }
+
+  return repaired.join("\n");
+}
+
 function repairIncompletePipeItems(markdown) {
   const lines = markdown.split(/\r?\n/);
   const repaired = [];
@@ -449,6 +501,7 @@ export function cleanGeneratedMarkdown(text = "") {
   markdown = markdown.replace(DIRECTIVE_LINE_FIX_RE, ":::$1");
   markdown = repairNestedFocusContent(markdown);
   markdown = repairBodyLinesInsideDirectives(markdown);
+  markdown = repairFocusCalloutBody(markdown);
   markdown = repairIncompletePipeItems(markdown);
   markdown = wrapOrphanFocusItems(markdown);
   markdown = closeTrailingMetadataDirective(markdown);
