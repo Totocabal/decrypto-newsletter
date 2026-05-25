@@ -270,6 +270,26 @@ arrow: true
   assert.equal(imported.state.sections[1].data.items[0].label, "Activer mon compte euro");
 });
 
+test("moves focus callout markdown out of directive metadata", () => {
+  const markdown = cleanGeneratedMarkdown(`---
+title: "Callout import"
+preview_text: "Preview."
+---
+
+:::focus_callout
+label: "À retenir"
+#03FFCF
+Un IBAN français à votre nom, gratuit et sécurisé.
+:::
+`);
+  const imported = importNewsletterMarkdown(markdown);
+  const [focus] = imported.state.sections;
+
+  assert.equal(focus.type, "focus");
+  assert.equal(focus.data.items[0].type, "callout");
+  assert.equal(focus.data.items[0].body, "#03FFCF\nUn IBAN français à votre nom, gratuit et sécurisé.");
+});
+
 test("imports simple Markdown into newsletter sections", () => {
   const imported = importNewsletterMarkdown(`---
 title: "Weekly import"

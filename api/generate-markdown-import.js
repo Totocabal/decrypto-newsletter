@@ -139,7 +139,7 @@ function repairBodyLinesInsideDirectives(markdown) {
     let foundBody = false;
     lines.slice(index + 1, closeIndex).forEach((line) => {
       const trimmed = line.trim();
-      const isMetadataLine = !trimmed || trimmed.startsWith("#") || SCALAR_FIELD_RE.test(line);
+      const isMetadataLine = !trimmed || SCALAR_FIELD_RE.test(line);
       if (!foundBody && isMetadataLine) {
         metadataLines.push(line);
         return;
