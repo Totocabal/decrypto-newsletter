@@ -405,7 +405,7 @@ kicker: "EN 3 ETAPES"
 - feature_grid_featured doit suivre directement :::feature_grid.
 - editorial_list utilise exactement : - tag | title | body obligatoire | tag_color optionnel. Les 3 colonnes tag, title et body ne doivent jamais être vides.
 - Dans editorial_list, la couleur hexadecimale est uniquement la 4e colonne tag_color. Ne mets jamais #03FFCF, #FF8B28, #B36BFF ou #00FFFF dans la colonne body, sinon elle sera affichee comme texte.
-- feature_grid utilise exactement : - title | body obligatoire | picto | color. Les 4 colonnes doivent être présentes. Picto par défaut si incertain : target. Couleurs par défaut : #03FFCF, #FF8B28, #B36BFF, #00FFFF.
+- feature_grid utilise exactement : - title | body obligatoire | picto | color. Les 4 colonnes doivent être présentes pour chaque carte. Picto par défaut si incertain : target. Couleurs par défaut : #03FFCF, #FF8B28, #B36BFF, #00FFFF. Si le brief contient seulement 3 fonctionnalités ou bénéfices, génère exactement 3 lignes, pas une 4e carte inventée.
 - signals direction : up ou down uniquement.
 - divider.style : thin, thick ou gradient uniquement.
 - chart_currency : eur ou usd uniquement. chart_days : 7 ou 30 uniquement.
@@ -417,7 +417,7 @@ Mapping recommandé :
 - Accroche intro + salutation : text_block.
 - N'utilise hero que pour les mails éditoriaux ou newsletters de marché. Pour un email CRM transactionnel, onboarding, activation, upsell ou relance, commence par text_block.
 - Listes à puces, étapes, bénéfices, arguments produit ou points pédagogiques : privilégier editorial_list dès qu'il y a 2 à 4 items.
-- Comparaison d'offres, grille d'avantages ou fonctionnalités parallèles : utiliser feature_grid seulement si chaque carte a un titre et un corps explicatif.
+- Comparaison d'offres, grille d'avantages ou fonctionnalités parallèles : utiliser feature_grid seulement si chaque carte a un titre et un corps explicatif. Le bloc est pertinent dès 3 cartes ; ne complète jamais artificiellement à 4 cartes.
 - Citation explicite attribuée à une personne : utiliser macro avec quote et quote_author. Exemple : "Citation de Nicolas Louvet, CEO : ..." devient :::macro avec quote_author: "Nicolas Louvet, CEO". Ce bloc est autorisé pour une prise de parole corporate, pas seulement pour la macroéconomie.
 - Utilise commented_number uniquement si le brief contient explicitement "Chiffre clé :" ou si un nombre est clairement le message central d'une section. Ne transforme pas automatiquement chaque prix, plafond, pourcentage ou durée en chiffre commenté.
 - Si le brief contient "Chiffre clé :", crée obligatoirement un bloc commented_number avec value, unit, caption, title et un court commentaire.

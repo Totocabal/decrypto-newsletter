@@ -834,11 +834,11 @@ function renderFeatureGrid(data, number, assetMode, anchor = "", isLastSection =
       </tr>
     </table>
     <!--[if mso]></v:textbox></v:rect><![endif]-->`;
-  const cell = (item, index, side, isBottom) => {
+  const cell = (item, index, side, isBottom, width = "50%") => {
     const color = item.color || DEFAULT_CALLOUT_COLOR;
-    const sidePadding = side === "left" ? "padding-right:6px;" : "padding-left:6px;";
+    const sidePadding = side === "single" ? "" : side === "left" ? "padding-right:6px;" : "padding-left:6px;";
     const bottomPadding = isBottom ? "" : "padding-bottom:12px;";
-    return `<td class="em-feature-cell" valign="top" width="50%" style="${sidePadding} ${bottomPadding}">
+    return `<td class="em-feature-cell" valign="top" width="${width}" style="${sidePadding} ${bottomPadding}">
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${cardBg}" style="background-color:${cardBg}; border:1px solid ${cardBorder}; border-radius:14px; height:100%; border-collapse:separate !important; border-spacing:0 !important; overflow:hidden;">
         <tr><td style="padding:18px; border-radius:14px;">
           <div style="margin-bottom:10px;">${renderPictoBadge(item.picto, color, 14, assetMode)}</div>
@@ -848,10 +848,16 @@ function renderFeatureGrid(data, number, assetMode, anchor = "", isLastSection =
       </table>
     </td>`;
   };
-  const rows = [0, 2].map((start) => `<tr>
-    ${cell(items[start] || {}, start, "left", start === 2)}
-    ${cell(items[start + 1] || {}, start + 1, "right", start === 2)}
-  </tr>`).join("");
+  const rows = [];
+  for (let index = 0; index < items.length; index += 2) {
+    const isLastRow = index + 2 >= items.length;
+    const left = items[index];
+    const right = items[index + 1];
+    rows.push(`<tr>
+      ${cell(left, index, right ? "left" : "single", isLastRow, right ? "50%" : "100%")}
+      ${right ? cell(right, index + 1, "right", isLastRow, "50%") : ""}
+    </tr>`);
+  }
 
   return `
     <tr>

@@ -13,6 +13,7 @@ import {
   extractEmailSubject,
 } from "../../api/generate-markdown-import.js";
 import { importFromBody, parseRequestBody } from "../../api/import-markdown.js";
+import { buildEmailHtml } from "../render/buildEmail.js";
 
 test("imports the complete Markdown example", () => {
   const example = readFileSync(
@@ -531,4 +532,28 @@ Security and clarity stay together.
   assert.equal(featureGrid.data.featured.body, "Security and clarity stay together.");
   assert.equal(featureGrid.data.items[0].picto, "euro");
   assert.equal(featureGrid.data.items[1].color, "#FF8B28");
+});
+
+test("renders feature grid with exactly three secondary cards", () => {
+  const imported = importNewsletterMarkdown(`---
+title: "Three benefits"
+preview_text: "Benefits."
+---
+
+:::feature_grid
+kicker: "Benefits"
+:::
+
+- First | First body. | euro | #00FFFF
+- Second | Second body. | pin | #FF8B28
+- Third | Third body. | shield | #03FFCF
+`);
+  const html = buildEmailHtml(imported.state);
+
+  assert.equal(imported.state.sections[0].data.items.length, 3);
+  assert.match(html, /First body\./);
+  assert.match(html, /Second body\./);
+  assert.match(html, /Third body\./);
+  assert.doesNotMatch(html, /undefined/);
+  assert.doesNotMatch(html, /<td class="em-feature-cell"[^>]*>\s*<table[\s\S]*?<div style="margin-bottom:10px;">[\s\S]*?<p style="margin:0 0 4px;[^>]*"><\/p>/);
 });

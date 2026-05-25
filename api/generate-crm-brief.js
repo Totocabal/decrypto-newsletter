@@ -244,7 +244,7 @@ Blocs disponibles et usages recommandés :
 - focus : encadré central pour une idée clé, une offre, une recommandation ou un message à retenir.
 - focus_callout : point d'attention, à retenir, preuve, rappel réglementaire ou élément de réassurance.
 - focus_cta : CTA principal ou secondaire.
-- feature_grid : comparaison de fonctionnalités, avantages d'une offre, différences entre Classique / Investisseur / Gestion Privée.
+- feature_grid : comparaison de fonctionnalités, grille de bénéfices ou avantages d'une offre, différences entre Classique / Investisseur / Gestion Privée. Utilisable dès 3 fonctionnalités/bénéfices structurés ; ne crée pas de 4e carte si seulement 3 éléments sont présents.
 - feature_grid_featured : carte mise en avant pour l'offre ou le bénéfice prioritaire.
 - commented_number : chiffre fort avec commentaire. À utiliser seulement quand le brief place explicitement un nombre au centre du message ou quand la variante repose principalement sur une preuve chiffrée unique. Si le nombre est seulement une information de prix, plafond, durée ou détail produit parmi d'autres, garde-le dans un text_block, editorial_list ou feature_grid.
 - event : rendez-vous, webinar, échéance, session d'accompagnement ou temps fort daté.

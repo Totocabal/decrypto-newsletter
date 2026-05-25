@@ -586,7 +586,8 @@ Chaque carte secondaire contient :
 Regles :
 
 - `feature_grid` exige au moins une carte secondaire ;
-- seules les quatre premieres cartes secondaires sont rendues ;
+- jusqu'a quatre cartes secondaires sont rendues. Trois cartes sont valides et
+  ne doivent pas etre completees artificiellement par une quatrieme carte ;
 - `bg_image_url`, si renseigne, doit etre `http` ou `https` ;
 - `feature_grid_featured` doit suivre son `feature_grid` ;
 - `feature_grid_featured.title` est obligatoire ;
