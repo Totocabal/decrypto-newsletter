@@ -598,6 +598,35 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
     }
   };
 
+  const formatMarkdownGenerationLog = (log) => {
+    if (!log) return "";
+    return [
+      "Logs d'erreur du Markdown généré",
+      "",
+      `Erreur: ${log.error || ""}`,
+      log.validationError ? `Validation: ${log.validationError}` : "",
+      log.traceId || log.model
+        ? `Trace: ${[
+            log.traceId ? `trace_id=${log.traceId}` : "",
+            log.model ? `model=${log.model}` : "",
+          ].filter(Boolean).join(" | ")}`
+        : "",
+      log.markdown ? "\n--- Markdown généré ---\n" + log.markdown : "",
+      log.rawOutput && log.rawOutput !== log.markdown ? "\n--- Sortie brute Gemini ---\n" + log.rawOutput : "",
+    ].filter(Boolean).join("\n");
+  };
+
+  const handleCopyMarkdownGenerationLog = async () => {
+    const text = formatMarkdownGenerationLog(markdownGenerationLog);
+    if (!text) return;
+    try {
+      await navigator.clipboard.writeText(text);
+      addToast("Logs d'erreur copiés.", "success");
+    } catch {
+      addToast("Copie impossible depuis ce navigateur.", "error");
+    }
+  };
+
   const updateMarkdownImportState = (patch) =>
     setMarkdownImportDraft((draft) =>
       draft
@@ -1527,9 +1556,19 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                 </div>
                 {markdownGenerationLog && (
                   <div className="mt-4 rounded-xl border border-[#FF4B28]/40 bg-[#FFF3EE] p-4 text-[#3A1A12]">
-                    <div className="mb-2 flex items-center gap-2">
-                      <AlertTriangle size={14} className="text-[#D93B19]" />
-                      <div className="text-sm font-semibold">Logs d'erreur du Markdown généré</div>
+                    <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <AlertTriangle size={14} className="text-[#D93B19]" />
+                        <div className="text-sm font-semibold">Logs d'erreur du Markdown généré</div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleCopyMarkdownGenerationLog}
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-[#FFB29D] bg-white px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#A5482D] transition-colors hover:border-[#FF8A6D] hover:text-[#7A3A28]"
+                      >
+                        <Copy size={12} />
+                        Copier les logs
+                      </button>
                     </div>
                     <div className="space-y-1 text-xs leading-relaxed">
                       <p>{markdownGenerationLog.error}</p>
