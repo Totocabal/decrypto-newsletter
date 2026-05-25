@@ -270,7 +270,7 @@ arrow: true
   assert.equal(imported.state.sections[1].data.items[0].label, "Activer mon compte euro");
 });
 
-test("tool normalizes text CTA text into a single focus when trailing text has no title", () => {
+test("tool keeps text CTA text as separate sections", () => {
   const markdown = `---
 title: "Text CTA text"
 preview_text: "Preview."
@@ -293,52 +293,14 @@ arrow: true
 Notre équipe reste disponible pour vous accompagner.
 `;
   const imported = importNewsletterMarkdown(markdown);
-  const [focus] = imported.state.sections;
-
-  assert.equal(focus.type, "focus");
-  assert.deepEqual(
-    focus.data.items.map((item) => item.type),
-    ["text", "cta", "text"]
-  );
-  assert.match(focus.data.items[0].body, /compte euro/);
-  assert.equal(focus.data.items[1].label, "Activer mon compte");
-  assert.match(focus.data.items[2].body, /équipe/);
-});
-
-test("tool keeps titled trailing text separate after a CTA", () => {
-  const markdown = `---
-title: "Text CTA titled text"
-preview_text: "Preview."
----
-
-:::text_block
-:::
-
-Votre compte euro est disponible dès maintenant.
-
-:::focus_cta
-label: "Activer mon compte"
-url: "https://www.coinhouse.com/"
-arrow: true
-:::
-
-:::text_block
-title: "Besoin d'aide ?"
-:::
-
-Notre équipe reste disponible pour vous accompagner.
-`;
-  const imported = importNewsletterMarkdown(markdown);
 
   assert.deepEqual(
     imported.state.sections.map((section) => section.type),
-    ["focus", "text_block"]
+    ["text_block", "focus", "text_block"]
   );
-  assert.deepEqual(
-    imported.state.sections[0].data.items.map((item) => item.type),
-    ["text", "cta"]
-  );
-  assert.equal(imported.state.sections[1].data.title, "Besoin d'aide ?");
+  assert.match(imported.state.sections[0].data.body, /compte euro/);
+  assert.equal(imported.state.sections[1].data.items[0].label, "Activer mon compte");
+  assert.match(imported.state.sections[2].data.body, /équipe/);
 });
 
 test("flattens Gemini nested focus items inside a focus block", () => {
