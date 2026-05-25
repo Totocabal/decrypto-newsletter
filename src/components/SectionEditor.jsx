@@ -3,12 +3,13 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState } from "react";
-import { Plus, Trash2, ChevronUp, ChevronDown, CopyPlus, Upload, Loader2, X, RefreshCw } from "lucide-react";
+import { Plus, Trash2, ChevronUp, ChevronDown, CopyPlus, Upload, Loader2, X, RefreshCw, Sparkles } from "lucide-react";
 import { useCoinGecko, CRYPTO_CONFIG } from "../lib/useCoinGecko.js";
 import { UNNUMBERED_TYPES } from "../config/schema.js";
 import { Field, Input, TextArea } from "./FormControls.jsx";
 import { MAX_IMAGE_FILE_SIZE_LABEL } from "../lib/imageUpload.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
+import { supabase } from "../lib/supabase.js";
 import { ImageManagerModal } from "./ImageManagerModal.jsx";
 import { Tooltip } from "./Tooltip.jsx";
 import { CALLOUT_PICTOS, CALLOUT_PICTOS_MAP, DEFAULT_PICTO_ID, CALLOUT_COLORS, DEFAULT_CALLOUT_COLOR, hexToRgb, buildPictoSvgHtml } from "../config/calloutPictos.js";
@@ -149,9 +150,32 @@ function ChipEditor({ chip, onChange, onDelete, sections }) {
 
 function HeroEditor({ data, set, sections }) {
   const chips = data.chips || [];
+  const [generatingSubtitle, setGeneratingSubtitle] = useState(false);
 
   const updateChip = (i, next) =>
     set({ chips: chips.map((x, idx) => (idx === i ? next : x)) });
+
+  const handleGenerateSubtitle = async () => {
+    setGeneratingSubtitle(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      const res = await fetch("/api/generate-hero-subtitle", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ state: { sections } }),
+      });
+      const json = await res.json();
+      if (json.subtitle) set({ subtitle: json.subtitle });
+    } catch {
+      // silently ignore
+    } finally {
+      setGeneratingSubtitle(false);
+    }
+  };
 
   return (
     <>
@@ -179,6 +203,17 @@ function HeroEditor({ data, set, sections }) {
           value={data.subtitle}
           onChange={(e) => set({ subtitle: e.target.value })}
         />
+        <button
+          type="button"
+          onClick={handleGenerateSubtitle}
+          disabled={generatingSubtitle}
+          className="mt-1.5 flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-line text-[10px] uppercase tracking-[0.18em] text-d-fg3 hover:text-d-pink hover:border-d-pink/40 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {generatingSubtitle
+            ? <Loader2 size={11} className="animate-spin" />
+            : <Sparkles size={11} />}
+          Générer
+        </button>
       </Field>
 
       <div className="text-[10px] uppercase tracking-[0.18em] font-semibold text-d-fg3 mb-2 mt-2">

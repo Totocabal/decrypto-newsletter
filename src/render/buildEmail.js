@@ -458,16 +458,10 @@ function renderHero(data, isLastSection = false) {
       : `<p style="margin:0 0 28px; font-family:${FONTS.body}; font-size:11px; letter-spacing:0.2em; color:${EMAIL_THEME.accentPrimary}; font-weight:600; text-transform:uppercase;">${escapeHtml(kickerText)}</p>`
     : "";
   const chips = (data.chips || []).map((c, i, arr) => {
-    let labelHtml;
-    if (c.type === "fear_greed" && c.label.includes(" · ")) {
-      const [p1, p2] = c.label.split(" · ");
-      labelHtml = `${escapeHtml(p1)}<br />${escapeHtml(p2)}`;
-    } else {
-      const sp = c.label.indexOf(" ");
-      labelHtml = sp > -1
-        ? `${escapeHtml(c.label.slice(0, sp))}<br />${escapeHtml(c.label.slice(sp + 1))}`
-        : escapeHtml(c.label);
-    }
+    const sp = c.label.indexOf(" ");
+    const labelHtml = sp > -1
+      ? `${escapeHtml(c.label.slice(0, sp))}<br />${escapeHtml(c.label.slice(sp + 1))}`
+      : escapeHtml(c.label);
     return `
     <td style="${i < arr.length - 1 ? "padding-right:8px;" : ""}">
       <table role="presentation" cellpadding="0" cellspacing="0" border="0">

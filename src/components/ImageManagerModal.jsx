@@ -459,7 +459,7 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, onSelectMany
                 <button
                   type="button"
                   onClick={() => selectImage(image)}
-                  className="flex-1 px-3 py-2 rounded-lg border border-line text-[10px] uppercase tracking-[0.18em] text-d-fg2 hover:text-d-fg hover:border-line2 transition-colors"
+                  className="flex-1 px-3 py-2 rounded-lg border border-line text-[10px] uppercase tracking-[0.18em] text-d-fg hover:border-line2 transition-colors"
                 >
                   {multiSelect ? (checked ? "Retirer" : "Ajouter") : "Sélectionner"}
                 </button>
@@ -570,7 +570,7 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, onSelectMany
             <button
               type="button"
               onClick={() => selectImage(image)}
-              className="px-3 py-2 rounded-lg border border-line text-[10px] uppercase tracking-[0.18em] text-d-fg2 hover:text-d-fg hover:border-line2 transition-colors"
+              className="px-3 py-2 rounded-lg border border-line text-[10px] uppercase tracking-[0.18em] text-d-fg hover:border-line2 transition-colors"
             >
               Sélectionner
             </button>
