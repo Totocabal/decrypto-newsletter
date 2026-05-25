@@ -163,11 +163,6 @@ function repairNestedFocusContent(markdown) {
       }
     }
 
-    if (realCloseIndex === -1) {
-      repaired.push(lines[index]);
-      continue;
-    }
-
     // Collect scalar metadata fields that appear before the first nested directive
     const metaLines = [];
     for (let i = index + 1; i < firstNonScalar; i += 1) {
@@ -176,6 +171,10 @@ function repairNestedFocusContent(markdown) {
 
     // Emit :::focus with its metadata and an immediate close, then flatten nested content
     repaired.push(lines[index], ...metaLines, ":::");
+    if (realCloseIndex === -1) {
+      repaired.push(...lines.slice(firstNonScalar));
+      break;
+    }
     repaired.push(...lines.slice(firstNonScalar, realCloseIndex));
     index = realCloseIndex;
   }
@@ -407,18 +406,23 @@ function repairFocusCtaLabels(markdown) {
 function wrapOrphanFocusItems(markdown) {
   const lines = String(markdown || "").split(/\r?\n/);
   const repaired = [];
-  let lastDirectiveType = "";
+  let inFocusGroup = false;
 
   lines.forEach((line) => {
     const open = line.trim().match(/^:::([a-z_][a-z0-9_]*)$/i);
     if (open) {
       const type = open[1];
-      if (FOCUS_ITEM_TYPES.has(type) && lastDirectiveType !== "focus") {
-        repaired.push(":::focus", ":::", "");
-        lastDirectiveType = "focus";
+      if (type === "focus") {
+        inFocusGroup = true;
+      } else if (FOCUS_ITEM_TYPES.has(type)) {
+        if (!inFocusGroup) {
+          repaired.push(":::focus", ":::", "");
+          inFocusGroup = true;
+        }
+      } else {
+        inFocusGroup = false;
       }
       repaired.push(line);
-      lastDirectiveType = type;
       return;
     }
     repaired.push(line);
@@ -549,7 +553,7 @@ kicker: "EN 3 ETAPES"
 :::
 
 - 01 | Alimentez votre compte | Par virement SEPA ou carte de paiement. | #03FFCF
-- focus_cta, focus_callout, focus_image, focus_text et focus_spacer doivent toujours suivre directement une directive :::focus. Si un CTA suit une liste ou un text_block, ouvre d'abord un nouveau bloc :::focus puis ferme-le avec ::: avant :::focus_cta.
+- focus_cta, focus_callout, focus_image, focus_text et focus_spacer sont des sous-blocs de focus. Pour les utiliser, écris d'abord :::focus puis ::: sur la ligne suivante, puis enchaîne les sous-blocs focus_* juste après. N'imbrique jamais un sous-bloc à l'intérieur des lignes de métadonnées de :::focus.
 - focus_cta exige toujours label. Si le CTA source est entre crochets, ce texte devient label. Si aucun libellé n'est disponible, utilise label: "Découvrir".
 - hero_chips doit suivre directement :::hero.
 - edito_kpis doit suivre directement le corps de :::edito.
@@ -579,6 +583,23 @@ Mapping recommandé :
 - Utiliser text_block avec liste Markdown seulement si les puces sont très courtes, non éditorialisables, ou s'il y a plus de 4 items.
 - CTA principal : focus + focus_cta avec arrow: true.
 - Texte + CTA + texte : privilégier obligatoirement un seul focus, avec focus_text pour le texte avant le CTA, focus_cta pour le bouton, puis focus_text pour le texte après le CTA. Ne crée pas text_block + focus_cta + text_block.
+- Format correct pour texte + CTA + texte :
+:::focus
+:::
+
+:::focus_text
+:::
+Texte avant le CTA.
+
+:::focus_cta
+label: "Libellé CTA"
+url: "https://www.coinhouse.com/"
+arrow: true
+:::
+
+:::focus_text
+:::
+Texte après le CTA.
 - Enchaînement texte court + CTA, texte + image + CTA, image + texte + CTA, callout + CTA, ou recommandation + action : regrouper dans un seul focus avec focus_text, focus_callout, focus_image et focus_cta selon le contenu. Ne crée pas un text_block séparé suivi d'un focus_cta.
 - Ne crée pas de bloc "INFORMATION LÉGALE", "Avertissement" ou disclaimer, sauf si le brief le demande explicitement. Le footer légal est déjà inclus par défaut dans tous les templates.
 - Séparateur visuel : divider style gradient ou thin.
@@ -605,7 +626,7 @@ Corrige le fichier pour qu'il passe la validation. Règles obligatoires :
 - Chaque directive ouverte :::type se ferme par une ligne ::: seule sur sa propre ligne.
 - Le corps Markdown d'une directive (focus_callout, focus_text, edito, text_block, macro, fear_greed, commented_number, signals, editorial_list, macro_bars, feature_grid, feature_grid_featured) se place APRÈS la ligne ::: de fermeture, jamais entre l'ouverture et la fermeture.
 - focus_callout et focus_text exigent un corps non vide après leur :::.
-- focus_cta, focus_callout, focus_image, focus_text et focus_spacer doivent toujours suivre directement une directive :::focus.
+- focus_cta, focus_callout, focus_image, focus_text et focus_spacer doivent appartenir à un bloc focus : écris :::focus puis ::: avant le premier sous-bloc focus_*, puis enchaîne les sous-blocs focus_*.
 - focus_cta exige toujours label.
 - Dans editorial_list : chaque ligne contient exactement - tag | title | body | couleur_optionnelle. Les colonnes tag, title et body ne peuvent jamais être vides. La couleur hexadécimale (#03FFCF...) est uniquement la 4e colonne, jamais dans body.
 - N'invente pas de contenu. Restructure uniquement.

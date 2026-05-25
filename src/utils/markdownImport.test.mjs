@@ -303,6 +303,41 @@ arrow: true
   assert.equal(cta.label, "Activer");
 });
 
+test("flattens Gemini nested focus items without outer focus close", () => {
+  const raw = `---
+title: "Nested focus without outer close"
+preview_text: "Preview."
+---
+
+:::focus
+:::focus_text
+:::
+Votre compte euro est disponible.
+
+:::focus_cta
+label: "Activer"
+url: "https://www.coinhouse.com/"
+arrow: true
+:::
+
+:::focus_text
+:::
+Notre équipe reste disponible pour vous accompagner.
+`;
+  const markdown = cleanGeneratedMarkdown(raw);
+  const imported = importNewsletterMarkdown(markdown);
+  const [focus] = imported.state.sections;
+
+  assert.equal(focus.type, "focus");
+  assert.deepEqual(
+    focus.data.items.map((item) => item.type),
+    ["text", "cta", "text"]
+  );
+  assert.match(focus.data.items[0].body, /compte euro/);
+  assert.equal(focus.data.items[1].label, "Activer");
+  assert.match(focus.data.items[2].body, /équipe/);
+});
+
 test("absorbs focus_text body into preceding focus_callout without body", () => {
   const raw = `---
 title: "Callout body merge"
