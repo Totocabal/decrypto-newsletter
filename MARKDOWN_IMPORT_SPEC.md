@@ -489,6 +489,11 @@ Texte d'ouverture du focus.
 Des sous-directives `focus_*` placees juste apres ce focus ajoutent des items
 dans l'ordre :
 
+Pour la generation depuis un brief libre, privilegier `focus` quand une meme
+sequence contient une accroche ou recommandation courte puis une action :
+texte + CTA, texte + image + CTA, callout + CTA, ou recommandation + CTA.
+Eviter de separer ce parcours en `text_block` puis CTA isole.
+
 | Sous-directive | Champs / corps |
 | --- | --- |
 | `focus_text` | corps Markdown |
