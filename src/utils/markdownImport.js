@@ -750,7 +750,14 @@ function sectionsFromTokens(tokens, warnings) {
     }
 
     if (FOCUS_ITEM_TYPES.has(token.type)) {
-      throw new MarkdownImportError(`Directive :::${token.type} doit suivre une directive :::focus.`);
+      const bodyToken = BODY_DIRECTIVE_TYPES.has(token.type) && tokens[index + 1]?.kind === "markdown"
+        ? tokens[index + 1]
+        : null;
+      sections.push(createSection("focus", {
+        items: [focusItemFromDirective(token, bodyToken?.text || "")],
+      }));
+      if (bodyToken) index += 1;
+      continue;
     }
     if (HERO_CHILD_TYPES.has(token.type)) {
       throw new MarkdownImportError(`Directive :::${token.type} doit suivre une directive :::hero.`);
@@ -773,6 +780,97 @@ function sectionsFromTokens(tokens, warnings) {
   return sections;
 }
 
+function hasText(value) {
+  return String(value || "").trim().length > 0;
+}
+
+function isTextBlock(section) {
+  return section?.type === "text_block";
+}
+
+function isPlainTrailingTextBlock(section) {
+  if (!isTextBlock(section)) return false;
+  const data = section.data || {};
+  return hasText(data.body)
+    && !hasText(data.kicker)
+    && !hasText(data.title)
+    && !hasText(data.cta_label)
+    && !hasText(data.cta_url);
+}
+
+function isFocusWithOnlyCta(section) {
+  return section?.type === "focus"
+    && Array.isArray(section.data?.items)
+    && section.data.items.length === 1
+    && section.data.items[0]?.type === "cta";
+}
+
+function focusTextFromTextBlock(section) {
+  const data = section?.data || {};
+  return hasText(data.body)
+    ? { id: importId("focus"), type: "text", body: data.body }
+    : null;
+}
+
+function focusFromTextBlockAndCta(textSection, ctaSection, trailingTextSection = null) {
+  const textData = textSection?.data || {};
+  const items = [
+    focusTextFromTextBlock(textSection),
+    ...(ctaSection.data?.items || []),
+    trailingTextSection ? focusTextFromTextBlock(trailingTextSection) : null,
+  ].filter(Boolean);
+
+  return createSection("focus", {
+    kicker: textData.kicker || "",
+    title: textData.title || "",
+    items,
+  });
+}
+
+function normalizeTextCtaTextFocus(sections) {
+  const normalized = [];
+
+  for (let index = 0; index < sections.length; index += 1) {
+    const current = sections[index];
+    const next = sections[index + 1];
+    const afterNext = sections[index + 2];
+
+    if (isTextBlock(current) && isFocusWithOnlyCta(next)) {
+      const shouldAbsorbTrailingText = isPlainTrailingTextBlock(afterNext);
+      normalized.push(focusFromTextBlockAndCta(
+        current,
+        next,
+        shouldAbsorbTrailingText ? afterNext : null
+      ));
+      index += shouldAbsorbTrailingText ? 2 : 1;
+      continue;
+    }
+
+    if (
+      current?.type === "focus"
+      && current.data?.items?.at(-1)?.type === "cta"
+      && isPlainTrailingTextBlock(next)
+    ) {
+      normalized.push({
+        ...current,
+        data: {
+          ...current.data,
+          items: [
+            ...current.data.items,
+            focusTextFromTextBlock(next),
+          ].filter(Boolean),
+        },
+      });
+      index += 1;
+      continue;
+    }
+
+    normalized.push(current);
+  }
+
+  return normalized;
+}
+
 function validateGlobalMeta(meta, warnings) {
   if (!String(meta.title || "").trim()) {
     throw new MarkdownImportError('Front matter: "title" est obligatoire.');
@@ -789,7 +887,7 @@ export function importNewsletterMarkdown(markdown) {
   validateGlobalMeta(meta, warnings);
 
   const sections = populateImportedIndexes(
-    sectionsFromTokens(extractDirectives(content, warnings), warnings)
+    normalizeTextCtaTextFocus(sectionsFromTokens(extractDirectives(content, warnings), warnings))
   );
   if (!sections.length) {
     throw new MarkdownImportError("Aucune section importable trouvée dans le Markdown.");
