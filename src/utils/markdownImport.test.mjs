@@ -241,6 +241,35 @@ arrow: true
   assert.equal(focus.data.items[0].label, "Découvrir notre engagement");
 });
 
+test("wraps orphan Gemini focus CTA directives", () => {
+  const markdown = cleanGeneratedMarkdown(`---
+title: "CTA import"
+preview_text: "Preview."
+---
+
+:::editorial_list
+:::
+
+- IBAN | Compte à votre nom | Un IBAN français gratuit et sécurisé. | #03FFCF
+- Économies | Frais réduits | Moins de frais que sur vos achats par carte de paiement. | #FF8B28
+- Automation | Achats récurrents | Programmez vos investissements sans y penser. | #B36BFF
+
+:::focus_cta
+label: "Activer mon compte euro"
+url: "https://www.coinhouse.com/"
+arrow: true
+:::
+`);
+  const imported = importNewsletterMarkdown(markdown);
+
+  assert.deepEqual(
+    imported.state.sections.map((section) => section.type),
+    ["editorial_list", "focus"]
+  );
+  assert.equal(imported.state.sections[1].data.items[0].type, "cta");
+  assert.equal(imported.state.sections[1].data.items[0].label, "Activer mon compte euro");
+});
+
 test("imports simple Markdown into newsletter sections", () => {
   const imported = importNewsletterMarkdown(`---
 title: "Weekly import"

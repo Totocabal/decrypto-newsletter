@@ -48,6 +48,13 @@ const BODY_DIRECTIVE_TYPES = new Set([
   "feature_grid",
   "feature_grid_featured",
 ]);
+const FOCUS_ITEM_TYPES = new Set([
+  "focus_text",
+  "focus_image",
+  "focus_cta",
+  "focus_callout",
+  "focus_spacer",
+]);
 const SCALAR_FIELD_RE = /^([a-zA-Z][a-zA-Z0-9_]*)\s*:\s*(.*)$/;
 
 function json(res, status, body) {
@@ -279,6 +286,29 @@ function repairFocusCtaLabels(markdown) {
   return repaired.join("\n");
 }
 
+function wrapOrphanFocusItems(markdown) {
+  const lines = String(markdown || "").split(/\r?\n/);
+  const repaired = [];
+  let lastDirectiveType = "";
+
+  lines.forEach((line) => {
+    const open = line.trim().match(/^:::([a-z_][a-z0-9_]*)$/i);
+    if (open) {
+      const type = open[1];
+      if (FOCUS_ITEM_TYPES.has(type) && lastDirectiveType !== "focus") {
+        repaired.push(":::focus", ":::", "");
+        lastDirectiveType = "focus";
+      }
+      repaired.push(line);
+      lastDirectiveType = type;
+      return;
+    }
+    repaired.push(line);
+  });
+
+  return repaired.join("\n");
+}
+
 function closeTrailingMetadataDirective(markdown) {
   const lines = String(markdown || "").split(/\r?\n/);
   let openIndex = -1;
@@ -353,6 +383,7 @@ export function cleanGeneratedMarkdown(text = "") {
   markdown = markdown.replace(DIRECTIVE_LINE_FIX_RE, ":::$1");
   markdown = repairBodyLinesInsideDirectives(markdown);
   markdown = repairIncompletePipeItems(markdown);
+  markdown = wrapOrphanFocusItems(markdown);
   markdown = closeTrailingMetadataDirective(markdown);
   markdown = repairFocusCtaLabels(markdown);
   markdown = repairFrontMatterValues(markdown);
@@ -398,7 +429,7 @@ kicker: "EN 3 ETAPES"
 :::
 
 - 01 | Alimentez votre compte | Par virement SEPA ou carte de paiement. | #03FFCF
-- focus_cta, focus_callout, focus_image, focus_text et focus_spacer doivent toujours suivre une directive :::focus.
+- focus_cta, focus_callout, focus_image, focus_text et focus_spacer doivent toujours suivre directement une directive :::focus. Si un CTA suit une liste ou un text_block, ouvre d'abord un nouveau bloc :::focus puis ferme-le avec ::: avant :::focus_cta.
 - focus_cta exige toujours label. Si le CTA source est entre crochets, ce texte devient label. Si aucun libellé n'est disponible, utilise label: "Découvrir".
 - hero_chips doit suivre directement :::hero.
 - edito_kpis doit suivre directement le corps de :::edito.
