@@ -270,6 +270,39 @@ arrow: true
   assert.equal(imported.state.sections[1].data.items[0].label, "Activer mon compte euro");
 });
 
+test("flattens Gemini nested focus items inside a focus block", () => {
+  const raw = `---
+title: "Nested focus"
+preview_text: "Preview."
+---
+
+:::focus
+:::focus_callout
+tone: "positive"
+title: "Ce qu'il faut retenir"
+:::
+Un IBAN français. Frais réduits.
+
+:::focus_cta
+label: "Activer"
+url: "https://www.coinhouse.com/"
+arrow: true
+:::
+:::
+`;
+  const markdown = cleanGeneratedMarkdown(raw);
+  const imported = importNewsletterMarkdown(markdown);
+  const sections = imported.state.sections.filter((s) => s.type === "focus");
+
+  const callout = sections.flatMap((s) => s.data.items).find((i) => i.type === "callout");
+  const cta = sections.flatMap((s) => s.data.items).find((i) => i.type === "cta");
+
+  assert.ok(callout, "callout item should exist");
+  assert.ok(cta, "cta item should exist");
+  assert.match(callout.body, /IBAN/);
+  assert.equal(cta.label, "Activer");
+});
+
 test("moves focus callout markdown out of directive metadata", () => {
   const markdown = cleanGeneratedMarkdown(`---
 title: "Callout import"

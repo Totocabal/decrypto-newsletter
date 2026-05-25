@@ -117,6 +117,72 @@ function parseBody(req) {
   }
 }
 
+function repairNestedFocusContent(markdown) {
+  const lines = markdown.split(/\r?\n/);
+  const repaired = [];
+
+  for (let index = 0; index < lines.length; index += 1) {
+    const open = lines[index].match(/^:::focus\s*$/i);
+    if (!open) {
+      repaired.push(lines[index]);
+      continue;
+    }
+
+    // Find the first non-blank, non-scalar line inside this :::focus block
+    let firstNonScalar = -1;
+    for (let i = index + 1; i < lines.length; i += 1) {
+      const trimmed = lines[i].trim();
+      if (!trimmed || SCALAR_FIELD_RE.test(trimmed)) continue;
+      firstNonScalar = i;
+      break;
+    }
+
+    if (firstNonScalar === -1) {
+      repaired.push(lines[index]);
+      continue;
+    }
+
+    const nestedOpen = lines[firstNonScalar].trim().match(/^:::([a-z_][a-z0-9_]*)\s*$/i);
+    if (!nestedOpen || !FOCUS_ITEM_TYPES.has(nestedOpen[1])) {
+      repaired.push(lines[index]);
+      continue;
+    }
+
+    // :::focus has nested focus item directives — find the real close at depth 0
+    let depth = 1;
+    let realCloseIndex = -1;
+    for (let i = index + 1; i < lines.length; i += 1) {
+      if (/^:::[a-z_][a-z0-9_]*\s*$/i.test(lines[i].trim())) {
+        depth += 1;
+      } else if (lines[i].trim() === ":::") {
+        depth -= 1;
+        if (depth === 0) {
+          realCloseIndex = i;
+          break;
+        }
+      }
+    }
+
+    if (realCloseIndex === -1) {
+      repaired.push(lines[index]);
+      continue;
+    }
+
+    // Collect scalar metadata fields that appear before the first nested directive
+    const metaLines = [];
+    for (let i = index + 1; i < firstNonScalar; i += 1) {
+      if (lines[i].trim()) metaLines.push(lines[i]);
+    }
+
+    // Emit :::focus with its metadata and an immediate close, then flatten nested content
+    repaired.push(lines[index], ...metaLines, ":::");
+    repaired.push(...lines.slice(firstNonScalar, realCloseIndex));
+    index = realCloseIndex;
+  }
+
+  return repaired.join("\n");
+}
+
 function repairBodyLinesInsideDirectives(markdown) {
   const lines = markdown.split(/\r?\n/);
   const repaired = [];
@@ -381,6 +447,7 @@ export function cleanGeneratedMarkdown(text = "") {
   const noteIndex = markdown.search(/\n(?:Notes?|Choix structurels?)\s*:/i);
   if (noteIndex > -1) markdown = markdown.slice(0, noteIndex).trim();
   markdown = markdown.replace(DIRECTIVE_LINE_FIX_RE, ":::$1");
+  markdown = repairNestedFocusContent(markdown);
   markdown = repairBodyLinesInsideDirectives(markdown);
   markdown = repairIncompletePipeItems(markdown);
   markdown = wrapOrphanFocusItems(markdown);
