@@ -594,6 +594,23 @@ Brief à convertir :
 ${brief}`;
 }
 
+function buildCorrectionPrompt({ markdown, validationError }) {
+  return `Le Markdown suivant a échoué la validation import avec l'erreur : ${validationError}
+
+${markdown}
+
+Corrige le fichier pour qu'il passe la validation. Règles obligatoires :
+- Chaque directive ouverte :::type se ferme par une ligne ::: seule sur sa propre ligne.
+- Le corps Markdown d'une directive (focus_callout, focus_text, edito, text_block, macro, fear_greed, commented_number, signals, editorial_list, macro_bars, feature_grid, feature_grid_featured) se place APRÈS la ligne ::: de fermeture, jamais entre l'ouverture et la fermeture.
+- focus_callout et focus_text exigent un corps non vide après leur :::.
+- focus_cta, focus_callout, focus_image, focus_text et focus_spacer doivent toujours suivre directement une directive :::focus.
+- focus_cta exige toujours label.
+- Dans editorial_list : chaque ligne contient exactement - tag | title | body | couleur_optionnelle. Les colonnes tag, title et body ne peuvent jamais être vides. La couleur hexadécimale (#03FFCF...) est uniquement la 4e colonne, jamais dans body.
+- N'invente pas de contenu. Restructure uniquement.
+- N'utilise jamais d'émojis ni d'émoticônes.
+- Retourne uniquement le Markdown brut corrigé, sans bloc de code, sans introduction, sans commentaire.`;
+}
+
 function normalizeOptions(options = {}) {
   const themeVariant = options.theme_variant === "light" ? "light" : "dark";
   return {
@@ -601,6 +618,24 @@ function normalizeOptions(options = {}) {
     show_section_numbers: options.show_section_numbers !== false,
     show_block_separators: options.show_block_separators !== false,
   };
+}
+
+async function callGeminiText(apiKey, prompt, { temperature = 0.2, maxOutputTokens = 6000 } = {}) {
+  try {
+    const res = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { maxOutputTokens, temperature },
+      }),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data?.candidates?.[0]?.content?.parts?.[0]?.text || null;
+  } catch {
+    return null;
+  }
 }
 
 export default async function handler(req, res) {
@@ -666,8 +701,52 @@ export default async function handler(req, res) {
 
     try {
       importNewsletterMarkdown(markdown);
-    } catch (error) {
-      const validationError = error.message || String(error);
+    } catch (firstError) {
+      const validationError = firstError.message || String(firstError);
+
+      const correctedRaw = await callGeminiText(
+        apiKey,
+        buildCorrectionPrompt({ markdown, validationError }),
+        { temperature: 0.1 }
+      );
+
+      if (correctedRaw) {
+        const correctedMarkdown = applyEmailSubjectTitle(cleanGeneratedMarkdown(correctedRaw), brief);
+        let correctionValidationError = null;
+        try {
+          importNewsletterMarkdown(correctedMarkdown);
+        } catch (e) {
+          correctionValidationError = e.message || String(e);
+        }
+
+        if (!correctionValidationError) {
+          logGenerationIssue("correction_succeeded", {
+            trace_id: traceId,
+            model: GEMINI_MODEL,
+            original_error: validationError,
+          });
+          return json(res, 200, { markdown: correctedMarkdown });
+        }
+
+        logGenerationIssue("invalid_markdown_after_correction", {
+          trace_id: traceId,
+          model: GEMINI_MODEL,
+          options,
+          original_error: validationError,
+          correction_error: correctionValidationError,
+          markdown_preview: correctedMarkdown.slice(0, 4000),
+        });
+        return json(res, 422, {
+          error: `Markdown généré invalide : ${correctionValidationError}`,
+          validation_error: correctionValidationError,
+          markdown: correctedMarkdown,
+          raw_output: String(correctedRaw).slice(0, MAX_DEBUG_OUTPUT_CHARS),
+          trace_id: traceId,
+          model: GEMINI_MODEL,
+          options,
+        });
+      }
+
       logGenerationIssue("invalid_markdown", {
         trace_id: traceId,
         model: GEMINI_MODEL,
