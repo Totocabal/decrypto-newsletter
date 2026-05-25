@@ -493,6 +493,8 @@ Pour la generation depuis un brief libre, privilegier `focus` quand une meme
 sequence contient une accroche ou recommandation courte puis une action :
 texte + CTA, texte + CTA + texte, texte + image + CTA, image + texte + CTA,
 callout + CTA, ou recommandation + CTA.
+Pour `texte + CTA + texte`, utiliser de preference un seul `focus` avec
+`focus_text`, `focus_cta`, puis `focus_text`.
 Eviter de separer ce parcours en `text_block` puis CTA isole.
 
 | Sous-directive | Champs / corps |

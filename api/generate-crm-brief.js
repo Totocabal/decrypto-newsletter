@@ -263,7 +263,8 @@ Mapping éditorial à privilégier :
 - Une liste de bénéfices, étapes ou arguments produit doit être pensée comme editorial_list plutôt que comme simple liste Markdown.
 - Une comparaison d'offres doit être pensée comme feature_grid.
 - Un argument principal ou une offre prioritaire doit être isolé en focus.
-- Un enchaînement texte court + CTA, texte + CTA + texte, texte + image + CTA, image + texte + CTA, callout + CTA, ou recommandation + action doit être pensé comme un seul bloc focus avec sous-items focus_text, focus_callout, focus_image et focus_cta. Évite de séparer ce parcours en text_block puis CTA isolé.
+- Si le contenu suit une logique texte + CTA + texte, Gemini doit privilégier un seul bloc focus : focus_text pour le premier texte, focus_cta pour le bouton, puis focus_text pour le texte qui suit. Ne transforme pas cette séquence en text_block + CTA + text_block.
+- Plus largement, un enchaînement texte court + CTA, texte + image + CTA, image + texte + CTA, callout + CTA, ou recommandation + action doit être pensé comme un seul bloc focus avec sous-items focus_text, focus_callout, focus_image et focus_cta. Évite de séparer ce parcours en text_block puis CTA isolé.
 - Une citation explicite attribuée doit être isolée comme citation et la ligne Structure suggérée doit inclure macro.
 - Un CTA doit être explicite, court et isolable.
 - Ne crée pas de section "Information légale", "Avertissement", "Disclaimer" ou équivalent en fin de variante, sauf si le brief le demande explicitement. Le footer légal est ajouté par défaut dans tous les templates.
