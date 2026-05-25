@@ -501,7 +501,7 @@ kicker: "EN 3 ETAPES"
 - hero_chips doit suivre directement :::hero.
 - edito_kpis doit suivre directement le corps de :::edito.
 - feature_grid_featured doit suivre directement :::feature_grid quand il est utilisé. Il est optionnel : ne l'ajoute pas si aucun bénéfice, message ou valeur vedette n'est explicitement fourni.
-- editorial_list utilise exactement : - tag | title | body obligatoire | tag_color optionnel. Les 3 colonnes tag, title et body ne doivent jamais être vides.
+- editorial_list utilise exactement : - tag | title | body obligatoire | tag_color optionnel. Les 3 colonnes tag, title et body ne doivent jamais être vides. Si le body serait une simple répétition ou paraphrase du title, ne duplique pas : mets uniquement le title dans la colonne title et remplace body par une reformulation complémentaire ou un contexte additionnel. N'écris jamais deux colonnes avec le même sens.
 - Dans editorial_list, la couleur hexadecimale est uniquement la 4e colonne tag_color. Ne mets jamais #03FFCF, #FF8B28, #B36BFF ou #00FFFF dans la colonne body, sinon elle sera affichee comme texte.
 - feature_grid utilise exactement : - title | body obligatoire | picto | color. Les 4 colonnes doivent être présentes pour chaque carte. Picto par défaut si incertain : target. Couleurs par défaut : #03FFCF, #FF8B28, #B36BFF, #00FFFF. Si le brief contient seulement 3 fonctionnalités ou bénéfices, génère exactement 3 lignes, pas une 4e carte inventée.
 - signals direction : up ou down uniquement.
@@ -510,6 +510,7 @@ kicker: "EN 3 ETAPES"
 - fear_greed.value, macro_bars.percent : nombre entre 0 et 100.
 - focus_spacer.height : nombre entre 0 et 120.
 - Tons autorisés : positive, negative, warning, muted.
+- N'utilise jamais d'émojis ni d'émoticônes dans aucun champ ni dans aucun corps de texte.
 
 Mapping recommandé :
 - Accroche intro + salutation : text_block.
@@ -526,7 +527,7 @@ Mapping recommandé :
 - Enchaînement texte court + CTA, texte + CTA + texte, texte + image + CTA, image + texte + CTA, callout + CTA, ou recommandation + action : regrouper dans un seul focus avec focus_text, focus_callout, focus_image et focus_cta selon le contenu. Ne crée pas un text_block séparé suivi d'un focus_cta.
 - Ne crée pas de bloc "INFORMATION LÉGALE", "Avertissement" ou disclaimer, sauf si le brief le demande explicitement. Le footer légal est déjà inclus par défaut dans tous les templates.
 - Séparateur visuel : divider style gradient ou thin.
-- Encadré à retenir : focus + focus_callout.
+- Encadré à retenir : focus + focus_callout. Si le brief identifie un titre pour l'encadré (ex. "Ce qu'il faut retenir", "À noter", "Bon à savoir"), mets-le dans le champ label de focus_callout. Ne le répète pas dans le corps.
 
 Conventions éditoriales :
 - Vouvoiement strict.
