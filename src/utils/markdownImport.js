@@ -503,6 +503,7 @@ function extractDirectives(content, warnings) {
   for (let index = 0; index < lines.length; index += 1) {
     const open = lines[index].match(/^:::([a-z_][a-z0-9_]*)\s*$/i);
     if (!open) {
+      if (lines[index].trim() === ":::") continue;
       textBuffer.push(lines[index]);
       continue;
     }

@@ -381,6 +381,7 @@ callout_color: "#03FFCF"
 :::
 
 Stay disciplined.
+:::
 
 :::focus_spacer
 height: 32
@@ -399,6 +400,7 @@ height: 32
     ["text", "image", "cta", "callout", "spacer"]
   );
   assert.equal(focus.data.items[2].secondary_label, "Academy");
+  assert.equal(focus.data.items[3].body, "Stay disciplined.");
   assert.equal(macroBars.type, "macro_bars");
   assert.equal(macroBars.data.bars[1].percent, "53");
 });
