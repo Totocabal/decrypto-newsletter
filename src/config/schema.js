@@ -296,6 +296,26 @@ export const SECTION_TYPES = {
       cta_url: "",
     }),
   },
+  cta: {
+    label: "CTA",
+    icon: "MousePointerClick",
+    factory: () => ({
+      label: "Découvrir",
+      url: "#",
+      arrow: true,
+      centered: false,
+      secondary_label: "",
+      secondary_url: "",
+      secondary_arrow: false,
+    }),
+  },
+  spacer: {
+    label: "Spacer",
+    icon: "ChevronsUpDown",
+    factory: () => ({
+      height: 32,
+    }),
+  },
   image_block: {
     label: "Image",
     icon: "ImageIcon",
@@ -735,7 +755,7 @@ export function buildInitialStateFromTypes(types, options = {}) {
 
 // Numéro affiché d'une section (selon sa position parmi les sections numérotables)
 // Hero, sommaire, graphique et divider ne portent pas de numéro.
-export const UNNUMBERED_TYPES = new Set(["hero", "index", "chart", "macro_bars", "image_block", "divider"]);
+export const UNNUMBERED_TYPES = new Set(["hero", "index", "chart", "macro_bars", "image_block", "cta", "spacer", "divider"]);
 
 export function computeSectionNumber(sections, sectionId) {
   let counter = 0;

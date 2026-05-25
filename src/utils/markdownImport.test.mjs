@@ -630,6 +630,37 @@ height: 32
   assert.equal(macroBars.data.bars[1].percent, "53");
 });
 
+test("imports standalone CTA and spacer directives", () => {
+  const imported = importNewsletterMarkdown(`---
+title: "Standalone CTA"
+preview_text: "CTA and spacer."
+---
+
+:::cta
+label: "Activer mon compte"
+url: "https://example.com/activate"
+arrow: true
+centered: true
+secondary_label: "En savoir plus"
+secondary_url: "https://example.com/help"
+:::
+
+:::spacer
+height: 48
+:::
+`);
+
+  const [cta, spacer] = imported.state.sections;
+  assert.deepEqual(
+    imported.state.sections.map((section) => section.type),
+    ["cta", "spacer"]
+  );
+  assert.equal(cta.data.label, "Activer mon compte");
+  assert.equal(cta.data.centered, true);
+  assert.equal(cta.data.secondary_label, "En savoir plus");
+  assert.equal(spacer.data.height, 48);
+});
+
 test("imports an auto chart directive with CoinGecko settings", () => {
   const imported = importNewsletterMarkdown(`---
 title: "Chart import"

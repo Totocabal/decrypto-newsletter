@@ -9,6 +9,16 @@ const SECTION_FIELDS = {
   edito: ["kicker", "title"],
   edito_kpis: [],
   text_block: ["kicker", "title", "cta_label", "cta_url"],
+  cta: [
+    "label",
+    "url",
+    "arrow",
+    "centered",
+    "secondary_label",
+    "secondary_url",
+    "secondary_arrow",
+  ],
+  spacer: ["height"],
   focus: ["kicker", "title"],
   focus_text: [],
   focus_image: ["image_url", "image_alt", "link_url"],
@@ -610,6 +620,18 @@ function normalizeExplicitSection(token, body, warnings) {
   }
 
   if (type === "text_block" && data.cta_url) assertHttpUrl(data.cta_url, "cta_url");
+  if (type === "cta") {
+    if (!data.label) throw new MarkdownImportError(":::cta exige label.");
+    if (data.url) assertHttpUrl(data.url, "url");
+    if (data.secondary_url) assertHttpUrl(data.secondary_url, "secondary_url");
+  }
+  if (type === "spacer") {
+    const height = Number(data.height);
+    if (!Number.isFinite(height) || height < 0 || height > 120) {
+      throw new MarkdownImportError(":::spacer height doit être compris entre 0 et 120.");
+    }
+    data.height = height;
+  }
   if (type === "macro" && data.bg_image_url) assertHttpUrl(data.bg_image_url, "bg_image_url");
   if (type === "feature_grid") {
     if (data.bg_image_url) assertHttpUrl(data.bg_image_url, "bg_image_url");

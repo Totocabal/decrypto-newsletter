@@ -244,6 +244,8 @@ Blocs disponibles et usages recommandés :
 - focus : encadré central pour une idée clé, une offre, une recommandation ou un message à retenir.
 - focus_callout : point d'attention, à retenir, preuve, rappel réglementaire ou élément de réassurance.
 - focus_cta : CTA principal ou secondaire.
+- cta : CTA autonome quand il n'y a pas de texte ou d'image à regrouper autour.
+- spacer : respiration verticale autonome si le rythme visuel doit être marqué sans séparateur.
 - feature_grid : comparaison de fonctionnalités, grille de bénéfices ou avantages d'une offre, différences entre Classique / Investisseur / Gestion Privée. Utilisable dès 3 fonctionnalités/bénéfices structurés ; ne crée pas de 4e carte si seulement 3 éléments sont présents.
 - feature_grid_featured : carte mise en avant pour l'offre ou le bénéfice prioritaire. Optionnelle : ne l'utilise que si le brief fournit clairement une valeur, un message ou un bénéfice vedette. Sinon, laisse uniquement les cartes feature_grid.
 - commented_number : chiffre fort avec commentaire. À utiliser seulement quand le brief place explicitement un nombre au centre du message ou quand la variante repose principalement sur une preuve chiffrée unique. Si le nombre est seulement une information de prix, plafond, durée ou détail produit parmi d'autres, garde-le dans un text_block, editorial_list ou feature_grid.
@@ -265,6 +267,7 @@ Mapping éditorial à privilégier :
 - Un argument principal ou une offre prioritaire doit être isolé en focus.
 - Si le contenu suit une logique texte + CTA + texte, Gemini doit privilégier un seul bloc focus : focus_text pour le premier texte, focus_cta pour le bouton, puis focus_text pour le texte qui suit. Ne transforme pas cette séquence en text_block + CTA + text_block.
 - Plus largement, un enchaînement texte court + CTA, texte + image + CTA, image + texte + CTA, callout + CTA, ou recommandation + action doit être pensé comme un seul bloc focus avec sous-items focus_text, focus_callout, focus_image et focus_cta. Évite de séparer ce parcours en text_block puis CTA isolé.
+- Si le CTA est vraiment seul, sans texte avant/après à regrouper, il peut être pensé comme un bloc cta autonome.
 - Une citation explicite attribuée doit être isolée comme citation et la ligne Structure suggérée doit inclure macro.
 - Un CTA doit être explicite, court et isolable.
 - Ne crée pas de section "Information légale", "Avertissement", "Disclaimer" ou équivalent en fin de variante, sauf si le brief le demande explicitement. Le footer légal est ajouté par défaut dans tous les templates.

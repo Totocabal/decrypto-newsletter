@@ -10,6 +10,7 @@ import { useConfirm } from "./Dialog.jsx";
 import {
   ChevronUp,
   ChevronDown,
+  ChevronsUpDown,
   Trash2,
   CopyPlus,
   Plus,
@@ -26,6 +27,7 @@ import {
   ImageIcon,
   List,
   Megaphone,
+  MousePointerClick,
   Minus,
   Newspaper,
   Palette,
@@ -794,6 +796,8 @@ const SECTION_TYPE_DESCRIPTIONS = {
   feature_grid: "Grille de bénéfices, avec carte vedette optionnelle.",
   event: "Annonce d'évènement avec informations et CTA.",
   text_block: "Bloc texte simple avec bouton optionnel.",
+  cta: "Bouton d'action autonome.",
+  spacer: "Espace vertical entre deux blocs.",
   focus: "Texte long, image et boutons optionnels.",
   image_block: "Image seule avec lien de redirection optionnel.",
   divider: "Séparateur visuel entre deux blocs.",
@@ -809,11 +813,13 @@ const SECTION_TYPE_ICONS = {
   ImageIcon,
   List,
   Megaphone,
+  MousePointerClick,
   Minus,
   Newspaper,
   Quote,
   TrendingUp,
   Type,
+  ChevronsUpDown,
 };
 
 function AddSectionButton({ onAdd }) {

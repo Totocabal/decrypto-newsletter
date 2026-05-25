@@ -1700,7 +1700,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                     <div>
                       <div className="mb-1 font-semibold text-d-fg2">Sections supportées</div>
                       <p>
-                        <code>hero</code>, <code>index</code>, <code>edito</code>, <code>text_block</code>, <code>image_block</code>, <code>divider</code>, <code>chart</code>, <code>fear_greed</code>, <code>signals</code>, <code>macro</code>, <code>macro_bars</code>, <code>commented_number</code>, <code>editorial_list</code>, <code>focus</code>, <code>feature_grid</code>, <code>event</code>.
+                        <code>hero</code>, <code>index</code>, <code>edito</code>, <code>text_block</code>, <code>cta</code>, <code>spacer</code>, <code>image_block</code>, <code>divider</code>, <code>chart</code>, <code>fear_greed</code>, <code>signals</code>, <code>macro</code>, <code>macro_bars</code>, <code>commented_number</code>, <code>editorial_list</code>, <code>focus</code>, <code>feature_grid</code>, <code>event</code>.
                       </p>
                     </div>
                     <div>

@@ -171,6 +171,8 @@ Bitcoin repart legerement a la hausse.
 | `index` | `label` ; items generes apres import |
 | `edito` | `kicker`, `title`, corps Markdown |
 | `text_block` | `kicker`, `title`, `cta_label`, `cta_url`, corps Markdown |
+| `cta` | `label`, `url`, `arrow`, `centered`, `secondary_label`, `secondary_url`, `secondary_arrow` |
+| `spacer` | `height` |
 | `image_block` | `image_url`, `image_alt`, `link_url` |
 | `divider` | `style` |
 | `chart` | graphique auto CoinGecko ou graphique manuel |
@@ -200,6 +202,33 @@ Le corps du bloc reste en Markdown riche.
 ```
 
 `cta_url`, si renseigne, doit etre une URL `http` ou `https`.
+
+### `cta`
+
+```md
+:::cta
+label: "Activer mon compte"
+url: "https://example.com/activation"
+arrow: true
+centered: true
+secondary_label: "En savoir plus"
+secondary_url: "https://example.com/aide"
+secondary_arrow: false
+:::
+```
+
+`label` est obligatoire. `url` et `secondary_url`, si renseignes, doivent etre
+des URLs `http` ou `https`.
+
+### `spacer`
+
+```md
+:::spacer
+height: 32
+:::
+```
+
+`height` doit etre compris entre `0` et `120`.
 
 ### `image_block`
 
@@ -496,6 +525,8 @@ callout + CTA, ou recommandation + CTA.
 Pour `texte + CTA + texte`, utiliser de preference un seul `focus` avec
 `focus_text`, `focus_cta`, puis `focus_text`.
 Eviter de separer ce parcours en `text_block` puis CTA isole.
+Utiliser `cta` seulement pour un bouton vraiment autonome, sans texte avant ou
+apres a regrouper. Utiliser `spacer` pour une respiration verticale autonome.
 
 | Sous-directive | Champs / corps |
 | --- | --- |

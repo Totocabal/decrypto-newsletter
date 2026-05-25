@@ -33,6 +33,8 @@ export function SectionEditor({ type, data, onChange, sections = [] }) {
     case "focus":      return <FocusEditor data={data} set={set} />;
     case "image_block": return <ImageBlockEditor data={data} set={set} />;
     case "text_block": return <TextBlockEditor data={data} set={set} />;
+    case "cta":         return <CtaEditor data={data} set={set} />;
+    case "spacer":      return <SpacerEditor data={data} set={set} />;
     case "divider":    return <DividerEditor data={data} set={set} />;
     default:
       return (
@@ -2212,6 +2214,104 @@ function TextBlockEditor({ data, set }) {
         </Field>
       </div>
     </>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CTA
+// ─────────────────────────────────────────────────────────────────────────────
+
+function CtaEditor({ data, set }) {
+  return (
+    <>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <Field label="Texte du bouton">
+          <Input
+            value={data.label ?? ""}
+            onChange={(e) => set({ label: e.target.value })}
+          />
+        </Field>
+        <Field label="Lien">
+          <Input
+            value={data.url ?? ""}
+            onChange={(e) => set({ url: e.target.value })}
+          />
+        </Field>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <Field label="CTA secondaire">
+          <Input
+            value={data.secondary_label ?? ""}
+            onChange={(e) => set({ secondary_label: e.target.value })}
+          />
+        </Field>
+        <Field label="Lien secondaire">
+          <Input
+            value={data.secondary_url ?? ""}
+            onChange={(e) => set({ secondary_url: e.target.value })}
+          />
+        </Field>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <label className="flex items-center justify-between gap-3 rounded-xl border border-line bg-d-panel2 px-3 py-2 text-sm text-d-fg">
+          <span>Flèche</span>
+          <input
+            type="checkbox"
+            checked={data.arrow !== false}
+            onChange={(e) => set({ arrow: e.target.checked })}
+            className="h-4 w-4 accent-d-pink"
+          />
+        </label>
+        <label className="flex items-center justify-between gap-3 rounded-xl border border-line bg-d-panel2 px-3 py-2 text-sm text-d-fg">
+          <span>Centré</span>
+          <input
+            type="checkbox"
+            checked={data.centered === true}
+            onChange={(e) => set({ centered: e.target.checked })}
+            className="h-4 w-4 accent-d-pink"
+          />
+        </label>
+        <label className="flex items-center justify-between gap-3 rounded-xl border border-line bg-d-panel2 px-3 py-2 text-sm text-d-fg">
+          <span>Flèche secondaire</span>
+          <input
+            type="checkbox"
+            checked={data.secondary_arrow === true}
+            onChange={(e) => set({ secondary_arrow: e.target.checked })}
+            className="h-4 w-4 accent-d-pink"
+          />
+        </label>
+      </div>
+    </>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SPACER
+// ─────────────────────────────────────────────────────────────────────────────
+
+function SpacerEditor({ data, set }) {
+  const value = Math.max(0, Math.min(120, Number(data.height) || 0));
+  return (
+    <Field label="Hauteur" hint="Entre 0 et 120 px">
+      <div className="grid grid-cols-[1fr_76px] gap-3">
+        <input
+          type="range"
+          min="0"
+          max="120"
+          step="1"
+          value={value}
+          onChange={(e) => set({ height: Number(e.target.value) })}
+          className="w-full accent-d-pink"
+        />
+        <Input
+          type="number"
+          min="0"
+          max="120"
+          value={value}
+          onChange={(e) => set({ height: Number(e.target.value) })}
+        />
+      </div>
+    </Field>
   );
 }
 

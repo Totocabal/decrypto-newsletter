@@ -1334,6 +1334,33 @@ function renderDivider(data, isLastSection = false) {
   return `<tr><td style="height:${height}px; line-height:${height}px; font-size:1px; background-color:${EMAIL_THEME.borderStrong};">&nbsp;</td></tr>`;
 }
 
+function renderStandaloneCta(data, isLastSection = false) {
+  const html = renderFocusItem({
+    type: "cta",
+    label: data.label,
+    url: data.url,
+    arrow: data.arrow !== false,
+    centered: data.centered === true,
+    secondary_label: data.secondary_label,
+    secondary_url: data.secondary_url,
+    secondary_arrow: data.secondary_arrow === true,
+  }, "inline", true);
+  if (!String(html || "").trim()) return "";
+
+  return `
+    <tr>
+      <td class="em-px" style="padding:${sectionPadding("28px 36px", "18px 36px")};${sectionBottomBorder(isLastSection)}">
+        ${html}
+      </td>
+    </tr>`;
+}
+
+function renderSpacer(data) {
+  const height = Math.max(0, Math.min(120, Number(data.height) || 0));
+  if (!height) return "";
+  return `<tr><td height="${height}" style="height:${height}px; line-height:${height}px; font-size:1px;">&nbsp;</td></tr>`;
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Dispatcher : section → fonction de rendu
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1361,6 +1388,8 @@ function renderSection(sec, allSections, assetMode, showSectionNumbers = true, i
     case "focus":      return renderFocus(sec.data, number, assetMode, anchor, isLastSection);
     case "image_block": return renderImageBlock(sec.data, isLastSection);
     case "text_block": return renderTextBlock(sec.data, number, anchor, isLastSection);
+    case "cta":        return renderStandaloneCta(sec.data, isLastSection);
+    case "spacer":     return renderSpacer(sec.data);
     case "divider":    return renderDivider(sec.data, isLastSection);
     default:           return `<tr><td>Type inconnu : ${escapeHtml(sec.type)}</td></tr>`;
   }

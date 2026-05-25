@@ -345,7 +345,28 @@ Chaque item possède un `id` UUID et un `type` parmi :
 
 La multi-sélection d'images dans le gestionnaire insère plusieurs items `image` consécutifs.
 
-### 12. `image_block` — Image pleine largeur
+### 12. `cta` — CTA autonome
+
+| Champ | Type | Description |
+|---|---|---|
+| `label` | string | Texte du bouton principal |
+| `url` | string | URL du bouton principal |
+| `arrow` | boolean | Ajoute une flèche au libellé |
+| `centered` | boolean | Centre le bouton |
+| `secondary_label` | string | Texte du bouton secondaire optionnel |
+| `secondary_url` | string | URL du bouton secondaire |
+| `secondary_arrow` | boolean | Ajoute une flèche au bouton secondaire |
+
+À utiliser quand le bouton est un bloc autonome. Pour `texte + CTA + texte`,
+le bloc `focus` reste préférable.
+
+### 13. `spacer` — Espace vertical
+
+| Champ | Type | Description |
+|---|---|---|
+| `height` | number | Hauteur en px, de 0 à 120 |
+
+### 14. `image_block` — Image pleine largeur
 
 | Champ | Type | Description |
 |---|---|---|
@@ -356,7 +377,7 @@ La multi-sélection d'images dans le gestionnaire insère plusieurs items `image
 
 Bloc non numéroté.
 
-### 13. `text_block` — Bloc texte libre
+### 15. `text_block` — Bloc texte libre
 
 | Champ | Type | Description |
 |---|---|---|
@@ -366,7 +387,7 @@ Bloc non numéroté.
 | `cta_label` | string | Texte du bouton gradient (laissé vide = masqué) |
 | `cta_url` | string | URL du bouton |
 
-### 14. `divider` — Séparateur
+### 16. `divider` — Séparateur
 
 | Champ | Type | Valeurs |
 |---|---|---|
@@ -429,6 +450,8 @@ Dispatch par `switch(type)` vers 14 sous-composants :
 | `FocusEditor` | `focus` |
 | `ImageBlockEditor` | `image_block` |
 | `TextBlockEditor` | `text_block` |
+| `CtaEditor` | `cta` |
+| `SpacerEditor` | `spacer` |
 | `DividerEditor` | `divider` |
 
 `ChipEditor` (sous-composant de `HeroEditor`) gère les chips avec sélecteur de type et bouton refresh CoinGecko.
@@ -544,7 +567,7 @@ Le format accepte :
 - des directives `:::type` pour tous les blocs du catalogue, dont `chart` auto ou manuel, `focus` multi-items et `feature_grid` ;
 - les raffinements `hero_chips`, `edito_kpis` et `index` auto.
 
-Dans la génération Gemini, le prompt CRM intègre la bibliothèque de blocs Décrypto afin de proposer des variantes déjà pensées pour la conversion Markdown : `text_block`, `editorial_list`, `focus`, `feature_grid`, `commented_number`, `event`, signaux, blocs marché et CTA. Le bloc `hero` est réservé aux newsletters éditoriales ou contenus de marché, pas aux emails CRM transactionnels, onboarding, upsell ou relance. Les listes à puces de 2 à 4 items sont orientées vers le bloc `editorial_list` quand elles représentent des étapes, bénéfices, arguments produit ou points pédagogiques. Les enchaînements texte court, recommandation, encadré ou image liés à un CTA sont orientés vers `focus` avec ses sous-blocs plutôt que vers `text_block` puis CTA isolé. Pour `texte + CTA + texte`, Gemini doit privilégier `focus_text`, `focus_cta`, puis `focus_text` dans un même `focus`. `feature_grid` peut être utilisé dès 3 bénéfices ou fonctionnalités structurés, sans inventer une 4e carte. Sa carte vedette est optionnelle et n'est générée que si un bénéfice prioritaire est clairement fourni. `commented_number` reste disponible, mais il n'est demandé que lorsqu'un chiffre est explicitement central dans le brief ou formulé comme chiffre clé. Les blocs "Information légale" ou disclaimers ne sont pas générés par défaut, car les mentions légales communes sont déjà incluses dans le footer de tous les templates. L'interface permet d'agrandir une variante pour la lire confortablement, puis de l'améliorer avec Gemini à partir de commentaires libres. L'API tente aussi de récupérer un extrait de `coinhouse.com` pour fournir un contexte produit supplémentaire au prompt.
+Dans la génération Gemini, le prompt CRM intègre la bibliothèque de blocs Décrypto afin de proposer des variantes déjà pensées pour la conversion Markdown : `text_block`, `editorial_list`, `focus`, `cta`, `spacer`, `feature_grid`, `commented_number`, `event`, signaux, blocs marché et CTA. Le bloc `hero` est réservé aux newsletters éditoriales ou contenus de marché, pas aux emails CRM transactionnels, onboarding, upsell ou relance. Les listes à puces de 2 à 4 items sont orientées vers le bloc `editorial_list` quand elles représentent des étapes, bénéfices, arguments produit ou points pédagogiques. Les enchaînements texte court, recommandation, encadré ou image liés à un CTA sont orientés vers `focus` avec ses sous-blocs plutôt que vers `text_block` puis CTA isolé ; `cta` est réservé aux boutons vraiment autonomes, et `spacer` aux respirations verticales seules. Pour `texte + CTA + texte`, Gemini doit privilégier `focus_text`, `focus_cta`, puis `focus_text` dans un même `focus`. `feature_grid` peut être utilisé dès 3 bénéfices ou fonctionnalités structurés, sans inventer une 4e carte. Sa carte vedette est optionnelle et n'est générée que si un bénéfice prioritaire est clairement fourni. `commented_number` reste disponible, mais il n'est demandé que lorsqu'un chiffre est explicitement central dans le brief ou formulé comme chiffre clé. Les blocs "Information légale" ou disclaimers ne sont pas générés par défaut, car les mentions légales communes sont déjà incluses dans le footer de tous les templates. L'interface permet d'agrandir une variante pour la lire confortablement, puis de l'améliorer avec Gemini à partir de commentaires libres. L'API tente aussi de récupérer un extrait de `coinhouse.com` pour fournir un contexte produit supplémentaire au prompt.
 
 Le parseur vit dans `src/utils/markdownImport.js`. Le contrat complet, les syntaxes et les limites sont documentés dans `MARKDOWN_IMPORT_SPEC.md`. Un fichier prêt à importer est disponible dans `examples/newsletter-markdown-import-complet.md`.
 
