@@ -871,7 +871,7 @@ function renderFeatureGrid(data, number, assetMode, anchor = "", isLastSection =
         ${sectionHeader(number, data.kicker)}
         <div style="height:18px; line-height:18px; font-size:1px;">&nbsp;</div>
         ${hasFeaturedCard ? featuredCard : ""}
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${rows}</table>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${rows.join("")}</table>
       </td>
     </tr>`;
 }
