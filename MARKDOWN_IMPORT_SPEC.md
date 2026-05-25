@@ -554,7 +554,7 @@ Regles :
 Une grille de benefices contient :
 
 1. jusqu'a quatre cartes secondaires ;
-2. une carte vedette decrite par `feature_grid_featured`.
+2. une carte vedette optionnelle decrite par `feature_grid_featured`.
 
 ```md
 :::feature_grid
@@ -589,9 +589,10 @@ Regles :
 - jusqu'a quatre cartes secondaires sont rendues. Trois cartes sont valides et
   ne doivent pas etre completees artificiellement par une quatrieme carte ;
 - `bg_image_url`, si renseigne, doit etre `http` ou `https` ;
-- `feature_grid_featured` doit suivre son `feature_grid` ;
+- `feature_grid_featured`, quand il est utilise, doit suivre son `feature_grid` ;
 - `feature_grid_featured.title` est obligatoire ;
-- une grille sans carte vedette est importee avec avertissement.
+- une grille sans carte vedette est valide et rend uniquement les cartes
+  secondaires.
 
 ## Validations et avertissements
 
@@ -620,7 +621,6 @@ L'import continue avec avertissement pour :
 - aucun hero importe ;
 - chart auto a rafraichir avec CoinGecko ;
 - event sans titre ;
-- grille `feature_grid` sans carte vedette ;
 - plus de quatre cartes secondaires dans `feature_grid`.
 
 ## Hors perimetre

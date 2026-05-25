@@ -433,7 +433,7 @@ kicker: "EN 3 ETAPES"
 - focus_cta exige toujours label. Si le CTA source est entre crochets, ce texte devient label. Si aucun libellé n'est disponible, utilise label: "Découvrir".
 - hero_chips doit suivre directement :::hero.
 - edito_kpis doit suivre directement le corps de :::edito.
-- feature_grid_featured doit suivre directement :::feature_grid.
+- feature_grid_featured doit suivre directement :::feature_grid quand il est utilisé. Il est optionnel : ne l'ajoute pas si aucun bénéfice, message ou valeur vedette n'est explicitement fourni.
 - editorial_list utilise exactement : - tag | title | body obligatoire | tag_color optionnel. Les 3 colonnes tag, title et body ne doivent jamais être vides.
 - Dans editorial_list, la couleur hexadecimale est uniquement la 4e colonne tag_color. Ne mets jamais #03FFCF, #FF8B28, #B36BFF ou #00FFFF dans la colonne body, sinon elle sera affichee comme texte.
 - feature_grid utilise exactement : - title | body obligatoire | picto | color. Les 4 colonnes doivent être présentes pour chaque carte. Picto par défaut si incertain : target. Couleurs par défaut : #03FFCF, #FF8B28, #B36BFF, #00FFFF. Si le brief contient seulement 3 fonctionnalités ou bénéfices, génère exactement 3 lignes, pas une 4e carte inventée.

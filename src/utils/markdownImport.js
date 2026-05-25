@@ -743,8 +743,6 @@ function sectionsFromTokens(tokens, warnings) {
         const bodyToken = tokens[index + 2]?.kind === "markdown" ? tokens[index + 2] : null;
         featureGridSection.data.featured = featureGridFeaturedFromDirective(childToken, bodyToken?.text || "");
         index += bodyToken ? 2 : 1;
-      } else {
-        warnings.push("Directive :::feature_grid: carte vedette absente.");
       }
 
       sections.push(featureGridSection);

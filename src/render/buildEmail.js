@@ -805,6 +805,11 @@ function renderFeatureGrid(data, number, assetMode, anchor = "", isLastSection =
   const effectiveBgImg = bgImg || (assetMode === "external"
     ? "assets/macro-quote-bg.png"
     : "https://decrypto-newsletter.vercel.app/macro-quote-bg.png");
+  const hasFeaturedCard = Boolean(
+    String(featured.label || "").trim() ||
+    String(featured.title || "").trim() ||
+    String(featured.body || "").trim()
+  );
   const featuredColor = featured.color || EMAIL_THEME.accentPrimary;
   const featuredIcon = featured.show_icon === false
     ? ""
@@ -865,7 +870,7 @@ function renderFeatureGrid(data, number, assetMode, anchor = "", isLastSection =
         ${anchor}
         ${sectionHeader(number, data.kicker)}
         <div style="height:18px; line-height:18px; font-size:1px;">&nbsp;</div>
-        ${featuredCard}
+        ${hasFeaturedCard ? featuredCard : ""}
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${rows}</table>
       </td>
     </tr>`;

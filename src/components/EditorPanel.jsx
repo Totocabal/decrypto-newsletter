@@ -791,7 +791,7 @@ const SECTION_TYPE_DESCRIPTIONS = {
   macro: "Analyse macro avec citation mise en avant.",
   macro_bars: "Barres de données pour comparer des indicateurs.",
   commented_number: "Chiffre fort accompagné d'un commentaire éditorial.",
-  feature_grid: "Grille 1 carte vedette + 4 cartes secondaires.",
+  feature_grid: "Grille de bénéfices, avec carte vedette optionnelle.",
   event: "Annonce d'évènement avec informations et CTA.",
   text_block: "Bloc texte simple avec bouton optionnel.",
   focus: "Texte long, image et boutons optionnels.",

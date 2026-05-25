@@ -583,6 +583,8 @@ kicker: "Benefits"
   assert.match(html, /First body\./);
   assert.match(html, /Second body\./);
   assert.match(html, /Third body\./);
+  assert.doesNotMatch(html, /macro-quote-bg\.png/);
+  assert.doesNotMatch(html, /Benefice n/);
   assert.doesNotMatch(html, /undefined/);
   assert.doesNotMatch(html, /<td class="em-feature-cell"[^>]*>\s*<table[\s\S]*?<div style="margin-bottom:10px;">[\s\S]*?<p style="margin:0 0 4px;[^>]*"><\/p>/);
 });
