@@ -229,7 +229,7 @@ export function EditorPage({ newsletterId, onBack }) {
   };
 
   const handleOpenPresetModal = () => {
-    if (!state || !profile?.is_admin) return;
+    if (!state) return;
     setPresetName(newsletter?.title || "");
     setPresetSaved(false);
     setPresetModalOpen(true);
@@ -506,7 +506,7 @@ export function EditorPage({ newsletterId, onBack }) {
         onExportZip={handleExportZip}
         onExportBraze={profile?.is_admin ? handleExportBraze : null}
         onSendPreview={handleOpenSendPreview}
-        onSaveAsPreset={profile?.is_admin ? handleOpenPresetModal : null}
+        onSaveAsPreset={handleOpenPresetModal}
         copied={copied}
         saved={savedFlash}
         exporting={exporting}
@@ -562,7 +562,7 @@ export function EditorPage({ newsletterId, onBack }) {
               </h3>
             </div>
             <p className="mb-4 text-xs text-d-fg3">
-              Le contenu actuel (sections et données) sera conservé dans le preset.
+              Le contenu actuel sera conservé dans un preset réutilisable. Les admins peuvent gérer tous les presets.
             </p>
             <input
               type="text"

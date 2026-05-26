@@ -54,17 +54,34 @@ create policy "template_presets_select_approved"
   using (public.current_user_is_approved());
 
 drop policy if exists "template_presets_insert_admin" on public.template_presets;
-create policy "template_presets_insert_admin"
+drop policy if exists "template_presets_insert_approved" on public.template_presets;
+create policy "template_presets_insert_approved"
   on public.template_presets for insert
   to authenticated
-  with check (public.current_user_is_admin());
+  with check (
+    public.current_user_is_approved()
+    and created_by = auth.uid()
+  );
 
 drop policy if exists "template_presets_update_admin" on public.template_presets;
-create policy "template_presets_update_admin"
+drop policy if exists "template_presets_update_owner_or_admin" on public.template_presets;
+create policy "template_presets_update_owner_or_admin"
   on public.template_presets for update
   to authenticated
-  using (public.current_user_is_admin())
-  with check (public.current_user_is_admin());
+  using (
+    public.current_user_is_admin()
+    or (
+      public.current_user_is_approved()
+      and created_by = auth.uid()
+    )
+  )
+  with check (
+    public.current_user_is_admin()
+    or (
+      public.current_user_is_approved()
+      and created_by = auth.uid()
+    )
+  );
 
 drop policy if exists "template_presets_delete_admin" on public.template_presets;
 drop policy if exists "template_presets_delete_owner_or_admin" on public.template_presets;
@@ -73,7 +90,10 @@ create policy "template_presets_delete_owner_or_admin"
   to authenticated
   using (
     public.current_user_is_admin()
-    or created_by = auth.uid()
+    or (
+      public.current_user_is_approved()
+      and created_by = auth.uid()
+    )
   );
 
 drop trigger if exists template_presets_touch on public.template_presets;

@@ -888,6 +888,8 @@ Index : `(newsletter_id, created_at DESC)`.
 
 #### `template_presets`
 
+Presets réutilisables de structure newsletter. Chaque utilisateur approuvé peut en créer et modifier les siens. Les admins voient, éditent et suppriment tous les presets.
+
 | Colonne | Type | Notes |
 |---|---|---|
 | `id` | uuid PK | |
@@ -953,7 +955,7 @@ Toutes les tables ont RLS activé.
 | `profiles` | Tous les authentifiés | Trigger uniquement | Soi-même (sans changer `is_admin`) OU admin | Admin |
 | `newsletters` | Approuvés | Approuvés | Approuvés | Admin OU créateur |
 | `versions` | Approuvés | Approuvés (`author_id = auth.uid()`) | — | — |
-| `template_presets` | Approuvés | Admin | Admin | Admin OU créateur |
+| `template_presets` | Approuvés | Approuvés (`created_by = auth.uid()`) | Créateur OU admin | Créateur OU admin |
 | `locks` | Approuvés | Approuvés (`user_id = auth.uid()`) | Propriétaire | Propriétaire OU expiré OU admin |
 
 ---
