@@ -23,6 +23,8 @@ import {
   Loader2,
   FileUp,
   ClipboardPaste,
+  BookOpen,
+  HelpCircle,
   Hash,
   Minus,
   Palette,
@@ -74,6 +76,112 @@ Le corps du bloc reste en Markdown riche.
 - Point clé
 - Autre point clé
 `;
+
+const MARKDOWN_HELP_EXAMPLES = [
+  {
+    id: "minimal",
+    label: "Email simple",
+    description: "Un objet, un pré-header et un bloc texte.",
+    markdown: `---
+title: "Votre compte est prêt"
+preview_text: "Découvrez les prochaines étapes."
+brand_name: "COINHOUSE"
+theme_variant: light
+show_section_numbers: false
+show_block_separators: false
+---
+
+:::text_block
+:::
+
+Bonjour {{\${first_name} | default: ""}},
+
+Votre compte Coinhouse est prêt. Vous pouvez maintenant acheter, vendre et échanger vos crypto-actifs depuis votre espace sécurisé.
+`,
+  },
+  {
+    id: "list-cta",
+    label: "Liste + CTA",
+    description: "Idéal pour étapes, bénéfices ou arguments produit.",
+    markdown: `---
+title: "Activez votre compte euro"
+preview_text: "Trois bénéfices pour piloter vos achats crypto."
+brand_name: "COINHOUSE"
+theme_variant: light
+show_section_numbers: false
+show_block_separators: false
+---
+
+:::editorial_list
+kicker: "EN 3 POINTS"
+:::
+
+- 01 | Un compte à votre nom | Un IBAN français pour alimenter votre compte Coinhouse. | #03FFCF
+- 02 | Moins de frais | Les virements coûtent moins cher que les achats par carte de paiement. | #FF8B28
+- 03 | Achats récurrents | Programmez vos achats crypto-actifs sans y penser. | #B36BFF
+
+:::cta
+label: "Activer mon compte"
+url: "https://www.coinhouse.com/"
+arrow: true
+centered: false
+:::
+`,
+  },
+  {
+    id: "focus",
+    label: "Encadré + CTA",
+    description: "Pour regrouper une recommandation et une action.",
+    markdown: `---
+title: "Une action à ne pas manquer"
+preview_text: "Un rappel clair pour passer à l'action."
+brand_name: "COINHOUSE"
+theme_variant: dark
+show_section_numbers: true
+show_block_separators: true
+---
+
+:::focus
+kicker: "À RETENIR"
+title: "Passez à l'action en quelques minutes"
+:::
+
+:::focus_text
+:::
+
+Votre espace Coinhouse vous permet de gérer vos achats et vos échanges depuis un environnement simple et accompagné.
+
+:::focus_cta
+label: "Découvrir mon espace"
+url: "https://www.coinhouse.com/"
+arrow: true
+centered: false
+:::
+`,
+  },
+  {
+    id: "feature-grid",
+    label: "Grille bénéfices",
+    description: "Pour 3 ou 4 fonctionnalités comparables.",
+    markdown: `---
+title: "Pourquoi activer votre compte euro"
+preview_text: "Trois bénéfices concrets pour vos achats crypto."
+brand_name: "COINHOUSE"
+theme_variant: light
+show_section_numbers: false
+show_block_separators: false
+---
+
+:::feature_grid
+kicker: "BÉNÉFICES"
+:::
+
+- IBAN français | Alimentez votre compte Coinhouse par virement. | shield | #03FFCF
+- Frais réduits | Limitez les frais liés aux paiements par carte. | euro | #FF8B28
+- Achat récurrent | Programmez vos achats crypto-actifs dans le temps. | target | #B36BFF
+`,
+  },
+];
 
 function cleanInlineMarkdown(text = "") {
   return String(text || "").replace(/\*\*/g, "").replace(/\*/g, "").trim();
@@ -197,6 +305,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
   const [labelPickerOpen, setLabelPickerOpen] = useState(null);
   const [importingMarkdown, setImportingMarkdown] = useState(false);
   const [markdownImportSourceOpen, setMarkdownImportSourceOpen] = useState(false);
+  const [markdownHelpOpen, setMarkdownHelpOpen] = useState(false);
   const [markdownImportMode, setMarkdownImportMode] = useState("markdown");
   const [pastedMarkdown, setPastedMarkdown] = useState("");
   const [markdownBrief, setMarkdownBrief] = useState("");
@@ -396,8 +505,26 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
     parseMarkdownImport(pastedMarkdown, "Markdown collé");
   };
 
+  const insertMarkdownHelpExample = (markdown) => {
+    setPastedMarkdown(markdown);
+    setMarkdownHelpOpen(false);
+    setMarkdownImportMode("markdown");
+    setMarkdownImportSourceOpen(true);
+    addToast("Exemple Markdown inséré. Tu peux l'adapter puis le valider.", "success");
+  };
+
+  const copyMarkdownHelpExample = async (markdown) => {
+    try {
+      await navigator.clipboard.writeText(markdown);
+      addToast("Exemple Markdown copié.", "success");
+    } catch {
+      addToast("Copie impossible depuis ce navigateur.", "error");
+    }
+  };
+
   const resetMarkdownSourceModal = () => {
     setMarkdownImportSourceOpen(false);
+    setMarkdownHelpOpen(false);
     setPastedMarkdown("");
     setMarkdownBrief("");
     setCrmBriefVariants(null);
@@ -1445,6 +1572,16 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                 <h2 className="text-xl font-semibold tracking-tight text-d-fg" style={{ fontFamily: "'Sora', sans-serif" }}>
                   {markdownImportMode === "gemini" ? "Assistant de génération" : "Importer un Markdown"}
                 </h2>
+                {markdownImportMode === "markdown" && (
+                  <button
+                    type="button"
+                    onClick={() => setMarkdownHelpOpen(true)}
+                    className="mt-3 inline-flex items-center gap-2 rounded-lg border border-line bg-d-panel2 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-d-fg2 transition-colors hover:border-line2 hover:text-d-fg"
+                  >
+                    <HelpCircle size={13} />
+                    Guide syntaxe
+                  </button>
+                )}
               </div>
               <button
                 type="button"
@@ -1658,78 +1795,45 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
               <div className="rounded-xl border border-line bg-d-panel2 p-4">
                 <div className="mb-3 flex items-start justify-between gap-3">
                   <div>
-                    <div className="text-sm font-semibold text-d-fg">Spécifications du fichier Markdown</div>
+                    <div className="text-sm font-semibold text-d-fg">Besoin d'aide sur la syntaxe ?</div>
                     <div className="mt-1 text-xs leading-relaxed text-d-fg4">
-                      Le fichier doit commencer par un front matter, puis du Markdown simple ou des directives.
+                      Commence par un exemple, ou ouvre le guide complet avec les blocs les plus utiles.
                     </div>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setPastedMarkdown(MARKDOWN_IMPORT_TEMPLATE)}
-                    className="inline-flex flex-shrink-0 items-center gap-2 rounded-lg border border-line px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-d-fg2 transition-colors hover:border-line2 hover:text-d-fg"
-                  >
-                    <Copy size={12} />
-                    Insérer exemple
-                  </button>
-                </div>
-                <div className="grid grid-cols-1 gap-3 text-xs leading-relaxed text-d-fg3 lg:grid-cols-2">
-                  <div className="rounded-lg border border-line bg-d-panel px-3 py-3">
-                    <div className="mb-2 font-semibold uppercase tracking-[0.14em] text-d-fg4">Front matter</div>
-                    <div className="space-y-1">
-                      <p><code className="text-d-fg">title</code> obligatoire</p>
-                      <p><code className="text-d-fg">preview_text</code>, <code className="text-d-fg">brand_name</code>, <code className="text-d-fg">issue_number</code>, <code className="text-d-fg">issue_date</code></p>
-                      <p><code className="text-d-fg">theme_variant</code> : <code>dark</code> ou <code>light</code></p>
-                      <p><code className="text-d-fg">show_section_numbers</code> et <code className="text-d-fg">show_block_separators</code> : <code>true</code> ou <code>false</code></p>
-                    </div>
-                  </div>
-                  <div className="rounded-lg border border-line bg-d-panel px-3 py-3">
-                    <div className="mb-2 font-semibold uppercase tracking-[0.14em] text-d-fg4">Markdown simple</div>
-                    <div className="space-y-1">
-                      <p>Premier <code className="text-d-fg"># Titre</code> : hero</p>
-                      <p><code className="text-d-fg">## Titre</code> ou texte : bloc texte</p>
-                      <p><code className="text-d-fg">![Alt](https://...)</code> : image</p>
-                      <p><code className="text-d-fg">---</code> hors front matter : séparateur fin</p>
-                    </div>
+                  <div className="flex flex-shrink-0 flex-col gap-2 sm:flex-row">
+                    <button
+                      type="button"
+                      onClick={() => setPastedMarkdown(MARKDOWN_IMPORT_TEMPLATE)}
+                      className="inline-flex items-center gap-2 rounded-lg border border-line px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-d-fg2 transition-colors hover:border-line2 hover:text-d-fg"
+                    >
+                      <Copy size={12} />
+                      Exemple complet
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setMarkdownHelpOpen(true)}
+                      className="inline-flex items-center gap-2 rounded-lg bg-d-pink px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-white transition-opacity hover:opacity-90"
+                    >
+                      <BookOpen size={12} />
+                      Ouvrir le guide
+                    </button>
                   </div>
                 </div>
-                <details className="mt-3 rounded-lg border border-line bg-d-panel px-3 py-3 text-xs leading-relaxed text-d-fg3">
-                  <summary className="cursor-pointer font-semibold uppercase tracking-[0.14em] text-d-fg4">
-                    Directives et règles avancées
-                  </summary>
-                  <div className="mt-3 grid grid-cols-1 gap-3 lg:grid-cols-2">
-                    <div>
-                      <div className="mb-1 font-semibold text-d-fg2">Sections supportées</div>
-                      <p>
-                        <code>hero</code>, <code>index</code>, <code>edito</code>, <code>text_block</code>, <code>cta</code>, <code>spacer</code>, <code>image_block</code>, <code>divider</code>, <code>chart</code>, <code>fear_greed</code>, <code>signals</code>, <code>macro</code>, <code>macro_bars</code>, <code>commented_number</code>, <code>editorial_list</code>, <code>focus</code>, <code>feature_grid</code>, <code>event</code>.
-                      </p>
+                <div className="grid grid-cols-1 gap-3 text-xs leading-relaxed text-d-fg3 sm:grid-cols-3">
+                  {[
+                    ["1", "Front matter", "Le fichier commence par --- avec title et preview_text."],
+                    ["2", "Blocs", "Ajoute des directives comme text_block, editorial_list, cta ou focus."],
+                    ["3", "Validation", "Colle le Markdown, valide, puis ajuste la mise en forme avant création."],
+                  ].map(([step, title, body]) => (
+                    <div key={step} className="rounded-lg border border-line bg-d-panel px-3 py-3">
+                      <div className="mb-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-d-pink text-[11px] font-bold text-white">
+                        {step}
+                      </div>
+                      <div className="font-semibold text-d-fg2">{title}</div>
+                      <div className="mt-1 text-d-fg4">{body}</div>
                     </div>
-                    <div>
-                      <div className="mb-1 font-semibold text-d-fg2">Sous-directives</div>
-                      <p>
-                        <code>hero_chips</code>, <code>edito_kpis</code>, <code>focus_text</code>, <code>focus_image</code>, <code>focus_cta</code>, <code>focus_callout</code>, <code>focus_spacer</code>, <code>feature_grid_featured</code>.
-                      </p>
-                    </div>
-                    <div>
-                      <div className="mb-1 font-semibold text-d-fg2">Listes structurées</div>
-                      <p>
-                        Les blocs répétés utilisent des lignes <code>- colonne 1 | colonne 2 | colonne 3</code>. Le caractère <code>|</code> sépare les colonnes et ne doit pas être utilisé dans leur texte.
-                      </p>
-                    </div>
-                    <div>
-                      <div className="mb-1 font-semibold text-d-fg2">URLs et graphiques</div>
-                      <p>
-                        Les images et CTA attendent des URLs <code>http</code> ou <code>https</code>. Un <code>chart</code> auto sera importé puis rafraîchi avec CoinGecko dans l'éditeur.
-                      </p>
-                    </div>
-                  </div>
-                  <div className="mt-3 rounded-lg bg-d-panel2 px-3 py-2 font-mono text-[11px] text-d-fg2">
-                    :::text_block<br />
-                    kicker: "ANALYSE"<br />
-                    title: "Titre du bloc"<br />
-                    :::<br /><br />
-                    Corps Markdown du bloc.
-                  </div>
-                </details>
+                  ))}
+                </div>
               </div>
               </>
               )}
@@ -1756,6 +1860,155 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                 Valider le Markdown collé
               </button>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+      {markdownHelpOpen && (
+        <div className="fixed inset-0 z-[70] flex items-stretch justify-center bg-black/70 p-2 backdrop-blur-sm sm:items-center sm:p-4">
+          <div className="flex max-h-full w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-line bg-d-panel shadow-2xl sm:max-h-[calc(100vh-32px)]">
+            <div className="flex flex-shrink-0 items-start justify-between gap-4 border-b border-line px-4 py-4 sm:px-6 sm:py-5">
+              <div className="min-w-0">
+                <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-d-pink">
+                  Guide Markdown
+                </div>
+                <h2 className="text-lg font-semibold tracking-tight text-d-fg sm:text-xl" style={{ fontFamily: "'Sora', sans-serif" }}>
+                  Construire un fichier importable
+                </h2>
+                <p className="mt-2 max-w-2xl text-xs leading-relaxed text-d-fg4 sm:text-sm">
+                  Choisis une recette, insère un exemple, puis remplace le contenu. Les champs restent simples : une directive s'ouvre avec <code>:::nom_du_bloc</code>, ses options sont en dessous, puis <code>:::</code> ferme le bloc.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setMarkdownHelpOpen(false)}
+                className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-d-fg4 transition-colors hover:bg-d-panel2 hover:text-d-fg2"
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <div className="overflow-y-auto px-4 py-4 sm:px-6 sm:py-5">
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-[0.9fr_1.1fr]">
+                <div className="space-y-4">
+                  <section className="rounded-xl border border-line bg-d-panel2 p-4">
+                    <div className="mb-3 flex items-center gap-2">
+                      <FileText size={15} className="text-d-pink" />
+                      <div className="text-sm font-semibold text-d-fg">Le minimum obligatoire</div>
+                    </div>
+                    <div className="space-y-3 text-xs leading-relaxed text-d-fg3">
+                      <div className="rounded-lg border border-line bg-d-panel px-3 py-3">
+                        <div className="mb-1 font-semibold text-d-fg2">Front matter</div>
+                        <p>Le fichier commence par <code>---</code>. Mets au minimum <code>title</code> et <code>preview_text</code>.</p>
+                      </div>
+                      <div className="rounded-lg border border-line bg-d-panel px-3 py-3">
+                        <div className="mb-1 font-semibold text-d-fg2">URLs</div>
+                        <p>Les liens de CTA et d'image doivent commencer par <code>https://</code> ou <code>http://</code>.</p>
+                      </div>
+                      <div className="rounded-lg border border-line bg-d-panel px-3 py-3">
+                        <div className="mb-1 font-semibold text-d-fg2">Listes à colonnes</div>
+                        <p>Utilise <code>|</code> seulement pour séparer les colonnes : <code>- tag | titre | texte | couleur</code>.</p>
+                      </div>
+                    </div>
+                  </section>
+
+                  <section className="rounded-xl border border-line bg-d-panel2 p-4">
+                    <div className="mb-3 text-sm font-semibold text-d-fg">Quel bloc choisir ?</div>
+                    <div className="space-y-2 text-xs leading-relaxed text-d-fg3">
+                      {[
+                        ["Texte simple", "text_block"],
+                        ["Bouton seul", "cta"],
+                        ["Espace vertical", "spacer"],
+                        ["2 à 4 bénéfices ou étapes", "editorial_list"],
+                        ["Recommandation + action", "focus + focus_cta"],
+                        ["3 ou 4 fonctionnalités", "feature_grid"],
+                        ["Citation attribuée", "macro"],
+                        ["Date ou rendez-vous", "event"],
+                      ].map(([label, block]) => (
+                        <div key={label} className="flex items-center justify-between gap-3 rounded-lg border border-line bg-d-panel px-3 py-2">
+                          <span>{label}</span>
+                          <code className="rounded-md bg-d-panel2 px-2 py-1 text-[11px] text-d-fg2">{block}</code>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+
+                  <section className="rounded-xl border border-line bg-d-panel2 p-4">
+                    <div className="mb-3 text-sm font-semibold text-d-fg">Erreurs fréquentes</div>
+                    <ul className="space-y-2 text-xs leading-relaxed text-d-fg3">
+                      <li className="flex gap-2"><AlertTriangle size={13} className="mt-0.5 flex-shrink-0 text-[#FF8B28]" /> Ne mets pas <code>:::text_block:</code> avec deux-points final.</li>
+                      <li className="flex gap-2"><AlertTriangle size={13} className="mt-0.5 flex-shrink-0 text-[#FF8B28]" /> Ferme chaque directive avec une ligne <code>:::</code>.</li>
+                      <li className="flex gap-2"><AlertTriangle size={13} className="mt-0.5 flex-shrink-0 text-[#FF8B28]" /> Dans <code>editorial_list</code>, le corps est obligatoire.</li>
+                      <li className="flex gap-2"><AlertTriangle size={13} className="mt-0.5 flex-shrink-0 text-[#FF8B28]" /> Une couleur hex doit être en dernière colonne, jamais dans le texte.</li>
+                    </ul>
+                  </section>
+                </div>
+
+                <div className="space-y-4">
+                  <section className="rounded-xl border border-line bg-d-panel2 p-4">
+                    <div className="mb-3 flex items-center justify-between gap-3">
+                      <div>
+                        <div className="text-sm font-semibold text-d-fg">Exemples prêts à utiliser</div>
+                        <div className="mt-0.5 text-xs text-d-fg4">Insère un exemple dans le champ Markdown, ou copie-le.</div>
+                      </div>
+                    </div>
+                    <div className="space-y-3">
+                      {MARKDOWN_HELP_EXAMPLES.map((example) => (
+                        <div key={example.id} className="rounded-xl border border-line bg-d-panel p-3">
+                          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                            <div>
+                              <div className="text-sm font-semibold text-d-fg">{example.label}</div>
+                              <div className="mt-1 text-xs leading-relaxed text-d-fg4">{example.description}</div>
+                            </div>
+                            <div className="flex flex-shrink-0 gap-2">
+                              <button
+                                type="button"
+                                onClick={() => copyMarkdownHelpExample(example.markdown)}
+                                className="inline-flex items-center gap-1.5 rounded-lg border border-line px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-d-fg2 transition-colors hover:border-line2 hover:text-d-fg"
+                              >
+                                <Copy size={12} />
+                                Copier
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => insertMarkdownHelpExample(example.markdown)}
+                                className="inline-flex items-center gap-1.5 rounded-lg bg-d-pink px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-white transition-opacity hover:opacity-90"
+                              >
+                                Insérer
+                              </button>
+                            </div>
+                          </div>
+                          <pre className="mt-3 max-h-48 overflow-auto rounded-lg border border-line bg-d-panel2 px-3 py-3 font-mono text-[11px] leading-relaxed text-d-fg3">
+                            {example.markdown}
+                          </pre>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+
+                  <section className="rounded-xl border border-line bg-d-panel2 p-4">
+                    <div className="mb-3 text-sm font-semibold text-d-fg">Référence rapide</div>
+                    <div className="grid grid-cols-1 gap-3 text-xs leading-relaxed text-d-fg3 sm:grid-cols-2">
+                      <div className="rounded-lg border border-line bg-d-panel px-3 py-3">
+                        <div className="mb-2 font-semibold uppercase tracking-[0.14em] text-d-fg4">Sections</div>
+                        <p><code>hero</code>, <code>text_block</code>, <code>cta</code>, <code>spacer</code>, <code>editorial_list</code>, <code>focus</code>, <code>feature_grid</code>, <code>macro</code>, <code>event</code>, <code>divider</code>, <code>image_block</code>.</p>
+                      </div>
+                      <div className="rounded-lg border border-line bg-d-panel px-3 py-3">
+                        <div className="mb-2 font-semibold uppercase tracking-[0.14em] text-d-fg4">Sous-blocs</div>
+                        <p><code>focus_text</code>, <code>focus_cta</code>, <code>focus_callout</code>, <code>focus_image</code>, <code>focus_spacer</code>, <code>feature_grid_featured</code>.</p>
+                      </div>
+                    </div>
+                  </section>
+                </div>
+              </div>
+            </div>
+            <div className="flex flex-col-reverse gap-2 border-t border-line px-4 py-4 sm:flex-row sm:justify-end sm:px-6">
+              <button
+                type="button"
+                onClick={() => setMarkdownHelpOpen(false)}
+                className="rounded-xl border border-line px-4 py-2 text-xs font-semibold text-d-fg3 transition-colors hover:border-line2 hover:text-d-fg"
+              >
+                Fermer
+              </button>
             </div>
           </div>
         </div>
