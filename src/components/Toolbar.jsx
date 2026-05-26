@@ -13,6 +13,7 @@ import {
   UploadCloud,
   Loader2,
   BookMarked,
+  Send,
   X,
 } from "lucide-react";
 import { Tooltip } from "./Tooltip.jsx";
@@ -25,14 +26,16 @@ export function Toolbar({
   onCopy,
   onExportZip,
   onExportBraze,
+  onSendPreview,
   onSaveAsPreset,
   copied,
   saved,
   exporting,
   exportingBraze,
+  sendingPreview,
 }) {
   const [exportModalOpen, setExportModalOpen] = useState(false);
-  const busy = exporting || exportingBraze;
+  const busy = exporting || exportingBraze || sendingPreview;
 
   const handleExportZip = () => {
     setExportModalOpen(false);
@@ -118,6 +121,26 @@ export function Toolbar({
                 >
                   <BookMarked size={12} />
                   <span className="hidden sm:inline">Preset</span>
+                </button>
+              </Tooltip>
+            )}
+
+            {/* Envoyer une preview */}
+            {onSendPreview && (
+              <Tooltip
+                className="flex-shrink-0"
+                side="bottom"
+                align="right"
+                label="Envoyer l'aperçu actuel par email avec Resend."
+              >
+                <button
+                  onClick={onSendPreview}
+                  disabled={busy}
+                  aria-label="Envoyer une preview"
+                  className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-line2 text-d-fg2 transition-colors hover:bg-d-panel2 disabled:cursor-not-allowed disabled:opacity-50 sm:h-auto sm:w-auto sm:gap-1.5 sm:px-3 sm:py-2 sm:text-[11px] sm:font-medium sm:uppercase sm:tracking-[0.14em]"
+                >
+                  {sendingPreview ? <Loader2 size={12} className="animate-spin" /> : <Send size={12} />}
+                  <span className="hidden sm:inline">Preview</span>
                 </button>
               </Tooltip>
             )}

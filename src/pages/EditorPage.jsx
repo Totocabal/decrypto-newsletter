@@ -3,7 +3,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, History, Loader2, CloudOff, Cloud, Tag, Undo2, Redo2, X, BookMarked, Check } from "lucide-react";
+import { ArrowLeft, History, Loader2, CloudOff, Cloud, Tag, Undo2, Redo2, X, BookMarked, Check, Mail, Send } from "lucide-react";
 import { Toolbar } from "../components/Toolbar.jsx";
 import { PreviewPanel } from "../components/PreviewPanel.jsx";
 import { EditorPanel } from "../components/EditorPanel.jsx";
@@ -57,6 +57,10 @@ export function EditorPage({ newsletterId, onBack }) {
   const [savedFlash, setSavedFlash] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [exportingBraze, setExportingBraze] = useState(false);
+  const [previewSendOpen, setPreviewSendOpen] = useState(false);
+  const [previewRecipients, setPreviewRecipients] = useState("");
+  const [previewSubject, setPreviewSubject] = useState("");
+  const [sendingPreview, setSendingPreview] = useState(false);
   const [presetModalOpen, setPresetModalOpen] = useState(false);
   const [presetName, setPresetName] = useState("");
   const [savingPreset, setSavingPreset] = useState(false);
@@ -278,6 +282,48 @@ export function EditorPage({ newsletterId, onBack }) {
     }
   };
 
+  const handleOpenSendPreview = () => {
+    if (!state) return;
+    setPreviewRecipients(profile?.email || "");
+    setPreviewSubject(`[Preview] ${newsletter?.title || state.brand_name || "Newsletter"}`);
+    setPreviewSendOpen(true);
+  };
+
+  const handleSendPreview = async () => {
+    if (!state || !html) return;
+    setSendingPreview(true);
+    try {
+      const { data, error } = await supabase.auth.getSession();
+      if (error) throw error;
+      const accessToken = data?.session?.access_token;
+      if (!accessToken) throw new Error("Session expirée. Reconnecte-toi puis réessaie.");
+
+      const response = await fetch("/api/send-preview", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
+          to: previewRecipients,
+          subject: previewSubject,
+          previewText: state.preview_text || "",
+          html,
+        }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(payload.error || "Envoi preview impossible.");
+      }
+      addToast(`Preview envoyée à ${payload.to?.join(", ") || previewRecipients}.`, "success");
+      setPreviewSendOpen(false);
+    } catch (e) {
+      addToast("Erreur Resend : " + (e.message || e), "error");
+    } finally {
+      setSendingPreview(false);
+    }
+  };
+
   // Loader bloquant
   if (loading) {
     return (
@@ -459,11 +505,13 @@ export function EditorPage({ newsletterId, onBack }) {
         onCopy={handleCopy}
         onExportZip={handleExportZip}
         onExportBraze={profile?.is_admin ? handleExportBraze : null}
+        onSendPreview={handleOpenSendPreview}
         onSaveAsPreset={profile?.is_admin ? handleOpenPresetModal : null}
         copied={copied}
         saved={savedFlash}
         exporting={exporting}
         exportingBraze={exportingBraze}
+        sendingPreview={sendingPreview}
       />
 
       <div
@@ -546,6 +594,88 @@ export function EditorPage({ newsletterId, onBack }) {
                 ) : (
                   <><BookMarked size={12} /> Enregistrer</>
                 )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {previewSendOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: "rgba(0,0,0,0.6)" }}
+          onClick={() => !sendingPreview && setPreviewSendOpen(false)}
+        >
+          <div
+            className="w-full max-w-md rounded-2xl border border-line bg-d-panel p-6 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-4 flex items-start justify-between gap-4">
+              <div className="flex items-center gap-2">
+                <Mail size={16} className="text-d-pink" />
+                <h3
+                  className="text-sm font-semibold text-d-fg"
+                  style={{ fontFamily: "'Sora', sans-serif" }}
+                >
+                  Envoyer une preview
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPreviewSendOpen(false)}
+                disabled={sendingPreview}
+                className="text-d-fg4 transition-colors hover:text-d-fg2 disabled:opacity-40"
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <label className="block">
+                <span className="mb-1.5 block text-[10px] font-semibold uppercase tracking-[0.16em] text-d-fg4">
+                  Destinataires
+                </span>
+                <textarea
+                  value={previewRecipients}
+                  onChange={(event) => setPreviewRecipients(event.target.value)}
+                  placeholder="thomas@coinhouse.com, equipe@coinhouse.com"
+                  rows={3}
+                  className="w-full resize-y rounded-xl border border-line bg-d-panel2 px-3 py-2.5 text-sm leading-relaxed text-d-fg outline-none transition-colors placeholder:text-d-fg4 focus:border-line2"
+                />
+                <span className="mt-1 block text-[11px] leading-relaxed text-d-fg4">
+                  Sépare les adresses par une virgule, un point-virgule ou un retour ligne. Maximum 10 destinataires.
+                </span>
+              </label>
+              <label className="block">
+                <span className="mb-1.5 block text-[10px] font-semibold uppercase tracking-[0.16em] text-d-fg4">
+                  Sujet
+                </span>
+                <input
+                  type="text"
+                  value={previewSubject}
+                  onChange={(event) => setPreviewSubject(event.target.value)}
+                  className="w-full rounded-xl border border-line bg-d-panel2 px-3 py-2.5 text-sm text-d-fg outline-none transition-colors placeholder:text-d-fg4 focus:border-line2"
+                />
+              </label>
+              <div className="rounded-xl border border-line bg-d-panel2 px-3 py-3 text-xs leading-relaxed text-d-fg3">
+                L'email envoyé reprend exactement le HTML affiché dans l'aperçu actuel. Le pré-header est déjà intégré au HTML généré.
+              </div>
+            </div>
+            <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={() => setPreviewSendOpen(false)}
+                disabled={sendingPreview}
+                className="rounded-xl border border-line px-4 py-2 text-xs font-semibold text-d-fg3 transition-colors hover:border-line2 hover:text-d-fg disabled:opacity-40"
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                onClick={handleSendPreview}
+                disabled={sendingPreview || !previewRecipients.trim() || !previewSubject.trim()}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-d-pink px-4 py-2 text-xs font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                {sendingPreview ? <Loader2 size={12} className="animate-spin" /> : <Send size={12} />}
+                Envoyer la preview
               </button>
             </div>
           </div>

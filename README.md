@@ -983,6 +983,24 @@ Réponse :
 
 Variables d'environnement : `BRAZE_API_KEY`, `BRAZE_BASE_URL` (ou `BRAZE_REST_ENDPOINT`), `SUPABASE_URL` / `VITE_SUPABASE_URL`, `SUPABASE_ANON_KEY` / `VITE_SUPABASE_ANON_KEY`.
 
+### `api/send-preview.js` — POST
+
+Auth : Bearer token Supabase → vérifie `profiles.approved`.
+
+Body :
+```json
+{
+  "to": "thomas@coinhouse.com, equipe@coinhouse.com",
+  "subject": "[Preview] Newsletter",
+  "previewText": "Texte de prévisualisation.",
+  "html": "<!doctype html>..."
+}
+```
+
+Envoie le HTML courant via Resend. Limites : 10 destinataires max, HTML max 2 Mo.
+
+Variables d'environnement : `RESEND_API_KEY`, `RESEND_FROM_EMAIL` (ou `RESEND_FROM`), `SUPABASE_URL` / `VITE_SUPABASE_URL`, `SUPABASE_ANON_KEY` / `VITE_SUPABASE_ANON_KEY`.
+
 ### `api/supabase-keepalive.js` — GET ou POST
 
 Cron Vercel : lundi et jeudi à 08h17 (schedule `"17 8 * * 1,4"`).
@@ -1053,6 +1071,8 @@ npm run dev
 | `MARKDOWN_IMPORT_API_TOKEN` | Bearer fixe pour l'import Markdown machine-to-machine |
 | `MARKDOWN_IMPORT_USER_ID` | UUID du profil technique auteur des imports Markdown |
 | `GEMINI_API_KEY` | Clé serveur Gemini pour générer un Markdown depuis un brief libre |
+| `RESEND_API_KEY` | Clé serveur Resend pour envoyer les previews email |
+| `RESEND_FROM_EMAIL` | Expéditeur vérifié Resend, ex. `Coinhouse Preview <preview@coinhouse.com>` |
 | `BRAZE_API_KEY` | Clé serveur Braze (permission `media_library.create`) |
 | `BRAZE_BASE_URL` | REST endpoint Braze (ex. `https://rest.fra-01.braze.eu`) |
 | `CRON_SECRET` | Secret optionnel pour l'endpoint keepalive |
