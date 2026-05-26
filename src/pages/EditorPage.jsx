@@ -23,7 +23,7 @@ import { useLabels, useNewsletterLabels } from "../lib/useLabels.js";
 import { createTemplatePreset } from "../lib/templatePresets.js";
 
 export function EditorPage({ newsletterId, onBack }) {
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
   const addToast = useToast();
   const confirm = useConfirm();
   const prompt = usePrompt();
@@ -284,7 +284,7 @@ export function EditorPage({ newsletterId, onBack }) {
 
   const handleOpenSendPreview = () => {
     if (!state) return;
-    setPreviewRecipients(profile?.email || "");
+    setPreviewRecipients(profile?.email || user?.email || "");
     setPreviewSubject(`[Preview] ${newsletter?.title || state.brand_name || "Newsletter"}`);
     setPreviewSendOpen(true);
   };
