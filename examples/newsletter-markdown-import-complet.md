@@ -140,6 +140,10 @@ secondary_arrow: false
 height: 18
 :::
 
+:::focus_divider
+style: thin
+:::
+
 :::text_block
 kicker: "ANALYSE"
 title: "Le signal a surveiller"

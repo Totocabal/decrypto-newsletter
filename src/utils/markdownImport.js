@@ -40,6 +40,7 @@ const SECTION_FIELDS = {
     "callout_color",
   ],
   focus_spacer: ["height"],
+  focus_divider: ["style"],
   signals: ["kicker", "title"],
   editorial_list: ["kicker"],
   feature_grid: ["kicker", "bg_image_url"],
@@ -114,6 +115,7 @@ const FOCUS_ITEM_TYPES = new Set([
   "focus_cta",
   "focus_callout",
   "focus_spacer",
+  "focus_divider",
 ]);
 const HERO_CHILD_TYPES = new Set(["hero_chips"]);
 const EDITO_CHILD_TYPES = new Set(["edito_kpis"]);
@@ -353,6 +355,14 @@ function focusItemFromDirective(token, body) {
       throw new MarkdownImportError(":::focus_spacer height doit être compris entre 0 et 120.");
     }
     return { id: importId("focus"), type: "spacer", height };
+  }
+
+  if (token.type === "focus_divider") {
+    const style = data.style || "thin";
+    if (!["thin", "thick", "gradient"].includes(style)) {
+      throw new MarkdownImportError(":::focus_divider style doit valoir thin, thick ou gradient.");
+    }
+    return { id: importId("focus"), type: "divider", style };
   }
 
   throw new MarkdownImportError(`Directive :::${token.type} inconnue dans un focus.`);

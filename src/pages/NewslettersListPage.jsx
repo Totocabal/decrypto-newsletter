@@ -1920,6 +1920,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                         ["Espace vertical", "spacer"],
                         ["2 à 4 bénéfices ou étapes", "editorial_list"],
                         ["Recommandation + action", "focus + focus_cta"],
+                        ["Séparateur dans texte & média", "focus_divider"],
                         ["3 ou 4 fonctionnalités", "feature_grid"],
                         ["Citation attribuée", "macro"],
                         ["Date ou rendez-vous", "event"],
@@ -1994,7 +1995,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                       </div>
                       <div className="rounded-lg border border-line bg-d-panel px-3 py-3">
                         <div className="mb-2 font-semibold uppercase tracking-[0.14em] text-d-fg4">Sous-blocs</div>
-                        <p><code>focus_text</code>, <code>focus_cta</code>, <code>focus_callout</code>, <code>focus_image</code>, <code>focus_spacer</code>, <code>feature_grid_featured</code>.</p>
+                        <p><code>focus_text</code>, <code>focus_cta</code>, <code>focus_callout</code>, <code>focus_image</code>, <code>focus_spacer</code>, <code>focus_divider</code>, <code>feature_grid_featured</code>.</p>
                       </div>
                     </div>
                   </section>

@@ -1077,6 +1077,18 @@ function renderFocusItem(item, assetMode, isLastItem = false) {
         </tr>
       </table>`;
   }
+  if (item.type === "divider") {
+    const style = ["thin", "thick", "gradient"].includes(item.style) ? item.style : "thin";
+    const height = style === "thick" ? "4" : style === "gradient" ? "3" : "1";
+    const backgroundStyle = style === "gradient"
+      ? `background-color:${EMAIL_THEME.accentTertiary}; background-image:linear-gradient(90deg, ${EMAIL_THEME.accentSecondary} 0%, ${EMAIL_THEME.accentTertiary} 50%, ${EMAIL_THEME.accentPrimary} 100%);`
+      : `background-color:${EMAIL_THEME.borderStrong};`;
+    return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:${itemMarginBottom};">
+        <tr>
+          <td style="height:${height}px; line-height:${height}px; font-size:1px; ${backgroundStyle}">&nbsp;</td>
+        </tr>
+      </table>`;
+  }
   if (item.type === "callout") {
     const hasBody = plainTextFromRichText(item.body);
     if (!hasBody) return "";
@@ -1138,6 +1150,7 @@ function renderFocus(data, number, assetMode, anchor = "", isLastSection = false
       if (item.type === "cta") return Boolean(item.label);
       if (item.type === "callout") return Boolean(plainTextFromRichText(item.body));
       if (item.type === "spacer") return Number(item.height) > 0;
+      if (item.type === "divider") return true;
       return false;
     });
     const renderedItems = renderableItems.map((item, index) => (

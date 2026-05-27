@@ -244,6 +244,7 @@ Blocs disponibles et usages recommandés :
 - focus : encadré central pour une idée clé, une offre, une recommandation ou un message à retenir.
 - focus_callout : point d'attention, à retenir, preuve, rappel réglementaire ou élément de réassurance.
 - focus_cta : CTA principal ou secondaire.
+- focus_divider : séparateur visuel à l'intérieur d'un focus, utile pour découper un parcours texte / image / CTA sans sortir du bloc.
 - cta : CTA autonome quand il n'y a pas de texte ou d'image à regrouper autour.
 - spacer : respiration verticale autonome si le rythme visuel doit être marqué sans séparateur.
 - feature_grid : comparaison de fonctionnalités, grille de bénéfices ou avantages d'une offre, différences entre Classique / Investisseur / Gestion Privée. Utilisable dès 3 fonctionnalités/bénéfices structurés ; ne crée pas de 4e carte si seulement 3 éléments sont présents.

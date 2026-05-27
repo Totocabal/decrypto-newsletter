@@ -574,6 +574,10 @@ Stay disciplined.
 height: 32
 :::
 
+:::focus_divider
+style: gradient
+:::
+
 :::macro_bars
 :::
 
@@ -584,10 +588,11 @@ height: 32
   const [focus, macroBars] = imported.state.sections;
   assert.deepEqual(
     focus.data.items.map((item) => item.type),
-    ["text", "image", "cta", "callout", "spacer"]
+    ["text", "image", "cta", "callout", "spacer", "divider"]
   );
   assert.equal(focus.data.items[2].secondary_label, "Academy");
   assert.equal(focus.data.items[3].body, "Stay disciplined.");
+  assert.equal(focus.data.items[5].style, "gradient");
   assert.equal(macroBars.type, "macro_bars");
   assert.equal(macroBars.data.bars[1].percent, "53");
 });

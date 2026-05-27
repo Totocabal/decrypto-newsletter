@@ -30,6 +30,7 @@ const DIRECTIVE_TYPES = [
   "focus_cta",
   "focus_callout",
   "focus_spacer",
+  "focus_divider",
   "feature_grid",
   "feature_grid_featured",
   "event",
@@ -56,6 +57,7 @@ const FOCUS_ITEM_TYPES = new Set([
   "focus_cta",
   "focus_callout",
   "focus_spacer",
+  "focus_divider",
 ]);
 const SCALAR_FIELD_RE = /^([a-zA-Z][a-zA-Z0-9_]*)\s*:\s*(.*)$/;
 
@@ -544,10 +546,10 @@ Règles critiques :
 - Si le brief contient une ligne "Objet :", le champ front matter title doit reprendre exactement cet objet, sans le comptage entre parenthèses.
 - preview_text est obligatoire.
 - Toute URL doit être absolue http ou https. Si aucune URL n'est fournie, utiliser https://www.coinhouse.com/.
-- N'utilise que ces directives : hero, hero_chips, index, edito, edito_kpis, text_block, cta, spacer, image_block, divider, chart, fear_greed, signals, macro, macro_bars, commented_number, editorial_list, focus, focus_text, focus_image, focus_cta, focus_callout, focus_spacer, feature_grid, feature_grid_featured, event.
+- N'utilise que ces directives : hero, hero_chips, index, edito, edito_kpis, text_block, cta, spacer, image_block, divider, chart, fear_greed, signals, macro, macro_bars, commented_number, editorial_list, focus, focus_text, focus_image, focus_cta, focus_callout, focus_spacer, focus_divider, feature_grid, feature_grid_featured, event.
 - Une ligne d'ouverture de directive doit contenir uniquement les trois deux-points et le type, par exemple :::hero. N'écris jamais :::hero:, :::text_block: ou :::focus_cta:.
 - Les paramètres d'une directive sont toujours sur les lignes suivantes au format champ: "valeur", puis une ligne ::: ferme le bloc.
-- Toute directive ouverte doit obligatoirement être fermée par une ligne :::, y compris cta, spacer, focus_cta, focus_callout, focus_image, focus_text, focus_spacer, divider et image_block.
+- Toute directive ouverte doit obligatoirement être fermée par une ligne :::, y compris cta, spacer, focus_cta, focus_callout, focus_image, focus_text, focus_spacer, focus_divider, divider et image_block.
 - Le contenu Markdown d'une directive body doit être placé après la ligne de fermeture :::, jamais entre l'ouverture et la fermeture.
 - Exemple correct editorial_list :
 :::editorial_list
@@ -555,7 +557,7 @@ kicker: "EN 3 ETAPES"
 :::
 
 - 01 | Alimentez votre compte | Par virement SEPA ou carte de paiement. | #03FFCF
-- focus_cta, focus_callout, focus_image, focus_text et focus_spacer sont des sous-blocs de focus. Pour les utiliser, écris d'abord :::focus puis ::: sur la ligne suivante, puis enchaîne les sous-blocs focus_* juste après. N'imbrique jamais un sous-bloc à l'intérieur des lignes de métadonnées de :::focus.
+- focus_cta, focus_callout, focus_image, focus_text, focus_spacer et focus_divider sont des sous-blocs de focus. Pour les utiliser, écris d'abord :::focus puis ::: sur la ligne suivante, puis enchaîne les sous-blocs focus_* juste après. N'imbrique jamais un sous-bloc à l'intérieur des lignes de métadonnées de :::focus.
 - focus_cta exige toujours label. Si le CTA source est entre crochets, ce texte devient label. Si aucun libellé n'est disponible, utilise label: "Découvrir".
 - cta exige toujours label. Si aucun libellé n'est disponible, utilise label: "Découvrir".
 - hero_chips doit suivre directement :::hero.
@@ -570,6 +572,7 @@ kicker: "EN 3 ETAPES"
 - chart_currency : eur ou usd uniquement. chart_days : 7 ou 30 uniquement.
 - fear_greed.value, macro_bars.percent : nombre entre 0 et 100.
 - focus_spacer.height : nombre entre 0 et 120.
+- focus_divider.style : thin, thick ou gradient.
 - spacer.height : nombre entre 0 et 120.
 - Tons autorisés : positive, negative, warning, muted.
 - N'utilise jamais d'émojis ni d'émoticônes dans aucun champ ni dans aucun corps de texte.
@@ -588,6 +591,7 @@ Mapping recommandé :
 - CTA principal : focus + focus_cta avec arrow: true.
 - CTA seul, sans texte avant/après : cta avec label, url, arrow et centered.
 - Espace vertical seul : spacer avec height.
+- Séparateur dans un bloc focus : focus_divider avec style thin, thick ou gradient.
 - Texte + CTA + texte : privilégier obligatoirement un seul focus, avec focus_text pour le texte avant le CTA, focus_cta pour le bouton, puis focus_text pour le texte après le CTA. Ne crée pas text_block + focus_cta + text_block.
 - Format correct pour texte + CTA + texte :
 :::focus
@@ -608,7 +612,7 @@ arrow: true
 Texte après le CTA.
 - Enchaînement texte court + CTA, texte + image + CTA, image + texte + CTA, callout + CTA, ou recommandation + action : regrouper dans un seul focus avec focus_text, focus_callout, focus_image et focus_cta selon le contenu. Ne crée pas un text_block séparé suivi d'un focus_cta.
 - Ne crée pas de bloc "INFORMATION LÉGALE", "Avertissement" ou disclaimer, sauf si le brief le demande explicitement. Le footer légal est déjà inclus par défaut dans tous les templates.
-- Séparateur visuel : divider style gradient ou thin.
+- Séparateur visuel entre sections : divider style gradient ou thin.
 - Encadré à retenir : focus + focus_callout. Si le brief identifie un titre pour l'encadré (ex. "Ce qu'il faut retenir", "À noter", "Bon à savoir"), mets-le dans le champ label de focus_callout. Ne le répète pas dans le corps.
 
 Conventions éditoriales :
@@ -632,10 +636,11 @@ Corrige le fichier pour qu'il passe la validation. Règles obligatoires :
 - Chaque directive ouverte :::type se ferme par une ligne ::: seule sur sa propre ligne.
 - Le corps Markdown d'une directive (focus_callout, focus_text, edito, text_block, macro, fear_greed, commented_number, signals, editorial_list, macro_bars, feature_grid, feature_grid_featured) se place APRÈS la ligne ::: de fermeture, jamais entre l'ouverture et la fermeture.
 - focus_callout et focus_text exigent un corps non vide après leur :::.
-- focus_cta, focus_callout, focus_image, focus_text et focus_spacer doivent appartenir à un bloc focus : écris :::focus puis ::: avant le premier sous-bloc focus_*, puis enchaîne les sous-blocs focus_*.
+- focus_cta, focus_callout, focus_image, focus_text, focus_spacer et focus_divider doivent appartenir à un bloc focus : écris :::focus puis ::: avant le premier sous-bloc focus_*, puis enchaîne les sous-blocs focus_*.
 - focus_cta exige toujours label.
 - cta exige toujours label.
 - spacer.height doit être compris entre 0 et 120.
+- focus_divider.style doit valoir thin, thick ou gradient.
 - Dans editorial_list : chaque ligne contient exactement - tag | title | body | couleur_optionnelle. Les colonnes tag, title et body ne peuvent jamais être vides. La couleur hexadécimale (#03FFCF...) est uniquement la 4e colonne, jamais dans body.
 - N'invente pas de contenu. Restructure uniquement.
 - N'utilise jamais d'émojis ni d'émoticônes.
