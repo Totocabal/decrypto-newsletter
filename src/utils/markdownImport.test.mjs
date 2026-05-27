@@ -104,6 +104,8 @@ title_highlight: "Coinhouse"
 
   assert.equal(imported.state.sections[0].type, "hero");
   assert.equal(imported.state.sections[0].data.title_part1, "Bienvenue");
+  assert.equal(imported.state.sections[0].data.title, "BienvenueCoinhouse");
+  assert.equal(imported.state.sections[0].data.title_accent, "Coinhouse");
 });
 
 test("moves Gemini body lines out of directive metadata", () => {
@@ -692,6 +694,7 @@ Details.
 
   const [hero, index, edito, textBlock] = imported.state.sections;
   assert.equal(hero.data.chips[0].type, "btc");
+  assert.equal(hero.data.title, "Market pulse");
   assert.equal(index.type, "index");
   assert.deepEqual(
     index.data.items.map((item) => item.title),

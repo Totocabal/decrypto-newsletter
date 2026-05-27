@@ -469,14 +469,29 @@ function renderHero(data, isLastSection = false) {
       </table>
     </td>`;
   }).join("");
+  const fullTitle = data.title !== undefined
+    ? String(data.title || "")
+    : [data.title_part1, data.title_part2, data.title_highlight].filter(Boolean).join("");
+  const accent = data.title_accent !== undefined
+    ? String(data.title_accent || "").trim()
+    : String(data.title_highlight || "").trim();
+  const escapedTitle = escapeHtml(fullTitle);
+  let titleHtml = escapedTitle;
+  if (accent) {
+    const escapedAccent = escapeHtml(accent);
+    const index = escapedTitle.toLowerCase().indexOf(escapedAccent.toLowerCase());
+    if (index >= 0) {
+      titleHtml = `${escapedTitle.slice(0, index)}<span style="color:${EMAIL_THEME.accentPrimary};">${escapedTitle.slice(index, index + escapedAccent.length)}</span>${escapedTitle.slice(index + escapedAccent.length)}`;
+    }
+  }
+  titleHtml = titleHtml.replace(/\r?\n/g, "<br />");
 
   return `
     <tr>
       <td class="em-px" style="padding:${sectionPadding("56px 36px 40px", "42px 36px 28px")};${sectionBottomBorder(isLastSection)}">
         ${kickerHtml}
         <h1 class="em-h1" style="margin:0; font-family:${FONTS.heading}; font-weight:700; font-size:60px; line-height:0.98; letter-spacing:-0.035em; color:${EMAIL_THEME.textPrimary};">
-          ${escapeHtml(data.title_part1)}<br />
-          ${escapeHtml(data.title_part2)}<span style="color:${EMAIL_THEME.accentPrimary};">${escapeHtml(data.title_highlight)}</span>
+          ${titleHtml}
         </h1>
         <p style="margin:22px 0 0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:17px; line-height:1.5; color:${EMAIL_THEME.textMuted}; max-width:460px;">
           ${sanitizeRichText(data.subtitle)}

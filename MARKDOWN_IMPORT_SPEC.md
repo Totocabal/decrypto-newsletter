@@ -167,7 +167,7 @@ Bitcoin repart legerement a la hausse.
 
 | Section | Champs / corps |
 | --- | --- |
-| `hero` | `kicker`, `title_part1`, `title_part2`, `title_highlight`, `subtitle` |
+| `hero` | `kicker`, `title`, `title_accent`, `title_part1`, `title_part2`, `title_highlight`, `subtitle` |
 | `index` | `label` ; items generes apres import |
 | `edito` | `kicker`, `title`, corps Markdown |
 | `text_block` | `kicker`, `title`, `cta_label`, `cta_url`, corps Markdown |
@@ -279,9 +279,8 @@ cta_url: "https://example.com/event"
 ```md
 :::hero
 kicker: "DECRYPTO"
-title_part1: "Le marche"
-title_part2: "reprend son "
-title_highlight: "souffle."
+title: "Le marche reprend son souffle."
+title_accent: "souffle"
 subtitle: "Les flux reviennent."
 :::
 

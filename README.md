@@ -198,9 +198,9 @@ new Set(["hero", "index", "chart", "macro_bars", "image_block", "divider"])
 | Champ | Type | Description |
 |---|---|---|
 | `kicker` | string | Texte au-dessus du titre |
-| `title_part1` | string | Première ligne du titre |
-| `title_part2` | string | Deuxième ligne (avant le mot accentué) |
-| `title_highlight` | string | Mot en couleur magenta (#FF00AA) |
+| `title` | string | Titre complet, avec retours ligne possibles |
+| `title_accent` | string | Première occurrence à colorer en magenta (#FF00AA), où qu'elle soit dans le titre |
+| `title_part1` / `title_part2` / `title_highlight` | string | Ancien format encore accepté en compatibilité |
 | `subtitle` | string | Sous-titre (texte riche) |
 | `chips[]` | array | Pastilles : `{ label, type }` où `type` est `manual`, `btc`, `eth` ou `fear_greed` |
 

@@ -3,7 +3,7 @@
 import { INITIAL_STATE, SECTION_TYPES, UNNUMBERED_TYPES } from "../config/schema.js";
 
 const SECTION_FIELDS = {
-  hero: ["kicker", "title_part1", "title_part2", "title_highlight", "subtitle"],
+  hero: ["kicker", "title", "title_accent", "title_part1", "title_part2", "title_highlight", "subtitle"],
   hero_chips: [],
   index: ["label"],
   edito: ["kicker", "title"],
@@ -138,6 +138,20 @@ function importId(prefix = "md") {
 
 function clone(value) {
   return JSON.parse(JSON.stringify(value));
+}
+
+function migrateHeroTitleFields(data) {
+  const migrated = { ...data };
+  if (migrated.title === undefined) {
+    const title = [migrated.title_part1, migrated.title_part2, migrated.title_highlight]
+      .filter(Boolean)
+      .join("");
+    if (title) migrated.title = title;
+  }
+  if (migrated.title_accent === undefined && migrated.title_highlight) {
+    migrated.title_accent = migrated.title_highlight;
+  }
+  return migrated;
 }
 
 function emptyValue(value) {
@@ -429,6 +443,8 @@ function createTextBlock(title, body) {
 function createHeroFromTitle(title) {
   return createSection("hero", {
     kicker: "",
+    title,
+    title_accent: "",
     title_part1: title,
     title_part2: "",
     title_highlight: "",
@@ -559,7 +575,8 @@ function normalizeExplicitSection(token, body, warnings) {
     throw new MarkdownImportError(`Directive :::${type} inconnue dans le format Markdown.`);
   }
 
-  const { counts_for_numbering: countsForNumbering, ...data } = fields;
+  const { counts_for_numbering: countsForNumbering, ...rawData } = fields;
+  const data = type === "hero" ? migrateHeroTitleFields(rawData) : rawData;
   const extra = typeof countsForNumbering === "boolean"
     ? { counts_for_numbering: countsForNumbering }
     : {};

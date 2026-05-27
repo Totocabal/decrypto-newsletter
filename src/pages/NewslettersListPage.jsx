@@ -58,9 +58,8 @@ show_block_separators: true
 
 :::hero
 kicker: "DECRYPTO"
-title_part1: "Le marché"
-title_part2: "reprend son "
-title_highlight: "souffle."
+title: "Le marché reprend son souffle."
+title_accent: "souffle"
 subtitle: "Résumé d'ouverture."
 :::
 

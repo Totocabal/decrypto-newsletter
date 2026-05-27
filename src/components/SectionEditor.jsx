@@ -55,6 +55,33 @@ function listHelpers(list, set, factory) {
   };
 }
 
+function getLegacyHeroTitle(data) {
+  return [data.title_part1, data.title_part2, data.title_highlight].filter(Boolean).join("");
+}
+
+function getHeroTitle(data) {
+  return data.title !== undefined ? data.title : getLegacyHeroTitle(data);
+}
+
+function escapeRegExp(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function splitHeroTitleForAccent(title, accent) {
+  const source = String(title || "");
+  const needle = String(accent || "").trim();
+  if (!source || !needle) return { before: source, match: "", after: "" };
+  const match = source.match(new RegExp(escapeRegExp(needle), "i"));
+  if (!match) return { before: source, match: "", after: "" };
+  const start = match.index || 0;
+  const end = start + match[0].length;
+  return {
+    before: source.slice(0, start),
+    match: source.slice(start, end),
+    after: source.slice(end),
+  };
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // HERO
 // ─────────────────────────────────────────────────────────────────────────────
@@ -153,6 +180,9 @@ function ChipEditor({ chip, onChange, onDelete, sections }) {
 function HeroEditor({ data, set, sections }) {
   const chips = data.chips || [];
   const [generatingSubtitle, setGeneratingSubtitle] = useState(false);
+  const title = getHeroTitle(data);
+  const accent = data.title_accent !== undefined ? data.title_accent : data.title_highlight || "";
+  const titlePreview = splitHeroTitleForAccent(title, accent);
 
   const updateChip = (i, next) =>
     set({ chips: chips.map((x, idx) => (idx === i ? next : x)) });
@@ -184,20 +214,50 @@ function HeroEditor({ data, set, sections }) {
       <Field label="Kicker (au-dessus du titre)">
         <Input value={data.kicker} onChange={(e) => set({ kicker: e.target.value })} />
       </Field>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <Field label="Titre — ligne 1">
-          <Input value={data.title_part1} onChange={(e) => set({ title_part1: e.target.value })} />
-        </Field>
-        <Field label="Titre — ligne 2 (avant accent)">
-          <Input value={data.title_part2} onChange={(e) => set({ title_part2: e.target.value })} />
-        </Field>
-      </div>
-      <Field label="Mot d'accent (couleur magenta)">
-        <Input
-          value={data.title_highlight}
-          onChange={(e) => set({ title_highlight: e.target.value })}
+      <Field
+        label="Titre complet"
+        hint="Écris le titre naturellement. Utilise une nouvelle ligne si tu veux forcer un retour."
+      >
+        <textarea
+          rows={3}
+          value={title}
+          onChange={(e) => set({ title: e.target.value })}
+          placeholder="Ex. La $HYPE continue, mais le marché regarde ailleurs."
+          className="w-full rounded-xl border border-line bg-d-panel2 px-3 py-2 text-sm leading-relaxed text-d-fg placeholder:text-d-fg4 transition-colors hover:border-line2 focus:border-line2 focus:outline-none"
+          style={{ fontFamily: "'DM Sans', sans-serif" }}
         />
       </Field>
+      <Field
+        label="Texte à colorer"
+        hint="La première occurrence trouvée dans le titre passe en magenta. Elle peut être au début, au milieu ou à la fin."
+      >
+        <Input
+          value={accent}
+          onChange={(e) => set({ title_accent: e.target.value })}
+          placeholder="Ex. $HYPE"
+        />
+      </Field>
+      <div className="mb-4 rounded-xl border border-line bg-d-panel2 px-3 py-3">
+        <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-d-fg4">
+          Aperçu accent
+        </div>
+        <div className="whitespace-pre-wrap text-lg font-semibold leading-tight text-d-fg" style={{ fontFamily: "'Sora', sans-serif" }}>
+          {titlePreview.match ? (
+            <>
+              {titlePreview.before}
+              <span className="text-d-pink">{titlePreview.match}</span>
+              {titlePreview.after}
+            </>
+          ) : (
+            title || <span className="text-d-fg4">Aucun titre</span>
+          )}
+        </div>
+        {accent && !titlePreview.match && (
+          <div className="mt-2 text-[11px] text-[#FFB266]">
+            Le texte à colorer n'est pas présent dans le titre.
+          </div>
+        )}
+      </div>
       <Field label="Sous-titre">
         <TextArea
           showCount

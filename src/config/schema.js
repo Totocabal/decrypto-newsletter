@@ -33,6 +33,8 @@ export const SECTION_TYPES = {
     icon: "Megaphone",
     factory: () => ({
       kicker: "━━ \u00A0 DÉCRYPTO · L'HEBDO COINHOUSE",
+      title: "Le marché reprend son souffle.",
+      title_accent: "souffle",
       title_part1: "Le marché",
       title_part2: "reprend son ",
       title_highlight: "souffle.",
@@ -423,6 +425,8 @@ export function migrateLegacyState(oldState) {
       type: "hero",
       data: {
         kicker: o.hero_kicker ?? "",
+        title: [o.hero_title_part1, o.hero_title_part2, o.hero_title_highlight].filter(Boolean).join(""),
+        title_accent: o.hero_title_highlight ?? "",
         title_part1: o.hero_title_part1 ?? "",
         title_part2: o.hero_title_part2 ?? "",
         title_highlight: o.hero_title_highlight ?? "",

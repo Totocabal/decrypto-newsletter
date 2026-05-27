@@ -11,9 +11,8 @@ show_block_separators: true
 
 :::hero
 kicker: "━━   DECRYPTO - L'HEBDO COINHOUSE"
-title_part1: "Le marche"
-title_part2: "reprend son "
-title_highlight: "souffle."
+title: "Le marche reprend son souffle."
+title_accent: "souffle"
 subtitle: "Bitcoin se stabilise, les flux reviennent et la semaine s'annonce dense."
 :::
 

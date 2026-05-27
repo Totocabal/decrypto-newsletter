@@ -63,7 +63,7 @@ function buildContext(state) {
   const hero = (state.sections || []).find((s) => s.type === "hero");
   if (hero) {
     const d = hero.data || {};
-    const title = [d.title_part1, d.title_part2].filter(Boolean).join(" ");
+    const title = d.title || [d.title_part1, d.title_part2, d.title_highlight].filter(Boolean).join("");
     if (d.kicker) lines.push(`Kicker : ${d.kicker}`);
     if (title) lines.push(`Titre : ${title}`);
     const sub = stripHtml(d.subtitle);
