@@ -106,6 +106,7 @@ supabase/
 ├── admin-create-user.sql
 ├── fix-rls-recursion.sql
 ├── keepalive.sql
+├── newsletter-archive-retention.sql
 ├── newsletters-owner-delete-policy.sql
 ├── storage.sql
 └── template-presets.sql
@@ -115,6 +116,7 @@ api/
 ├── export-preview-jpg.js       ← serverless : rendu JPG via Puppeteer/Chromium
 ├── generate-preview-text.js    ← serverless : génération IA du texte d'aperçu
 ├── correct-text.js             ← serverless : correction orthographique IA
+├── purge-archived-newsletters.js ← serverless : purge après 30 jours d'archive
 └── supabase-keepalive.js       ← serverless : cron ping anti-pause Supabase Free
 ```
 
@@ -870,8 +872,13 @@ Trigger `on_auth_user_created` : insère un profil non approuvé à chaque inscr
 | `created_by` | uuid | → `profiles`, SET NULL |
 | `updated_by` | uuid | → `profiles`, SET NULL — mis à jour par trigger |
 | `archived` | boolean | default `false` |
+| `archived_at` | timestamptz | Date d'archivage temporaire |
+| `archive_expires_at` | timestamptz | Date de suppression définitive automatique |
+| `archived_by` | uuid | → `profiles`, SET NULL |
 
-Index : `updated_at DESC`, `archived`.
+Index : `updated_at DESC`, `archived`, `archive_expires_at` pour les campagnes archivées.
+
+La suppression depuis l'interface archive la newsletter pendant 30 jours. Les admins peuvent afficher les campagnes archivées depuis **Mes newsletters** et les désarchiver en cas d'erreur. Le cron `/api/purge-archived-newsletters` supprime définitivement les campagnes dont `archive_expires_at` est dépassé.
 
 #### `versions`
 
@@ -1009,6 +1016,12 @@ Cron Vercel : lundi et jeudi à 08h17 (schedule `"17 8 * * 1,4"`).
 
 Appelle `POST {SUPABASE_URL}/rest/v1/rpc/keepalive`. Accepte `CRON_SECRET` optionnel en Authorization.
 
+### `api/purge-archived-newsletters.js` — GET ou POST
+
+Cron Vercel : quotidien à 02h23 (schedule `"23 2 * * *"`).
+
+Supprime définitivement les newsletters archivées depuis plus de 30 jours (`archive_expires_at <= now`). Utilise `SUPABASE_SECRET_KEY` ou `SUPABASE_SERVICE_ROLE_KEY`. Accepte `CRON_SECRET` optionnel en Authorization.
+
 ### `api/export-preview-jpg.js` — POST
 
 Auth : Bearer token Supabase. Corps : `{ html, device }`. Rend le HTML via Puppeteer + @sparticuz/chromium et retourne un JPG.
@@ -1068,8 +1081,8 @@ npm run dev
 | `VITE_AUTH_REDIRECT_URL` | URL publique de l'app |
 | `SUPABASE_URL` | Idem (pour les fonctions serverless) |
 | `SUPABASE_ANON_KEY` | Idem (pour les fonctions serverless) |
-| `SUPABASE_SECRET_KEY` | Clé Supabase serveur pour le mode intégration Markdown |
-| `SUPABASE_SERVICE_ROLE_KEY` | Fallback legacy pour le mode intégration Markdown |
+| `SUPABASE_SECRET_KEY` | Clé Supabase serveur pour l'import Markdown et la purge des archives |
+| `SUPABASE_SERVICE_ROLE_KEY` | Fallback legacy si le projet n'a pas de secret key |
 | `MARKDOWN_IMPORT_API_TOKEN` | Bearer fixe pour l'import Markdown machine-to-machine |
 | `MARKDOWN_IMPORT_USER_ID` | UUID du profil technique auteur des imports Markdown |
 | `GEMINI_API_KEY` | Clé serveur Gemini pour générer un Markdown depuis un brief libre |
@@ -1077,13 +1090,16 @@ npm run dev
 | `RESEND_FROM_EMAIL` | Expéditeur vérifié Resend, ex. `Coinhouse Preview <preview@coinhouse.com>` |
 | `BRAZE_API_KEY` | Clé serveur Braze (permission `media_library.create`) |
 | `BRAZE_BASE_URL` | REST endpoint Braze (ex. `https://rest.fra-01.braze.eu`) |
-| `CRON_SECRET` | Secret optionnel pour l'endpoint keepalive |
+| `CRON_SECRET` | Secret optionnel pour les endpoints cron |
 
 ### `vercel.json`
 
 ```json
 {
-  "crons": [{ "path": "/api/supabase-keepalive", "schedule": "17 8 * * 1,4" }],
+  "crons": [
+    { "path": "/api/supabase-keepalive", "schedule": "17 8 * * 1,4" },
+    { "path": "/api/purge-archived-newsletters", "schedule": "23 2 * * *" }
+  ],
   "headers": [
     { "source": "/", "headers": [{ "key": "Cache-Control", "value": "no-store, no-cache, must-revalidate, max-age=0" }] },
     { "source": "/index.html", "headers": [{ "key": "Cache-Control", "value": "no-store, no-cache, must-revalidate, max-age=0" }] },

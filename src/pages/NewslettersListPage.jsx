@@ -31,6 +31,8 @@ import {
   AlertTriangle,
   Maximize2,
   MessageSquare,
+  Archive,
+  RotateCcw,
 } from "lucide-react";
 import { supabase } from "../lib/supabase.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
@@ -76,6 +78,15 @@ Le corps du bloc reste en Markdown riche.
 - Point clé
 - Autre point clé
 `;
+
+const NEWSLETTER_SELECT_WITH_ARCHIVE =
+  "id, title, current_state, updated_at, updated_by, archived, archived_at, archive_expires_at, created_by, creator:profiles!newsletters_created_by_fkey(full_name, email), archiver:profiles!newsletters_archived_by_fkey(full_name, email)";
+const NEWSLETTER_SELECT_LEGACY =
+  "id, title, current_state, updated_at, updated_by, archived, created_by, creator:profiles!newsletters_created_by_fkey(full_name, email)";
+
+function isMissingArchiveColumn(error) {
+  return /archived_at|archive_expires_at|archived_by|schema cache|column .* does not exist/i.test(error?.message || "");
+}
 
 const MARKDOWN_HELP_EXAMPLES = [
   {
@@ -303,6 +314,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
   const [nlLabels, setNlLabels] = useState({});
   const [labelFilter, setLabelFilter] = useState([]);
   const [labelPickerOpen, setLabelPickerOpen] = useState(null);
+  const [showArchived, setShowArchived] = useState(false);
   const [importingMarkdown, setImportingMarkdown] = useState(false);
   const [markdownImportSourceOpen, setMarkdownImportSourceOpen] = useState(false);
   const [markdownHelpOpen, setMarkdownHelpOpen] = useState(false);
@@ -325,14 +337,13 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
   const load = useCallback(async () => {
     setLoading(true);
     try {
+      const archivedFilter = Boolean(profile?.is_admin && showArchived);
       const [{ data: nls, error: nlsError }, { data: lks, error: locksError }, { data: nlbs }] =
         await Promise.all([
           supabase
             .from("newsletters")
-            .select(
-              "id, title, current_state, updated_at, updated_by, archived, created_by, creator:profiles!newsletters_created_by_fkey(full_name, email)"
-            )
-            .eq("archived", false)
+            .select(NEWSLETTER_SELECT_WITH_ARCHIVE)
+            .eq("archived", archivedFilter)
             .order("updated_at", { ascending: false }),
           supabase
             .from("locks")
@@ -341,13 +352,24 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
           supabase.from("newsletter_labels").select("newsletter_id, label_id"),
         ]);
 
-      if (nlsError) throw nlsError;
+      let newsletterRows = nls;
+      let newsletterError = nlsError;
+      if (isMissingArchiveColumn(newsletterError)) {
+        const legacy = await supabase
+          .from("newsletters")
+          .select(NEWSLETTER_SELECT_LEGACY)
+          .eq("archived", archivedFilter)
+          .order("updated_at", { ascending: false });
+        newsletterRows = legacy.data;
+        newsletterError = legacy.error;
+      }
+      if (newsletterError) throw newsletterError;
       if (locksError) {
         // eslint-disable-next-line no-console
         console.warn("[newsletters] locks indisponibles:", locksError);
       }
 
-      setNewsletters(Array.isArray(nls) ? nls : []);
+      setNewsletters(Array.isArray(newsletterRows) ? newsletterRows : []);
       const map = {};
       (Array.isArray(lks) ? lks : []).forEach((l) => {
         if (l?.newsletter_id) map[l.newsletter_id] = l;
@@ -367,7 +389,13 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [profile?.is_admin, showArchived]);
+
+  useEffect(() => {
+    if (!profile?.is_admin && showArchived) {
+      setShowArchived(false);
+    }
+  }, [profile?.is_admin, showArchived]);
 
   useEffect(() => {
     load();
@@ -831,18 +859,54 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
     load();
   };
 
-  const handleDelete = async (nl) => {
+  const handleArchive = async (nl) => {
     if (!profile?.is_admin && nl?.created_by !== profile?.id) {
-      addToast("Tu peux supprimer uniquement les templates que tu as créés.", "info");
+      addToast("Tu peux archiver uniquement les templates que tu as créés.", "info");
       return;
     }
     if (!nl?.id) return;
-    if (!await confirm(`Supprimer définitivement « ${nl.title || "cette newsletter"} » ?`, { danger: true, confirmLabel: "Supprimer" })) return;
-    const { error } = await supabase.from("newsletters").delete().eq("id", nl.id);
+    if (!await confirm(`Archiver « ${nl.title || "cette newsletter"} » pendant 30 jours ?`, { danger: true, confirmLabel: "Archiver" })) return;
+    const archivedAt = new Date();
+    const archiveExpiresAt = new Date(archivedAt.getTime() + 30 * 24 * 60 * 60 * 1000);
+    const { error } = await supabase
+      .from("newsletters")
+      .update({
+        archived: true,
+        archived_at: archivedAt.toISOString(),
+        archive_expires_at: archiveExpiresAt.toISOString(),
+        archived_by: profile?.id || null,
+      })
+      .eq("id", nl.id);
     if (error) {
-      addToast("Erreur : " + error.message);
+      addToast(isMissingArchiveColumn(error)
+        ? "Archivage indisponible : applique la migration supabase/newsletter-archive-retention.sql."
+        : "Erreur : " + error.message);
       return;
     }
+    addToast("Newsletter archivée pendant 30 jours.", "success");
+    load();
+  };
+
+  const handleRestore = async (nl) => {
+    if (!profile?.is_admin) return;
+    if (!nl?.id) return;
+    if (!await confirm(`Désarchiver « ${nl.title || "cette newsletter"} » ?`, { confirmLabel: "Désarchiver" })) return;
+    const { error } = await supabase
+      .from("newsletters")
+      .update({
+        archived: false,
+        archived_at: null,
+        archive_expires_at: null,
+        archived_by: null,
+      })
+      .eq("id", nl.id);
+    if (error) {
+      addToast(isMissingArchiveColumn(error)
+        ? "Désarchivage indisponible : applique la migration supabase/newsletter-archive-retention.sql."
+        : "Erreur : " + error.message);
+      return;
+    }
+    addToast("Newsletter désarchivée.", "success");
     load();
   };
 
@@ -855,6 +919,14 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
       hour: "2-digit",
       minute: "2-digit",
     });
+  };
+
+  const getArchiveRetentionLabel = (nl) => {
+    if (!nl?.archive_expires_at) return "Suppression automatique dans 30 jours";
+    const diffMs = new Date(nl.archive_expires_at).getTime() - Date.now();
+    const days = Math.max(0, Math.ceil(diffMs / (24 * 60 * 60 * 1000)));
+    if (days === 0) return "Suppression automatique aujourd'hui";
+    return `Suppression automatique dans ${days} jour${days > 1 ? "s" : ""}`;
   };
 
   const getPreviewText = (nl) => {
@@ -962,7 +1034,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
               className="text-d-fg font-bold text-3xl tracking-tight mb-1"
               style={{ fontFamily: "'Sora', sans-serif", letterSpacing: "-0.02em" }}
             >
-              Mes newsletters
+              {showArchived ? "Newsletters archivées" : "Mes newsletters"}
             </h1>
             <p className="text-sm text-d-fg3">
               {loading
@@ -973,10 +1045,28 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
             </p>
           </div>
           <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+            {profile?.is_admin && (
+              <button
+                type="button"
+                onClick={() => {
+                  setLabelPickerOpen(null);
+                  setShowArchived((value) => !value);
+                }}
+                disabled={loading}
+                className={`flex w-full items-center justify-center gap-2 rounded-full border px-5 py-2.5 text-[12px] font-semibold uppercase tracking-[0.18em] transition-colors disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto ${
+                  showArchived
+                    ? "border-d-green/60 text-d-green hover:bg-d-green/10"
+                    : "border-line2 text-d-fg2 hover:bg-d-panel2"
+                }`}
+              >
+                {showArchived ? <FileText size={14} /> : <Archive size={14} />}
+                {showArchived ? "Voir actives" : "Archivées"}
+              </button>
+            )}
             <button
               type="button"
               onClick={() => openMarkdownImportSource("gemini")}
-              disabled={importingMarkdown || creating || generatingCrmBrief || generatingMarkdownBrief}
+              disabled={showArchived || importingMarkdown || creating || generatingCrmBrief || generatingMarkdownBrief}
               className="flex w-full items-center justify-center gap-2 rounded-full border border-d-pink/60 px-5 py-2.5 text-[12px] font-semibold uppercase tracking-[0.18em] text-d-pink transition-colors hover:bg-d-pink/10 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
             >
               {generatingCrmBrief || generatingMarkdownBrief ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
@@ -985,7 +1075,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
             <button
               type="button"
               onClick={() => openMarkdownImportSource("markdown")}
-              disabled={importingMarkdown || creating || generatingCrmBrief || generatingMarkdownBrief}
+              disabled={showArchived || importingMarkdown || creating || generatingCrmBrief || generatingMarkdownBrief}
               className="flex w-full items-center justify-center gap-2 rounded-full border border-line2 px-5 py-2.5 text-[12px] font-semibold uppercase tracking-[0.18em] text-d-fg2 transition-colors hover:bg-d-panel2 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
             >
               {importingMarkdown ? <Loader2 size={14} className="animate-spin" /> : <FileUp size={14} />}
@@ -993,7 +1083,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
             </button>
             <button
               onClick={() => setCreateChoiceOpen(true)}
-              disabled={creating || importingMarkdown}
+              disabled={showArchived || creating || importingMarkdown}
               className="flex w-full items-center justify-center gap-2 rounded-full px-5 py-2.5 text-[12px] uppercase tracking-[0.18em] font-semibold transition-colors disabled:opacity-50 sm:w-auto"
               style={{ background: "#FFFFFF", color: "#15151A" }}
             >
@@ -1084,10 +1174,12 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
           >
             <FileText className="text-d-fg4 mx-auto mb-4" size={36} />
             <div className="text-sm text-d-fg2 mb-1 font-medium">
-              Aucune newsletter pour l'instant
+              {showArchived ? "Aucune newsletter archivée" : "Aucune newsletter pour l'instant"}
             </div>
             <div className="text-xs text-d-fg3">
-              Clique sur « Nouveau Template » pour démarrer.
+              {showArchived
+                ? "Les campagnes archivées restent disponibles ici pendant 30 jours."
+                : "Clique sur « Nouveau Template » pour démarrer."}
             </div>
           </div>
         )}
@@ -1100,7 +1192,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
             <Search className="text-d-fg4 mx-auto mb-3" size={28} />
             <div className="text-sm text-d-fg2 mb-1 font-medium">Aucun résultat</div>
             <div className="text-xs text-d-fg3">
-              Aucune newsletter ne correspond à « {search} ».
+              Aucune newsletter {showArchived ? "archivée " : ""}ne correspond à « {search} ».
             </div>
           </div>
         )}
@@ -1114,6 +1206,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
               const lock = locks[nl.id];
               const lockedByOther = lock && lock.user_id !== profile?.id;
               const canDeleteNewsletter = profile?.is_admin || nl.created_by === profile?.id;
+              const isArchived = nl.archived === true;
               const cardLabelIds = nlLabels[nl.id] || [];
               const cardLabels = labels.filter((l) => cardLabelIds.includes(l.id));
               const pickerOpen = labelPickerOpen === nl.id;
@@ -1124,14 +1217,16 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                   <div
                     role="button"
                     tabIndex={0}
-                    onClick={() => onOpen(nl.id)}
+                    onClick={() => {
+                      if (!isArchived) onOpen(nl.id);
+                    }}
                     onKeyDown={(event) => {
-                      if (event.key === "Enter" || event.key === " ") {
+                      if (!isArchived && (event.key === "Enter" || event.key === " ")) {
                         event.preventDefault();
                         onOpen(nl.id);
                       }
                     }}
-                    className={`group flex cursor-pointer items-start gap-3 px-4 py-4 transition-colors hover:bg-d-panel2 focus:bg-d-panel2 focus:outline-none sm:items-center sm:gap-4 sm:px-5 ${isFirst ? "rounded-t-2xl" : ""} ${isLast ? "rounded-b-2xl" : ""}`}
+                    className={`group flex items-start gap-3 px-4 py-4 transition-colors focus:outline-none sm:items-center sm:gap-4 sm:px-5 ${isArchived ? "cursor-default opacity-85" : "cursor-pointer hover:bg-d-panel2 focus:bg-d-panel2"} ${isFirst ? "rounded-t-2xl" : ""} ${isLast ? "rounded-b-2xl" : ""}`}
                   >
                     {/* Icon */}
                     <div
@@ -1157,6 +1252,15 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                             {lock.user_full_name || lock.user_email}
                           </span>
                         )}
+                        {isArchived && (
+                          <span
+                            className="inline-flex flex-shrink-0 items-center gap-1 text-[10px] uppercase tracking-[0.14em] font-semibold px-2 py-0.5 rounded-full"
+                            style={{ background: "rgba(255,139,40,0.12)", color: "#FFB266" }}
+                          >
+                            <Archive size={10} />
+                            Archivée
+                          </span>
+                        )}
                       </div>
                       <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-d-fg3">
                         <span className="flex items-center gap-1">
@@ -1171,6 +1275,15 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                           {getPreviewText(nl)}
                         </span>
                       </div>
+                      {isArchived && (
+                        <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-d-fg4">
+                          <span>
+                            Archivée {nl.archived_at ? formatDate(nl.archived_at) : ""}
+                            {nl.archiver ? ` par ${nl.archiver.full_name || nl.archiver.email}` : ""}
+                          </span>
+                          <span>{getArchiveRetentionLabel(nl)}</span>
+                        </div>
+                      )}
                       {cardLabels.length > 0 && (
                         <div className="mt-1.5 flex flex-wrap gap-1">
                           {cardLabels.map((label) => (
@@ -1191,7 +1304,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                     </div>
 
                     <div className="flex flex-shrink-0 items-center gap-1 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
-                      {labels.length > 0 && (
+                      {!isArchived && labels.length > 0 && (
                         <div className="relative">
                           <button
                             onClick={(event) => {
@@ -1247,31 +1360,47 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                           )}
                         </div>
                       )}
-                      <button
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          handleDuplicate(nl);
-                        }}
-                        className="p-2 text-d-fg4 hover:text-d-fg2 hover:bg-d-panel3 rounded-lg transition-colors"
-                      >
-                        <Copy size={14} />
-                      </button>
-                      {canDeleteNewsletter && (
+                      {!isArchived && (
                         <button
                           onClick={(event) => {
                             event.stopPropagation();
-                            handleDelete(nl);
+                            handleDuplicate(nl);
+                          }}
+                          className="p-2 text-d-fg4 hover:text-d-fg2 hover:bg-d-panel3 rounded-lg transition-colors"
+                        >
+                          <Copy size={14} />
+                        </button>
+                      )}
+                      {isArchived && profile?.is_admin ? (
+                        <button
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            handleRestore(nl);
+                          }}
+                          className="p-2 text-d-fg4 hover:text-d-green hover:bg-d-green/10 rounded-lg transition-colors"
+                          title="Désarchiver"
+                        >
+                          <RotateCcw size={14} />
+                        </button>
+                      ) : canDeleteNewsletter ? (
+                        <button
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            handleArchive(nl);
                           }}
                           className="p-2 text-d-fg4 hover:text-red-400 hover:bg-red-900/20 rounded-lg transition-colors"
+                          title="Archiver"
                         >
                           <Trash2 size={14} />
                         </button>
-                      )}
+                      ) : null}
                     </div>
 
-                    <div className="hidden p-2 text-d-fg4 transition-colors group-hover:text-d-fg2 sm:block">
-                      <ChevronRight size={16} />
-                    </div>
+                    {!isArchived && (
+                      <div className="hidden p-2 text-d-fg4 transition-colors group-hover:text-d-fg2 sm:block">
+                        <ChevronRight size={16} />
+                      </div>
+                    )}
                   </div>
                   {i < arr.length - 1 && (
                     <div className="h-px mx-5 border-line" style={{ background: "var(--d-line)" }} />

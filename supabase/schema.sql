@@ -74,16 +74,35 @@ create table if not exists public.newsletters (
   updated_at timestamptz not null default now(),
   created_by uuid references public.profiles(id) on delete set null,
   updated_by uuid references public.profiles(id) on delete set null,
-  archived boolean not null default false
+  archived boolean not null default false,
+  archived_at timestamptz,
+  archive_expires_at timestamptz,
+  archived_by uuid references public.profiles(id) on delete set null
 );
 
 alter table public.newsletters
   alter column created_by set default auth.uid();
+alter table public.newsletters
+  add column if not exists archived_at timestamptz;
+alter table public.newsletters
+  add column if not exists archive_expires_at timestamptz;
+alter table public.newsletters
+  add column if not exists archived_by uuid references public.profiles(id) on delete set null;
+
+update public.newsletters
+set
+  archived_at = coalesce(archived_at, updated_at, now()),
+  archive_expires_at = coalesce(archive_expires_at, coalesce(archived_at, updated_at, now()) + interval '30 days')
+where archived = true
+  and (archived_at is null or archive_expires_at is null);
 
 create index if not exists newsletters_updated_at_idx
   on public.newsletters (updated_at desc);
 create index if not exists newsletters_archived_idx
   on public.newsletters (archived);
+create index if not exists newsletters_archive_expires_at_idx
+  on public.newsletters (archive_expires_at)
+  where archived = true;
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- versions : snapshots horodatés (créés à chaque "Sauvegarder" explicite)

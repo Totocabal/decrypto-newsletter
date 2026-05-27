@@ -129,6 +129,12 @@ export function useNewsletter(newsletterId, userId, userName) {
         setLoading(false);
         return;
       }
+      if (nl.archived === true) {
+        setNewsletter(nl);
+        setError("Cette newsletter est archivée. Un admin peut la désarchiver depuis la liste des newsletters archivées.");
+        setLoading(false);
+        return;
+      }
       setNewsletter(nl);
       // Migration auto : si la newsletter a été créée avec l'ancien format
       // (propriétés à plat sans `sections`), on convertit au nouveau format
