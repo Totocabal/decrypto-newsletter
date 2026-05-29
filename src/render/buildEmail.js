@@ -658,7 +658,7 @@ function renderFearGreed(data, number, assetMode, anchor = "", isLastSection = f
     </tr>`;
 }
 
-function renderSignals(data, number, anchor = "", isLastSection = false) {
+function renderSignals(data, number, anchor = "", isLastSection = false, assetMode = "inline") {
   const items = data.signals || [];
   const rows = [];
   for (let i = 0; i < items.length; i += 2) {
@@ -675,6 +675,9 @@ function renderSignals(data, number, anchor = "", isLastSection = false) {
         ? (isLightTheme ? "#00A889" : "#03FFCF")
         : (isLightTheme ? "#D65F00" : "#FF8B28");
       const arrow = arrowUp ? "&#8599;" : "&#8600;";
+      const arrowCell = assetMode === "external"
+        ? `<td width="28" height="28" align="center" valign="middle" bgcolor="${bg}" style="background-color:${bg}; border-radius:99px;"><img src="assets/signal-arrow-${arrowUp ? "up" : "down"}.png" width="28" height="28" alt="${arrowUp ? "↗" : "↘"}" style="display:block; border:0; border-radius:99px;" /></td>`
+        : `<td width="28" height="28" align="center" valign="middle" bgcolor="${bg}" style="background-color:${bg}; border-radius:99px; color:${fg}; font-family:${FONTS.heading}; font-size:16px; font-weight:900; line-height:28px; text-shadow:0.45px 0 ${fg}, -0.45px 0 ${fg}, 0 0.45px ${fg}, 0 -0.45px ${fg};"><strong style="font-weight:900; color:${fg};">${arrow}</strong></td>`;
       let borders = "";
       if (position === "tl") borders = `border-right:1px solid ${EMAIL_THEME.border}; border-bottom:1px solid ${EMAIL_THEME.border};`;
       else if (position === "tr") borders = `border-bottom:1px solid ${EMAIL_THEME.border};`;
@@ -684,7 +687,7 @@ function renderSignals(data, number, anchor = "", isLastSection = false) {
           <tr>
             <td valign="top" width="42">
               <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
-                <td width="28" height="28" align="center" valign="middle" bgcolor="${bg}" style="background-color:${bg}; border-radius:99px; color:${fg}; font-family:${FONTS.heading}; font-size:16px; font-weight:900; line-height:28px; text-shadow:0.45px 0 ${fg}, -0.45px 0 ${fg}, 0 0.45px ${fg}, 0 -0.45px ${fg};"><strong style="font-weight:900; color:${fg};">${arrow}</strong></td>
+                ${arrowCell}
               </tr></table>
             </td>
             <td valign="top">
@@ -999,7 +1002,8 @@ function renderFocusItem(item, assetMode, isLastItem = false) {
     if (!imgUrl) return "";
     const altText = item.image_alt || "Visuel d'illustration";
     const linkUrl = String(item.link_url || "").trim();
-    const img = `<img src="${escapeAttr(imgUrl)}" width="568" height="280" alt="${escapeAttr(altText)}" style="display:block; width:100%; max-width:568px; height:auto; border-radius:14px; border:1px solid ${EMAIL_THEME.borderSubtle};" />`;
+    const borderStyle = item.show_border !== false ? `border:1px solid ${EMAIL_THEME.borderSubtle};` : "border:0;";
+    const img = `<img src="${escapeAttr(imgUrl)}" width="568" height="280" alt="${escapeAttr(altText)}" style="display:block; width:100%; max-width:568px; height:auto; border-radius:14px; ${borderStyle}" />`;
     const inner = linkUrl
       ? `<a href="${escapeAttr(linkUrl)}" target="_blank" style="display:block; text-decoration:none;">${img}</a>`
       : img;
@@ -1254,7 +1258,8 @@ function renderImageBlock(data, isLastSection = false) {
     data.image_url ||
     "https://placehold.co/568x280/1a0c2e/ffffff?text=VISUEL+%C2%B7+568+%C3%97+280";
   const altText = data.image_alt || "Visuel d'illustration";
-  const image = `<img src="${escapeAttr(imgUrl)}" width="568" height="280" alt="${escapeAttr(altText)}" style="display:block; width:100%; max-width:568px; height:auto; border-radius:14px; border:1px solid ${EMAIL_THEME.borderSubtle};" />`;
+  const borderStyle = data.show_border !== false ? `border:1px solid ${EMAIL_THEME.borderSubtle};` : "border:0;";
+  const image = `<img src="${escapeAttr(imgUrl)}" width="568" height="280" alt="${escapeAttr(altText)}" style="display:block; width:100%; max-width:568px; height:auto; border-radius:14px; ${borderStyle}" />`;
   const linkedImage = data.link_url
     ? `<a href="${escapeAttr(data.link_url)}" target="_blank" style="display:block; text-decoration:none;">${image}</a>`
     : image;
@@ -1406,7 +1411,7 @@ function renderSection(sec, allSections, assetMode, showSectionNumbers = true, i
     case "edito":      return renderEdito(sec.data, number, anchor, isLastSection);
     case "chart":      return renderChart(sec.data, assetMode, isLastSection);
     case "fear_greed": return renderFearGreed(sec.data, number, assetMode, anchor, isLastSection);
-    case "signals":    return renderSignals(sec.data, number, anchor, isLastSection);
+    case "signals":    return renderSignals(sec.data, number, anchor, isLastSection, assetMode);
     case "macro":      return renderMacro(sec.data, number, assetMode, anchor, isLastSection);
     case "macro_bars": return renderMacroBars(sec.data, isLastSection);
     case "commented_number": return renderCommentedNumber(sec.data, anchor, isLastSection);
@@ -1437,10 +1442,10 @@ function renderHeader(state, assetMode) {
       <td style="height:4px; line-height:4px; font-size:1px; padding:0; border:0;"><img src="${gradientHeaderUrl}" width="640" height="4" alt="" style="display:block; width:100%; height:4px; border:0; line-height:4px;" /></td>
     </tr>
     <tr>
-      <td class="em-px" style="padding:22px 36px; border-bottom:1px solid ${EMAIL_THEME.border};">
+      <td class="em-px" bgcolor="${EMAIL_THEME.bgEmail}" style="background-color:${EMAIL_THEME.bgEmail}; padding:22px 36px; border-bottom:1px solid ${EMAIL_THEME.border};">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
           <tr>
-            <td align="left" valign="middle">
+            <td align="left" valign="middle" bgcolor="${EMAIL_THEME.bgEmail}" style="background-color:${EMAIL_THEME.bgEmail};">
               <img src="${logoUrl}" width="180" alt="Coinhouse" style="display:inline-block; vertical-align:middle; border:0; max-width:180px; height:auto;" />
             </td>
             ${String(state.issue_date || "").trim() ? `<td align="right" valign="middle" style="font-family:${FONTS.body}; font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:${EMAIL_THEME.textMuted};">${escapeHtml(state.issue_date)}</td>` : "<td></td>"}
@@ -1587,7 +1592,7 @@ ${renderEmailFontFaces()}
 <body style="margin:0; padding:0; background-color:${EMAIL_THEME.bgPage}; font-family:${FONTS.body};">
 
 <div style="display:none; font-size:1px; color:${EMAIL_THEME.bgPage}; line-height:1px; max-height:0; max-width:0; opacity:0; overflow:hidden;">
-  ${escapeHtml(stripHtmlForPreheader(state.preview_text))} ⏤ ⏤ ⏤ ⏤ ⏤ ⏤ ⏤ ⏤ ⏤ ⏤
+  ${escapeHtml(stripHtmlForPreheader(state.preview_text))}&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;
 </div>
 
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${EMAIL_THEME.bgPage}" style="background-color:${EMAIL_THEME.bgPage};">

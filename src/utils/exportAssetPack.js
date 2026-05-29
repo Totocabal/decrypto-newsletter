@@ -131,6 +131,38 @@ function imageBlobToPngBlob(blob) {
   });
 }
 
+function signalArrowPngBlob(direction, themeVariant) {
+  return new Promise((resolve, reject) => {
+    const isLight = themeVariant === "light";
+    const bg = direction === "up"
+      ? (isLight ? "#DDF7F1" : "#003D33")
+      : (isLight ? "#FFE8D7" : "#3A1F12");
+    const fg = direction === "up"
+      ? (isLight ? "#00A889" : "#03FFCF")
+      : (isLight ? "#D65F00" : "#FF8B28");
+    const SIZE = 28;
+    const W = SIZE * PIXEL_RATIO;
+    const canvas = document.createElement("canvas");
+    canvas.width = W;
+    canvas.height = W;
+    const ctx = canvas.getContext("2d");
+    ctx.beginPath();
+    ctx.arc(W / 2, W / 2, W / 2, 0, Math.PI * 2);
+    ctx.fillStyle = bg;
+    ctx.fill();
+    ctx.fillStyle = fg;
+    ctx.font = `900 ${16 * PIXEL_RATIO}px Arial, sans-serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(direction === "up" ? "↗" : "↘", W / 2, W / 2);
+    canvas.toBlob(
+      (blob) => blob ? resolve(blob) : reject(new Error("Canvas toBlob signal arrow échoué")),
+      "image/png",
+      1.0
+    );
+  });
+}
+
 function buildStandalonePictoSvg(svgInner, color, size = 32) {
   const inner = svgInner.replace(/currentColor/g, color);
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${inner}</svg>`;
@@ -151,11 +183,13 @@ async function buildPngAssets(state) {
   let needGauge = false;
   let gaugeValue = null;
   let needCtaGradient = false;
+  let needSignalArrows = false;
   // Map { sectionId → { url, filename } } pour les images de blocs focus/image
   const focusImages = [];
 
   let chartYAxisLabels = [];
   for (const sec of state.sections || []) {
+    if (sec.type === "signals") needSignalArrows = true;
     if (sec.type === "chart" && !needChart) {
       needChart = true;
       chartPoints = sec.data.points;
@@ -241,6 +275,11 @@ async function buildPngAssets(state) {
   if (needGauge) {
     const gaugeSvg = getGaugeSvgFull(gaugeValue, { themeVariant: state.theme_variant });
     assets["gauge.png"] = await svgToPngBlob(gaugeSvg, 200, 120);
+  }
+
+  if (needSignalArrows) {
+    assets["signal-arrow-up.png"] = await signalArrowPngBlob("up", state.theme_variant);
+    assets["signal-arrow-down.png"] = await signalArrowPngBlob("down", state.theme_variant);
   }
 
   for (const item of calloutPictos) {

@@ -1872,6 +1872,19 @@ function FocusEditor({ data, set }) {
                       <Field noMargin label="Lien (optionnel)" hint="L'image devient cliquable">
                         <Input value={item.link_url || ""} onChange={(e) => updateItem(item.id, { link_url: e.target.value })} placeholder="https://…" />
                       </Field>
+                      <label className="flex items-center justify-between gap-4 rounded-xl border border-line bg-d-panel px-3 py-2.5 cursor-pointer">
+                        <span className="text-xs font-semibold text-d-fg">Liseré autour de l'image</span>
+                        <span className="relative inline-flex h-6 w-11 flex-shrink-0 items-center">
+                          <input
+                            type="checkbox"
+                            checked={item.show_border !== false}
+                            onChange={(e) => updateItem(item.id, { show_border: e.target.checked })}
+                            className="peer sr-only"
+                          />
+                          <span className="absolute inset-0 rounded-full border border-line bg-d-panel transition-colors peer-checked:border-d-pink peer-checked:bg-d-pink/25" />
+                          <span className="relative ml-1 h-4 w-4 rounded-full bg-d-fg4 transition-transform peer-checked:translate-x-5 peer-checked:bg-d-pink" />
+                        </span>
+                      </label>
                     </>
                   )}
                 </>
@@ -2235,6 +2248,19 @@ function ImageBlockEditor({ data, set }) {
           placeholder="https://..."
         />
       </Field>
+      <label className="flex items-center justify-between gap-4 rounded-xl border border-line bg-d-panel px-3 py-2.5 cursor-pointer">
+        <span className="text-xs font-semibold text-d-fg">Liseré autour de l'image</span>
+        <span className="relative inline-flex h-6 w-11 flex-shrink-0 items-center">
+          <input
+            type="checkbox"
+            checked={data.show_border !== false}
+            onChange={(e) => set({ ...data, show_border: e.target.checked })}
+            className="peer sr-only"
+          />
+          <span className="absolute inset-0 rounded-full border border-line bg-d-panel transition-colors peer-checked:border-d-pink peer-checked:bg-d-pink/25" />
+          <span className="relative ml-1 h-4 w-4 rounded-full bg-d-fg4 transition-transform peer-checked:translate-x-5 peer-checked:bg-d-pink" />
+        </span>
+      </label>
 
       {imageManagerOpen && (
         <ImageManagerModal

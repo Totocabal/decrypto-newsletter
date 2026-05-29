@@ -326,6 +326,7 @@ export const SECTION_TYPES = {
       image_path: "",
       image_alt: "Visuel d'illustration",
       link_url: "",
+      show_border: true,
     }),
   },
   divider: {
