@@ -116,8 +116,7 @@ supabase/
 api/
 ├── export-braze.js             ← serverless : upload assets → Braze Media Library
 ├── export-preview-jpg.js       ← serverless : rendu JPG via Puppeteer/Chromium
-├── preview-html.js             ← serverless : sert une preview Supabase en text/html
-├── preview-comments.js         ← serverless : commentaires publics des previews
+├── preview-html.js             ← serverless : preview Supabase en text/html + commentaires publics
 ├── generate-preview-text.js    ← serverless : génération IA du texte d'aperçu
 ├── correct-text.js             ← serverless : correction orthographique IA
 ├── purge-archived-newsletters.js ← serverless : purge après 30 jours d'archive
