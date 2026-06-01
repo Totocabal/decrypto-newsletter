@@ -711,7 +711,7 @@ export function EditorPage({ newsletterId, onBack }) {
         </div>
       )}
       {hostedPreview && (
-        <div className="fixed bottom-4 right-4 z-40 w-[calc(100vw-2rem)] max-w-md rounded-2xl border border-line bg-d-panel p-4 shadow-2xl">
+        <div className="fixed bottom-28 right-4 z-40 w-[calc(100vw-2rem)] max-w-md rounded-2xl border border-line bg-d-panel p-4 shadow-2xl sm:bottom-24">
           <div className="mb-2 flex items-start justify-between gap-3">
             <div>
               <div className="text-xs font-semibold text-d-fg" style={{ fontFamily: "'Sora', sans-serif" }}>
