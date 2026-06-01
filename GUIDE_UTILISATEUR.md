@@ -829,11 +829,11 @@ Bouton × rouge à droite du label. La suppression retire le label de **toutes**
 
 Accessible depuis l'onglet **Template newsletter** → bouton **Contenus par défaut** (✏️).
 
-Ce modal permet de personnaliser les textes qui préremplissent chaque type de bloc lorsqu'une newsletter est créée avec l'option **Contenu d'exemple** activée.
+Ce modal permet de personnaliser les textes qui préremplissent le **header**, le **footer** et chaque type de bloc lorsqu'une newsletter est créée avec l'option **Contenu d'exemple** activée.
 
 #### Modifier un contenu par défaut
 
-1. **Sélectionner un type de bloc** dans la colonne gauche
+1. **Sélectionner Header, Footer ou un type de bloc** dans la colonne gauche
    - Un point cyan signale les types dont le contenu a été modifié par rapport au texte d'usine
 2. Le **formulaire complet** du type s'affiche à droite — remplir les champs comme dans l'éditeur habituel
 3. Cliquer sur **Sauvegarder** (💾) pour enregistrer

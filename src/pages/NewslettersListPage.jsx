@@ -457,9 +457,10 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
     const preset = pendingPreset;
     if (!profile?.id || !newTitle.trim()) return;
     setCreating(true);
+    const previewTextPatch = newPreviewText.trim() ? { preview_text: newPreviewText } : {};
     const initialState =
       mode === "blank"
-        ? { ...INITIAL_STATE, sections: [], preview_text: newPreviewText }
+        ? { ...INITIAL_STATE, sections: [], ...previewTextPatch }
         : mode === "preset" && preset
           ? { ...buildInitialStateFromTypes(preset.sections, {
               includeDefaultContent: preset.includeDefaultContent,
@@ -467,7 +468,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
               showBlockSeparators: preset.showBlockSeparators,
               themeVariant: preset.themeVariant,
               includeIssueDate: preset.includeIssueDate,
-            }), preview_text: newPreviewText }
+            }), ...previewTextPatch }
         : (() => {
             const template = getDefaultNewsletterTemplate();
             return { ...buildInitialStateFromTypes(template.sections, {
@@ -476,13 +477,13 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
               showBlockSeparators: template.showBlockSeparators,
               themeVariant: template.themeVariant,
               includeIssueDate: template.includeIssueDate,
-            }), preview_text: newPreviewText };
+            }), ...previewTextPatch };
           })();
     const { data, error } = await supabase
       .from("newsletters")
       .insert({
         title: newTitle.trim(),
-        issue_number: INITIAL_STATE.issue_number,
+        issue_number: initialState.issue_number || INITIAL_STATE.issue_number,
         current_state: initialState,
         created_by: profile.id,
         updated_by: profile.id,

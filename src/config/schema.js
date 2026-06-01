@@ -574,6 +574,7 @@ export function createSection(type) {
 
 const STORAGE_KEY = "decrypto:default_sections";
 const SECTION_DEFAULTS_KEY = "decrypto:section_defaults";
+const ROOT_DEFAULTS_KEY = "decrypto:root_defaults";
 
 export const INITIAL_SECTION_TYPES = INITIAL_STATE.sections.map((s) => s.type);
 export const DEFAULT_TEMPLATE_USES_CONTENT = true;
@@ -608,6 +609,73 @@ export function resetDefaultSectionOverride(type) {
     const all = getAllDefaultSectionOverrides();
     delete all[type];
     localStorage.setItem(SECTION_DEFAULTS_KEY, JSON.stringify(all));
+  } catch {
+    // Storage may be unavailable
+  }
+}
+
+function cloneRootDefaults(source = INITIAL_STATE) {
+  return {
+    brand_name: source.brand_name ?? BRAND.name,
+    issue_number: source.issue_number ?? "1",
+    issue_date: source.issue_date ?? "",
+    preview_text: source.preview_text ?? "",
+    footer: {
+      links: Array.isArray(source.footer?.links)
+        ? source.footer.links.map((link) => ({ ...link }))
+        : [],
+      address: source.footer?.address ?? BRAND.address,
+      legal: source.footer?.legal ?? BRAND.legalNotice,
+      unsub_url: source.footer?.unsub_url ?? "{{${set_user_to_unsubscribed_url}}}",
+    },
+  };
+}
+
+export function getInitialRootContent() {
+  return cloneRootDefaults();
+}
+
+export function getDefaultRootContent() {
+  const base = cloneRootDefaults();
+  try {
+    const raw = localStorage.getItem(ROOT_DEFAULTS_KEY);
+    if (!raw) return base;
+    const parsed = JSON.parse(raw);
+    return {
+      ...base,
+      ...parsed,
+      footer: {
+        ...base.footer,
+        ...(parsed?.footer || {}),
+        links: Array.isArray(parsed?.footer?.links)
+          ? parsed.footer.links.map((link) => ({ ...link }))
+          : base.footer.links,
+      },
+    };
+  } catch {
+    return base;
+  }
+}
+
+export function hasDefaultRootContentOverride() {
+  try {
+    return localStorage.getItem(ROOT_DEFAULTS_KEY) !== null;
+  } catch {
+    return false;
+  }
+}
+
+export function saveDefaultRootContent(data) {
+  try {
+    localStorage.setItem(ROOT_DEFAULTS_KEY, JSON.stringify(cloneRootDefaults(data)));
+  } catch {
+    // Storage may be unavailable
+  }
+}
+
+export function resetDefaultRootContent() {
+  try {
+    localStorage.removeItem(ROOT_DEFAULTS_KEY);
   } catch {
     // Storage may be unavailable
   }
@@ -742,12 +810,17 @@ export function buildInitialStateFromTypes(types, options = {}) {
   const themeVariant = options.themeVariant === "light" ? "light" : "dark";
   const includeIssueDate = options.includeIssueDate !== false;
   const sections = normalizeTemplateSections(types);
+  const rootContent = includeDefaultContent
+    ? getDefaultRootContent()
+    : { ...cloneRootDefaults(), preview_text: "" };
   return {
     ...INITIAL_STATE,
+    ...rootContent,
+    footer: rootContent.footer,
     show_section_numbers: showSectionNumbers,
     show_block_separators: showBlockSeparators,
     theme_variant: themeVariant,
-    issue_date: includeIssueDate ? INITIAL_STATE.issue_date : "",
+    issue_date: includeIssueDate ? rootContent.issue_date : "",
     sections: sections.map(({ type, counts_for_numbering }) => {
       const nextSection = section(type, includeDefaultContent ? getDefaultSectionData(type) : emptySectionData(type));
       if (typeof counts_for_numbering === "boolean") {

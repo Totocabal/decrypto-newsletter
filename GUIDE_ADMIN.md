@@ -80,10 +80,10 @@ Un preset est une disposition alternative que les utilisateurs peuvent choisir �
 
 ### Contenus par défaut
 
-Cliquez **Contenus par défaut** pour éditer les textes initiaux de chaque type de bloc.
+Cliquez **Contenus par défaut** pour éditer les textes initiaux du header, du footer et de chaque type de bloc.
 
-- La **colonne gauche** liste tous les types de blocs — un point cyan indique un contenu personnalisé
-- La **colonne droite** affiche le formulaire d'édition complet du bloc sélectionné
+- La **colonne gauche** liste Header, Footer et tous les types de blocs — un point cyan indique un contenu personnalisé
+- La **colonne droite** affiche le formulaire d'édition complet du contenu sélectionné
 - **Sauvegarder** — enregistre les textes pour ce type de bloc
 - **Réinitialiser** — remet les textes d'origine
 

@@ -59,6 +59,7 @@ import {
 } from "../lib/templatePresets.js";
 import { Wordmark } from "../components/Wordmark.jsx";
 import { SectionEditor } from "../components/SectionEditor.jsx";
+import { Field, Input, TextArea } from "../components/FormControls.jsx";
 import {
   SECTION_TYPES,
   INITIAL_SECTION_TEMPLATE,
@@ -69,6 +70,11 @@ import {
   saveDefaultSectionOverride,
   resetDefaultSectionOverride,
   getAllDefaultSectionOverrides,
+  getInitialRootContent,
+  getDefaultRootContent,
+  hasDefaultRootContentOverride,
+  saveDefaultRootContent,
+  resetDefaultRootContent,
   UNNUMBERED_TYPES,
 } from "../config/schema.js";
 
@@ -1567,31 +1573,90 @@ function PresetSettingRow({ icon: Icon, title, hint, checked, onChange }) {
 }
 
 function DefaultContentEditorModal({ onClose }) {
-  const allTypes = Object.keys(SECTION_TYPES);
-  const [selectedType, setSelectedType] = useState(allTypes[0]);
+  const rootTypes = [
+    { id: "header", label: "Header", icon: FileEdit },
+    { id: "footer", label: "Footer", icon: LayoutTemplate },
+  ];
+  const sectionTypes = Object.keys(SECTION_TYPES);
+  const allTypes = [...rootTypes.map((item) => item.id), ...sectionTypes];
+  const [selectedType, setSelectedType] = useState("header");
   const [overrides, setOverrides] = useState(() => getAllDefaultSectionOverrides());
-  const [localData, setLocalData] = useState(() => getDefaultSectionData(allTypes[0]));
+  const [rootHasOverride, setRootHasOverride] = useState(() => hasDefaultRootContentOverride());
+  const [rootContent, setRootContent] = useState(() => getDefaultRootContent());
+  const [localData, setLocalData] = useState(() => getDefaultSectionData(sectionTypes[0]));
   const [savedType, setSavedType] = useState(null);
+  const selectedSectionType = SECTION_TYPES[selectedType] ? selectedType : null;
 
   const selectType = (type) => {
     setSelectedType(type);
-    setLocalData(getDefaultSectionData(type));
+    if (SECTION_TYPES[type]) {
+      setLocalData(getDefaultSectionData(type));
+    }
   };
 
   const handleSave = () => {
-    saveDefaultSectionOverride(selectedType, localData);
-    setOverrides(getAllDefaultSectionOverrides());
+    if (selectedType === "header" || selectedType === "footer") {
+      if (isRootContentFactoryDefault(rootContent)) {
+        resetDefaultRootContent();
+      } else {
+        saveDefaultRootContent(rootContent);
+      }
+      setRootHasOverride(hasDefaultRootContentOverride());
+    } else {
+      saveDefaultSectionOverride(selectedType, localData);
+      setOverrides(getAllDefaultSectionOverrides());
+    }
     setSavedType(selectedType);
     setTimeout(() => setSavedType(null), 2000);
   };
 
   const handleReset = () => {
-    resetDefaultSectionOverride(selectedType);
-    setOverrides(getAllDefaultSectionOverrides());
-    setLocalData(SECTION_TYPES[selectedType].factory());
+    if (selectedType === "header" || selectedType === "footer") {
+      const initialRoot = getInitialRootContent();
+      const nextRoot = selectedType === "header"
+        ? {
+            ...rootContent,
+            brand_name: initialRoot.brand_name,
+            issue_number: initialRoot.issue_number,
+            issue_date: initialRoot.issue_date,
+            preview_text: initialRoot.preview_text,
+          }
+        : { ...rootContent, footer: initialRoot.footer };
+      if (isRootContentFactoryDefault(nextRoot, initialRoot)) {
+        resetDefaultRootContent();
+      } else {
+        saveDefaultRootContent(nextRoot);
+      }
+      setRootContent(nextRoot);
+      setRootHasOverride(hasDefaultRootContentOverride());
+    } else {
+      resetDefaultSectionOverride(selectedType);
+      setOverrides(getAllDefaultSectionOverrides());
+      setLocalData(SECTION_TYPES[selectedType].factory());
+    }
   };
 
-  const hasOverride = (type) => Object.prototype.hasOwnProperty.call(overrides, type);
+  const hasOverride = (type) =>
+    type === "header" || type === "footer"
+      ? rootHasOverride
+      : Object.prototype.hasOwnProperty.call(overrides, type);
+
+  const updateRoot = (patch) => setRootContent((current) => ({ ...current, ...patch }));
+  const updateFooter = (patch) =>
+    setRootContent((current) => ({ ...current, footer: { ...current.footer, ...patch } }));
+  const footerLinks = {
+    add: () => updateFooter({ links: [...(rootContent.footer.links || []), { label: "Lien", url: "#" }] }),
+    set: (index, next) =>
+      updateFooter({
+        links: (rootContent.footer.links || []).map((link, currentIndex) =>
+          currentIndex === index ? next : link
+        ),
+      }),
+    remove: (index) =>
+      updateFooter({
+        links: (rootContent.footer.links || []).filter((_, currentIndex) => currentIndex !== index),
+      }),
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
@@ -1620,9 +1685,11 @@ function DefaultContentEditorModal({ onClose }) {
           {/* Left — type list */}
           <div className="w-56 flex-shrink-0 overflow-y-auto border-r border-line bg-d-panel2 py-2">
             {allTypes.map((type) => {
-              const Icon = SECTION_ICON_MAP[type] ?? Newspaper;
+              const rootType = rootTypes.find((item) => item.id === type);
+              const Icon = rootType?.icon ?? SECTION_ICON_MAP[type] ?? Newspaper;
               const isSelected = selectedType === type;
               const modified = hasOverride(type);
+              const label = rootType?.label ?? SECTION_TYPES[type].label;
               return (
                 <button
                   key={type}
@@ -1636,7 +1703,7 @@ function DefaultContentEditorModal({ onClose }) {
                 >
                   <Icon size={13} className={isSelected ? "text-d-pink" : "text-d-fg4"} />
                   <span className="flex-1 min-w-0 text-xs font-medium truncate">
-                    {SECTION_TYPES[type].label}
+                    {label}
                   </span>
                   {modified && (
                     <span className="h-1.5 w-1.5 rounded-full bg-d-cyan flex-shrink-0" title="Contenu modifié" />
@@ -1649,12 +1716,22 @@ function DefaultContentEditorModal({ onClose }) {
           {/* Right — editor */}
           <div className="flex flex-1 flex-col min-w-0 overflow-hidden">
             <div className="flex-1 overflow-y-auto p-4">
-              <SectionEditor
-                type={selectedType}
-                data={localData}
-                onChange={setLocalData}
-                sections={[]}
-              />
+              {selectedType === "header" ? (
+                <DefaultHeaderContentEditor data={rootContent} onChange={updateRoot} />
+              ) : selectedType === "footer" ? (
+                <DefaultFooterContentEditor
+                  footer={rootContent.footer}
+                  onChange={updateFooter}
+                  links={footerLinks}
+                />
+              ) : (
+                <SectionEditor
+                  type={selectedSectionType}
+                  data={localData}
+                  onChange={setLocalData}
+                  sections={[]}
+                />
+              )}
             </div>
             {/* Footer */}
             <div className="flex flex-shrink-0 items-center justify-between gap-3 border-t border-line px-4 py-3">
@@ -1683,6 +1760,126 @@ function DefaultContentEditorModal({ onClose }) {
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function isRootContentFactoryDefault(value, initialRoot = getInitialRootContent()) {
+  return (
+    (value.brand_name || "") === (initialRoot.brand_name || "") &&
+    (value.issue_number || "") === (initialRoot.issue_number || "") &&
+    (value.issue_date || "") === (initialRoot.issue_date || "") &&
+    (value.preview_text || "") === (initialRoot.preview_text || "") &&
+    JSON.stringify(value.footer || {}) === JSON.stringify(initialRoot.footer || {})
+  );
+}
+
+function DefaultHeaderContentEditor({ data, onChange }) {
+  return (
+    <div className="mx-auto max-w-3xl">
+      <div className="mb-4 rounded-xl border border-line bg-d-panel2 px-4 py-3">
+        <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-d-fg3">
+          Header par défaut
+        </div>
+        <p className="mt-1 text-xs leading-relaxed text-d-fg4">
+          Ces champs alimentent l'en-tête et le preheader des nouvelles newsletters créées avec le contenu d'exemple.
+        </p>
+      </div>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <Field label="Nom de la marque">
+          <Input
+            value={data.brand_name || ""}
+            onChange={(event) => onChange({ brand_name: event.target.value })}
+          />
+        </Field>
+        <Field label="Numéro d'édition">
+          <Input
+            value={data.issue_number || ""}
+            onChange={(event) => onChange({ issue_number: event.target.value })}
+          />
+        </Field>
+      </div>
+      <Field label="Date d'en-tête" hint="Format affiché dans l'email, par exemple 06.06.2026.">
+        <Input
+          value={data.issue_date || ""}
+          onChange={(event) => onChange({ issue_date: event.target.value })}
+        />
+      </Field>
+      <Field label="Texte de prévisualisation" hint="Utilisé si aucun preheader spécifique n'est renseigné à la création.">
+        <TextArea
+          rows={2}
+          value={data.preview_text || ""}
+          onChange={(event) => onChange({ preview_text: event.target.value })}
+        />
+      </Field>
+    </div>
+  );
+}
+
+function DefaultFooterContentEditor({ footer, onChange, links }) {
+  return (
+    <div className="mx-auto max-w-3xl">
+      <div className="mb-4 rounded-xl border border-line bg-d-panel2 px-4 py-3">
+        <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-d-fg3">
+          Footer par défaut
+        </div>
+        <p className="mt-1 text-xs leading-relaxed text-d-fg4">
+          Ces liens et mentions seront repris dans le pied de page fixe des nouvelles newsletters.
+        </p>
+      </div>
+
+      <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-d-fg3">
+        Liens du footer
+      </div>
+      {(footer.links || []).map((link, index) => (
+        <div key={index} className="mb-2 grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,35%)_1fr_auto] sm:items-center">
+          <Input
+            value={link.label || ""}
+            onChange={(event) => links.set(index, { ...link, label: event.target.value })}
+            placeholder="Libellé"
+          />
+          <Input
+            value={link.url || ""}
+            onChange={(event) => links.set(index, { ...link, url: event.target.value })}
+            placeholder="https://..."
+          />
+          <button
+            type="button"
+            onClick={() => links.remove(index)}
+            className="justify-self-start rounded-lg p-2 text-d-fg4 transition-colors hover:bg-red-900/20 hover:text-red-400 sm:justify-self-auto"
+            title="Supprimer"
+          >
+            <X size={14} />
+          </button>
+        </div>
+      ))}
+      <button
+        type="button"
+        onClick={links.add}
+        className="mb-4 mt-1 flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-line px-4 py-2 text-[10px] uppercase tracking-[0.18em] text-d-fg3 transition-colors hover:border-line2 hover:text-d-fg2"
+      >
+        <Plus size={12} /> Ajouter un lien
+      </button>
+
+      <Field label="Adresse / mentions PSAN">
+        <Input
+          value={footer.address || ""}
+          onChange={(event) => onChange({ address: event.target.value })}
+        />
+      </Field>
+      <Field label="Disclaimer légal">
+        <TextArea
+          rows={3}
+          value={footer.legal || ""}
+          onChange={(event) => onChange({ legal: event.target.value })}
+        />
+      </Field>
+      <Field label="Lien désinscription">
+        <Input
+          value={footer.unsub_url || ""}
+          onChange={(event) => onChange({ unsub_url: event.target.value })}
+        />
+      </Field>
     </div>
   );
 }
