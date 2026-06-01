@@ -314,6 +314,8 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
   const [labelFilter, setLabelFilter] = useState([]);
   const [labelPickerOpen, setLabelPickerOpen] = useState(null);
   const [showArchived, setShowArchived] = useState(false);
+  const [selectedNewsletterIds, setSelectedNewsletterIds] = useState([]);
+  const [bulkArchiving, setBulkArchiving] = useState(false);
   const [importingMarkdown, setImportingMarkdown] = useState(false);
   const [markdownImportSourceOpen, setMarkdownImportSourceOpen] = useState(false);
   const [markdownHelpOpen, setMarkdownHelpOpen] = useState(false);
@@ -391,6 +393,10 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
       setLoading(false);
     }
   }, [profile?.is_admin, showArchived]);
+
+  useEffect(() => {
+    setSelectedNewsletterIds([]);
+  }, [showArchived]);
 
   useEffect(() => {
     if (!profile?.is_admin && showArchived) {
@@ -936,8 +942,11 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
     load();
   };
 
+  const canArchiveNewsletter = (nl) =>
+    Boolean(nl?.id && !nl?.archived && (profile?.is_admin || nl.created_by === profile?.id));
+
   const handleArchive = async (nl) => {
-    if (!profile?.is_admin && nl?.created_by !== profile?.id) {
+    if (!canArchiveNewsletter(nl)) {
       addToast("Tu peux archiver uniquement les templates que tu as créés.", "info");
       return;
     }
@@ -962,6 +971,46 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
     }
     addToast("Newsletter archivée pendant 30 jours.", "success");
     load();
+  };
+
+  const handleBulkArchive = async () => {
+    const selected = newsletters.filter((nl) => selectedNewsletterIds.includes(nl.id));
+    const archivable = selected.filter(canArchiveNewsletter);
+    if (archivable.length === 0) {
+      addToast("Aucune campagne sélectionnée ne peut être archivée.", "info");
+      return;
+    }
+    const skippedCount = selected.length - archivable.length;
+    const message = skippedCount > 0
+      ? `Archiver ${archivable.length} campagne${archivable.length > 1 ? "s" : ""} pendant 30 jours ? ${skippedCount} sélection non autorisée sera ignorée.`
+      : `Archiver ${archivable.length} campagne${archivable.length > 1 ? "s" : ""} pendant 30 jours ?`;
+    if (!await confirm(message, { title: "Archiver la sélection ?", danger: true, confirmLabel: "Archiver" })) return;
+
+    try {
+      setBulkArchiving(true);
+      const archivedAt = new Date();
+      const archiveExpiresAt = new Date(archivedAt.getTime() + 30 * 24 * 60 * 60 * 1000);
+      const { error } = await supabase
+        .from("newsletters")
+        .update({
+          archived: true,
+          archived_at: archivedAt.toISOString(),
+          archive_expires_at: archiveExpiresAt.toISOString(),
+          archived_by: profile?.id || null,
+        })
+        .in("id", archivable.map((nl) => nl.id));
+      if (error) {
+        addToast(isMissingArchiveColumn(error)
+          ? "Archivage indisponible : applique la migration supabase/newsletter-archive-retention.sql."
+          : "Erreur : " + error.message);
+        return;
+      }
+      setSelectedNewsletterIds([]);
+      addToast(`${archivable.length} campagne${archivable.length > 1 ? "s archivées" : " archivée"} pendant 30 jours.`, "success");
+      load();
+    } finally {
+      setBulkArchiving(false);
+    }
   };
 
   const handleRestore = async (nl) => {
@@ -1049,6 +1098,34 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
     return list;
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [newsletters, search, sortBy, labelFilter, nlLabels]);
+
+  const selectableNewsletters = useMemo(
+    () => filteredNewsletters.filter(canArchiveNewsletter),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [filteredNewsletters, profile?.id, profile?.is_admin]
+  );
+
+  const selectedNewsletters = useMemo(
+    () => newsletters.filter((nl) => selectedNewsletterIds.includes(nl.id)),
+    [newsletters, selectedNewsletterIds]
+  );
+
+  const selectedArchivableCount = selectedNewsletters.filter(canArchiveNewsletter).length;
+  const selectableIds = selectableNewsletters.map((nl) => nl.id);
+  const allVisibleSelected = selectableIds.length > 0 && selectableIds.every((id) => selectedNewsletterIds.includes(id));
+
+  const toggleNewsletterSelection = (id) => {
+    setSelectedNewsletterIds((ids) =>
+      ids.includes(id) ? ids.filter((selectedId) => selectedId !== id) : [...ids, id]
+    );
+  };
+
+  const toggleVisibleSelection = () => {
+    setSelectedNewsletterIds((ids) => {
+      if (allVisibleSelected) return ids.filter((id) => !selectableIds.includes(id));
+      return Array.from(new Set([...ids, ...selectableIds]));
+    });
+  };
 
   const crmVariantGridClass = [
     "grid min-h-0 flex-1 grid-cols-1 gap-3 overflow-y-auto overscroll-contain px-4 py-3 sm:gap-4 sm:p-6",
@@ -1241,6 +1318,42 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                 )}
               </div>
             )}
+            {!showArchived && selectableNewsletters.length > 0 && (
+              <div className="flex flex-col gap-2 rounded-xl border border-line bg-d-panel px-3 py-3 sm:flex-row sm:items-center sm:justify-between">
+                <label className="flex cursor-pointer items-center gap-2 text-xs font-semibold text-d-fg3">
+                  <input
+                    type="checkbox"
+                    checked={allVisibleSelected}
+                    onChange={toggleVisibleSelection}
+                    className="h-4 w-4 rounded border-line bg-d-panel2 accent-d-pink"
+                  />
+                  Sélectionner les campagnes visibles
+                </label>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-xs text-d-fg4">
+                    {selectedArchivableCount} campagne{selectedArchivableCount > 1 ? "s" : ""} sélectionnée{selectedArchivableCount > 1 ? "s" : ""}
+                  </span>
+                  {selectedNewsletterIds.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setSelectedNewsletterIds([])}
+                      className="rounded-full border border-line px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-d-fg3 transition-colors hover:border-line2 hover:text-d-fg"
+                    >
+                      Annuler
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={handleBulkArchive}
+                    disabled={selectedArchivableCount === 0 || bulkArchiving}
+                    className="inline-flex items-center justify-center gap-2 rounded-full border border-red-500/40 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-red-200 transition-colors hover:border-red-400/70 hover:bg-red-900/20 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {bulkArchiving ? <Loader2 size={12} className="animate-spin" /> : <Archive size={12} />}
+                    Archiver la sélection
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -1282,8 +1395,9 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
             {filteredNewsletters.map((nl, i, arr) => {
               const lock = locks[nl.id];
               const lockedByOther = lock && lock.user_id !== profile?.id;
-              const canDeleteNewsletter = profile?.is_admin || nl.created_by === profile?.id;
+              const canDeleteNewsletter = canArchiveNewsletter(nl);
               const isArchived = nl.archived === true;
+              const isSelected = selectedNewsletterIds.includes(nl.id);
               const cardLabelIds = nlLabels[nl.id] || [];
               const cardLabels = labels.filter((l) => cardLabelIds.includes(l.id));
               const pickerOpen = labelPickerOpen === nl.id;
@@ -1305,6 +1419,20 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                     }}
                     className={`group flex items-start gap-3 px-4 py-4 transition-colors focus:outline-none sm:items-center sm:gap-4 sm:px-5 ${isArchived ? "cursor-default opacity-85" : "cursor-pointer hover:bg-d-panel2 focus:bg-d-panel2"} ${isFirst ? "rounded-t-2xl" : ""} ${isLast ? "rounded-b-2xl" : ""}`}
                   >
+                    {!isArchived && canDeleteNewsletter && (
+                      <label
+                        className="mt-3 flex flex-shrink-0 cursor-pointer items-center sm:mt-0"
+                        onClick={(event) => event.stopPropagation()}
+                        aria-label={`Sélectionner ${nl.title || "cette newsletter"}`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => toggleNewsletterSelection(nl.id)}
+                          className="h-4 w-4 rounded border-line bg-d-panel2 accent-d-pink"
+                        />
+                      </label>
+                    )}
                     {/* Icon */}
                     <div
                       className="flex-shrink-0 w-11 h-11 rounded-xl bg-d-panel2 border border-line flex items-center justify-center"
