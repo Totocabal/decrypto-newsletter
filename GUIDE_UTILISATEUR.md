@@ -579,6 +579,8 @@ Bouton **Lien HTML** dans la toolbar :
 
 Chaque publication crée un nouveau fichier versionné, afin que le lien reflète exactement l'état publié au moment du clic. Supabase Storage conserve le fichier HTML, et l'app le sert en `text/html` pour l'affichage navigateur.
 
+Le lien ouvre une page de review avec un panneau **Commentaires** à droite. Toute personne disposant du lien peut lire et ajouter des commentaires publics sur cette preview.
+
 ### Exporter en ZIP
 
 Bouton **Exporter → Export ZIP** :

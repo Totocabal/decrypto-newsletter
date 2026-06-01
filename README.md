@@ -109,6 +109,7 @@ supabase/
 ├── keepalive.sql
 ├── newsletter-archive-retention.sql
 ├── newsletters-owner-delete-policy.sql
+├── preview-comments.sql
 ├── storage.sql
 └── template-presets.sql
 
@@ -116,6 +117,7 @@ api/
 ├── export-braze.js             ← serverless : upload assets → Braze Media Library
 ├── export-preview-jpg.js       ← serverless : rendu JPG via Puppeteer/Chromium
 ├── preview-html.js             ← serverless : sert une preview Supabase en text/html
+├── preview-comments.js         ← serverless : commentaires publics des previews
 ├── generate-preview-text.js    ← serverless : génération IA du texte d'aperçu
 ├── correct-text.js             ← serverless : correction orthographique IA
 ├── purge-archived-newsletters.js ← serverless : purge après 30 jours d'archive
@@ -1044,6 +1046,7 @@ Corps : `{ html }`. Retourne `{ html }` corrigé orthographiquement.
 
 1. Créer un projet sur [supabase.com](https://supabase.com)
 2. Dans **SQL Editor**, exécuter `supabase/schema.sql`
+3. Exécuter `supabase/preview-comments.sql` pour activer les commentaires publics sur les previews hébergées
 
 ### 2. Configurer Supabase Storage
 
