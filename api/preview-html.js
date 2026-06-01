@@ -41,6 +41,27 @@ function cleanMultilineText(value, maxLength) {
   return String(value || "").replace(/\r\n/g, "\n").trim().slice(0, maxLength);
 }
 
+function normalizeArea(value) {
+  if (!value || typeof value !== "object") return null;
+  const area = {
+    x: Number(value.x),
+    y: Number(value.y),
+    width: Number(value.width),
+    height: Number(value.height),
+  };
+  const isValid = Object.values(area).every(Number.isFinite) &&
+    area.x >= 0 &&
+    area.y >= 0 &&
+    area.width > 0 &&
+    area.height > 0 &&
+    area.x + area.width <= 100 &&
+    area.y + area.height <= 100;
+  if (!isValid) return null;
+  return Object.fromEntries(
+    Object.entries(area).map(([key, number]) => [key, Math.round(number * 100) / 100])
+  );
+}
+
 async function supabaseRest(path, options = {}) {
   const supabaseUrl = getSupabaseUrl();
   const anonKey = getSupabaseAnonKey();
@@ -67,7 +88,7 @@ async function readJsonBody(req) {
 async function handleComments(req, res, previewPath) {
   if (req.method === "GET") {
     const query = new URLSearchParams({
-      select: "id,author_name,body,created_at",
+      select: "id,author_name,body,area,created_at",
       preview_path: `eq.${previewPath}`,
       order: "created_at.asc",
     });
@@ -83,6 +104,7 @@ async function handleComments(req, res, previewPath) {
     const body = await readJsonBody(req);
     const authorName = cleanInlineText(body.authorName || "Anonyme", 80) || "Anonyme";
     const commentBody = cleanMultilineText(body.body, 2000);
+    const area = normalizeArea(body.area);
     if (!commentBody) {
       return json(res, 400, { error: "Commentaire vide" });
     }
@@ -97,6 +119,7 @@ async function handleComments(req, res, previewPath) {
         preview_path: previewPath,
         author_name: authorName,
         body: commentBody,
+        area,
       }),
     });
     const payload = await response.json().catch(() => null);
@@ -151,6 +174,10 @@ function buildReviewPage({ html, path }) {
       padding: 24px;
       overflow: auto;
     }
+    .preview-shell {
+      position: relative;
+      min-height: calc(100vh - 48px);
+    }
     .preview-frame {
       display: block;
       width: 100%;
@@ -158,6 +185,52 @@ function buildReviewPage({ html, path }) {
       border: 0;
       border-radius: 12px;
       background: #fff;
+    }
+    .area-layer {
+      position: absolute;
+      inset: 0;
+      border-radius: 12px;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    .area-layer.selecting {
+      cursor: crosshair;
+      pointer-events: auto;
+      background: rgba(3,255,207,0.03);
+    }
+    .area-box {
+      position: absolute;
+      border: 2px solid var(--pink);
+      background: rgba(255,0,170,0.10);
+      border-radius: 8px;
+      box-shadow: 0 0 0 9999px rgba(0,0,0,0.02);
+      pointer-events: auto;
+    }
+    .area-box.pending {
+      border-color: var(--cyan);
+      background: rgba(3,255,207,0.10);
+    }
+    .area-box.highlight {
+      border-color: var(--cyan);
+      background: rgba(3,255,207,0.16);
+      box-shadow: 0 0 0 3px rgba(3,255,207,0.22);
+    }
+    .area-badge {
+      position: absolute;
+      top: -10px;
+      left: -10px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 22px;
+      height: 22px;
+      padding: 0 6px;
+      border-radius: 999px;
+      background: var(--pink);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 900;
+      line-height: 1;
     }
     .comments {
       position: sticky;
@@ -196,6 +269,13 @@ function buildReviewPage({ html, path }) {
       padding: 12px;
       margin-bottom: 10px;
     }
+    .comment.has-area {
+      cursor: pointer;
+    }
+    .comment.is-active {
+      border-color: rgba(3,255,207,0.7);
+      box-shadow: 0 0 0 2px rgba(3,255,207,0.12);
+    }
     .comment-meta {
       display: flex;
       justify-content: space-between;
@@ -218,6 +298,19 @@ function buildReviewPage({ html, path }) {
       font-size: 13px;
       line-height: 1.5;
       color: var(--text);
+    }
+    .area-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 9px;
+      border: 1px solid rgba(255,0,170,0.32);
+      border-radius: 999px;
+      padding: 5px 8px;
+      color: #ffd5f0;
+      font-size: 11px;
+      font-weight: 700;
+      background: rgba(255,0,170,0.10);
     }
     .empty {
       border: 1px dashed var(--line);
@@ -285,6 +378,39 @@ function buildReviewPage({ html, path }) {
       text-transform: uppercase;
       white-space: nowrap;
     }
+    .secondary-button {
+      border: 1px solid var(--line);
+      background: transparent;
+      color: var(--text);
+    }
+    .secondary-button.active {
+      border-color: rgba(3,255,207,0.6);
+      color: var(--cyan);
+      background: rgba(3,255,207,0.08);
+    }
+    .area-summary {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-top: 10px;
+      border: 1px solid rgba(3,255,207,0.28);
+      border-radius: 10px;
+      padding: 9px 10px;
+      color: #d9fff7;
+      background: rgba(3,255,207,0.08);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+    .area-summary.visible { display: flex; }
+    .area-summary button {
+      padding: 0;
+      background: transparent;
+      color: var(--cyan);
+      font-size: 12px;
+      letter-spacing: 0;
+      text-transform: none;
+    }
     button:disabled {
       cursor: not-allowed;
       opacity: 0.5;
@@ -313,7 +439,10 @@ function buildReviewPage({ html, path }) {
 <body>
   <main class="layout">
     <section class="preview" aria-label="Preview newsletter">
-      <iframe id="preview-frame" class="preview-frame" title="Newsletter"></iframe>
+      <div id="preview-shell" class="preview-shell">
+        <iframe id="preview-frame" class="preview-frame" title="Newsletter"></iframe>
+        <div id="area-layer" class="area-layer" aria-label="Zones commentées"></div>
+      </div>
     </section>
     <aside class="comments" aria-label="Commentaires">
       <div class="comments-header">
@@ -332,6 +461,11 @@ function buildReviewPage({ html, path }) {
           <label for="comment-body">Commentaire</label>
           <textarea id="comment-body" name="body" maxlength="2000" placeholder="Ajouter un commentaire..."></textarea>
         </div>
+        <button id="select-area-button" class="secondary-button" type="button">Sélectionner une zone</button>
+        <div id="area-summary" class="area-summary">
+          <span>Zone liée au commentaire.</span>
+          <button id="clear-area-button" type="button">Retirer</button>
+        </div>
         <div class="actions">
           <div id="status" class="status"></div>
           <button id="submit-button" type="submit">Publier</button>
@@ -348,8 +482,20 @@ function buildReviewPage({ html, path }) {
     const submitButton = document.getElementById("submit-button");
     const authorInput = document.getElementById("author-name");
     const bodyInput = document.getElementById("comment-body");
+    const previewFrame = document.getElementById("preview-frame");
+    const previewShell = document.getElementById("preview-shell");
+    const areaLayer = document.getElementById("area-layer");
+    const selectAreaButton = document.getElementById("select-area-button");
+    const clearAreaButton = document.getElementById("clear-area-button");
+    const areaSummary = document.getElementById("area-summary");
+    let commentsCache = [];
+    let selectedArea = null;
+    let activeAreaId = null;
+    let selectingArea = false;
+    let dragStart = null;
+    let draftAreaEl = null;
 
-    document.getElementById("preview-frame").srcdoc = PREVIEW_HTML;
+    previewFrame.srcdoc = PREVIEW_HTML;
     authorInput.value = localStorage.getItem("decrypto-preview-comment-author") || "";
 
     function setStatus(message, isError = false) {
@@ -372,20 +518,161 @@ function buildReviewPage({ html, path }) {
         .replace(/'/g, "&#39;");
     }
 
+    function resizeFrameToContent() {
+      try {
+        const doc = previewFrame.contentDocument;
+        if (!doc) return;
+        const height = Math.max(
+          doc.documentElement.scrollHeight,
+          doc.body ? doc.body.scrollHeight : 0,
+          window.innerHeight - 48
+        );
+        previewFrame.style.height = height + "px";
+        previewShell.style.minHeight = height + "px";
+      } catch {
+        // srcdoc is same-origin, but keep the preview usable if browser blocks measurement.
+      }
+    }
+
+    previewFrame.addEventListener("load", () => {
+      resizeFrameToContent();
+      renderAreas();
+    });
+    window.addEventListener("resize", () => {
+      resizeFrameToContent();
+      renderAreas();
+    });
+
+    function areaStyle(area) {
+      return "left:" + area.x + "%;top:" + area.y + "%;width:" + area.width + "%;height:" + area.height + "%;";
+    }
+
+    function setSelectedArea(area) {
+      selectedArea = area;
+      areaSummary.classList.toggle("visible", Boolean(area));
+      renderAreas();
+    }
+
+    function setSelectingArea(next) {
+      selectingArea = next;
+      selectAreaButton.classList.toggle("active", next);
+      selectAreaButton.textContent = next ? "Tracez la zone" : "Sélectionner une zone";
+      areaLayer.classList.toggle("selecting", next);
+      if (next) setStatus("Tracez une zone sur la preview.");
+    }
+
+    function renderAreas() {
+      const annotated = commentsCache
+        .map((comment, index) => ({ comment, index }))
+        .filter(({ comment }) => comment.area);
+      const existingMarkup = annotated.map(({ comment, index }) => \`
+        <button
+          type="button"
+          class="area-box \${activeAreaId === comment.id ? "highlight" : ""}"
+          style="\${areaStyle(comment.area)}"
+          data-comment-id="\${escapeText(comment.id)}"
+          aria-label="Zone du commentaire \${index + 1}"
+        >
+          <span class="area-badge">\${index + 1}</span>
+        </button>
+      \`).join("");
+      const pendingMarkup = selectedArea
+        ? '<div class="area-box pending" style="' + areaStyle(selectedArea) + '"><span class="area-badge">+</span></div>'
+        : "";
+      areaLayer.innerHTML = existingMarkup + pendingMarkup;
+      areaLayer.querySelectorAll("[data-comment-id]").forEach((button) => {
+        button.addEventListener("click", (event) => {
+          event.stopPropagation();
+          focusComment(button.dataset.commentId);
+        });
+      });
+    }
+
+    function focusComment(commentId) {
+      activeAreaId = commentId;
+      renderAreas();
+      commentsList.querySelectorAll(".comment").forEach((el) => {
+        el.classList.toggle("is-active", el.dataset.commentId === commentId);
+      });
+      const commentEl = commentsList.querySelector('[data-comment-id="' + CSS.escape(commentId) + '"]');
+      commentEl?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+
+    function pointToAreaPercent(event) {
+      const rect = areaLayer.getBoundingClientRect();
+      const x = Math.min(100, Math.max(0, ((event.clientX - rect.left) / rect.width) * 100));
+      const y = Math.min(100, Math.max(0, ((event.clientY - rect.top) / rect.height) * 100));
+      return { x, y };
+    }
+
+    function areaFromPoints(a, b) {
+      const x = Math.min(a.x, b.x);
+      const y = Math.min(a.y, b.y);
+      return {
+        x: Math.round(x * 100) / 100,
+        y: Math.round(y * 100) / 100,
+        width: Math.round(Math.abs(a.x - b.x) * 100) / 100,
+        height: Math.round(Math.abs(a.y - b.y) * 100) / 100,
+      };
+    }
+
+    areaLayer.addEventListener("pointerdown", (event) => {
+      if (!selectingArea) return;
+      event.preventDefault();
+      dragStart = pointToAreaPercent(event);
+      draftAreaEl = document.createElement("div");
+      draftAreaEl.className = "area-box pending";
+      areaLayer.appendChild(draftAreaEl);
+      areaLayer.setPointerCapture(event.pointerId);
+    });
+
+    areaLayer.addEventListener("pointermove", (event) => {
+      if (!selectingArea || !dragStart || !draftAreaEl) return;
+      const area = areaFromPoints(dragStart, pointToAreaPercent(event));
+      draftAreaEl.style.cssText = areaStyle(area);
+    });
+
+    areaLayer.addEventListener("pointerup", (event) => {
+      if (!selectingArea || !dragStart) return;
+      const area = areaFromPoints(dragStart, pointToAreaPercent(event));
+      dragStart = null;
+      draftAreaEl = null;
+      setSelectingArea(false);
+      if (area.width < 1 || area.height < 1) {
+        setStatus("Zone trop petite, recommencez.", true);
+        renderAreas();
+        return;
+      }
+      setSelectedArea(area);
+      setStatus("Zone prête à être liée au commentaire.");
+    });
+
+    selectAreaButton.addEventListener("click", () => setSelectingArea(!selectingArea));
+    clearAreaButton.addEventListener("click", () => {
+      setSelectedArea(null);
+      setStatus("Zone retirée.");
+    });
+
     function renderComments(comments) {
+      commentsCache = comments;
+      renderAreas();
       if (!comments.length) {
         commentsList.innerHTML = '<div class="empty">Aucun commentaire pour le moment. Soyez le premier à annoter cette preview.</div>';
         return;
       }
       commentsList.innerHTML = comments.map((comment) => \`
-        <article class="comment">
+        <article class="comment \${comment.area ? "has-area" : ""} \${activeAreaId === comment.id ? "is-active" : ""}" data-comment-id="\${escapeText(comment.id)}">
           <div class="comment-meta">
             <span class="comment-author">\${escapeText(comment.author_name || "Anonyme")}</span>
             <span>\${escapeText(formatDate(comment.created_at))}</span>
           </div>
           <p class="comment-body">\${escapeText(comment.body || "")}</p>
+          \${comment.area ? '<span class="area-link">Zone liée #' + (comments.indexOf(comment) + 1) + '</span>' : ""}
         </article>
       \`).join("");
+      commentsList.querySelectorAll(".comment.has-area").forEach((item) => {
+        item.addEventListener("click", () => focusComment(item.dataset.commentId));
+      });
       commentsList.scrollTop = commentsList.scrollHeight;
     }
 
@@ -411,11 +698,12 @@ function buildReviewPage({ html, path }) {
         const response = await fetch("/api/preview-html?comments=1&path=" + encodeURIComponent(PREVIEW_PATH), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ authorName, body }),
+          body: JSON.stringify({ authorName, body, area: selectedArea }),
         });
         const payload = await response.json().catch(() => ({}));
         if (!response.ok) throw new Error(payload.error || "Publication impossible");
         bodyInput.value = "";
+        setSelectedArea(null);
         setStatus("Commentaire publié.");
         await loadComments();
       } catch (error) {

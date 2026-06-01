@@ -9,6 +9,7 @@ create table if not exists public.preview_comments (
   preview_path text not null,
   author_name text not null default 'Anonyme',
   body text not null,
+  area jsonb,
   created_at timestamptz not null default now(),
   constraint preview_comments_path_check check (
     preview_path ~ '^[a-zA-Z0-9/_.,-]+\.html$'
@@ -20,8 +21,55 @@ create table if not exists public.preview_comments (
   ),
   constraint preview_comments_body_check check (
     char_length(trim(body)) between 1 and 2000
+  ),
+  constraint preview_comments_area_check check (
+    area is null
+    or (
+      jsonb_typeof(area) = 'object'
+      and (area ? 'x')
+      and (area ? 'y')
+      and (area ? 'width')
+      and (area ? 'height')
+      and (area->>'x')::numeric >= 0
+      and (area->>'y')::numeric >= 0
+      and (area->>'width')::numeric > 0
+      and (area->>'height')::numeric > 0
+      and (area->>'x')::numeric + (area->>'width')::numeric <= 100
+      and (area->>'y')::numeric + (area->>'height')::numeric <= 100
+    )
   )
 );
+
+alter table public.preview_comments
+  add column if not exists area jsonb;
+
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_constraint
+    where conname = 'preview_comments_area_check'
+      and conrelid = 'public.preview_comments'::regclass
+  ) then
+    alter table public.preview_comments
+      add constraint preview_comments_area_check check (
+        area is null
+        or (
+          jsonb_typeof(area) = 'object'
+          and (area ? 'x')
+          and (area ? 'y')
+          and (area ? 'width')
+          and (area ? 'height')
+          and (area->>'x')::numeric >= 0
+          and (area->>'y')::numeric >= 0
+          and (area->>'width')::numeric > 0
+          and (area->>'height')::numeric > 0
+          and (area->>'x')::numeric + (area->>'width')::numeric <= 100
+          and (area->>'y')::numeric + (area->>'height')::numeric <= 100
+        )
+      );
+  end if;
+end $$;
 
 create index if not exists preview_comments_path_created_at_idx
   on public.preview_comments (preview_path, created_at asc);
