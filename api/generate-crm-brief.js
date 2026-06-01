@@ -140,7 +140,8 @@ async function fetchCoinhouseContext() {
   }
 }
 
-function buildPrompt(input, siteContext = "") {
+function buildPrompt(input, siteContext = "", count = 3) {
+  const variantCount = Math.min(8, Math.max(1, Number(count) || 3));
   return `# Rôle & Expertise
 
 Tu es un expert en Copywriting CRM et Stratégie d'Engagement spécialisé dans l'univers crypto. Tu maîtrises :
@@ -295,7 +296,7 @@ Produis uniquement le contenu CRM en Markdown clair, sans introduction technique
 
 Pour chaque demande de copy, produis systématiquement :
 
-1. 2 à 3 variantes numérotées avec framework utilisé indiqué (AIDA / PAS / BAB). Chaque variante doit commencer par un titre Markdown de niveau 2 exactement sous la forme : ## Variante 1 — Framework AIDA · Angle court
+1. Exactement ${variantCount} variante${variantCount > 1 ? "s" : ""} numérotée${variantCount > 1 ? "s" : ""} avec framework utilisé indiqué (AIDA / PAS / BAB). Chaque variante doit être un email complet et distinct, et commencer par un titre Markdown de niveau 2 exactement sous la forme : ## Variante 1 — Framework AIDA · Angle court
 2. Pour chaque variante :
 - Objet + comptage de caractères
 - Pré-header + comptage de caractères
@@ -310,6 +311,8 @@ Important : le tableau comparatif et les notes de production doivent être plac�
 
 Signale tout terme ambigu ou à risque réglementaire avec la mention "A VALIDER JURIDIQUEMENT".
 Ne génère pas de contenu hors du cadre CRM Coinhouse B2C particuliers.
+
+Si la demande utilisateur décrit plusieurs cibles, offres, temps forts, séquences, relances ou angles, répartis-les entre les ${variantCount} emails. Ne te contente pas de micro-variations : chaque variante doit pouvoir devenir une newsletter/email autonome.
 
 Demande utilisateur à traiter :
 ${input}`;
@@ -357,6 +360,7 @@ export default async function handler(req, res) {
     const body = parseBody(req);
     const mode = String(body.mode || "generate");
     const input = String(body.input || "").trim();
+    const count = Math.min(8, Math.max(1, Number(body.count) || 3));
     if (!input) return json(res, 400, { error: "Champ 'input' vide ou manquant." });
     if (input.length > MAX_INPUT_CHARS) return json(res, 413, { error: `Demande trop longue (${MAX_INPUT_CHARS} caractères max).` });
     const variant = String(body.variant || "").trim();
@@ -371,7 +375,7 @@ export default async function handler(req, res) {
     const siteContext = await fetchCoinhouseContext();
     const prompt = mode === "refine"
       ? buildRefinePrompt({ input, variant, comments, siteContext })
-      : buildPrompt(input, siteContext);
+      : buildPrompt(input, siteContext, count);
     const geminiRes = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },

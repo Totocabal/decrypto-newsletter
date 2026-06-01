@@ -323,6 +323,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
   const [markdownBriefTheme, setMarkdownBriefTheme] = useState("light");
   const [markdownBriefShowNumbers, setMarkdownBriefShowNumbers] = useState(false);
   const [markdownBriefShowSeparators, setMarkdownBriefShowSeparators] = useState(false);
+  const [crmBatchCount, setCrmBatchCount] = useState(3);
   const [generatingCrmBrief, setGeneratingCrmBrief] = useState(false);
   const [crmBriefVariants, setCrmBriefVariants] = useState(null);
   const [expandedCrmVariant, setExpandedCrmVariant] = useState(null);
@@ -330,6 +331,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
   const [crmVariantRefineComments, setCrmVariantRefineComments] = useState("");
   const [refiningCrmVariant, setRefiningCrmVariant] = useState(false);
   const [generatingMarkdownBrief, setGeneratingMarkdownBrief] = useState(false);
+  const [generatingBatchMails, setGeneratingBatchMails] = useState(false);
   const [markdownGenerationLog, setMarkdownGenerationLog] = useState(null);
   const [markdownImportDraft, setMarkdownImportDraft] = useState(null);
 
@@ -600,7 +602,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
           "Content-Type": "application/json",
           Authorization: `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify({ input }),
+        body: JSON.stringify({ input, count: crmBatchCount }),
       });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(payload.error || "Génération du contenu impossible.");
@@ -621,6 +623,81 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
       addToast("Génération du contenu impossible : " + (error.message || error), "error");
     } finally {
       setGeneratingCrmBrief(false);
+    }
+  };
+
+  const handleGenerateBatchMails = async () => {
+    const input = markdownBrief.trim();
+    if (!input) {
+      addToast("Indique un prompt avant de créer le batch.", "error");
+      return;
+    }
+    if (!profile?.id) return;
+
+    setGeneratingBatchMails(true);
+    setMarkdownGenerationLog(null);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) throw new Error("Session expirée. Reconnecte-toi pour utiliser Gemini.");
+
+      const contentResponse = await fetch("/api/generate-crm-brief", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ input, count: crmBatchCount }),
+      });
+      const contentPayload = await contentResponse.json().catch(() => ({}));
+      if (!contentResponse.ok) throw new Error(contentPayload.error || "Génération du batch impossible.");
+
+      const variants = Array.isArray(contentPayload.variants) && contentPayload.variants.length
+        ? contentPayload.variants.slice(0, crmBatchCount)
+        : [{ id: "full", title: "Contenu généré", content: contentPayload.content || "" }];
+      if (!variants.length) throw new Error("Gemini n'a pas retourné de mails exploitables.");
+
+      const importedItems = [];
+      for (const [index, variant] of variants.entries()) {
+        const markdownResponse = await fetch("/api/generate-markdown-import", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({
+            brief: variant.content || "",
+            options: {
+              theme_variant: markdownBriefTheme,
+              show_section_numbers: markdownBriefShowNumbers,
+              show_block_separators: markdownBriefShowSeparators,
+            },
+          }),
+        });
+        const markdownPayload = await markdownResponse.json().catch(() => ({}));
+        if (!markdownResponse.ok || !markdownPayload.markdown) {
+          throw new Error(`Mail ${index + 1} : ${markdownPayload.error || "Markdown impossible."}`);
+        }
+        const imported = importNewsletterMarkdown(markdownPayload.markdown);
+        importedItems.push({ imported, variant });
+      }
+
+      const rows = importedItems.map(({ imported }) => ({
+        title: imported.title,
+        issue_number: imported.state.issue_number,
+        current_state: imported.state,
+        created_by: profile.id,
+        updated_by: profile.id,
+      }));
+      const { error } = await supabase.from("newsletters").insert(rows);
+      if (error) throw error;
+
+      addToast(`${rows.length} mail${rows.length > 1 ? "s" : ""} créé${rows.length > 1 ? "s" : ""} depuis Gemini.`, "success");
+      resetMarkdownSourceModal();
+      await load();
+    } catch (error) {
+      addToast("Batch Gemini impossible : " + (error.message || error), "error");
+    } finally {
+      setGeneratingBatchMails(false);
     }
   };
 
@@ -1066,16 +1143,16 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
             <button
               type="button"
               onClick={() => openMarkdownImportSource("gemini")}
-              disabled={showArchived || importingMarkdown || creating || generatingCrmBrief || generatingMarkdownBrief}
+              disabled={showArchived || importingMarkdown || creating || generatingCrmBrief || generatingMarkdownBrief || generatingBatchMails}
               className="flex w-full items-center justify-center gap-2 rounded-full border border-d-pink/60 px-5 py-2.5 text-[12px] font-semibold uppercase tracking-[0.18em] text-d-pink transition-colors hover:bg-d-pink/10 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
             >
-              {generatingCrmBrief || generatingMarkdownBrief ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+              {generatingCrmBrief || generatingMarkdownBrief || generatingBatchMails ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
               Assistant Gemini
             </button>
             <button
               type="button"
               onClick={() => openMarkdownImportSource("markdown")}
-              disabled={showArchived || importingMarkdown || creating || generatingCrmBrief || generatingMarkdownBrief}
+              disabled={showArchived || importingMarkdown || creating || generatingCrmBrief || generatingMarkdownBrief || generatingBatchMails}
               className="flex w-full items-center justify-center gap-2 rounded-full border border-line2 px-5 py-2.5 text-[12px] font-semibold uppercase tracking-[0.18em] text-d-fg2 transition-colors hover:bg-d-panel2 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
             >
               {importingMarkdown ? <Loader2 size={14} className="animate-spin" /> : <FileUp size={14} />}
@@ -1717,7 +1794,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                 onClick={() => {
                   resetMarkdownSourceModal();
                 }}
-                disabled={importingMarkdown || generatingCrmBrief || generatingMarkdownBrief}
+                disabled={importingMarkdown || generatingCrmBrief || generatingMarkdownBrief || generatingBatchMails}
                 className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-d-fg4 transition-colors hover:bg-d-panel2 hover:text-d-fg2 disabled:opacity-50"
               >
                 <X size={16} />
@@ -1800,11 +1877,36 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                     </span>
                   </label>
                 </div>
+                <div className="mt-3 rounded-lg border border-line bg-d-panel px-3 py-3">
+                  <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-d-fg4">
+                    Batch mails
+                  </div>
+                  <div className="grid grid-cols-4 gap-1 rounded-lg border border-line bg-d-panel2 p-0.5">
+                    {[2, 3, 4, 5].map((count) => (
+                      <button
+                        key={count}
+                        type="button"
+                        onClick={() => setCrmBatchCount(count)}
+                        aria-pressed={crmBatchCount === count}
+                        className={`min-h-8 rounded-md px-2 text-[11px] font-semibold transition-colors ${
+                          crmBatchCount === count
+                            ? "bg-d-pink text-white"
+                            : "text-d-fg3 hover:text-d-fg"
+                        }`}
+                      >
+                        {count} mails
+                      </button>
+                    ))}
+                  </div>
+                  <p className="mt-2 text-[11px] leading-relaxed text-d-fg4">
+                    Utilisé par “Créer le contenu” et “Créer le batch”.
+                  </p>
+                </div>
                 <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:justify-end">
                   <button
                     type="button"
                     onClick={handleGenerateCrmBrief}
-                    disabled={generatingCrmBrief || generatingMarkdownBrief || importingMarkdown}
+                    disabled={generatingCrmBrief || generatingMarkdownBrief || generatingBatchMails || importingMarkdown}
                     className="inline-flex items-center justify-center gap-2 rounded-xl border border-line bg-d-panel px-4 py-2 text-xs font-semibold text-d-fg2 transition-colors hover:border-line2 hover:text-d-fg disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     {generatingCrmBrief ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
@@ -1813,11 +1915,20 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                   <button
                     type="button"
                     onClick={handleGenerateMarkdownFromBrief}
-                    disabled={generatingCrmBrief || generatingMarkdownBrief || importingMarkdown}
+                    disabled={generatingCrmBrief || generatingMarkdownBrief || generatingBatchMails || importingMarkdown}
                     className="inline-flex items-center justify-center gap-2 rounded-xl bg-d-pink px-4 py-2 text-xs font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     {generatingMarkdownBrief ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
                     Générer et valider
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleGenerateBatchMails}
+                    disabled={generatingCrmBrief || generatingMarkdownBrief || generatingBatchMails || importingMarkdown}
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-4 py-2 text-xs font-semibold text-[#15151A] transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    {generatingBatchMails ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
+                    Créer le batch
                   </button>
                 </div>
                 {markdownGenerationLog && (
@@ -1905,7 +2016,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                   <input
                     type="file"
                     accept=".md,.markdown,text/markdown,text/plain"
-                    disabled={importingMarkdown || creating || generatingCrmBrief || generatingMarkdownBrief}
+                    disabled={importingMarkdown || creating || generatingCrmBrief || generatingMarkdownBrief || generatingBatchMails}
                     onChange={handleImportMarkdown}
                     className="sr-only"
                   />
@@ -1973,7 +2084,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                 onClick={() => {
                   resetMarkdownSourceModal();
                 }}
-                disabled={importingMarkdown || generatingCrmBrief || generatingMarkdownBrief}
+                disabled={importingMarkdown || generatingCrmBrief || generatingMarkdownBrief || generatingBatchMails}
                 className="rounded-xl border border-line px-4 py-2 text-xs font-semibold text-d-fg3 transition-colors hover:border-line2 hover:text-d-fg disabled:opacity-50"
               >
                 Annuler
@@ -1982,7 +2093,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
               <button
                 type="button"
                 onClick={handlePasteMarkdownImport}
-                disabled={importingMarkdown || generatingCrmBrief || generatingMarkdownBrief}
+                disabled={importingMarkdown || generatingCrmBrief || generatingMarkdownBrief || generatingBatchMails}
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-d-pink px-4 py-2 text-xs font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 {importingMarkdown && <Loader2 size={12} className="animate-spin" />}
