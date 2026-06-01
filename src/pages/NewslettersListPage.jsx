@@ -287,44 +287,74 @@ function CrmVariantPreview({ content }) {
   return <div className="space-y-3">{blocks}</div>;
 }
 
-function LabelPickerPills({ labels, value, onChange }) {
+function LabelDropdown({ labels, value, onChange }) {
+  const [open, setOpen] = useState(false);
+  const selected = labels.find((label) => label.id === value);
+
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="relative">
       <button
         type="button"
-        onClick={() => onChange("")}
-        aria-pressed={!value}
-        className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] transition-colors ${
-          !value
-            ? "border-d-pink/70 bg-d-pink/15 text-d-fg"
-            : "border-line text-d-fg4 hover:border-line2 hover:text-d-fg2"
-        }`}
+        onClick={() => setOpen((current) => !current)}
+        className="flex w-full items-center justify-between gap-3 rounded-xl border border-line bg-d-panel2 px-3 py-2.5 text-left transition-colors hover:border-line2"
       >
-        <span className={`h-2 w-2 rounded-full ${!value ? "bg-d-pink" : "bg-d-fg4"}`} />
-        Aucun label
-      </button>
-      {labels.map((label) => {
-        const selected = value === label.id;
-        const color = label.color || "#FF00AA";
-        return (
-          <button
-            key={label.id}
-            type="button"
-            onClick={() => onChange(label.id)}
-            aria-pressed={selected}
-            className="inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] transition-all"
-            style={{
-              background: selected ? `${color}33` : `${color}14`,
-              borderColor: selected ? `${color}CC` : `${color}55`,
-              color,
-              boxShadow: selected ? `0 0 0 1px ${color}44 inset` : "none",
-            }}
+        <span className="flex min-w-0 items-center gap-2">
+          <span
+            className="h-2.5 w-2.5 flex-shrink-0 rounded-full"
+            style={{ background: selected?.color || "#FF00AA" }}
+          />
+          <span
+            className="truncate text-[11px] font-semibold uppercase tracking-[0.16em]"
+            style={{ color: selected?.color || "rgb(var(--d-fg3))" }}
           >
-            <span className="h-2 w-2 rounded-full" style={{ background: color }} />
-            {label.name}
+            {selected?.name || "Aucun label"}
+          </span>
+        </span>
+        <ChevronRight size={14} className={`flex-shrink-0 text-d-fg4 transition-transform ${open ? "rotate-90" : ""}`} />
+      </button>
+
+      {open && (
+        <div className="absolute left-0 top-full z-50 mt-2 w-full min-w-[220px] rounded-xl border border-line bg-d-panel shadow-2xl">
+          <button
+            type="button"
+            onClick={() => {
+              onChange("");
+              setOpen(false);
+            }}
+            className="flex w-full items-center gap-3 rounded-t-xl px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.16em] text-d-fg3 transition-colors hover:bg-d-panel2"
+          >
+            <span className="h-2.5 w-2.5 rounded-full bg-d-fg4" />
+            Aucun label
           </button>
-        );
-      })}
+          {labels.map((label, index) => {
+            const color = label.color || "#FF00AA";
+            const selected = value === label.id;
+            return (
+              <button
+                key={label.id}
+                type="button"
+                onClick={() => {
+                  onChange(label.id);
+                  setOpen(false);
+                }}
+                className={`flex w-full items-center gap-3 px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.16em] transition-colors hover:bg-d-panel2 ${
+                  index === labels.length - 1 ? "rounded-b-xl" : ""
+                }`}
+                style={{ color }}
+              >
+                <span
+                  className="h-2.5 w-2.5 rounded-full border-2"
+                  style={{
+                    borderColor: color,
+                    background: selected ? color : "transparent",
+                  }}
+                />
+                {label.name}
+              </button>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
@@ -1303,17 +1333,6 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                 </button>
               </Tooltip>
             )}
-            <Tooltip label="Assistant Gemini">
-              <button
-                type="button"
-                onClick={() => openMarkdownImportSource("gemini")}
-                disabled={showArchived || importingMarkdown || creating || generatingCrmBrief || generatingMarkdownBrief || generatingBatchMails}
-                aria-label="Assistant Gemini"
-                className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-d-pink/60 text-d-pink transition-colors hover:bg-d-pink/10 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {generatingCrmBrief || generatingMarkdownBrief || generatingBatchMails ? <Loader2 size={17} className="animate-spin" /> : <Sparkles size={17} />}
-              </button>
-            </Tooltip>
             <Tooltip label="Importer Markdown">
               <button
                 type="button"
@@ -1325,17 +1344,26 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                 {importingMarkdown ? <Loader2 size={17} className="animate-spin" /> : <FileUp size={17} />}
               </button>
             </Tooltip>
-            <Tooltip label="Nouveau Template">
+            <Tooltip label="Assistant Gemini">
               <button
-                onClick={() => setCreateChoiceOpen(true)}
-                disabled={showArchived || creating || importingMarkdown}
-                aria-label="Nouveau Template"
-                className="inline-flex h-11 w-11 items-center justify-center rounded-full font-semibold transition-colors disabled:opacity-50"
-                style={{ background: "#FFFFFF", color: "#15151A" }}
+                type="button"
+                onClick={() => openMarkdownImportSource("gemini")}
+                disabled={showArchived || importingMarkdown || creating || generatingCrmBrief || generatingMarkdownBrief || generatingBatchMails}
+                aria-label="Assistant Gemini"
+                className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-d-pink/60 text-d-pink transition-colors hover:bg-d-pink/10 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                <Plus size={17} />
+                {generatingCrmBrief || generatingMarkdownBrief || generatingBatchMails ? <Loader2 size={17} className="animate-spin" /> : <Sparkles size={17} />}
               </button>
             </Tooltip>
+            <button
+              onClick={() => setCreateChoiceOpen(true)}
+              disabled={showArchived || creating || importingMarkdown}
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-full px-4 text-[11px] font-semibold uppercase tracking-[0.16em] transition-colors disabled:opacity-50 sm:px-5"
+              style={{ background: "#FFFFFF", color: "#15151A" }}
+            >
+              <Plus size={16} />
+              <span>Nouveau Template</span>
+            </button>
           </div>
         </div>
 
@@ -1979,7 +2007,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                   <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-d-fg4">
                     Label
                   </div>
-                  <LabelPickerPills
+                  <LabelDropdown
                     labels={labels}
                     value={markdownImportDraft.labelId || ""}
                     onChange={(labelId) =>
@@ -2140,7 +2168,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                     <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-d-fg4">
                       Label
                     </div>
-                    <LabelPickerPills
+                    <LabelDropdown
                       labels={labels}
                       value={markdownAssistantLabelId}
                       onChange={setMarkdownAssistantLabelId}
