@@ -40,6 +40,7 @@ export function Toolbar({
   publishingPreview,
 }) {
   const [exportModalOpen, setExportModalOpen] = useState(false);
+  const [previewModalOpen, setPreviewModalOpen] = useState(false);
   const busy = exporting || exportingBraze || sendingPreview || publishingPreview;
 
   const handleExportZip = () => {
@@ -50,6 +51,21 @@ export function Toolbar({
   const handleExportBraze = () => {
     setExportModalOpen(false);
     onExportBraze?.();
+  };
+
+  const handleSendPreview = () => {
+    setPreviewModalOpen(false);
+    onSendPreview?.();
+  };
+
+  const handlePublishPreview = () => {
+    setPreviewModalOpen(false);
+    onPublishPreview?.();
+  };
+
+  const handleOpenPreviewList = () => {
+    setPreviewModalOpen(false);
+    onOpenPreviewList?.();
   };
 
   return (
@@ -130,61 +146,21 @@ export function Toolbar({
               </Tooltip>
             )}
 
-            {/* Envoyer une preview */}
-            {onSendPreview && (
+            {(onSendPreview || onPublishPreview || onOpenPreviewList) && (
               <Tooltip
                 className="flex-shrink-0"
                 side="bottom"
                 align="right"
-                label="Envoyer l'aperçu actuel par email avec Resend."
+                label="Envoyer, publier ou retrouver une preview."
               >
                 <button
-                  onClick={onSendPreview}
+                  onClick={() => setPreviewModalOpen(true)}
                   disabled={busy}
-                  aria-label="Envoyer une preview"
+                  aria-label="Preview"
                   className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-line2 text-d-fg2 transition-colors hover:bg-d-panel2 disabled:cursor-not-allowed disabled:opacity-50 sm:h-auto sm:w-auto sm:gap-1.5 sm:px-3 sm:py-2 sm:text-[11px] sm:font-medium sm:uppercase sm:tracking-[0.14em]"
                 >
-                  {sendingPreview ? <Loader2 size={12} className="animate-spin" /> : <Send size={12} />}
-                  <span className="hidden sm:inline">Envoyer preview</span>
-                </button>
-              </Tooltip>
-            )}
-
-            {/* Publier une preview HTML */}
-            {onPublishPreview && (
-              <Tooltip
-                className="flex-shrink-0"
-                side="bottom"
-                align="right"
-                label="Héberger l'aperçu HTML actuel sur Supabase et copier le lien."
-              >
-                <button
-                  onClick={onPublishPreview}
-                  disabled={busy}
-                  aria-label="Publier une preview HTML"
-                  className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-line2 text-d-fg2 transition-colors hover:bg-d-panel2 disabled:cursor-not-allowed disabled:opacity-50 sm:h-auto sm:w-auto sm:gap-1.5 sm:px-3 sm:py-2 sm:text-[11px] sm:font-medium sm:uppercase sm:tracking-[0.14em]"
-                >
-                  {publishingPreview ? <Loader2 size={12} className="animate-spin" /> : <ExternalLink size={12} />}
-                  <span className="hidden sm:inline">Preview HTML</span>
-                </button>
-              </Tooltip>
-            )}
-
-            {onOpenPreviewList && (
-              <Tooltip
-                className="flex-shrink-0"
-                side="bottom"
-                align="right"
-                label="Voir les previews HTML déjà publiées pour cette newsletter."
-              >
-                <button
-                  onClick={onOpenPreviewList}
-                  disabled={busy}
-                  aria-label="Liste des previews HTML"
-                  className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-line2 text-d-fg2 transition-colors hover:bg-d-panel2 disabled:cursor-not-allowed disabled:opacity-50 sm:h-auto sm:w-auto sm:gap-1.5 sm:px-3 sm:py-2 sm:text-[11px] sm:font-medium sm:uppercase sm:tracking-[0.14em]"
-                >
-                  <List size={12} />
-                  <span className="hidden sm:inline">Previews</span>
+                  {sendingPreview || publishingPreview ? <Loader2 size={12} className="animate-spin" /> : <Send size={12} />}
+                  <span className="hidden sm:inline">Preview</span>
                 </button>
               </Tooltip>
             )}
@@ -208,6 +184,78 @@ export function Toolbar({
           </div>
         </div>
       </div>
+
+      {previewModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: "rgba(0,0,0,0.6)" }}
+          onClick={() => setPreviewModalOpen(false)}
+        >
+          <div
+            className="w-full max-w-sm rounded-2xl border border-line bg-d-panel p-6 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-5 flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-d-fg" style={{ fontFamily: "'Sora', sans-serif" }}>
+                Preview
+              </h3>
+              <button
+                onClick={() => setPreviewModalOpen(false)}
+                className="text-d-fg4 hover:text-d-fg2 transition-colors"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <div className="flex flex-col gap-3">
+              {onSendPreview && (
+                <button
+                  onClick={handleSendPreview}
+                  className="flex w-full items-start gap-4 rounded-xl border border-line bg-d-panel2 px-4 py-4 text-left transition-colors hover:border-line2 hover:bg-d-panel3"
+                >
+                  <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg" style={{ background: "rgba(3,255,207,0.12)" }}>
+                    <Send size={16} style={{ color: "#03FFCF" }} />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-sm font-semibold text-d-fg">Envoyer preview</div>
+                    <div className="mt-0.5 text-xs text-d-fg3">Envoie l'aperçu actuel par email avec Resend.</div>
+                  </div>
+                </button>
+              )}
+
+              {onPublishPreview && (
+                <button
+                  onClick={handlePublishPreview}
+                  className="flex w-full items-start gap-4 rounded-xl border border-line bg-d-panel2 px-4 py-4 text-left transition-colors hover:border-line2 hover:bg-d-panel3"
+                >
+                  <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg" style={{ background: "rgba(255,0,170,0.15)" }}>
+                    <ExternalLink size={16} style={{ color: "#FF00AA" }} />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-sm font-semibold text-d-fg">Preview HTML</div>
+                    <div className="mt-0.5 text-xs text-d-fg3">Publie un lien commentable valable 3 mois.</div>
+                  </div>
+                </button>
+              )}
+
+              {onOpenPreviewList && (
+                <button
+                  onClick={handleOpenPreviewList}
+                  className="flex w-full items-start gap-4 rounded-xl border border-line bg-d-panel2 px-4 py-4 text-left transition-colors hover:border-line2 hover:bg-d-panel3"
+                >
+                  <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg" style={{ background: "rgba(65,65,255,0.15)" }}>
+                    <List size={16} style={{ color: "#8EA7FF" }} />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-sm font-semibold text-d-fg">Previews disponibles</div>
+                    <div className="mt-0.5 text-xs text-d-fg3">Retrouve les liens HTML déjà publiés pour cette newsletter.</div>
+                  </div>
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modale de choix d'export */}
       {exportModalOpen && (

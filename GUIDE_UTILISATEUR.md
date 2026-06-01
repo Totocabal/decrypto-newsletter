@@ -152,9 +152,7 @@ Sous la barre principale, collée en haut de l'écran.
 | **Aperçu / Code HTML** | Switche le panneau droit entre l'aperçu visuel et le code HTML brut |
 | **Sauvegarder** | Crée une version numérotée avec commentaire optionnel |
 | **Preset** 🔐 | Enregistre la disposition actuelle comme preset réutilisable |
-| **Envoyer preview** | Envoie l'aperçu actuel par email |
-| **Preview HTML** | Publie l'aperçu actuel sur Supabase Storage et copie l'URL publique |
-| **Previews** | Liste les previews HTML déjà publiées pour cette newsletter |
+| **Preview** | Ouvre les choix : envoyer par email, publier une preview HTML ou retrouver les previews disponibles |
 | **Exporter** | Ouvre le menu d'export (ZIP ou Braze) |
 
 > L'auto-save est actif en permanence (debounce 2 s). Le bouton **Sauvegarder** crée un point de restauration nommé — c'est différent.
@@ -572,13 +570,15 @@ Switcher sur **Code HTML** dans la toolbar affiche le code source complet de l'e
 
 ### Héberger une preview HTML
 
-Bouton **Preview HTML** dans la toolbar :
+Bouton **Preview → Preview HTML** dans la toolbar :
 
 1. Publie le HTML actuellement affiché dans l'aperçu vers le bucket Supabase `newsletter-previews`
 2. Copie automatiquement une URL de lecture de l'app quand le navigateur l'autorise
 3. Affiche un encart avec le lien, un bouton **Copier** et un bouton **Ouvrir**
 
 Chaque publication crée un nouveau fichier versionné, afin que le lien reflète exactement l'état publié au moment du clic. Le lien est valable **3 mois** à partir de sa création. Supabase Storage conserve le fichier HTML, et l'app le sert en `text/html` pour l'affichage navigateur.
+
+Le choix **Preview → Previews disponibles** affiche les liens HTML publiés pour la newsletter en cours. Une preview peut être supprimée depuis cette liste si les droits Supabase l'autorisent ; le lien devient alors inaccessible.
 
 Le lien ouvre une page de review avec un panneau **Commentaires** à droite. Toute personne disposant du lien peut lire, ajouter et supprimer des commentaires publics sur cette preview. Le bouton **Sélectionner une zone** permet de tracer un rectangle sur la preview et de le lier au commentaire publié.
 

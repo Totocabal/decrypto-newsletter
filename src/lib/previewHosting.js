@@ -72,7 +72,24 @@ function previewLabelFromName(name = "") {
     .trim() || "Preview HTML";
 }
 
-export async function listHtmlPreviews({ newsletterId }) {
+export async function deleteHtmlPreview(path) {
+  if (!path) throw new Error("Preview introuvable.");
+
+  const { error } = await supabase.storage
+    .from(BUCKET)
+    .remove([path]);
+
+  if (error) throw new Error(error.message);
+
+  const { error: commentsError } = await supabase
+    .from("preview_comments")
+    .delete()
+    .eq("preview_path", path);
+
+  return { commentsError };
+}
+
+export async function listHtmlPreviews({ newsletterId, userId, isAdmin = false }) {
   const issueId = safeSlug(newsletterId || "draft");
   const { data: roots, error: rootError } = await supabase.storage
     .from(BUCKET)
@@ -110,6 +127,7 @@ export async function listHtmlPreviews({ newsletterId }) {
             createdAt,
             expiresAt,
             url: `${window.location.origin}/api/preview-html?path=${encodeURIComponent(path)}`,
+            canDelete: Boolean(isAdmin || (userId && path.startsWith(`${userId}/`))),
           };
         });
     })

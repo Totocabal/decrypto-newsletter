@@ -3,7 +3,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, History, Loader2, CloudOff, Cloud, Tag, Undo2, Redo2, X, BookMarked, Check, Mail, Send, ExternalLink, Copy } from "lucide-react";
+import { ArrowLeft, History, Loader2, CloudOff, Cloud, Tag, Undo2, Redo2, X, BookMarked, Check, Mail, Send, ExternalLink, Copy, Trash2 } from "lucide-react";
 import { Toolbar } from "../components/Toolbar.jsx";
 import { PreviewPanel } from "../components/PreviewPanel.jsx";
 import { EditorPanel } from "../components/EditorPanel.jsx";
@@ -21,7 +21,7 @@ import { copyHtmlToClipboard } from "../utils/exportImport.js";
 import { exportAssetPack, exportBrazeHtml } from "../utils/exportAssetPack.js";
 import { useLabels, useNewsletterLabels } from "../lib/useLabels.js";
 import { createTemplatePreset } from "../lib/templatePresets.js";
-import { listHtmlPreviews, publishHtmlPreview } from "../lib/previewHosting.js";
+import { deleteHtmlPreview, listHtmlPreviews, publishHtmlPreview } from "../lib/previewHosting.js";
 
 export function EditorPage({ newsletterId, onBack }) {
   const { profile, user } = useAuth();
@@ -67,6 +67,7 @@ export function EditorPage({ newsletterId, onBack }) {
   const [previewListOpen, setPreviewListOpen] = useState(false);
   const [previewListLoading, setPreviewListLoading] = useState(false);
   const [previewList, setPreviewList] = useState([]);
+  const [deletingPreviewPath, setDeletingPreviewPath] = useState(null);
   const [presetModalOpen, setPresetModalOpen] = useState(false);
   const [presetName, setPresetName] = useState("");
   const [savingPreset, setSavingPreset] = useState(false);
@@ -323,12 +324,41 @@ export function EditorPage({ newsletterId, onBack }) {
     setPreviewListOpen(true);
     setPreviewListLoading(true);
     try {
-      const items = await listHtmlPreviews({ newsletterId });
+      const items = await listHtmlPreviews({
+        newsletterId,
+        userId: profile?.id,
+        isAdmin: Boolean(profile?.is_admin),
+      });
       setPreviewList(items);
     } catch (e) {
       addToast("Liste des previews impossible : " + (e.message || e), "error");
     } finally {
       setPreviewListLoading(false);
+    }
+  };
+
+  const handleDeleteHostedPreview = async (item) => {
+    if (!item?.path) return;
+    const ok = await confirm(
+      "Supprimer cette preview HTML ? Le lien ne fonctionnera plus et les commentaires liés seront retirés.",
+      { title: "Supprimer la preview ?", danger: true, confirmLabel: "Supprimer" }
+    );
+    if (!ok) return;
+
+    setDeletingPreviewPath(item.path);
+    try {
+      const { commentsError } = await deleteHtmlPreview(item.path);
+      setPreviewList((items) => items.filter((preview) => preview.path !== item.path));
+      setHostedPreview((preview) => preview?.path === item.path ? null : preview);
+      if (commentsError) {
+        // eslint-disable-next-line no-console
+        console.warn("[preview] nettoyage des commentaires impossible:", commentsError);
+      }
+      addToast("Preview supprimée.", "success");
+    } catch (e) {
+      addToast("Suppression impossible : " + (e.message || e), "error");
+    } finally {
+      setDeletingPreviewPath(null);
     }
   };
 
@@ -843,6 +873,21 @@ export function EditorPage({ newsletterId, onBack }) {
                         <ExternalLink size={12} />
                         Ouvrir
                       </a>
+                      {item.canDelete && (
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteHostedPreview(item)}
+                          disabled={deletingPreviewPath === item.path}
+                          className="inline-flex items-center justify-center gap-2 rounded-xl border border-red-500/30 px-3 py-2 text-xs font-semibold text-red-200 transition-colors hover:border-red-400/60 hover:text-red-100 disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          {deletingPreviewPath === item.path ? (
+                            <Loader2 size={12} className="animate-spin" />
+                          ) : (
+                            <Trash2 size={12} />
+                          )}
+                          Supprimer
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))}
