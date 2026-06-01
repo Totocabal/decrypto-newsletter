@@ -803,39 +803,13 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
     }
   };
 
-  const handleGenerateBatchMails = async () => {
-    const input = markdownBrief.trim();
-    if (!crmBatchEnabled) {
-      addToast("Active le mode multi-mails avant de créer un batch.", "info");
-      return;
-    }
-    if (!input) {
-      addToast("Indique un prompt avant de créer le batch.", "error");
-      return;
-    }
+  const createBatchFromVariants = async (variants) => {
     if (!profile?.id) return;
-
     setGeneratingBatchMails(true);
     setMarkdownGenerationLog(null);
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.access_token) throw new Error("Session expirée. Reconnecte-toi pour utiliser Gemini.");
-
-      const contentResponse = await fetch("/api/generate-crm-brief", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({ input, count: crmBatchCount }),
-      });
-      const contentPayload = await contentResponse.json().catch(() => ({}));
-      if (!contentResponse.ok) throw new Error(contentPayload.error || "Génération du batch impossible.");
-
-      const variants = Array.isArray(contentPayload.variants) && contentPayload.variants.length
-        ? contentPayload.variants.slice(0, crmBatchCount)
-        : [{ id: "full", title: "Contenu généré", content: contentPayload.content || "" }];
-      if (!variants.length) throw new Error("Gemini n'a pas retourné de mails exploitables.");
 
       const importedItems = [];
       for (const [index, variant] of variants.entries()) {
@@ -890,6 +864,47 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
     } catch (error) {
       addToast("Batch Gemini impossible : " + (error.message || error), "error");
     } finally {
+      setGeneratingBatchMails(false);
+    }
+  };
+
+  const handleGenerateBatchMails = async () => {
+    const input = markdownBrief.trim();
+    if (!crmBatchEnabled) {
+      addToast("Active le mode multi-mails avant de créer un batch.", "info");
+      return;
+    }
+    if (!input) {
+      addToast("Indique un prompt avant de créer le batch.", "error");
+      return;
+    }
+    if (!profile?.id) return;
+
+    setGeneratingBatchMails(true);
+    setMarkdownGenerationLog(null);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) throw new Error("Session expirée. Reconnecte-toi pour utiliser Gemini.");
+
+      const contentResponse = await fetch("/api/generate-crm-brief", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ input, count: crmBatchCount }),
+      });
+      const contentPayload = await contentResponse.json().catch(() => ({}));
+      if (!contentResponse.ok) throw new Error(contentPayload.error || "Génération du batch impossible.");
+
+      const variants = Array.isArray(contentPayload.variants) && contentPayload.variants.length
+        ? contentPayload.variants.slice(0, crmBatchCount)
+        : [{ id: "full", title: "Contenu généré", content: contentPayload.content || "" }];
+      if (!variants.length) throw new Error("Gemini n'a pas retourné de mails exploitables.");
+
+      await createBatchFromVariants(variants);
+    } catch (error) {
+      addToast("Batch Gemini impossible : " + (error.message || error), "error");
       setGeneratingBatchMails(false);
     }
   };
@@ -2712,6 +2727,17 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                   className="flex-1 rounded-xl border border-line px-4 py-2 text-xs font-semibold text-d-fg2 transition-colors hover:border-line2 hover:text-d-fg sm:flex-none"
                 >
                   Tout utiliser
+                </button>
+              )}
+              {crmBatchEnabled && crmBriefVariants.variants.length > 1 && (
+                <button
+                  type="button"
+                  disabled={generatingBatchMails}
+                  onClick={() => createBatchFromVariants(crmBriefVariants.variants)}
+                  className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-white px-4 py-2 text-xs font-semibold text-[#15151A] transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40 sm:flex-none"
+                >
+                  {generatingBatchMails ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
+                  Créer le batch ({crmBriefVariants.variants.length} mails)
                 </button>
               )}
             </div>
