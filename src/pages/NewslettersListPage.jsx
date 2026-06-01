@@ -325,6 +325,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
   const [markdownBriefTheme, setMarkdownBriefTheme] = useState("light");
   const [markdownBriefShowNumbers, setMarkdownBriefShowNumbers] = useState(false);
   const [markdownBriefShowSeparators, setMarkdownBriefShowSeparators] = useState(false);
+  const [crmBatchEnabled, setCrmBatchEnabled] = useState(false);
   const [crmBatchCount, setCrmBatchCount] = useState(3);
   const [generatingCrmBrief, setGeneratingCrmBrief] = useState(false);
   const [crmBriefVariants, setCrmBriefVariants] = useState(null);
@@ -608,7 +609,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
           "Content-Type": "application/json",
           Authorization: `Bearer ${session.access_token}`,
         },
-        body: JSON.stringify({ input, count: crmBatchCount }),
+        body: JSON.stringify({ input, count: crmBatchEnabled ? crmBatchCount : 1 }),
       });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(payload.error || "Génération du contenu impossible.");
@@ -634,6 +635,10 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
 
   const handleGenerateBatchMails = async () => {
     const input = markdownBrief.trim();
+    if (!crmBatchEnabled) {
+      addToast("Active le mode multi-mails avant de créer un batch.", "info");
+      return;
+    }
     if (!input) {
       addToast("Indique un prompt avant de créer le batch.", "error");
       return;
@@ -2005,31 +2010,49 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                     </span>
                   </label>
                 </div>
-                <div className="mt-3 rounded-lg border border-line bg-d-panel px-3 py-3">
-                  <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-d-fg4">
-                    Batch mails
+                <label className="mt-3 grid cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-lg border border-line bg-d-panel px-3 py-3">
+                  <span>
+                    <span className="block text-[10px] font-semibold uppercase tracking-[0.14em] text-d-fg4">Mode</span>
+                    <span className="block text-sm font-medium text-d-fg2">Créer plusieurs mails</span>
+                  </span>
+                  <span className="relative inline-flex h-6 w-11 flex-shrink-0 items-center">
+                    <input
+                      type="checkbox"
+                      checked={crmBatchEnabled}
+                      onChange={(event) => setCrmBatchEnabled(event.target.checked)}
+                      className="peer sr-only"
+                    />
+                    <span className="absolute inset-0 rounded-full border border-line bg-d-panel2 transition-colors peer-checked:border-d-pink peer-checked:bg-d-pink/25" />
+                    <span className="relative ml-1 h-4 w-4 rounded-full bg-d-fg4 transition-transform peer-checked:translate-x-5 peer-checked:bg-d-pink" />
+                  </span>
+                </label>
+                {crmBatchEnabled && (
+                  <div className="mt-3 rounded-lg border border-line bg-d-panel px-3 py-3">
+                    <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-d-fg4">
+                      Batch mails
+                    </div>
+                    <div className="grid grid-cols-4 gap-1 rounded-lg border border-line bg-d-panel2 p-0.5">
+                      {[2, 3, 4, 5].map((count) => (
+                        <button
+                          key={count}
+                          type="button"
+                          onClick={() => setCrmBatchCount(count)}
+                          aria-pressed={crmBatchCount === count}
+                          className={`min-h-8 rounded-md px-2 text-[11px] font-semibold transition-colors ${
+                            crmBatchCount === count
+                              ? "bg-d-pink text-white"
+                              : "text-d-fg3 hover:text-d-fg"
+                          }`}
+                        >
+                          {count} mails
+                        </button>
+                      ))}
+                    </div>
+                    <p className="mt-2 text-[11px] leading-relaxed text-d-fg4">
+                      Utilisé par “Créer le contenu” et “Créer le batch”.
+                    </p>
                   </div>
-                  <div className="grid grid-cols-4 gap-1 rounded-lg border border-line bg-d-panel2 p-0.5">
-                    {[2, 3, 4, 5].map((count) => (
-                      <button
-                        key={count}
-                        type="button"
-                        onClick={() => setCrmBatchCount(count)}
-                        aria-pressed={crmBatchCount === count}
-                        className={`min-h-8 rounded-md px-2 text-[11px] font-semibold transition-colors ${
-                          crmBatchCount === count
-                            ? "bg-d-pink text-white"
-                            : "text-d-fg3 hover:text-d-fg"
-                        }`}
-                      >
-                        {count} mails
-                      </button>
-                    ))}
-                  </div>
-                  <p className="mt-2 text-[11px] leading-relaxed text-d-fg4">
-                    Utilisé par “Créer le contenu” et “Créer le batch”.
-                  </p>
-                </div>
+                )}
                 <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:justify-end">
                   <button
                     type="button"
@@ -2049,15 +2072,17 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                     {generatingMarkdownBrief ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
                     Générer et valider
                   </button>
-                  <button
-                    type="button"
-                    onClick={handleGenerateBatchMails}
-                    disabled={generatingCrmBrief || generatingMarkdownBrief || generatingBatchMails || importingMarkdown}
-                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-4 py-2 text-xs font-semibold text-[#15151A] transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
-                  >
-                    {generatingBatchMails ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
-                    Créer le batch
-                  </button>
+                  {crmBatchEnabled && (
+                    <button
+                      type="button"
+                      onClick={handleGenerateBatchMails}
+                      disabled={generatingCrmBrief || generatingMarkdownBrief || generatingBatchMails || importingMarkdown}
+                      className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-4 py-2 text-xs font-semibold text-[#15151A] transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      {generatingBatchMails ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
+                      Créer le batch
+                    </button>
+                  )}
                 </div>
                 {markdownGenerationLog && (
                   <div className="mt-4 rounded-xl border border-[#FF4B28]/40 bg-[#FFF3EE] p-4 text-[#3A1A12]">
