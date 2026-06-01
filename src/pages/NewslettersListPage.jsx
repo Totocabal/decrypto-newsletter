@@ -327,6 +327,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
   const [markdownBriefShowSeparators, setMarkdownBriefShowSeparators] = useState(false);
   const [crmBatchEnabled, setCrmBatchEnabled] = useState(false);
   const [crmBatchCount, setCrmBatchCount] = useState(3);
+  const [markdownAssistantLabelId, setMarkdownAssistantLabelId] = useState("");
   const [generatingCrmBrief, setGeneratingCrmBrief] = useState(false);
   const [crmBriefVariants, setCrmBriefVariants] = useState(null);
   const [expandedCrmVariant, setExpandedCrmVariant] = useState(null);
@@ -509,12 +510,17 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
     onOpen(data.id);
   };
 
-  const parseMarkdownImport = (markdown, sourceLabel) => {
+  const parseMarkdownImport = (markdown, sourceLabel, options = {}) => {
     if (!profile?.id) return;
     setImportingMarkdown(true);
     try {
       const imported = importNewsletterMarkdown(markdown);
-      setMarkdownImportDraft({ imported, fileName: sourceLabel });
+      setMarkdownImportDraft({
+        imported,
+        fileName: sourceLabel,
+        sourceMode: options.sourceMode || markdownImportMode,
+        labelId: options.labelId || "",
+      });
       setMarkdownImportSourceOpen(false);
       setPastedMarkdown("");
       setMarkdownBrief("");
@@ -569,6 +575,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
     setCrmVariantRefineDraft(null);
     setCrmVariantRefineComments("");
     setMarkdownGenerationLog(null);
+    setMarkdownAssistantLabelId("");
   };
 
   const openMarkdownImportSource = (mode) => {
@@ -588,6 +595,19 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
   const openCrmVariantRefine = (variant, index) => {
     setCrmVariantRefineDraft({ variant, index });
     setCrmVariantRefineComments("");
+  };
+
+  const applyLabelToNewsletters = async (newsletterIds, labelId) => {
+    const ids = Array.isArray(newsletterIds) ? newsletterIds.filter(Boolean) : [newsletterIds].filter(Boolean);
+    if (!ids.length || !labelId || !profile?.id) return null;
+    const { error } = await supabase.from("newsletter_labels").insert(
+      ids.map((newsletterId) => ({
+        newsletter_id: newsletterId,
+        label_id: labelId,
+        assigned_by: profile.id,
+      }))
+    );
+    return error;
   };
 
   const handleGenerateCrmBrief = async () => {
@@ -699,10 +719,22 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
         created_by: profile.id,
         updated_by: profile.id,
       }));
-      const { error } = await supabase.from("newsletters").insert(rows);
+      const { data, error } = await supabase
+        .from("newsletters")
+        .insert(rows)
+        .select("id");
       if (error) throw error;
+      const labelError = await applyLabelToNewsletters(
+        (data || []).map((row) => row.id),
+        markdownAssistantLabelId
+      );
 
-      addToast(`${rows.length} mail${rows.length > 1 ? "s" : ""} créé${rows.length > 1 ? "s" : ""} depuis Gemini.`, "success");
+      addToast(
+        labelError
+          ? `${rows.length} mail${rows.length > 1 ? "s" : ""} créé${rows.length > 1 ? "s" : ""}, mais le label n'a pas pu être appliqué.`
+          : `${rows.length} mail${rows.length > 1 ? "s" : ""} créé${rows.length > 1 ? "s" : ""} depuis Gemini.`,
+        labelError ? "error" : "success"
+      );
       resetMarkdownSourceModal();
       await load();
     } catch (error) {
@@ -823,7 +855,10 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
 
       setMarkdownGenerationLog(null);
       setPastedMarkdown(payload.markdown);
-      parseMarkdownImport(payload.markdown, "Brief généré avec Gemini");
+      parseMarkdownImport(payload.markdown, "Brief généré avec Gemini", {
+        sourceMode: "gemini",
+        labelId: markdownAssistantLabelId,
+      });
     } catch (error) {
       setMarkdownGenerationLog((current) =>
         current || {
@@ -901,11 +936,13 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
         .select()
         .single();
       if (error) throw error;
+      const labelError = await applyLabelToNewsletters(data.id, markdownImportDraft.labelId);
 
       const warningSuffix = imported.warnings.length
         ? ` ${imported.warnings.length} avertissement(s) à relire.`
         : "";
-      addToast(`Newsletter Markdown importée.${warningSuffix}`, imported.warnings.length ? "info" : "success");
+      const labelSuffix = labelError ? " Label non appliqué." : "";
+      addToast(`Newsletter Markdown importée.${warningSuffix}${labelSuffix}`, labelError || imported.warnings.length ? "info" : "success");
       setMarkdownImportDraft(null);
       onOpen(data.id);
     } catch (error) {
@@ -1865,6 +1902,29 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                   </label>
                 </div>
               </div>
+              {markdownImportDraft.sourceMode === "gemini" && labels.length > 0 && (
+                <div className="rounded-xl border border-line bg-d-panel2 px-4 py-3">
+                  <label className="block text-[10px] font-semibold uppercase tracking-[0.16em] text-d-fg4">
+                    Label
+                  </label>
+                  <select
+                    value={markdownImportDraft.labelId || ""}
+                    onChange={(event) =>
+                      setMarkdownImportDraft((draft) =>
+                        draft ? { ...draft, labelId: event.target.value } : draft
+                      )
+                    }
+                    className="mt-2 w-full rounded-lg border border-line bg-d-panel px-3 py-2 text-xs font-semibold text-d-fg2 outline-none transition-colors focus:border-d-pink/60"
+                  >
+                    <option value="">Aucun label</option>
+                    {labels.map((label) => (
+                      <option key={label.id} value={label.id}>
+                        {label.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
               {markdownImportDraft.imported.warnings.length > 0 && (
                 <div className="rounded-xl border border-[#FF8B28]/35 bg-[#FFF5E8] px-4 py-3 dark:bg-[#2A1A0A]">
                   <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#9A4F00] dark:text-[#FFD6A6]">
@@ -2010,6 +2070,25 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                     </span>
                   </label>
                 </div>
+                {labels.length > 0 && (
+                  <div className="mt-3 rounded-lg border border-line bg-d-panel px-3 py-3">
+                    <label className="block text-[10px] font-semibold uppercase tracking-[0.14em] text-d-fg4">
+                      Label
+                    </label>
+                    <select
+                      value={markdownAssistantLabelId}
+                      onChange={(event) => setMarkdownAssistantLabelId(event.target.value)}
+                      className="mt-2 w-full rounded-lg border border-line bg-d-panel2 px-3 py-2 text-xs font-semibold text-d-fg2 outline-none transition-colors focus:border-d-pink/60"
+                    >
+                      <option value="">Aucun label</option>
+                      {labels.map((label) => (
+                        <option key={label.id} value={label.id}>
+                          {label.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
                 <label className="mt-3 grid cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-lg border border-line bg-d-panel px-3 py-3">
                   <span>
                     <span className="block text-[10px] font-semibold uppercase tracking-[0.14em] text-d-fg4">Mode</span>
