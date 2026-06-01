@@ -20,7 +20,7 @@ function safeSlug(value = "newsletter") {
 
 /**
  * Publie une version HTML immutable de l'aperçu courant.
- * @returns {Promise<{ url: string, path: string }>}
+ * @returns {Promise<{ url: string, storageUrl: string, path: string }>}
  */
 export async function publishHtmlPreview({ html, userId, newsletterId, title }) {
   if (!html) throw new Error("Aucun HTML à publier.");
@@ -53,5 +53,6 @@ export async function publishHtmlPreview({ html, userId, newsletterId, title }) 
   }
 
   const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
-  return { url: data.publicUrl, path };
+  const viewerUrl = `${window.location.origin}/api/preview-html?path=${encodeURIComponent(path)}`;
+  return { url: viewerUrl, storageUrl: data.publicUrl, path };
 }

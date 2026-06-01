@@ -574,10 +574,10 @@ Switcher sur **Code HTML** dans la toolbar affiche le code source complet de l'e
 Bouton **Lien HTML** dans la toolbar :
 
 1. Publie le HTML actuellement affiché dans l'aperçu vers le bucket Supabase `newsletter-previews`
-2. Copie automatiquement l'URL publique quand le navigateur l'autorise
+2. Copie automatiquement une URL de lecture de l'app quand le navigateur l'autorise
 3. Affiche un encart avec le lien, un bouton **Copier** et un bouton **Ouvrir**
 
-Chaque publication crée un nouveau fichier versionné, afin que le lien reflète exactement l'état publié au moment du clic.
+Chaque publication crée un nouveau fichier versionné, afin que le lien reflète exactement l'état publié au moment du clic. Supabase Storage conserve le fichier HTML, et l'app le sert en `text/html` pour l'affichage navigateur.
 
 ### Exporter en ZIP
 
