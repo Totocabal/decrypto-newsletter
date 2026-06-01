@@ -152,6 +152,8 @@ Sous la barre principale, collée en haut de l'écran.
 | **Aperçu / Code HTML** | Switche le panneau droit entre l'aperçu visuel et le code HTML brut |
 | **Sauvegarder** | Crée une version numérotée avec commentaire optionnel |
 | **Preset** 🔐 | Enregistre la disposition actuelle comme preset réutilisable |
+| **Preview** | Envoie l'aperçu actuel par email |
+| **Lien HTML** | Publie l'aperçu actuel sur Supabase Storage et copie l'URL publique |
 | **Exporter** | Ouvre le menu d'export (ZIP ou Braze) |
 
 > L'auto-save est actif en permanence (debounce 2 s). Le bouton **Sauvegarder** crée un point de restauration nommé — c'est différent.
@@ -566,6 +568,16 @@ Le bouton **⬇ Export JPG** (en haut du panneau aperçu) génère une capture d
 ### Voir le code HTML
 
 Switcher sur **Code HTML** dans la toolbar affiche le code source complet de l'email généré. Utiliser ce code pour un envoi manuel ou un débogage.
+
+### Héberger une preview HTML
+
+Bouton **Lien HTML** dans la toolbar :
+
+1. Publie le HTML actuellement affiché dans l'aperçu vers le bucket Supabase `newsletter-previews`
+2. Copie automatiquement l'URL publique quand le navigateur l'autorise
+3. Affiche un encart avec le lien, un bouton **Copier** et un bouton **Ouvrir**
+
+Chaque publication crée un nouveau fichier versionné, afin que le lien reflète exactement l'état publié au moment du clic.
 
 ### Exporter en ZIP
 

@@ -3,7 +3,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, History, Loader2, CloudOff, Cloud, Tag, Undo2, Redo2, X, BookMarked, Check, Mail, Send } from "lucide-react";
+import { ArrowLeft, History, Loader2, CloudOff, Cloud, Tag, Undo2, Redo2, X, BookMarked, Check, Mail, Send, ExternalLink, Copy } from "lucide-react";
 import { Toolbar } from "../components/Toolbar.jsx";
 import { PreviewPanel } from "../components/PreviewPanel.jsx";
 import { EditorPanel } from "../components/EditorPanel.jsx";
@@ -21,6 +21,7 @@ import { copyHtmlToClipboard } from "../utils/exportImport.js";
 import { exportAssetPack, exportBrazeHtml } from "../utils/exportAssetPack.js";
 import { useLabels, useNewsletterLabels } from "../lib/useLabels.js";
 import { createTemplatePreset } from "../lib/templatePresets.js";
+import { publishHtmlPreview } from "../lib/previewHosting.js";
 
 export function EditorPage({ newsletterId, onBack }) {
   const { profile, user } = useAuth();
@@ -61,6 +62,8 @@ export function EditorPage({ newsletterId, onBack }) {
   const [previewRecipients, setPreviewRecipients] = useState("");
   const [previewSubject, setPreviewSubject] = useState("");
   const [sendingPreview, setSendingPreview] = useState(false);
+  const [publishingPreview, setPublishingPreview] = useState(false);
+  const [hostedPreview, setHostedPreview] = useState(null);
   const [presetModalOpen, setPresetModalOpen] = useState(false);
   const [presetName, setPresetName] = useState("");
   const [savingPreset, setSavingPreset] = useState(false);
@@ -289,6 +292,30 @@ export function EditorPage({ newsletterId, onBack }) {
     setPreviewSendOpen(true);
   };
 
+  const handlePublishPreview = async () => {
+    if (!state || !html) return;
+    setPublishingPreview(true);
+    try {
+      const result = await publishHtmlPreview({
+        html,
+        userId: profile?.id,
+        newsletterId,
+        title: newsletter?.title || state.brand_name || "newsletter",
+      });
+      setHostedPreview(result);
+      try {
+        await navigator.clipboard.writeText(result.url);
+        addToast("Preview HTML publiée sur Supabase. Lien copié.", "success");
+      } catch {
+        addToast("Preview HTML publiée sur Supabase.", "success");
+      }
+    } catch (e) {
+      addToast("Publication Supabase impossible : " + (e.message || e), "error");
+    } finally {
+      setPublishingPreview(false);
+    }
+  };
+
   const handleSendPreview = async () => {
     if (!state || !html) return;
     setSendingPreview(true);
@@ -506,12 +533,14 @@ export function EditorPage({ newsletterId, onBack }) {
         onExportZip={handleExportZip}
         onExportBraze={profile?.is_admin ? handleExportBraze : null}
         onSendPreview={handleOpenSendPreview}
+        onPublishPreview={handlePublishPreview}
         onSaveAsPreset={handleOpenPresetModal}
         copied={copied}
         saved={savedFlash}
         exporting={exporting}
         exportingBraze={exportingBraze}
         sendingPreview={sendingPreview}
+        publishingPreview={publishingPreview}
       />
 
       <div
@@ -678,6 +707,53 @@ export function EditorPage({ newsletterId, onBack }) {
                 Envoyer la preview
               </button>
             </div>
+          </div>
+        </div>
+      )}
+      {hostedPreview && (
+        <div className="fixed bottom-4 right-4 z-40 w-[calc(100vw-2rem)] max-w-md rounded-2xl border border-line bg-d-panel p-4 shadow-2xl">
+          <div className="mb-2 flex items-start justify-between gap-3">
+            <div>
+              <div className="text-xs font-semibold text-d-fg" style={{ fontFamily: "'Sora', sans-serif" }}>
+                Preview HTML hébergée
+              </div>
+              <div className="mt-0.5 text-[11px] text-d-fg4">
+                Le lien pointe vers la version publiée sur Supabase Storage.
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setHostedPreview(null)}
+              className="text-d-fg4 transition-colors hover:text-d-fg2"
+              aria-label="Fermer"
+            >
+              <X size={15} />
+            </button>
+          </div>
+          <div className="mb-3 truncate rounded-xl border border-line bg-d-panel2 px-3 py-2 text-xs text-d-fg3">
+            {hostedPreview.url}
+          </div>
+          <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+            <button
+              type="button"
+              onClick={async () => {
+                await navigator.clipboard.writeText(hostedPreview.url);
+                addToast("Lien copié.", "success");
+              }}
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-line px-3 py-2 text-xs font-semibold text-d-fg3 transition-colors hover:border-line2 hover:text-d-fg"
+            >
+              <Copy size={12} />
+              Copier
+            </button>
+            <a
+              href={hostedPreview.url}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-d-pink px-3 py-2 text-xs font-semibold text-white transition-opacity hover:opacity-90"
+            >
+              <ExternalLink size={12} />
+              Ouvrir
+            </a>
           </div>
         </div>
       )}

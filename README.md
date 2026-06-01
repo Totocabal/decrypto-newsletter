@@ -64,7 +64,8 @@ src/
 │   ├── useNewsletter.js      ← hook principal : chargement, lock, auto-save, Realtime
 │   ├── useCoinGecko.js       ← fetching CoinGecko (60 cryptos, prix + courbes)
 │   ├── templatePresets.js    ← CRUD presets de disposition (table template_presets)
-│   └── imageUpload.js        ← upload/delete/list images Supabase Storage
+│   ├── imageUpload.js        ← upload/delete/list images Supabase Storage
+│   └── previewHosting.js     ← publication de previews HTML Supabase Storage
 │
 ├── pages/
 │   ├── LoginPage.jsx
@@ -1045,7 +1046,7 @@ Corps : `{ html }`. Retourne `{ html }` corrigé orthographiquement.
 
 ### 2. Configurer Supabase Storage
 
-Créer un bucket `newsletter-images` (public).
+Exécuter `supabase/storage.sql` pour créer les buckets publics `newsletter-images` et `newsletter-previews` avec leurs policies.
 
 ### 3. Variables d'environnement
 

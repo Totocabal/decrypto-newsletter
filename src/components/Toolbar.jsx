@@ -12,6 +12,7 @@ import {
   Package,
   UploadCloud,
   Loader2,
+  ExternalLink,
   BookMarked,
   Send,
   X,
@@ -27,15 +28,17 @@ export function Toolbar({
   onExportZip,
   onExportBraze,
   onSendPreview,
+  onPublishPreview,
   onSaveAsPreset,
   copied,
   saved,
   exporting,
   exportingBraze,
   sendingPreview,
+  publishingPreview,
 }) {
   const [exportModalOpen, setExportModalOpen] = useState(false);
-  const busy = exporting || exportingBraze || sendingPreview;
+  const busy = exporting || exportingBraze || sendingPreview || publishingPreview;
 
   const handleExportZip = () => {
     setExportModalOpen(false);
@@ -141,6 +144,26 @@ export function Toolbar({
                 >
                   {sendingPreview ? <Loader2 size={12} className="animate-spin" /> : <Send size={12} />}
                   <span className="hidden sm:inline">Preview</span>
+                </button>
+              </Tooltip>
+            )}
+
+            {/* Publier une preview HTML */}
+            {onPublishPreview && (
+              <Tooltip
+                className="flex-shrink-0"
+                side="bottom"
+                align="right"
+                label="Héberger l'aperçu HTML actuel sur Supabase et copier le lien."
+              >
+                <button
+                  onClick={onPublishPreview}
+                  disabled={busy}
+                  aria-label="Publier une preview HTML"
+                  className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-line2 text-d-fg2 transition-colors hover:bg-d-panel2 disabled:cursor-not-allowed disabled:opacity-50 sm:h-auto sm:w-auto sm:gap-1.5 sm:px-3 sm:py-2 sm:text-[11px] sm:font-medium sm:uppercase sm:tracking-[0.14em]"
+                >
+                  {publishingPreview ? <Loader2 size={12} className="animate-spin" /> : <ExternalLink size={12} />}
+                  <span className="hidden sm:inline">Lien HTML</span>
                 </button>
               </Tooltip>
             )}

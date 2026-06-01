@@ -61,3 +61,48 @@ create policy "newsletter_images_update_own"
       or public.current_user_is_admin()
     )
   );
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- Bucket public pour previews HTML hébergées
+-- ─────────────────────────────────────────────────────────────────────────────
+-- Les previews sont publiées sous "<user_id>/<newsletter_id>/<timestamp-slug>.html".
+-- On utilise des chemins versionnés pour éviter les délais de propagation CDN
+-- liés aux overwrites.
+
+insert into storage.buckets (id, name, public)
+values ('newsletter-previews', 'newsletter-previews', true)
+on conflict (id) do nothing;
+
+update storage.buckets
+set
+  file_size_limit = 2097152,
+  allowed_mime_types = array['text/html']
+where id = 'newsletter-previews';
+
+drop policy if exists "newsletter_previews_public_read" on storage.objects;
+create policy "newsletter_previews_public_read"
+  on storage.objects for select
+  to public
+  using (bucket_id = 'newsletter-previews');
+
+drop policy if exists "newsletter_previews_upload_approved" on storage.objects;
+create policy "newsletter_previews_upload_approved"
+  on storage.objects for insert
+  to authenticated
+  with check (
+    bucket_id = 'newsletter-previews'
+    and public.current_user_is_approved()
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+drop policy if exists "newsletter_previews_delete_own" on storage.objects;
+create policy "newsletter_previews_delete_own"
+  on storage.objects for delete
+  to authenticated
+  using (
+    bucket_id = 'newsletter-previews'
+    and (
+      (storage.foldername(name))[1] = auth.uid()::text
+      or public.current_user_is_admin()
+    )
+  );
