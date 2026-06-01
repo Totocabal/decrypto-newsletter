@@ -287,6 +287,48 @@ function CrmVariantPreview({ content }) {
   return <div className="space-y-3">{blocks}</div>;
 }
 
+function LabelPickerPills({ labels, value, onChange }) {
+  return (
+    <div className="flex flex-wrap gap-2">
+      <button
+        type="button"
+        onClick={() => onChange("")}
+        aria-pressed={!value}
+        className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] transition-colors ${
+          !value
+            ? "border-d-pink/70 bg-d-pink/15 text-d-fg"
+            : "border-line text-d-fg4 hover:border-line2 hover:text-d-fg2"
+        }`}
+      >
+        <span className={`h-2 w-2 rounded-full ${!value ? "bg-d-pink" : "bg-d-fg4"}`} />
+        Aucun label
+      </button>
+      {labels.map((label) => {
+        const selected = value === label.id;
+        const color = label.color || "#FF00AA";
+        return (
+          <button
+            key={label.id}
+            type="button"
+            onClick={() => onChange(label.id)}
+            aria-pressed={selected}
+            className="inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] transition-all"
+            style={{
+              background: selected ? `${color}33` : `${color}14`,
+              borderColor: selected ? `${color}CC` : `${color}55`,
+              color,
+              boxShadow: selected ? `0 0 0 1px ${color}44 inset` : "none",
+            }}
+          >
+            <span className="h-2 w-2 rounded-full" style={{ background: color }} />
+            {label.name}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 export function NewslettersListPage({ onOpen, onOpenAdmin }) {
   const { profile, signOut } = useAuth();
   const addToast = useToast();
@@ -1240,52 +1282,60 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                   : `${filteredNewsletters.length} / ${newsletters.length} newsletter${newsletters.length > 1 ? "s" : ""}`}
             </p>
           </div>
-          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+          <div className="flex w-full flex-wrap justify-start gap-2 sm:w-auto sm:justify-end">
             {profile?.is_admin && (
+              <Tooltip label={showArchived ? "Voir les campagnes actives" : "Voir les campagnes archivées"}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLabelPickerOpen(null);
+                    setShowArchived((value) => !value);
+                  }}
+                  disabled={loading}
+                  aria-label={showArchived ? "Voir les campagnes actives" : "Voir les campagnes archivées"}
+                  className={`inline-flex h-11 w-11 items-center justify-center rounded-full border transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+                    showArchived
+                      ? "border-d-green/60 text-d-green hover:bg-d-green/10"
+                      : "border-line2 text-d-fg2 hover:bg-d-panel2"
+                  }`}
+                >
+                  {showArchived ? <FileText size={17} /> : <Archive size={17} />}
+                </button>
+              </Tooltip>
+            )}
+            <Tooltip label="Assistant Gemini">
               <button
                 type="button"
-                onClick={() => {
-                  setLabelPickerOpen(null);
-                  setShowArchived((value) => !value);
-                }}
-                disabled={loading}
-                className={`flex w-full items-center justify-center gap-2 rounded-full border px-5 py-2.5 text-[12px] font-semibold uppercase tracking-[0.18em] transition-colors disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto ${
-                  showArchived
-                    ? "border-d-green/60 text-d-green hover:bg-d-green/10"
-                    : "border-line2 text-d-fg2 hover:bg-d-panel2"
-                }`}
+                onClick={() => openMarkdownImportSource("gemini")}
+                disabled={showArchived || importingMarkdown || creating || generatingCrmBrief || generatingMarkdownBrief || generatingBatchMails}
+                aria-label="Assistant Gemini"
+                className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-d-pink/60 text-d-pink transition-colors hover:bg-d-pink/10 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {showArchived ? <FileText size={14} /> : <Archive size={14} />}
-                {showArchived ? "Voir actives" : "Archivées"}
+                {generatingCrmBrief || generatingMarkdownBrief || generatingBatchMails ? <Loader2 size={17} className="animate-spin" /> : <Sparkles size={17} />}
               </button>
-            )}
-            <button
-              type="button"
-              onClick={() => openMarkdownImportSource("gemini")}
-              disabled={showArchived || importingMarkdown || creating || generatingCrmBrief || generatingMarkdownBrief || generatingBatchMails}
-              className="flex w-full items-center justify-center gap-2 rounded-full border border-d-pink/60 px-5 py-2.5 text-[12px] font-semibold uppercase tracking-[0.18em] text-d-pink transition-colors hover:bg-d-pink/10 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
-            >
-              {generatingCrmBrief || generatingMarkdownBrief || generatingBatchMails ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
-              Assistant Gemini
-            </button>
-            <button
-              type="button"
-              onClick={() => openMarkdownImportSource("markdown")}
-              disabled={showArchived || importingMarkdown || creating || generatingCrmBrief || generatingMarkdownBrief || generatingBatchMails}
-              className="flex w-full items-center justify-center gap-2 rounded-full border border-line2 px-5 py-2.5 text-[12px] font-semibold uppercase tracking-[0.18em] text-d-fg2 transition-colors hover:bg-d-panel2 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
-            >
-              {importingMarkdown ? <Loader2 size={14} className="animate-spin" /> : <FileUp size={14} />}
-              Importer Markdown
-            </button>
-            <button
-              onClick={() => setCreateChoiceOpen(true)}
-              disabled={showArchived || creating || importingMarkdown}
-              className="flex w-full items-center justify-center gap-2 rounded-full px-5 py-2.5 text-[12px] uppercase tracking-[0.18em] font-semibold transition-colors disabled:opacity-50 sm:w-auto"
-              style={{ background: "#FFFFFF", color: "#15151A" }}
-            >
-              <Plus size={14} />
-              Nouveau Template
-            </button>
+            </Tooltip>
+            <Tooltip label="Importer Markdown">
+              <button
+                type="button"
+                onClick={() => openMarkdownImportSource("markdown")}
+                disabled={showArchived || importingMarkdown || creating || generatingCrmBrief || generatingMarkdownBrief || generatingBatchMails}
+                aria-label="Importer Markdown"
+                className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-line2 text-d-fg2 transition-colors hover:bg-d-panel2 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {importingMarkdown ? <Loader2 size={17} className="animate-spin" /> : <FileUp size={17} />}
+              </button>
+            </Tooltip>
+            <Tooltip label="Nouveau Template">
+              <button
+                onClick={() => setCreateChoiceOpen(true)}
+                disabled={showArchived || creating || importingMarkdown}
+                aria-label="Nouveau Template"
+                className="inline-flex h-11 w-11 items-center justify-center rounded-full font-semibold transition-colors disabled:opacity-50"
+                style={{ background: "#FFFFFF", color: "#15151A" }}
+              >
+                <Plus size={17} />
+              </button>
+            </Tooltip>
           </div>
         </div>
 
@@ -1311,22 +1361,44 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                   </button>
                 )}
               </div>
-              <div className="relative">
-                <ArrowUpDown size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-d-fg4 pointer-events-none" />
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="pl-8 pr-4 py-2.5 bg-d-panel border border-line rounded-xl text-sm text-d-fg focus:outline-none focus:border-line2 transition-colors appearance-none cursor-pointer"
-                >
-                  <option value="updated_desc">Plus récent</option>
-                  <option value="updated_asc">Plus ancien</option>
-                  <option value="title_asc">Titre A → Z</option>
-                  <option value="title_desc">Titre Z → A</option>
-                </select>
+              <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-shrink-0">
+                <div className="relative">
+                  <ArrowUpDown size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-d-fg4 pointer-events-none" />
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    className="w-full rounded-xl border border-line bg-d-panel py-2.5 pl-8 pr-4 text-sm text-d-fg transition-colors cursor-pointer appearance-none focus:border-line2 focus:outline-none sm:w-auto"
+                  >
+                    <option value="updated_desc">Plus récent</option>
+                    <option value="updated_asc">Plus ancien</option>
+                    <option value="title_asc">Titre A → Z</option>
+                    <option value="title_desc">Titre Z → A</option>
+                  </select>
+                </div>
+                {labels.length > 0 && (
+                  <div className="relative sm:hidden">
+                    <Tag size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-d-fg4 pointer-events-none" />
+                    <select
+                      value={labelFilter.length > 1 ? "__multiple" : labelFilter[0] || ""}
+                      onChange={(event) =>
+                        setLabelFilter(event.target.value && event.target.value !== "__multiple" ? [event.target.value] : [])
+                      }
+                      className="w-full rounded-xl border border-line bg-d-panel py-2.5 pl-8 pr-4 text-sm text-d-fg transition-colors cursor-pointer appearance-none focus:border-line2 focus:outline-none"
+                    >
+                      {labelFilter.length > 1 && <option value="__multiple">Plusieurs labels</option>}
+                      <option value="">Tous labels</option>
+                      {labels.map((label) => (
+                        <option key={label.id} value={label.id}>
+                          {label.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
               </div>
             </div>
             {labels.length > 0 && (
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="hidden flex-wrap items-center gap-2 sm:flex">
                 <span className="text-[10px] uppercase tracking-[0.18em] text-d-fg4 font-medium flex-shrink-0">Labels :</span>
                 {labels.map((label) => {
                   const active = labelFilter.includes(label.id);
@@ -1904,25 +1976,18 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
               </div>
               {markdownImportDraft.sourceMode === "gemini" && labels.length > 0 && (
                 <div className="rounded-xl border border-line bg-d-panel2 px-4 py-3">
-                  <label className="block text-[10px] font-semibold uppercase tracking-[0.16em] text-d-fg4">
+                  <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-d-fg4">
                     Label
-                  </label>
-                  <select
+                  </div>
+                  <LabelPickerPills
+                    labels={labels}
                     value={markdownImportDraft.labelId || ""}
-                    onChange={(event) =>
+                    onChange={(labelId) =>
                       setMarkdownImportDraft((draft) =>
-                        draft ? { ...draft, labelId: event.target.value } : draft
+                        draft ? { ...draft, labelId } : draft
                       )
                     }
-                    className="mt-2 w-full rounded-lg border border-line bg-d-panel px-3 py-2 text-xs font-semibold text-d-fg2 outline-none transition-colors focus:border-d-pink/60"
-                  >
-                    <option value="">Aucun label</option>
-                    {labels.map((label) => (
-                      <option key={label.id} value={label.id}>
-                        {label.name}
-                      </option>
-                    ))}
-                  </select>
+                  />
                 </div>
               )}
               {markdownImportDraft.imported.warnings.length > 0 && (
@@ -2072,21 +2137,14 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                 </div>
                 {labels.length > 0 && (
                   <div className="mt-3 rounded-lg border border-line bg-d-panel px-3 py-3">
-                    <label className="block text-[10px] font-semibold uppercase tracking-[0.14em] text-d-fg4">
+                    <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-d-fg4">
                       Label
-                    </label>
-                    <select
+                    </div>
+                    <LabelPickerPills
+                      labels={labels}
                       value={markdownAssistantLabelId}
-                      onChange={(event) => setMarkdownAssistantLabelId(event.target.value)}
-                      className="mt-2 w-full rounded-lg border border-line bg-d-panel2 px-3 py-2 text-xs font-semibold text-d-fg2 outline-none transition-colors focus:border-d-pink/60"
-                    >
-                      <option value="">Aucun label</option>
-                      {labels.map((label) => (
-                        <option key={label.id} value={label.id}>
-                          {label.name}
-                        </option>
-                      ))}
-                    </select>
+                      onChange={setMarkdownAssistantLabelId}
+                    />
                   </div>
                 )}
                 <label className="mt-3 grid cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-lg border border-line bg-d-panel px-3 py-3">
