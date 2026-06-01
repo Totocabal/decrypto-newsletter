@@ -1,4 +1,5 @@
 const STORAGE_BUCKET = "newsletter-previews";
+const PREVIEW_VALIDITY_MONTHS = 3;
 
 function json(res, status, body) {
   res.statusCode = status;
@@ -31,6 +32,72 @@ function escapeHtml(value = "") {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
+}
+
+function getPreviewCreatedAt(path) {
+  const filename = String(path || "").split("/").pop() || "";
+  const match = filename.match(/^(\d{12,})-/);
+  if (!match) return null;
+  const timestamp = Number(match[1]);
+  if (!Number.isFinite(timestamp)) return null;
+  const date = new Date(timestamp);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function getPreviewExpiresAt(path) {
+  const createdAt = getPreviewCreatedAt(path);
+  if (!createdAt) return null;
+  const expiresAt = new Date(createdAt);
+  expiresAt.setMonth(expiresAt.getMonth() + PREVIEW_VALIDITY_MONTHS);
+  return expiresAt;
+}
+
+function isPreviewExpired(path) {
+  const expiresAt = getPreviewExpiresAt(path);
+  return Boolean(expiresAt && Date.now() > expiresAt.getTime());
+}
+
+function expiredPreviewPage(path) {
+  const expiresAt = getPreviewExpiresAt(path);
+  const formatted = expiresAt
+    ? expiresAt.toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" })
+    : "sa date d'expiration";
+  return `<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Preview expirée</title>
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: #0b0b0f;
+      color: #f5f5f7;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    main {
+      width: min(520px, calc(100vw - 32px));
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 18px;
+      background: #1a1a22;
+      padding: 28px;
+      box-shadow: 0 24px 70px rgba(0,0,0,0.42);
+    }
+    h1 { margin: 0 0 10px; font-size: 20px; }
+    p { margin: 0; color: #a4a6b1; line-height: 1.55; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Preview expirée</h1>
+    <p>Ce lien de preview était valable 3 mois et a expiré le ${escapeHtml(formatted)}. Publiez une nouvelle preview depuis l'éditeur pour partager un nouveau lien.</p>
+  </main>
+</body>
+</html>`;
 }
 
 function cleanInlineText(value, maxLength) {
@@ -86,6 +153,10 @@ async function readJsonBody(req) {
 }
 
 async function handleComments(req, res, previewPath) {
+  if (isPreviewExpired(previewPath)) {
+    return json(res, 410, { error: "Cette preview a expiré." });
+  }
+
   if (req.method === "GET") {
     const query = new URLSearchParams({
       select: "id,author_name,body,area,created_at",
@@ -129,7 +200,26 @@ async function handleComments(req, res, previewPath) {
     return json(res, 201, { comment: Array.isArray(payload) ? payload[0] : payload });
   }
 
-  res.setHeader("Allow", "GET, POST");
+  if (req.method === "DELETE") {
+    const id = cleanInlineText(req.query.id, 80);
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
+      return json(res, 400, { error: "Commentaire invalide" });
+    }
+    const query = new URLSearchParams({
+      id: `eq.${id}`,
+      preview_path: `eq.${previewPath}`,
+    });
+    const response = await supabaseRest(`preview_comments?${query.toString()}`, {
+      method: "DELETE",
+    });
+    if (!response.ok) {
+      const payload = await response.json().catch(() => null);
+      return json(res, response.status, { error: payload?.message || "Suppression impossible" });
+    }
+    return json(res, 200, { ok: true });
+  }
+
+  res.setHeader("Allow", "GET, POST, DELETE");
   return json(res, 405, { error: "Méthode non autorisée" });
 }
 
@@ -284,8 +374,26 @@ function buildReviewPage({ html, path }) {
       color: var(--faint);
       font-size: 11px;
     }
+    .comment-tools {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    .delete-comment {
+      border: 0;
+      background: transparent;
+      color: var(--faint);
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0;
+      padding: 0;
+      text-transform: none;
+    }
+    .delete-comment:hover { color: #ff8466; }
     .comment-author {
-      color: var(--cyan);
+      color: var(--author-color, var(--cyan));
       font-weight: 700;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -311,6 +419,15 @@ function buildReviewPage({ html, path }) {
       font-size: 11px;
       font-weight: 700;
       background: rgba(255,0,170,0.10);
+    }
+    .author-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      margin-right: 6px;
+      border-radius: 999px;
+      background: var(--author-color, var(--cyan));
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--author-color, var(--cyan)) 18%, transparent);
     }
     .empty {
       border: 1px dashed var(--line);
@@ -518,6 +635,28 @@ function buildReviewPage({ html, path }) {
         .replace(/'/g, "&#39;");
     }
 
+    const authorPalette = [
+      "#03FFCF",
+      "#FF00AA",
+      "#FF8B28",
+      "#00C2FF",
+      "#B36BFF",
+      "#D7FF57",
+      "#FF5E7A",
+      "#62E36F",
+      "#FFD166",
+      "#8EA7FF"
+    ];
+
+    function authorColor(name) {
+      const text = String(name || "Anonyme").trim().toLowerCase();
+      let hash = 0;
+      for (let i = 0; i < text.length; i++) {
+        hash = ((hash << 5) - hash + text.charCodeAt(i)) | 0;
+      }
+      return authorPalette[Math.abs(hash) % authorPalette.length];
+    }
+
     function resizeFrameToContent() {
       try {
         const doc = previewFrame.contentDocument;
@@ -586,6 +725,25 @@ function buildReviewPage({ html, path }) {
           focusComment(button.dataset.commentId);
         });
       });
+    }
+
+    async function deleteComment(commentId) {
+      if (!commentId) return;
+      const ok = window.confirm("Supprimer ce commentaire ?");
+      if (!ok) return;
+      setStatus("Suppression...");
+      try {
+        const response = await fetch("/api/preview-html?comments=1&path=" + encodeURIComponent(PREVIEW_PATH) + "&id=" + encodeURIComponent(commentId), {
+          method: "DELETE",
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(payload.error || "Suppression impossible");
+        if (activeAreaId === commentId) activeAreaId = null;
+        setStatus("Commentaire supprimé.");
+        await loadComments();
+      } catch (error) {
+        setStatus(error.message || "Suppression impossible", true);
+      }
     }
 
     function focusComment(commentId) {
@@ -661,10 +819,13 @@ function buildReviewPage({ html, path }) {
         return;
       }
       commentsList.innerHTML = comments.map((comment) => \`
-        <article class="comment \${comment.area ? "has-area" : ""} \${activeAreaId === comment.id ? "is-active" : ""}" data-comment-id="\${escapeText(comment.id)}">
+        <article class="comment \${comment.area ? "has-area" : ""} \${activeAreaId === comment.id ? "is-active" : ""}" data-comment-id="\${escapeText(comment.id)}" style="--author-color: \${authorColor(comment.author_name)};">
           <div class="comment-meta">
-            <span class="comment-author">\${escapeText(comment.author_name || "Anonyme")}</span>
-            <span>\${escapeText(formatDate(comment.created_at))}</span>
+            <span class="comment-author"><span class="author-dot"></span>\${escapeText(comment.author_name || "Anonyme")}</span>
+            <span class="comment-tools">
+              <span>\${escapeText(formatDate(comment.created_at))}</span>
+              <button type="button" class="delete-comment" data-delete-id="\${escapeText(comment.id)}">Supprimer</button>
+            </span>
           </div>
           <p class="comment-body">\${escapeText(comment.body || "")}</p>
           \${comment.area ? '<span class="area-link">Zone liée #' + (comments.indexOf(comment) + 1) + '</span>' : ""}
@@ -672,6 +833,12 @@ function buildReviewPage({ html, path }) {
       \`).join("");
       commentsList.querySelectorAll(".comment.has-area").forEach((item) => {
         item.addEventListener("click", () => focusComment(item.dataset.commentId));
+      });
+      commentsList.querySelectorAll("[data-delete-id]").forEach((button) => {
+        button.addEventListener("click", (event) => {
+          event.stopPropagation();
+          deleteComment(button.dataset.deleteId);
+        });
       });
       commentsList.scrollTop = commentsList.scrollHeight;
     }
@@ -738,6 +905,16 @@ export default async function handler(req, res) {
   if (req.method !== "GET") {
     res.setHeader("Allow", "GET");
     return json(res, 405, { error: "Méthode non autorisée" });
+  }
+
+  if (isPreviewExpired(path)) {
+    const page = expiredPreviewPage(path);
+    res.statusCode = 410;
+    res.setHeader("Content-Type", "text/html; charset=utf-8");
+    res.setHeader("Cache-Control", "public, max-age=300");
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    res.end(page);
+    return;
   }
 
   const supabaseUrl = getSupabaseUrl();

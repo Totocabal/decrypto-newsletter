@@ -76,7 +76,7 @@ create index if not exists preview_comments_path_created_at_idx
 
 alter table public.preview_comments enable row level security;
 
-grant select, insert on public.preview_comments to anon, authenticated;
+grant select, insert, delete on public.preview_comments to anon, authenticated;
 grant usage on schema public to anon, authenticated;
 
 drop policy if exists "preview_comments_public_read" on public.preview_comments;
@@ -90,3 +90,9 @@ create policy "preview_comments_public_insert"
   on public.preview_comments for insert
   to anon, authenticated
   with check (true);
+
+drop policy if exists "preview_comments_public_delete" on public.preview_comments;
+create policy "preview_comments_public_delete"
+  on public.preview_comments for delete
+  to anon, authenticated
+  using (true);

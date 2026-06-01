@@ -718,7 +718,7 @@ export function EditorPage({ newsletterId, onBack }) {
                 Preview HTML hébergée
               </div>
               <div className="mt-0.5 text-[11px] text-d-fg4">
-                Le HTML est stocké sur Supabase et affiché via l'app.
+                Le HTML est stocké sur Supabase et affiché via l'app. Lien valable 3 mois.
               </div>
             </div>
             <button
