@@ -528,6 +528,59 @@ function buildReviewPage({ html, path }) {
       letter-spacing: 0;
       text-transform: none;
     }
+    .confirm-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      background: rgba(0,0,0,0.68);
+      backdrop-filter: blur(4px);
+    }
+    .confirm-backdrop.visible { display: flex; }
+    .confirm-box {
+      width: min(520px, 100%);
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 22px;
+      background: var(--panel);
+      padding: 28px;
+      box-shadow: 0 28px 80px rgba(0,0,0,0.55);
+    }
+    .confirm-box h2 {
+      margin: 0 0 12px;
+      font-size: 24px;
+      line-height: 1.2;
+    }
+    .confirm-box p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.5;
+    }
+    .confirm-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 28px;
+    }
+    .confirm-actions button {
+      min-height: 52px;
+      border-radius: 16px;
+      font-size: 14px;
+      letter-spacing: 0;
+      text-transform: none;
+    }
+    .confirm-cancel {
+      border: 1px solid var(--line);
+      background: transparent;
+      color: var(--muted);
+    }
+    .confirm-danger {
+      background: var(--pink);
+      color: #fff;
+    }
     button:disabled {
       cursor: not-allowed;
       opacity: 0.5;
@@ -590,6 +643,16 @@ function buildReviewPage({ html, path }) {
       </form>
     </aside>
   </main>
+  <div id="delete-modal" class="confirm-backdrop" role="dialog" aria-modal="true" aria-labelledby="delete-title">
+    <div class="confirm-box">
+      <h2 id="delete-title">Supprimer le commentaire</h2>
+      <p>Cette action supprimera le commentaire et sa zone associée pour toutes les personnes qui consultent cette preview.</p>
+      <div class="confirm-actions">
+        <button id="delete-cancel" class="confirm-cancel" type="button">Annuler</button>
+        <button id="delete-confirm" class="confirm-danger" type="button">Supprimer</button>
+      </div>
+    </div>
+  </div>
   <script>
     const PREVIEW_HTML = ${htmlJson};
     const PREVIEW_PATH = ${pathJson};
@@ -611,6 +674,10 @@ function buildReviewPage({ html, path }) {
     let selectingArea = false;
     let dragStart = null;
     let draftAreaEl = null;
+    let pendingDeleteId = null;
+    const deleteModal = document.getElementById("delete-modal");
+    const deleteCancel = document.getElementById("delete-cancel");
+    const deleteConfirm = document.getElementById("delete-confirm");
 
     previewFrame.srcdoc = PREVIEW_HTML;
     authorInput.value = localStorage.getItem("decrypto-preview-comment-author") || "";
@@ -727,10 +794,19 @@ function buildReviewPage({ html, path }) {
       });
     }
 
-    async function deleteComment(commentId) {
+    function requestDeleteComment(commentId) {
       if (!commentId) return;
-      const ok = window.confirm("Supprimer ce commentaire ?");
-      if (!ok) return;
+      pendingDeleteId = commentId;
+      deleteModal.classList.add("visible");
+      deleteConfirm.focus();
+    }
+
+    function closeDeleteModal() {
+      pendingDeleteId = null;
+      deleteModal.classList.remove("visible");
+    }
+
+    async function deleteComment(commentId) {
       setStatus("Suppression...");
       try {
         const response = await fetch("/api/preview-html?comments=1&path=" + encodeURIComponent(PREVIEW_PATH) + "&id=" + encodeURIComponent(commentId), {
@@ -745,6 +821,21 @@ function buildReviewPage({ html, path }) {
         setStatus(error.message || "Suppression impossible", true);
       }
     }
+
+    deleteCancel.addEventListener("click", closeDeleteModal);
+    deleteModal.addEventListener("click", (event) => {
+      if (event.target === deleteModal) closeDeleteModal();
+    });
+    deleteConfirm.addEventListener("click", async () => {
+      const id = pendingDeleteId;
+      closeDeleteModal();
+      await deleteComment(id);
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && deleteModal.classList.contains("visible")) {
+        closeDeleteModal();
+      }
+    });
 
     function focusComment(commentId) {
       activeAreaId = commentId;
@@ -837,7 +928,7 @@ function buildReviewPage({ html, path }) {
       commentsList.querySelectorAll("[data-delete-id]").forEach((button) => {
         button.addEventListener("click", (event) => {
           event.stopPropagation();
-          deleteComment(button.dataset.deleteId);
+          requestDeleteComment(button.dataset.deleteId);
         });
       });
       commentsList.scrollTop = commentsList.scrollHeight;

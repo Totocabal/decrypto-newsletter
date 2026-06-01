@@ -14,6 +14,7 @@ import {
   Loader2,
   ExternalLink,
   BookMarked,
+  List,
   Send,
   X,
 } from "lucide-react";
@@ -29,6 +30,7 @@ export function Toolbar({
   onExportBraze,
   onSendPreview,
   onPublishPreview,
+  onOpenPreviewList,
   onSaveAsPreset,
   copied,
   saved,
@@ -143,7 +145,7 @@ export function Toolbar({
                   className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-line2 text-d-fg2 transition-colors hover:bg-d-panel2 disabled:cursor-not-allowed disabled:opacity-50 sm:h-auto sm:w-auto sm:gap-1.5 sm:px-3 sm:py-2 sm:text-[11px] sm:font-medium sm:uppercase sm:tracking-[0.14em]"
                 >
                   {sendingPreview ? <Loader2 size={12} className="animate-spin" /> : <Send size={12} />}
-                  <span className="hidden sm:inline">Preview</span>
+                  <span className="hidden sm:inline">Envoyer preview</span>
                 </button>
               </Tooltip>
             )}
@@ -163,7 +165,26 @@ export function Toolbar({
                   className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-line2 text-d-fg2 transition-colors hover:bg-d-panel2 disabled:cursor-not-allowed disabled:opacity-50 sm:h-auto sm:w-auto sm:gap-1.5 sm:px-3 sm:py-2 sm:text-[11px] sm:font-medium sm:uppercase sm:tracking-[0.14em]"
                 >
                   {publishingPreview ? <Loader2 size={12} className="animate-spin" /> : <ExternalLink size={12} />}
-                  <span className="hidden sm:inline">Lien HTML</span>
+                  <span className="hidden sm:inline">Preview HTML</span>
+                </button>
+              </Tooltip>
+            )}
+
+            {onOpenPreviewList && (
+              <Tooltip
+                className="flex-shrink-0"
+                side="bottom"
+                align="right"
+                label="Voir les previews HTML déjà publiées pour cette newsletter."
+              >
+                <button
+                  onClick={onOpenPreviewList}
+                  disabled={busy}
+                  aria-label="Liste des previews HTML"
+                  className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-line2 text-d-fg2 transition-colors hover:bg-d-panel2 disabled:cursor-not-allowed disabled:opacity-50 sm:h-auto sm:w-auto sm:gap-1.5 sm:px-3 sm:py-2 sm:text-[11px] sm:font-medium sm:uppercase sm:tracking-[0.14em]"
+                >
+                  <List size={12} />
+                  <span className="hidden sm:inline">Previews</span>
                 </button>
               </Tooltip>
             )}

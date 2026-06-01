@@ -21,7 +21,7 @@ import { copyHtmlToClipboard } from "../utils/exportImport.js";
 import { exportAssetPack, exportBrazeHtml } from "../utils/exportAssetPack.js";
 import { useLabels, useNewsletterLabels } from "../lib/useLabels.js";
 import { createTemplatePreset } from "../lib/templatePresets.js";
-import { publishHtmlPreview } from "../lib/previewHosting.js";
+import { listHtmlPreviews, publishHtmlPreview } from "../lib/previewHosting.js";
 
 export function EditorPage({ newsletterId, onBack }) {
   const { profile, user } = useAuth();
@@ -64,6 +64,9 @@ export function EditorPage({ newsletterId, onBack }) {
   const [sendingPreview, setSendingPreview] = useState(false);
   const [publishingPreview, setPublishingPreview] = useState(false);
   const [hostedPreview, setHostedPreview] = useState(null);
+  const [previewListOpen, setPreviewListOpen] = useState(false);
+  const [previewListLoading, setPreviewListLoading] = useState(false);
+  const [previewList, setPreviewList] = useState([]);
   const [presetModalOpen, setPresetModalOpen] = useState(false);
   const [presetName, setPresetName] = useState("");
   const [savingPreset, setSavingPreset] = useState(false);
@@ -316,6 +319,19 @@ export function EditorPage({ newsletterId, onBack }) {
     }
   };
 
+  const handleOpenPreviewList = async () => {
+    setPreviewListOpen(true);
+    setPreviewListLoading(true);
+    try {
+      const items = await listHtmlPreviews({ newsletterId });
+      setPreviewList(items);
+    } catch (e) {
+      addToast("Liste des previews impossible : " + (e.message || e), "error");
+    } finally {
+      setPreviewListLoading(false);
+    }
+  };
+
   const handleSendPreview = async () => {
     if (!state || !html) return;
     setSendingPreview(true);
@@ -534,6 +550,7 @@ export function EditorPage({ newsletterId, onBack }) {
         onExportBraze={profile?.is_admin ? handleExportBraze : null}
         onSendPreview={handleOpenSendPreview}
         onPublishPreview={handlePublishPreview}
+        onOpenPreviewList={handleOpenPreviewList}
         onSaveAsPreset={handleOpenPresetModal}
         copied={copied}
         saved={savedFlash}
@@ -754,6 +771,83 @@ export function EditorPage({ newsletterId, onBack }) {
               <ExternalLink size={12} />
               Ouvrir
             </a>
+          </div>
+        </div>
+      )}
+      {previewListOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: "rgba(0,0,0,0.6)" }}
+          onClick={() => setPreviewListOpen(false)}
+        >
+          <div
+            className="w-full max-w-2xl rounded-2xl border border-line bg-d-panel p-6 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-5 flex items-start justify-between gap-4">
+              <div>
+                <h3 className="text-sm font-semibold text-d-fg" style={{ fontFamily: "'Sora', sans-serif" }}>
+                  Previews HTML disponibles
+                </h3>
+                <p className="mt-1 text-xs leading-relaxed text-d-fg4">
+                  Liens publiés pour cette newsletter. Chaque lien expire 3 mois après sa création.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPreviewListOpen(false)}
+                className="text-d-fg4 transition-colors hover:text-d-fg2"
+                aria-label="Fermer"
+              >
+                <X size={16} />
+              </button>
+            </div>
+            {previewListLoading ? (
+              <div className="flex items-center gap-2 rounded-xl border border-line bg-d-panel2 px-4 py-5 text-xs text-d-fg3">
+                <Loader2 size={13} className="animate-spin" />
+                Chargement des previews...
+              </div>
+            ) : previewList.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-line px-4 py-6 text-center text-sm text-d-fg4">
+                Aucune preview HTML publiée pour cette newsletter.
+              </div>
+            ) : (
+              <div className="max-h-[55vh] space-y-2 overflow-y-auto pr-1">
+                {previewList.map((item) => (
+                  <div key={item.path} className="grid gap-3 rounded-xl border border-line bg-d-panel2 px-4 py-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+                    <div className="min-w-0">
+                      <div className="truncate text-sm font-semibold text-d-fg">{item.label}</div>
+                      <div className="mt-1 text-[11px] text-d-fg4">
+                        Créée le {item.createdAt.toLocaleString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                        {" · "}Expire le {item.expiresAt.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" })}
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap gap-2 sm:justify-end">
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          await navigator.clipboard.writeText(item.url);
+                          addToast("Lien copié.", "success");
+                        }}
+                        className="inline-flex items-center justify-center gap-2 rounded-xl border border-line px-3 py-2 text-xs font-semibold text-d-fg3 transition-colors hover:border-line2 hover:text-d-fg"
+                      >
+                        <Copy size={12} />
+                        Copier
+                      </button>
+                      <a
+                        href={item.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center justify-center gap-2 rounded-xl bg-d-pink px-3 py-2 text-xs font-semibold text-white transition-opacity hover:opacity-90"
+                      >
+                        <ExternalLink size={12} />
+                        Ouvrir
+                      </a>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}

@@ -152,8 +152,9 @@ Sous la barre principale, collée en haut de l'écran.
 | **Aperçu / Code HTML** | Switche le panneau droit entre l'aperçu visuel et le code HTML brut |
 | **Sauvegarder** | Crée une version numérotée avec commentaire optionnel |
 | **Preset** 🔐 | Enregistre la disposition actuelle comme preset réutilisable |
-| **Preview** | Envoie l'aperçu actuel par email |
-| **Lien HTML** | Publie l'aperçu actuel sur Supabase Storage et copie l'URL publique |
+| **Envoyer preview** | Envoie l'aperçu actuel par email |
+| **Preview HTML** | Publie l'aperçu actuel sur Supabase Storage et copie l'URL publique |
+| **Previews** | Liste les previews HTML déjà publiées pour cette newsletter |
 | **Exporter** | Ouvre le menu d'export (ZIP ou Braze) |
 
 > L'auto-save est actif en permanence (debounce 2 s). Le bouton **Sauvegarder** crée un point de restauration nommé — c'est différent.
@@ -571,7 +572,7 @@ Switcher sur **Code HTML** dans la toolbar affiche le code source complet de l'e
 
 ### Héberger une preview HTML
 
-Bouton **Lien HTML** dans la toolbar :
+Bouton **Preview HTML** dans la toolbar :
 
 1. Publie le HTML actuellement affiché dans l'aperçu vers le bucket Supabase `newsletter-previews`
 2. Copie automatiquement une URL de lecture de l'app quand le navigateur l'autorise
