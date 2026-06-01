@@ -2,7 +2,7 @@
 // NewslettersListPage — page d'accueil avec liste de toutes les newsletters
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import {
   Plus,
   FileText,
@@ -287,12 +287,37 @@ function CrmVariantPreview({ content }) {
   return <div className="space-y-3">{blocks}</div>;
 }
 
+function useDropdownDismiss(open, onClose) {
+  const ref = useRef(null);
+
+  useEffect(() => {
+    if (!open) return undefined;
+
+    const handlePointerDown = (event) => {
+      if (ref.current && !ref.current.contains(event.target)) onClose();
+    };
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") onClose();
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [open, onClose]);
+
+  return ref;
+}
+
 function LabelDropdown({ labels, value, onChange }) {
   const [open, setOpen] = useState(false);
+  const rootRef = useDropdownDismiss(open, () => setOpen(false));
   const selected = labels.find((label) => label.id === value);
 
   return (
-    <div className="relative">
+    <div ref={rootRef} className="relative">
       <button
         type="button"
         onClick={() => setOpen((current) => !current)}
@@ -361,6 +386,7 @@ function LabelDropdown({ labels, value, onChange }) {
 
 function LabelFilterDropdown({ labels, value, onChange }) {
   const [open, setOpen] = useState(false);
+  const rootRef = useDropdownDismiss(open, () => setOpen(false));
   const selectedLabels = labels.filter((label) => value.includes(label.id));
   const firstSelected = selectedLabels[0];
   const labelText =
@@ -379,7 +405,7 @@ function LabelFilterDropdown({ labels, value, onChange }) {
   };
 
   return (
-    <div className="relative">
+    <div ref={rootRef} className="relative">
       <button
         type="button"
         onClick={() => setOpen((current) => !current)}
