@@ -359,6 +359,84 @@ function LabelDropdown({ labels, value, onChange }) {
   );
 }
 
+function LabelFilterDropdown({ labels, value, onChange }) {
+  const [open, setOpen] = useState(false);
+  const selectedLabels = labels.filter((label) => value.includes(label.id));
+  const firstSelected = selectedLabels[0];
+  const labelText =
+    selectedLabels.length === 0
+      ? "Tous labels"
+      : selectedLabels.length === 1
+        ? firstSelected.name
+        : `${selectedLabels.length} labels`;
+
+  const toggleLabel = (labelId) => {
+    onChange(
+      value.includes(labelId)
+        ? value.filter((id) => id !== labelId)
+        : [...value, labelId]
+    );
+  };
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((current) => !current)}
+        className="flex w-full items-center justify-between gap-3 rounded-xl border border-line bg-d-panel px-3 py-2.5 text-left text-sm text-d-fg transition-colors hover:border-line2 focus:border-line2 focus:outline-none sm:min-w-[180px]"
+      >
+        <span className="flex min-w-0 items-center gap-2">
+          <Tag size={13} className="flex-shrink-0 text-d-fg4" />
+          <span
+            className="truncate text-[11px] font-semibold uppercase tracking-[0.14em]"
+            style={{ color: firstSelected?.color || "rgb(var(--d-fg3))" }}
+          >
+            {labelText}
+          </span>
+        </span>
+        <ChevronRight size={14} className={`flex-shrink-0 text-d-fg4 transition-transform ${open ? "rotate-90" : ""}`} />
+      </button>
+
+      {open && (
+        <div className="absolute left-0 top-full z-50 mt-2 w-full min-w-[220px] rounded-xl border border-line bg-d-panel shadow-2xl">
+          <button
+            type="button"
+            onClick={() => onChange([])}
+            className="flex w-full items-center gap-3 rounded-t-xl px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.16em] text-d-fg3 transition-colors hover:bg-d-panel2"
+          >
+            <span className={`h-2.5 w-2.5 rounded-full ${value.length === 0 ? "bg-d-pink" : "bg-d-fg4"}`} />
+            Tous labels
+          </button>
+          {labels.map((label, index) => {
+            const selected = value.includes(label.id);
+            const color = label.color || "#FF00AA";
+            return (
+              <button
+                key={label.id}
+                type="button"
+                onClick={() => toggleLabel(label.id)}
+                className={`flex w-full items-center gap-3 px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.16em] transition-colors hover:bg-d-panel2 ${
+                  index === labels.length - 1 ? "rounded-b-xl" : ""
+                }`}
+                style={{ color }}
+              >
+                <span
+                  className="h-2.5 w-2.5 rounded-full border-2"
+                  style={{
+                    borderColor: color,
+                    background: selected ? color : "transparent",
+                  }}
+                />
+                {label.name}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function NewslettersListPage({ onOpen, onOpenAdmin }) {
   const { profile, signOut } = useAuth();
   const addToast = useToast();
@@ -1389,7 +1467,14 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                   </button>
                 )}
               </div>
-              <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-shrink-0">
+              <div className={`grid gap-3 sm:flex sm:flex-shrink-0 ${labels.length > 0 ? "grid-cols-2" : "grid-cols-1"}`}>
+                {labels.length > 0 && (
+                  <LabelFilterDropdown
+                    labels={labels}
+                    value={labelFilter}
+                    onChange={setLabelFilter}
+                  />
+                )}
                 <div className="relative">
                   <ArrowUpDown size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-d-fg4 pointer-events-none" />
                   <select
@@ -1403,63 +1488,8 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                     <option value="title_desc">Titre Z → A</option>
                   </select>
                 </div>
-                {labels.length > 0 && (
-                  <div className="relative sm:hidden">
-                    <Tag size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-d-fg4 pointer-events-none" />
-                    <select
-                      value={labelFilter.length > 1 ? "__multiple" : labelFilter[0] || ""}
-                      onChange={(event) =>
-                        setLabelFilter(event.target.value && event.target.value !== "__multiple" ? [event.target.value] : [])
-                      }
-                      className="w-full rounded-xl border border-line bg-d-panel py-2.5 pl-8 pr-4 text-sm text-d-fg transition-colors cursor-pointer appearance-none focus:border-line2 focus:outline-none"
-                    >
-                      {labelFilter.length > 1 && <option value="__multiple">Plusieurs labels</option>}
-                      <option value="">Tous labels</option>
-                      {labels.map((label) => (
-                        <option key={label.id} value={label.id}>
-                          {label.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
               </div>
             </div>
-            {labels.length > 0 && (
-              <div className="hidden flex-wrap items-center gap-2 sm:flex">
-                <span className="text-[10px] uppercase tracking-[0.18em] text-d-fg4 font-medium flex-shrink-0">Labels :</span>
-                {labels.map((label) => {
-                  const active = labelFilter.includes(label.id);
-                  return (
-                    <button
-                      key={label.id}
-                      onClick={() =>
-                        setLabelFilter((f) =>
-                          active ? f.filter((id) => id !== label.id) : [...f, label.id]
-                        )
-                      }
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-[0.12em] border transition-all"
-                      style={{
-                        background: active ? label.color + "33" : "transparent",
-                        borderColor: active ? label.color + "88" : label.color + "44",
-                        color: active ? label.color : label.color + "99",
-                      }}
-                    >
-                      <span className="h-1.5 w-1.5 rounded-full flex-shrink-0" style={{ background: label.color }} />
-                      {label.name}
-                    </button>
-                  );
-                })}
-                {labelFilter.length > 0 && (
-                  <button
-                    onClick={() => setLabelFilter([])}
-                    className="text-[10px] uppercase tracking-[0.18em] text-d-fg4 hover:text-d-fg2 transition-colors"
-                  >
-                    <X size={11} />
-                  </button>
-                )}
-              </div>
-            )}
             {!showArchived && selectableNewsletters.length > 0 && (
               <div className="flex flex-col gap-2 rounded-xl border border-line bg-d-panel px-3 py-3 sm:flex-row sm:items-center sm:justify-between">
                 <label className="flex cursor-pointer items-center gap-2 text-xs font-semibold text-d-fg3">
