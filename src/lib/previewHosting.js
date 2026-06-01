@@ -26,7 +26,9 @@ export async function publishHtmlPreview({ html, userId, newsletterId, title }) 
   if (!html) throw new Error("Aucun HTML à publier.");
   if (!userId) throw new Error("Session utilisateur introuvable.");
 
-  const file = new Blob([html], { type: "text/html" });
+  const file = new File([html], "preview.html", {
+    type: "text/html;charset=utf-8",
+  });
   if (file.size > MAX_HTML_SIZE_BYTES) {
     throw new Error("HTML trop volumineux pour une preview hébergée.");
   }
@@ -39,7 +41,7 @@ export async function publishHtmlPreview({ html, userId, newsletterId, title }) 
     .from(BUCKET)
     .upload(path, file, {
       cacheControl: "3600",
-      contentType: "text/html",
+      contentType: "text/html;charset=utf-8",
       upsert: false,
     });
 
