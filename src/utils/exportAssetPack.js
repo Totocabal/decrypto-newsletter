@@ -535,6 +535,9 @@ Newsletter générée le ${new Date().toLocaleString("fr-FR")}.
 
 function convertBrazeLiquidToHubL(html = "") {
   return String(html)
+    .replace(/\{\{\$\{set_user_to_unsubscribed_url\}\}\}/gi, "{{ unsubscribe_link }}")
+    .replace(/\{\{&dollar;\{set_user_to_unsubscribed_url\}\}\}/gi, "{{ unsubscribe_link }}")
+    .replace(/\{\{&#36;\{set_user_to_unsubscribed_url\}\}\}/gi, "{{ unsubscribe_link }}")
     .replace(
       /\{\{\s*\$?\{?first_name\}?\s*\|\s*default:\s*["']([^"']*)["']\s*\}\}/gi,
       '{{ contact.firstname|default("$1") }}'
