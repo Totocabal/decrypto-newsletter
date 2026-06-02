@@ -118,6 +118,13 @@ export function sanitizeRichText(text = "") {
   return out;
 }
 
+function trimTrailingListSpacing(html = "") {
+  return String(html).replace(
+    /(<li style=")margin:0 0 6px;([^"]*">(?:(?!<li style=)[\s\S])*?<\/li>)(\s*<\/(?:ul|ol)>)/g,
+    "$1margin:0;$2$3"
+  );
+}
+
 function toneColor(tone) {
   switch (tone) {
     case "positive": return EMAIL_THEME.positive;
@@ -1154,11 +1161,14 @@ function renderFocusItem(item, assetMode, isLastItem = false) {
               </tr>
             </table>`
       : "";
+    const bodyHtml = labelText
+      ? sanitizeRichText(item.body)
+      : trimTrailingListSpacing(sanitizeRichText(item.body));
     return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${calloutBg}" style="margin-bottom:${itemMarginBottom}; background-color:${calloutBg}; border:1px solid ${calloutBorder}; border-radius:12px; border-collapse:separate !important; border-spacing:0 !important; overflow:hidden;">
         <tr>
           <td bgcolor="${calloutBg}" style="padding:22px 24px; background-color:${calloutBg}; border-radius:12px;">
             ${headerHtml}
-            <div style="margin:0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:14px; line-height:1.6; color:${bodyColor};">${sanitizeRichText(item.body)}</div>
+            <div style="margin:0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:14px; line-height:1.6; color:${bodyColor};">${bodyHtml}</div>
             ${footer}
           </td>
         </tr>
