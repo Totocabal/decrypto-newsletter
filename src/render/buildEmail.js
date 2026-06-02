@@ -1142,15 +1142,22 @@ function renderFocusItem(item, assetMode, isLastItem = false) {
             : escapeHtml(footerText)
         }</p>`
       : "";
+    const labelText = String(item.label || "").trim();
+    const labelHtml = labelText
+      ? `<td valign="middle" style="font-family:${FONTS.body}; font-size:11px; letter-spacing:0.2em; text-transform:uppercase; font-weight:600; color:${calloutAccent};">${escapeHtml(labelText)}</td>`
+      : "";
+    const headerHtml = iconHtml || labelHtml
+      ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:12px;">
+              <tr>
+                ${iconHtml}
+                ${labelHtml}
+              </tr>
+            </table>`
+      : "";
     return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${calloutBg}" style="margin-bottom:${itemMarginBottom}; background-color:${calloutBg}; border:1px solid ${calloutBorder}; border-radius:12px; border-collapse:separate !important; border-spacing:0 !important; overflow:hidden;">
         <tr>
           <td bgcolor="${calloutBg}" style="padding:22px 24px; background-color:${calloutBg}; border-radius:12px;">
-            <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:12px;">
-              <tr>
-                ${iconHtml}
-                <td valign="middle" style="font-family:${FONTS.body}; font-size:11px; letter-spacing:0.2em; text-transform:uppercase; font-weight:600; color:${calloutAccent};">${escapeHtml(item.label || "Note de la rédac")}</td>
-              </tr>
-            </table>
+            ${headerHtml}
             <div style="margin:0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:14px; line-height:1.6; color:${bodyColor};">${sanitizeRichText(item.body)}</div>
             ${footer}
           </td>
