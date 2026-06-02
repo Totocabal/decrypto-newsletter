@@ -1146,7 +1146,7 @@ function renderFocusItem(item, assetMode, isLastItem = false) {
     const labelHtml = labelText
       ? `<td valign="middle" style="font-family:${FONTS.body}; font-size:11px; letter-spacing:0.2em; text-transform:uppercase; font-weight:600; color:${calloutAccent};">${escapeHtml(labelText)}</td>`
       : "";
-    const headerHtml = iconHtml || labelHtml
+    const headerHtml = labelText
       ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:12px;">
               <tr>
                 ${iconHtml}
