@@ -604,6 +604,15 @@ Bouton **Exporter → Export Braze** (admins uniquement) :
 3. Génération du HTML final avec les URLs CDN Braze définitives
 4. Téléchargement du fichier HTML Braze prêt à l'emploi
 
+### Exporter vers HubSpot
+
+Bouton **Exporter → Export HubSpot** :
+
+1. Génère un ZIP local sans appel API HubSpot
+2. Inclut `email.html`, `email.hubl` et le dossier `assets/`
+3. Convertit les variables Braze courantes vers HubL quand elles sont détectées
+4. Permet d'intégrer le template dans HubSpot Design Manager ou un workflow de template codé
+
 ### Enregistrer comme preset 🔐
 
 Depuis la toolbar (bouton 🔖 **Preset**) : sauvegarde la disposition ET le contenu des blocs actuels comme preset partagé avec l'équipe. Saisir un nom puis **Enregistrer**.

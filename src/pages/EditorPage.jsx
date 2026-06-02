@@ -18,7 +18,7 @@ import { useNewsletter } from "../lib/useNewsletter.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import { useToast, useConfirm, usePrompt } from "../components/Dialog.jsx";
 import { copyHtmlToClipboard } from "../utils/exportImport.js";
-import { exportAssetPack, exportBrazeHtml } from "../utils/exportAssetPack.js";
+import { exportAssetPack, exportBrazeHtml, exportHubSpotPack } from "../utils/exportAssetPack.js";
 import { useLabels, useNewsletterLabels } from "../lib/useLabels.js";
 import { createTemplatePreset } from "../lib/templatePresets.js";
 import { deleteHtmlPreview, listHtmlPreviews, publishHtmlPreview } from "../lib/previewHosting.js";
@@ -58,6 +58,7 @@ export function EditorPage({ newsletterId, onBack }) {
   const [savedFlash, setSavedFlash] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [exportingBraze, setExportingBraze] = useState(false);
+  const [exportingHubSpot, setExportingHubSpot] = useState(false);
   const [previewSendOpen, setPreviewSendOpen] = useState(false);
   const [previewRecipients, setPreviewRecipients] = useState("");
   const [previewSubject, setPreviewSubject] = useState("");
@@ -286,6 +287,27 @@ export function EditorPage({ newsletterId, onBack }) {
       addToast("Erreur à l'export Braze : " + (e.message || e));
     } finally {
       setExportingBraze(false);
+    }
+  };
+
+  const handleExportHubSpot = async () => {
+    if (!state) return;
+    setExportingHubSpot(true);
+    try {
+      const safe = (newsletter?.title || "newsletter")
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-");
+      const result = await exportHubSpotPack(state, `${safe}-hubspot.zip`);
+      addToast(
+        `Export HubSpot terminé : ${Object.keys(result.assets).length} asset(s) inclus.`,
+        "success"
+      );
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error("[export hubspot] erreur :", e);
+      addToast("Erreur à l'export HubSpot : " + (e.message || e));
+    } finally {
+      setExportingHubSpot(false);
     }
   };
 
@@ -578,6 +600,7 @@ export function EditorPage({ newsletterId, onBack }) {
         onCopy={handleCopy}
         onExportZip={handleExportZip}
         onExportBraze={profile?.is_admin ? handleExportBraze : null}
+        onExportHubSpot={handleExportHubSpot}
         onSendPreview={handleOpenSendPreview}
         onPublishPreview={handlePublishPreview}
         onOpenPreviewList={handleOpenPreviewList}
@@ -586,6 +609,7 @@ export function EditorPage({ newsletterId, onBack }) {
         saved={savedFlash}
         exporting={exporting}
         exportingBraze={exportingBraze}
+        exportingHubSpot={exportingHubSpot}
         sendingPreview={sendingPreview}
         publishingPreview={publishingPreview}
       />

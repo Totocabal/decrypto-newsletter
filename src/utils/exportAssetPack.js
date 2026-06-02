@@ -502,6 +502,53 @@ Upload les assets sur ton serveur, puis adapte les chemins comme ci-dessus.
 `;
 }
 
+function buildHubSpotReadme(state) {
+  return `# Décrypto · Export HubSpot
+
+Newsletter générée le ${new Date().toLocaleString("fr-FR")}.
+
+## Contenu du pack
+
+- \`email.html\` — HTML email standard avec chemins relatifs \`assets/...\`
+- \`email.hubl\` — variante HubL pour HubSpot Design Manager
+- \`assets/\` — visuels PNG référencés par les deux fichiers
+
+## Import dans HubSpot
+
+1. Upload les fichiers du dossier \`assets/\` dans HubSpot Files.
+2. Ouvre \`email.hubl\` dans HubSpot Design Manager ou dans ton workflow de template codé.
+3. Remplace les chemins \`assets/...\` par les URLs HubSpot Files, ou adapte-les avec \`{{ get_asset_url(...) }}\` si les assets sont gérés dans Design Tools.
+4. Vérifie l'aperçu email HubSpot avant envoi.
+
+## Variables HubL incluses
+
+- Désinscription : \`{{ unsubscribe_link }}\`
+- Prénom contact si détecté depuis une variable Braze : \`{{ contact.firstname|default("...") }}\`
+
+## Newsletter
+
+- **Numéro** : ${state.issue_number}
+- **Date** : ${state.issue_date}
+- **Nombre de sections** : ${(state.sections || []).length}
+`;
+}
+
+function convertBrazeLiquidToHubL(html = "") {
+  return String(html)
+    .replace(
+      /\{\{\s*\$?\{?first_name\}?\s*\|\s*default:\s*["']([^"']*)["']\s*\}\}/gi,
+      '{{ contact.firstname|default("$1") }}'
+    )
+    .replace(
+      /\{\{\s*\$?\{?first_name\}?\s*\}\}/gi,
+      "{{ contact.firstname }}"
+    )
+    .replace(
+      /\{\{\s*\$?\{?set_user_to_unsubscribed_url\}?\s*\}\}/gi,
+      "{{ unsubscribe_link }}"
+    );
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // API publique
 // ─────────────────────────────────────────────────────────────────────────────
@@ -533,7 +580,7 @@ export async function exportAssetPack(state, filename = "decrypto-export.zip") {
   downloadBlob(blob, filename);
 }
 
-export async function exportBrazeHtml(state, filename = "decrypto-braze.html", accessToken) {
+async function buildExternalHtmlPayload(state) {
   const { assets, focusImages } = await buildPngAssets(state);
   const stateForExport = buildExternalAssetState(state, focusImages, assets);
   const ctaGradientUrl = assets[GRADIENT_CTA_FILENAME] ? `assets/${GRADIENT_CTA_FILENAME}` : null;
@@ -556,6 +603,12 @@ export async function exportBrazeHtml(state, filename = "decrypto-braze.html", a
     })
   );
 
+  return { html, serializedAssets };
+}
+
+async function exportHostedAssetHtml(state, filename, accessToken) {
+  const { html, serializedAssets } = await buildExternalHtmlPayload(state);
+
   const resp = await fetch("/api/export-braze", {
     method: "POST",
     headers: {
@@ -571,7 +624,34 @@ export async function exportBrazeHtml(state, filename = "decrypto-braze.html", a
   }
 
   const assetUrlMap = payload.assets || {};
-  const brazeHtml = replaceGeneratedAssetUrls(html, assetUrlMap);
-  downloadText(brazeHtml, filename);
-  return { html: brazeHtml, assets: assetUrlMap };
+  const finalHtml = replaceGeneratedAssetUrls(html, assetUrlMap);
+  downloadText(finalHtml, filename);
+  return { html: finalHtml, assets: assetUrlMap };
+}
+
+export async function exportBrazeHtml(state, filename = "decrypto-braze.html", accessToken) {
+  return exportHostedAssetHtml(state, filename, accessToken);
+}
+
+export async function exportHubSpotPack(state, filename = "decrypto-hubspot.zip") {
+  const zip = new JSZip();
+  const { assets, focusImages } = await buildPngAssets(state);
+  const stateForExport = buildExternalAssetState(state, focusImages, assets);
+  const ctaGradientUrl = assets[GRADIENT_CTA_FILENAME] ? `assets/${GRADIENT_CTA_FILENAME}` : null;
+  const html = buildEmailHtml(stateForExport, { assetMode: "external", ctaGradientUrl });
+  const hubl = convertBrazeLiquidToHubL(html);
+
+  zip.file("email.html", html);
+  zip.file("email.hubl", hubl);
+
+  const assetsFolder = zip.folder("assets");
+  for (const [name, blob] of Object.entries(assets)) {
+    assetsFolder.file(name, blob);
+  }
+
+  zip.file("README-HUBSPOT.md", buildHubSpotReadme(state));
+
+  const blob = await zip.generateAsync({ type: "blob" });
+  downloadBlob(blob, filename);
+  return { html, hubl, assets };
 }

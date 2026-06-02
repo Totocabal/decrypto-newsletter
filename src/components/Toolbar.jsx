@@ -28,6 +28,7 @@ export function Toolbar({
   onCopy,
   onExportZip,
   onExportBraze,
+  onExportHubSpot,
   onSendPreview,
   onPublishPreview,
   onOpenPreviewList,
@@ -36,12 +37,13 @@ export function Toolbar({
   saved,
   exporting,
   exportingBraze,
+  exportingHubSpot,
   sendingPreview,
   publishingPreview,
 }) {
   const [exportModalOpen, setExportModalOpen] = useState(false);
   const [previewModalOpen, setPreviewModalOpen] = useState(false);
-  const busy = exporting || exportingBraze || sendingPreview || publishingPreview;
+  const busy = exporting || exportingBraze || exportingHubSpot || sendingPreview || publishingPreview;
 
   const handleExportZip = () => {
     setExportModalOpen(false);
@@ -51,6 +53,11 @@ export function Toolbar({
   const handleExportBraze = () => {
     setExportModalOpen(false);
     onExportBraze?.();
+  };
+
+  const handleExportHubSpot = () => {
+    setExportModalOpen(false);
+    onExportHubSpot?.();
   };
 
   const handleSendPreview = () => {
@@ -166,7 +173,7 @@ export function Toolbar({
             )}
 
             {/* Bouton Export unique */}
-            {(onExportZip || onExportBraze) && (
+            {(onExportZip || onExportBraze || onExportHubSpot) && (
               <button
                 onClick={() => setExportModalOpen(true)}
                 disabled={busy}
@@ -310,6 +317,21 @@ export function Toolbar({
                   <div className="min-w-0">
                     <div className="text-sm font-semibold text-d-fg">Export Braze</div>
                     <div className="mt-0.5 text-xs text-d-fg3">Upload les images dans Braze et génère le HTML avec les URLs finales.</div>
+                  </div>
+                </button>
+              )}
+
+              {onExportHubSpot && (
+                <button
+                  onClick={handleExportHubSpot}
+                  className="flex w-full items-start gap-4 rounded-xl border border-line bg-d-panel2 px-4 py-4 text-left transition-colors hover:border-line2 hover:bg-d-panel3"
+                >
+                  <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg" style={{ background: "rgba(3,255,207,0.14)" }}>
+                    <UploadCloud size={16} style={{ color: "#03FFCF" }} />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-sm font-semibold text-d-fg">Export HubSpot</div>
+                    <div className="mt-0.5 text-xs text-d-fg3">Génère un ZIP avec HTML, HubL et assets pour HubSpot.</div>
                   </div>
                 </button>
               )}
