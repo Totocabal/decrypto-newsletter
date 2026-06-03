@@ -1786,8 +1786,18 @@ function focusItemLabel(type) {
   return "CTA";
 }
 
+function decodePreviewEntities(value = "") {
+  return String(value)
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;|&#x27;|&apos;/gi, "'");
+}
+
 function focusItemSummary(item) {
-  if (item.type === "text") return String(item.body || "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim() || "Corps vide";
+  if (item.type === "text") return decodePreviewEntities(String(item.body || "").replace(/<[^>]*>/g, " ")).replace(/\s+/g, " ").trim() || "Corps vide";
   if (item.type === "image") return item.image_alt || item.image_path || (item.image_url ? "Image sélectionnée" : "Aucune image");
   if (item.type === "callout") return item.label || "Encadré sans libellé";
   if (item.type === "spacer") return `${Number.isFinite(Number(item.height)) ? Number(item.height) : 24}px`;
