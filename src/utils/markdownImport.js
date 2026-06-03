@@ -8,10 +8,11 @@ const SECTION_FIELDS = {
   index: ["label"],
   edito: ["kicker", "title"],
   edito_kpis: [],
-  text_block: ["kicker", "title", "cta_label", "cta_url"],
+  text_block: ["kicker", "title", "cta_label", "cta_url", "cta_style"],
   cta: [
     "label",
     "url",
+    "cta_style",
     "arrow",
     "centered",
     "secondary_label",
@@ -25,6 +26,7 @@ const SECTION_FIELDS = {
   focus_cta: [
     "label",
     "url",
+    "cta_style",
     "arrow",
     "centered",
     "secondary_label",

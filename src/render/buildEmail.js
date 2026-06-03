@@ -61,6 +61,9 @@ let CTA_GRADIENT_URL = null;
 let SHOW_BLOCK_SEPARATORS = true;
 let CURRENT_SECTION_IS_FIRST = false;
 let CURRENT_SECTION_IS_LAST = false;
+const CTA_GRADIENT_FALLBACK = "linear-gradient(90deg, #8701FF 0%, #FF00AA 42%, #FF4B28 78%, #B7FF00 100%)";
+const CTA_GRADIENT_BG = "#8701FF";
+const CTA_BLACK_BG = "#050505";
 
 function getEmailThemeVariant(state = {}) {
   return state.theme_variant === "light" ? "light" : "dark";
@@ -68,6 +71,21 @@ function getEmailThemeVariant(state = {}) {
 
 function setRenderTheme(state = {}) {
   EMAIL_THEME = EMAIL_THEMES[getEmailThemeVariant(state)] || THEME;
+}
+
+function ctaVisualStyle(style = "gradient") {
+  if (style === "black") {
+    return {
+      bgColor: CTA_BLACK_BG,
+      background: `background-color:${CTA_BLACK_BG};`,
+      msoFill: CTA_BLACK_BG,
+    };
+  }
+  return {
+    bgColor: CTA_GRADIENT_BG,
+    background: `background-color:${CTA_GRADIENT_BG}; background-image:${CTA_GRADIENT_URL ? `url('${CTA_GRADIENT_URL}'), ` : ""}${CTA_GRADIENT_FALLBACK}; background-size:100% 100%;`,
+    msoFill: CTA_GRADIENT_BG,
+  };
 }
 
 export function sanitizeRichText(text = "") {
@@ -1032,6 +1050,7 @@ function renderFocusItem(item, assetMode, isLastItem = false) {
     const ctaText = escapeHtml(item.label) + (item.arrow ? "&nbsp;→" : "");
     const align = item.centered ? "center" : "left";
     const ctaTableAlign = item.centered ? `align="center" style="margin:0 auto;"` : `align="left"`;
+    const ctaStyle = ctaVisualStyle(item.cta_style);
 
     // Legacy: items with explicit style="secondary" render as standalone outline button
     if (item.style === "secondary") {
@@ -1051,7 +1070,7 @@ function renderFocusItem(item, assetMode, isLastItem = false) {
     }
 
     const primaryBtn = `<!--[if mso]>
-            <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${escapeAttr(item.url || "#")}" style="height:46px; v-text-anchor:middle; width:200px;" arcsize="50%" stroke="f" fillcolor="${EMAIL_THEME.accentTertiary}">
+            <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${escapeAttr(item.url || "#")}" style="height:46px; v-text-anchor:middle; width:200px;" arcsize="50%" stroke="f" fillcolor="${ctaStyle.msoFill}">
                   <w:anchorlock/>
                   <center style="color:#ffffff; font-family:${FONTS.heading}; font-size:13px; font-weight:bold;">${ctaText}</center>
             </v:roundrect>
@@ -1059,7 +1078,7 @@ function renderFocusItem(item, assetMode, isLastItem = false) {
             <!--[if !mso]><!-->
             <table role="presentation" class="em-cta-button" cellpadding="0" cellspacing="0" border="0">
               <tr>
-                <td bgcolor="${EMAIL_THEME.accentTertiary}" style="border-radius:99px; background-color:${EMAIL_THEME.accentTertiary}; background-image:${CTA_GRADIENT_URL ? `url('${CTA_GRADIENT_URL}'), ` : ""}linear-gradient(90deg, ${EMAIL_THEME.accentSecondary} 0%, ${EMAIL_THEME.accentTertiary} 50%, ${EMAIL_THEME.accentPrimary} 100%); background-size:100% 100%;">
+                <td bgcolor="${ctaStyle.bgColor}" style="border-radius:99px; ${ctaStyle.background}">
                   <a class="em-cta-link" href="${escapeAttr(item.url || "#")}" style="display:inline-block; padding:13px 22px; font-family:${FONTS.heading}; font-weight:600; font-size:13px; line-height:1.25; color:#ffffff; text-decoration:none; border-radius:99px; letter-spacing:0.01em; text-align:center;">${ctaText}</a>
                 </td>
               </tr>
@@ -1222,9 +1241,11 @@ function renderFocus(data, number, assetMode, anchor = "", isLastSection = false
       </div>`
     : "";
   const primaryBtn = data.cta_primary_label
-    ? `<td valign="middle" style="padding-right:10px;">
+    ? (() => {
+      const ctaStyle = ctaVisualStyle(data.cta_primary_style || data.cta_style);
+      return `<td valign="middle" style="padding-right:10px;">
         <!--[if mso]>
-        <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${escapeAttr(data.cta_primary_url || "#")}" style="height:46px; v-text-anchor:middle; width:260px;" arcsize="50%" stroke="f" fillcolor="${EMAIL_THEME.accentTertiary}">
+        <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${escapeAttr(data.cta_primary_url || "#")}" style="height:46px; v-text-anchor:middle; width:260px;" arcsize="50%" stroke="f" fillcolor="${ctaStyle.msoFill}">
           <w:anchorlock/>
           <center style="color:#ffffff; font-family:${FONTS.heading}; font-size:13px; font-weight:bold;">${escapeHtml(data.cta_primary_label)}</center>
         </v:roundrect>
@@ -1232,13 +1253,14 @@ function renderFocus(data, number, assetMode, anchor = "", isLastSection = false
         <!--[if !mso]><!-->
         <table role="presentation" class="em-cta-button" cellpadding="0" cellspacing="0" border="0">
           <tr>
-            <td bgcolor="${EMAIL_THEME.accentTertiary}" style="border-radius:99px; background-color:${EMAIL_THEME.accentTertiary}; background-image:${CTA_GRADIENT_URL ? `url('${CTA_GRADIENT_URL}'), ` : ""}linear-gradient(90deg, ${EMAIL_THEME.accentSecondary} 0%, ${EMAIL_THEME.accentTertiary} 50%, ${EMAIL_THEME.accentPrimary} 100%); background-size:100% 100%;">
+            <td bgcolor="${ctaStyle.bgColor}" style="border-radius:99px; ${ctaStyle.background}">
               <a class="em-cta-link" href="${escapeAttr(data.cta_primary_url || "#")}" style="display:inline-block; padding:13px 22px; font-family:${FONTS.heading}; font-weight:600; font-size:13px; line-height:1.25; color:#ffffff; text-decoration:none; border-radius:99px; letter-spacing:0.01em; text-align:center;">${escapeHtml(data.cta_primary_label).replace(/\s+→$/, "&nbsp;→")}</a>
             </td>
           </tr>
         </table>
         <!--<![endif]-->
-      </td>`
+      </td>`;
+    })()
     : "";
   const secondaryBtn = data.cta_secondary_label
     ? `<td valign="middle">
@@ -1301,10 +1323,11 @@ function renderTextBlock(data, number, anchor = "", isLastSection = false) {
     : sectionPadding("44px 36px", "20px 36px");
   const hasHeadingText = Boolean(String(data.kicker || "").trim() || String(data.title || "").trim());
   const headerNumber = hasHeadingText ? number : null;
+  const ctaStyle = ctaVisualStyle(data.cta_style);
   const ctaBtn = data.cta_label
     ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:28px;">
         <tr>
-          <td bgcolor="${EMAIL_THEME.accentTertiary}" style="border-radius:99px; background-color:${EMAIL_THEME.accentTertiary}; background-image:linear-gradient(90deg, ${EMAIL_THEME.accentSecondary} 0%, ${EMAIL_THEME.accentTertiary} 50%, ${EMAIL_THEME.accentPrimary} 100%);">
+          <td bgcolor="${ctaStyle.bgColor}" style="border-radius:99px; ${ctaStyle.background}">
             <a href="${escapeAttr(data.cta_url || "#")}" style="display:inline-block; padding:13px 22px; font-family:${FONTS.heading}; font-weight:600; font-size:13px; color:#ffffff; text-decoration:none; border-radius:99px; letter-spacing:0.01em;">${escapeHtml(data.cta_label)}</a>
           </td>
         </tr>
@@ -1391,6 +1414,7 @@ function renderStandaloneCta(data, isLastSection = false) {
     type: "cta",
     label: data.label,
     url: data.url,
+    cta_style: data.cta_style || "gradient",
     arrow: data.arrow !== false,
     centered: data.centered === true,
     secondary_label: data.secondary_label,

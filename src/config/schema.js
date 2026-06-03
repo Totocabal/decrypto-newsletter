@@ -296,6 +296,7 @@ export const SECTION_TYPES = {
         "Bitcoin vient de repasser le cap des 80 000 $. Mais derrière ce beau rebond, s'agit-il d'une vraie reprise ou d'une simple respiration du marché ? On fait le point.\n\n\nLe meilleur mois depuis un an : \nLe cours a franchi la barre symbolique des 80 000 $ (flirtant même avec les 81 000 $), son plus haut niveau depuis fin janvier.  \nAvec près de 12 % de hausse sur le mois d'avril, le Bitcoin signe sa meilleure performance depuis un an et met fin à cinq longs mois de baisse.\n \nLes institutionnels à la manœuvre : \nCe regain d'énergie est largement porté par la finance traditionnelle via les ETF.  \nPrès de 1,97 milliard de dollars y ont été injectés en avril, avec un pic impressionnant de 630 millions sur la seule journée du 1er mai.",
       cta_label: "",
       cta_url: "",
+      cta_style: "gradient",
     }),
   },
   cta: {
@@ -304,6 +305,7 @@ export const SECTION_TYPES = {
     factory: () => ({
       label: "Découvrir",
       url: "#",
+      cta_style: "gradient",
       arrow: true,
       centered: false,
       secondary_label: "",

@@ -3,7 +3,10 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState } from "react";
-import { Plus, Trash2, ChevronUp, ChevronDown, CopyPlus, Upload, Loader2, X, RefreshCw, Sparkles, Minus } from "lucide-react";
+import { DndContext, PointerSensor, TouchSensor, closestCenter, useSensor, useSensors } from "@dnd-kit/core";
+import { SortableContext, arrayMove, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { Plus, Trash2, ChevronUp, ChevronDown, CopyPlus, Upload, Loader2, X, RefreshCw, Sparkles, Minus, GripVertical } from "lucide-react";
 import { useCoinGecko, CRYPTO_CONFIG } from "../lib/useCoinGecko.js";
 import { UNNUMBERED_TYPES } from "../config/schema.js";
 import { Field, Input, TextArea } from "./FormControls.jsx";
@@ -1774,10 +1777,92 @@ function migrateFocusItems(data) {
   return items;
 }
 
+function focusItemLabel(type) {
+  if (type === "text") return "Texte";
+  if (type === "image") return "Image";
+  if (type === "callout") return "Encadré";
+  if (type === "spacer") return "Spacer";
+  if (type === "divider") return "Séparateur";
+  return "CTA";
+}
+
+function focusItemSummary(item) {
+  if (item.type === "text") return String(item.body || "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim() || "Corps vide";
+  if (item.type === "image") return item.image_alt || item.image_path || (item.image_url ? "Image sélectionnée" : "Aucune image");
+  if (item.type === "callout") return item.label || "Encadré sans libellé";
+  if (item.type === "spacer") return `${Number.isFinite(Number(item.height)) ? Number(item.height) : 24}px`;
+  if (item.type === "divider") return item.style === "gradient" ? "Gradient" : item.style === "thick" ? "Épais" : "Fin";
+  return item.label || item.secondary_label || "CTA sans texte";
+}
+
+function FocusSortableItem({ item, index, collapsed, onToggle, onRemove, children }) {
+  const { attributes, listeners, setActivatorNodeRef, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+  const label = focusItemLabel(item.type);
+  const summary = focusItemSummary(item);
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`group rounded-2xl border bg-d-panel2 shadow-sm transition-all ${
+        isDragging
+          ? "relative z-20 border-d-pink/60 opacity-90 shadow-2xl"
+          : "border-line hover:border-line2 hover:bg-d-panel3/60"
+      }`}
+    >
+      <div
+        className="grid cursor-pointer select-none grid-cols-[auto_auto_minmax(0,1fr)_auto] items-center gap-3 px-3 py-3"
+        style={{ borderBottom: collapsed ? "none" : "1px solid var(--d-line)" }}
+        onClick={onToggle}
+      >
+        <button
+          type="button"
+          ref={setActivatorNodeRef}
+          {...attributes}
+          {...listeners}
+          onClick={(e) => e.stopPropagation()}
+          className="flex h-9 w-9 items-center justify-center rounded-xl border border-line bg-d-panel text-d-fg4 transition-colors hover:border-line2 hover:text-d-fg"
+          aria-label={`Déplacer ${label}`}
+        >
+          <GripVertical size={15} />
+        </button>
+        <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-d-pink/30 bg-d-pink/10 text-[11px] font-bold tabular-nums text-d-pink">
+          {String(index + 1).padStart(2, "0")}
+        </span>
+        <div className="min-w-0">
+          <div className="flex min-w-0 items-center gap-2">
+            <ChevronDown size={14} className="shrink-0 text-d-fg3 transition-transform" style={{ transform: collapsed ? "rotate(-90deg)" : "rotate(0deg)" }} />
+            <span className="truncate text-[11px] font-bold uppercase tracking-[0.18em] text-d-fg">
+              {label}
+            </span>
+          </div>
+          <div className="mt-0.5 truncate text-[11px] leading-relaxed text-d-fg4">
+            {summary}
+          </div>
+        </div>
+        <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+          <button type="button" onClick={onRemove} className="flex h-9 w-9 items-center justify-center rounded-xl text-d-fg3 transition-colors hover:bg-red-900/20 hover:text-red-400">
+            <Trash2 size={14} />
+          </button>
+        </div>
+      </div>
+      {!collapsed && <div className="space-y-3 p-3">{children}</div>}
+    </div>
+  );
+}
+
 function FocusEditor({ data, set }) {
   const { profile } = useAuth();
   const [imageManagerOpen, setImageManagerOpen] = useState(null); // item id or null
   const [collapsed, setCollapsed] = useState(() => new Set((data.items ?? migrateFocusItems(data)).map((it) => it.id)));
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 180, tolerance: 8 } }),
+  );
   const toggleCollapse = (id) => setCollapsed((prev) => {
     const next = new Set(prev);
     next.has(id) ? next.delete(id) : next.add(id);
@@ -1795,19 +1880,18 @@ function FocusEditor({ data, set }) {
     else if (type === "callout") item = { id, type: "callout", label: "Note de la rédac", body: "", footer: "", footer_url: "", show_icon: true, picto: DEFAULT_PICTO_ID, callout_color: DEFAULT_CALLOUT_COLOR };
     else if (type === "spacer") item = { id, type: "spacer", height: 24 };
     else if (type === "divider") item = { id, type: "divider", style: "thin" };
-    else item = { id, type: "cta", label: "", url: "", arrow: false, centered: false, secondary_label: "", secondary_url: "" };
+    else item = { id, type: "cta", label: "", url: "", cta_style: "gradient", arrow: false, centered: false, secondary_label: "", secondary_url: "" };
     setItems([...items, item]);
   };
 
   const updateItem = (id, patch) => setItems(items.map((it) => it.id === id ? { ...it, ...patch } : it));
   const removeItem = (id) => setItems(items.filter((it) => it.id !== id));
-  const moveItem = (id, dir) => {
-    const i = items.findIndex((it) => it.id === id);
-    const j = i + dir;
-    if (j < 0 || j >= items.length) return;
-    const arr = [...items];
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-    setItems(arr);
+  const handleDragEnd = ({ active, over }) => {
+    if (!over || active.id === over.id) return;
+    const oldIndex = items.findIndex((it) => it.id === active.id);
+    const newIndex = items.findIndex((it) => it.id === over.id);
+    if (oldIndex < 0 || newIndex < 0) return;
+    setItems(arrayMove(items, oldIndex, newIndex));
   };
 
   return (
@@ -1819,33 +1903,19 @@ function FocusEditor({ data, set }) {
         <Input value={data.title || ""} onChange={(e) => set({ ...data, title: e.target.value })} />
       </Field>
 
-      <div className="mt-2 space-y-3">
-        {items.map((item, i) => (
-          <div key={item.id} className="bg-d-panel2 border border-line rounded-xl overflow-hidden">
-            <div
-              className="flex items-center justify-between px-3 py-2 cursor-pointer select-none"
-              style={{ borderBottom: collapsed.has(item.id) ? "none" : "1px solid var(--d-line)" }}
-              onClick={() => toggleCollapse(item.id)}
-            >
-              <div className="flex items-center gap-2">
-                <ChevronDown size={14} className="text-d-fg3 transition-transform" style={{ transform: collapsed.has(item.id) ? "rotate(-90deg)" : "rotate(0deg)" }} />
-                <span className="text-[10px] uppercase tracking-[0.15em] font-bold text-d-fg2">
-                  {item.type === "text" ? "Texte" : item.type === "image" ? "Image" : item.type === "callout" ? "Encadré" : item.type === "spacer" ? "Spacer" : item.type === "divider" ? "Séparateur" : "CTA"}
-                </span>
-              </div>
-              <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-                <button type="button" onClick={() => moveItem(item.id, -1)} disabled={i === 0} className="p-1.5 text-d-fg2 bg-d-panel3 border border-line hover:bg-d-panel hover:text-d-fg rounded-lg disabled:opacity-20 disabled:cursor-not-allowed">
-                  <ChevronUp size={14} />
-                </button>
-                <button type="button" onClick={() => moveItem(item.id, 1)} disabled={i === items.length - 1} className="p-1.5 text-d-fg2 bg-d-panel3 border border-line hover:bg-d-panel hover:text-d-fg rounded-lg disabled:opacity-20 disabled:cursor-not-allowed">
-                  <ChevronDown size={14} />
-                </button>
-                <button type="button" onClick={() => removeItem(item.id)} className="p-1.5 text-d-fg3 hover:text-red-400 hover:bg-red-900/20 rounded-lg">
-                  <Trash2 size={14} />
-                </button>
-              </div>
-            </div>
-            {!collapsed.has(item.id) && <div className="p-3 space-y-3">
+      <div className="mt-2 rounded-2xl border border-line bg-d-panel/40 p-2">
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <SortableContext items={items.map((item) => item.id)} strategy={verticalListSortingStrategy}>
+            <div className="space-y-3">
+              {items.map((item, i) => (
+                <FocusSortableItem
+                  key={item.id}
+                  item={item}
+                  index={i}
+                  collapsed={collapsed.has(item.id)}
+                  onToggle={() => toggleCollapse(item.id)}
+                  onRemove={() => removeItem(item.id)}
+                >
               {item.type === "text" && (
                 <Field noMargin hint="Éditeur riche : gras, italique, souligné, rayé, lien et listes">
                   <TextArea
@@ -1908,7 +1978,7 @@ function FocusEditor({ data, set }) {
                 <>
                   {/* Bouton principal — gradient */}
                   <div>
-                    <div className="text-[10px] uppercase tracking-[0.15em] font-semibold text-d-fg4 mb-2">Bouton principal (gradient)</div>
+                    <div className="text-[10px] uppercase tracking-[0.15em] font-semibold text-d-fg4 mb-2">Bouton principal</div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <Field noMargin label="Texte">
                         <Input value={item.label || ""} onChange={(e) => updateItem(item.id, { label: e.target.value })} />
@@ -1918,6 +1988,12 @@ function FocusEditor({ data, set }) {
                       </Field>
                     </div>
                   </div>
+                  <Field noMargin label="Fond du bouton">
+                    <CtaStyleControl
+                      value={item.cta_style || "gradient"}
+                      onChange={(cta_style) => updateItem(item.id, { cta_style })}
+                    />
+                  </Field>
                   <div className="flex gap-2">
                     <button
                       type="button"
@@ -2117,9 +2193,11 @@ function FocusEditor({ data, set }) {
                   </div>
                 </>
               )}
-            </div>}
-          </div>
-        ))}
+                </FocusSortableItem>
+              ))}
+            </div>
+          </SortableContext>
+        </DndContext>
       </div>
 
       <div className="flex flex-wrap gap-2 mt-3">
@@ -2294,6 +2372,30 @@ function ImageBlockEditor({ data, set }) {
 // TEXT BLOCK (libre)
 // ─────────────────────────────────────────────────────────────────────────────
 
+function CtaStyleControl({ value = "gradient", onChange }) {
+  const current = value === "black" ? "black" : "gradient";
+  return (
+    <div className="grid grid-cols-2 gap-1 rounded-xl border border-line bg-d-panel2 p-1">
+      {[
+        ["gradient", "Dégradé", "linear-gradient(90deg, #8701FF 0%, #FF00AA 42%, #FF4B28 78%, #B7FF00 100%)"],
+        ["black", "Noir", "#050505"],
+      ].map(([style, label, background]) => (
+        <button
+          key={style}
+          type="button"
+          onClick={() => onChange(style)}
+          className={`flex items-center justify-center gap-2 rounded-lg px-2 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] transition-colors ${
+            current === style ? "bg-d-panel text-d-fg shadow-sm" : "text-d-fg4 hover:text-d-fg2"
+          }`}
+        >
+          <span className="h-3 w-5 rounded-full border border-white/20" style={{ background }} />
+          {label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function TextBlockEditor({ data, set }) {
   return (
     <>
@@ -2312,8 +2414,14 @@ function TextBlockEditor({ data, set }) {
         />
       </Field>
       <div className="text-[10px] uppercase tracking-[0.18em] font-semibold text-d-fg3 mb-2 mt-2">
-        Bouton (gradient) — <span className="normal-case font-normal text-d-fg4">laisse vide pour ne pas l'afficher</span>
+        Bouton — <span className="normal-case font-normal text-d-fg4">laisse vide pour ne pas l'afficher</span>
       </div>
+      <Field label="Fond du bouton">
+        <CtaStyleControl
+          value={data.cta_style || "gradient"}
+          onChange={(cta_style) => set({ cta_style })}
+        />
+      </Field>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <Field label="Texte">
           <Input
@@ -2353,6 +2461,12 @@ function CtaEditor({ data, set }) {
           />
         </Field>
       </div>
+      <Field label="Fond du bouton">
+        <CtaStyleControl
+          value={data.cta_style || "gradient"}
+          onChange={(cta_style) => set({ cta_style })}
+        />
+      </Field>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <Field label="CTA secondaire">
           <Input
