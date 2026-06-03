@@ -2,7 +2,7 @@
 // EditorPanel — éditeur modulaire (header fixe, sections, footer fixe)
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { DndContext, DragOverlay, PointerSensor, TouchSensor, useSensor, useSensors, closestCenter } from "@dnd-kit/core";
 import { SortableContext, useSortable, verticalListSortingStrategy, arrayMove } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -489,6 +489,7 @@ export function EditorPanel({ state, setState }) {
           collisionDetection={closestCenter}
           onDragStart={({ active }) => setActiveId(active.id)}
           onDragEnd={handleDragEnd}
+          onDragCancel={() => setActiveId(null)}
         >
           <SortableContext items={state.sections.map((s) => s.id)} strategy={verticalListSortingStrategy}>
             <div className="space-y-2">
@@ -520,7 +521,7 @@ export function EditorPanel({ state, setState }) {
               const label = type?.label || sec.type;
               const preview = (() => { const d = sec.data || {}; return d.title || d.label || d.kicker || ""; })();
               return (
-                <div style={{ background: "rgb(var(--d-panel))", border: "2px solid #FF00AA", boxShadow: "0 0 0 4px rgba(255,0,170,0.15), 0 8px 32px rgba(0,0,0,0.5)", borderRadius: 12, padding: "8px 12px", display: "flex", alignItems: "center", gap: 8, cursor: "grabbing" }}>
+                <div style={{ width: "min(460px, calc(100vw - 48px))", background: "rgb(var(--d-panel))", border: "2px solid #FF00AA", boxShadow: "0 0 0 4px rgba(255,0,170,0.15), 0 8px 32px rgba(0,0,0,0.5)", borderRadius: 12, padding: "8px 12px", display: "flex", alignItems: "center", gap: 8, cursor: "grabbing" }}>
                   <GripVertical size={14} style={{ color: "#FF00AA", flexShrink: 0 }} />
                   <span style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.18em", fontWeight: 600, color: "#ccc", flexShrink: 0 }}>{label}</span>
                   {preview && <span style={{ fontSize: 11, color: "#888", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>{preview}</span>}
@@ -625,6 +626,10 @@ function SectionCard({
   const label = type?.label || section.type;
   const countsForNumbering = section.counts_for_numbering ?? !UNNUMBERED_TYPES.has(section.type);
 
+  useEffect(() => {
+    if (isDragging && open) setOpen(false);
+  }, [isDragging, open]);
+
   const preview = (() => {
     const d = section.data || {};
     if (d.title) return d.title;
@@ -639,14 +644,14 @@ function SectionCard({
       onClick={onSelectMobile}
       style={{
         position: "relative",
-        transform: CSS.Transform.toString(transform),
-        transition,
+        transform: isDragging ? undefined : CSS.Transform.toString(transform),
+        transition: isDragging ? undefined : transition,
         opacity: isDragging ? 0 : 1,
         zIndex: isDragging ? 1 : undefined,
       }}
     >
       <div
-        className={`overflow-hidden rounded-xl transition-all ${
+        className={`overflow-hidden rounded-xl transition-colors ${
           selectedMobile ? "mobile-section-card-selected" : ""
         }`}
         style={{
