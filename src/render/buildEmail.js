@@ -1299,6 +1299,8 @@ function renderTextBlock(data, number, anchor = "", isLastSection = false) {
   const padding = isLastSection
     ? "44px 36px"
     : sectionPadding("44px 36px", "20px 36px");
+  const hasHeadingText = Boolean(String(data.kicker || "").trim() || String(data.title || "").trim());
+  const headerNumber = hasHeadingText ? number : null;
   const ctaBtn = data.cta_label
     ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:28px;">
         <tr>
@@ -1313,9 +1315,9 @@ function renderTextBlock(data, number, anchor = "", isLastSection = false) {
     <tr>
       <td class="em-px" style="padding:${padding};${sectionBottomBorder(isLastSection)}">
         ${anchor}
-        ${sectionHeader(number, data.kicker)}
+        ${sectionHeader(headerNumber, data.kicker)}
         ${sectionTitle(data.title)}
-        <div style="margin:22px 0 0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:15px; line-height:1.65; color:${EMAIL_THEME.textSecondary};">${sanitizeRichText(data.body)}</div>
+        <div style="margin:${hasHeadingText ? "22px" : "0"} 0 0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:15px; line-height:1.65; color:${EMAIL_THEME.textSecondary};">${sanitizeRichText(data.body)}</div>
         ${ctaBtn}
       </td>
     </tr>`;
