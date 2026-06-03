@@ -554,9 +554,23 @@ function convertBrazeLiquidToHubL(html = "") {
 
 const HUBSPOT_FOOTER_ADDRESS =
   "SAS au capital de 210.000 € · RCS Paris 815 254 545 · {{ site_settings.company_street_address_1 }} {{ site_settings.company_city }}, {{ site_settings.company_zip }}, {{ site_settings.company_state }}, {{ site_settings.company_country }}";
+const HUBSPOT_LEGAL_NOTICE =
+  "Coinhouse est un prestataire de services sur crypto-actifs (PSCA) agréé MiCA enregistré auprès de l’AMF sous le n°A2026-013. Investir en crypto-actifs comporte des risques de perte en capital. Les performances passées ne préjugent pas des performances futures. ©2026 {{ site_settings.company_name }}";
+
+function decodeHubLExpressionEntities(html = "") {
+  return String(html).replace(/\{\{[\s\S]*?\}\}/g, (match) =>
+    match
+      .replace(/&amp;/g, "&")
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;|&#x27;|&apos;/g, "'")
+      .replace(/&nbsp;/g, " ")
+  );
+}
 
 function convertHtmlToHubSpot(html = "") {
-  return convertBrazeLiquidToHubL(html)
+  return decodeHubLExpressionEntities(convertBrazeLiquidToHubL(html)
     .replaceAll(
       "SAS au capital de 210.000 € · RCS Paris 815 254 545 · 14 avenue de l'Opéra, 75001 PARIS",
       HUBSPOT_FOOTER_ADDRESS
@@ -564,7 +578,15 @@ function convertHtmlToHubSpot(html = "") {
     .replaceAll(
       "SAS au capital de 210.000 € · RCS Paris 815 254 545 · 14 avenue de l&#39;Opéra, 75001 PARIS",
       HUBSPOT_FOOTER_ADDRESS
-    );
+    )
+    .replaceAll(
+      "Coinhouse est un prestataire de services sur crypto-actifs (PSCA) agréé MiCA enregistré auprès de l’AMF sous le n°A2026-013. Investir en crypto-actifs comporte des risques de perte en capital. Les performances passées ne préjugent pas des performances futures. ©2026 Coinhouse",
+      HUBSPOT_LEGAL_NOTICE
+    )
+    .replaceAll(
+      "Coinhouse est un prestataire de services sur crypto-actifs (PSCA) agréé MiCA enregistré auprès de l&rsquo;AMF sous le n°A2026-013. Investir en crypto-actifs comporte des risques de perte en capital. Les performances passées ne préjugent pas des performances futures. ©2026 Coinhouse",
+      HUBSPOT_LEGAL_NOTICE
+    ));
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

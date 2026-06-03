@@ -2,7 +2,7 @@
 // EditorPanel — éditeur modulaire (header fixe, sections, footer fixe)
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { DndContext, DragOverlay, PointerSensor, TouchSensor, useSensor, useSensors, closestCenter } from "@dnd-kit/core";
 import { SortableContext, useSortable, verticalListSortingStrategy, arrayMove } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -625,10 +625,17 @@ function SectionCard({
   const type = SECTION_TYPES[section.type];
   const label = type?.label || section.type;
   const countsForNumbering = section.counts_for_numbering ?? !UNNUMBERED_TYPES.has(section.type);
-
-  useEffect(() => {
-    if (isDragging && open) setOpen(false);
-  }, [isDragging, open]);
+  const dragListeners = {
+    ...listeners,
+    onPointerDown: (event) => {
+      if (open) setOpen(false);
+      listeners?.onPointerDown?.(event);
+    },
+    onTouchStart: (event) => {
+      if (open) setOpen(false);
+      listeners?.onTouchStart?.(event);
+    },
+  };
 
   const preview = (() => {
     const d = section.data || {};
@@ -663,7 +670,7 @@ function SectionCard({
       <div data-drag-header className="flex items-center gap-2 px-2 py-2">
         <button
           type="button"
-          {...listeners}
+          {...dragListeners}
           {...attributes}
           style={{ touchAction: "none" }}
           className="flex-shrink-0 rounded-lg p-3 sm:p-1 text-d-fg4 cursor-grab transition-colors hover:text-d-fg2 active:cursor-grabbing"
