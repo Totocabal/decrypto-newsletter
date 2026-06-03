@@ -3,7 +3,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState } from "react";
-import { DndContext, PointerSensor, TouchSensor, closestCenter, useSensor, useSensors } from "@dnd-kit/core";
+import { DndContext, DragOverlay, PointerSensor, TouchSensor, closestCenter, useSensor, useSensors } from "@dnd-kit/core";
 import { SortableContext, arrayMove, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Plus, Trash2, ChevronUp, ChevronDown, CopyPlus, Upload, Loader2, X, RefreshCw, Sparkles, Minus, GripVertical } from "lucide-react";
@@ -1798,8 +1798,8 @@ function focusItemSummary(item) {
 function FocusSortableItem({ item, index, collapsed, onToggle, onRemove, children }) {
   const { attributes, listeners, setActivatorNodeRef, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id });
   const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
+    transform: isDragging ? undefined : CSS.Transform.toString(transform),
+    transition: isDragging ? undefined : transition,
   };
   const label = focusItemLabel(item.type);
   const summary = focusItemSummary(item);
@@ -1808,9 +1808,9 @@ function FocusSortableItem({ item, index, collapsed, onToggle, onRemove, childre
     <div
       ref={setNodeRef}
       style={style}
-      className={`group rounded-2xl border bg-d-panel2 shadow-sm transition-all ${
+      className={`group rounded-2xl border bg-d-panel2 shadow-sm transition-colors ${
         isDragging
-          ? "relative z-20 border-d-pink/60 opacity-90 shadow-2xl"
+          ? "border-d-pink/40 opacity-35"
           : "border-line hover:border-line2 hover:bg-d-panel3/60"
       }`}
     >
@@ -1855,10 +1855,38 @@ function FocusSortableItem({ item, index, collapsed, onToggle, onRemove, childre
   );
 }
 
+function FocusDragPreview({ item, index }) {
+  if (!item) return null;
+  const label = focusItemLabel(item.type);
+  const summary = focusItemSummary(item);
+
+  return (
+    <div className="w-[min(430px,calc(100vw-48px))] rounded-2xl border border-d-pink/70 bg-d-panel2 px-3 py-3 shadow-2xl">
+      <div className="grid grid-cols-[auto_auto_minmax(0,1fr)] items-center gap-3">
+        <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-line bg-d-panel text-d-fg2">
+          <GripVertical size={15} />
+        </span>
+        <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-d-pink/30 bg-d-pink/10 text-[11px] font-bold tabular-nums text-d-pink">
+          {String(index + 1).padStart(2, "0")}
+        </span>
+        <div className="min-w-0">
+          <div className="truncate text-[11px] font-bold uppercase tracking-[0.18em] text-d-fg">
+            {label}
+          </div>
+          <div className="mt-0.5 truncate text-[11px] leading-relaxed text-d-fg4">
+            {summary}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function FocusEditor({ data, set }) {
   const { profile } = useAuth();
   const [imageManagerOpen, setImageManagerOpen] = useState(null); // item id or null
   const [collapsed, setCollapsed] = useState(() => new Set((data.items ?? migrateFocusItems(data)).map((it) => it.id)));
+  const [activeDragItemId, setActiveDragItemId] = useState(null);
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 180, tolerance: 8 } }),
@@ -1886,13 +1914,22 @@ function FocusEditor({ data, set }) {
 
   const updateItem = (id, patch) => setItems(items.map((it) => it.id === id ? { ...it, ...patch } : it));
   const removeItem = (id) => setItems(items.filter((it) => it.id !== id));
+  const handleDragStart = ({ active }) => {
+    setActiveDragItemId(active.id);
+  };
   const handleDragEnd = ({ active, over }) => {
+    setActiveDragItemId(null);
     if (!over || active.id === over.id) return;
     const oldIndex = items.findIndex((it) => it.id === active.id);
     const newIndex = items.findIndex((it) => it.id === over.id);
     if (oldIndex < 0 || newIndex < 0) return;
     setItems(arrayMove(items, oldIndex, newIndex));
   };
+  const handleDragCancel = () => {
+    setActiveDragItemId(null);
+  };
+  const activeDragItem = items.find((item) => item.id === activeDragItemId);
+  const activeDragIndex = activeDragItem ? items.findIndex((item) => item.id === activeDragItemId) : -1;
 
   return (
     <>
@@ -1904,7 +1941,7 @@ function FocusEditor({ data, set }) {
       </Field>
 
       <div className="mt-2 rounded-2xl border border-line bg-d-panel/40 p-2">
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd} onDragCancel={handleDragCancel}>
           <SortableContext items={items.map((item) => item.id)} strategy={verticalListSortingStrategy}>
             <div className="space-y-3">
               {items.map((item, i) => (
@@ -2197,6 +2234,9 @@ function FocusEditor({ data, set }) {
               ))}
             </div>
           </SortableContext>
+          <DragOverlay dropAnimation={null}>
+            {activeDragItem ? <FocusDragPreview item={activeDragItem} index={activeDragIndex} /> : null}
+          </DragOverlay>
         </DndContext>
       </div>
 
