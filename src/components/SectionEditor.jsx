@@ -218,14 +218,29 @@ function HeroEditor({ data, set, sections }) {
         label="Titre complet"
         hint="Écris le titre naturellement. Utilise une nouvelle ligne si tu veux forcer un retour."
       >
-        <textarea
-          rows={3}
-          value={title}
-          onChange={(e) => set({ title: e.target.value })}
-          placeholder="Ex. La $HYPE continue, mais le marché regarde ailleurs."
-          className="w-full rounded-xl border border-line bg-d-panel2 px-3 py-2 text-sm leading-relaxed text-d-fg placeholder:text-d-fg4 transition-colors hover:border-line2 focus:border-line2 focus:outline-none"
-          style={{ fontFamily: "'DM Sans', sans-serif" }}
-        />
+        <div className="relative">
+          <textarea
+            rows={3}
+            value={title}
+            onChange={(e) => set({ title: e.target.value })}
+            placeholder="Ex. La $HYPE continue, mais le marché regarde ailleurs."
+            className={`w-full rounded-xl border border-line bg-d-panel2 px-3 py-2 ${title ? "pr-10" : ""} text-sm leading-relaxed text-d-fg placeholder:text-d-fg4 transition-colors hover:border-line2 focus:border-line2 focus:outline-none`}
+            style={{ fontFamily: "'DM Sans', sans-serif" }}
+          />
+          {title && (
+            <Tooltip label="Vider le champ">
+              <button
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => set({ title: "" })}
+                className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full border border-line bg-d-panel text-d-fg4 transition-colors hover:border-line2 hover:text-d-fg"
+                aria-label="Vider le champ"
+              >
+                <X size={12} />
+              </button>
+            </Tooltip>
+          )}
+        </div>
       </Field>
       <Field
         label="Texte à colorer"

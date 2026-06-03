@@ -23,6 +23,14 @@ import { useLabels, useNewsletterLabels } from "../lib/useLabels.js";
 import { createTemplatePreset } from "../lib/templatePresets.js";
 import { deleteHtmlPreview, listHtmlPreviews, publishHtmlPreview } from "../lib/previewHosting.js";
 
+const HISTORY_LIMIT = 50;
+
+function cloneHistoryState(value) {
+  if (!value) return value;
+  if (typeof structuredClone === "function") return structuredClone(value);
+  return JSON.parse(JSON.stringify(value));
+}
+
 export function EditorPage({ newsletterId, onBack }) {
   const { profile, user } = useAuth();
   const addToast = useToast();
@@ -113,24 +121,26 @@ export function EditorPage({ newsletterId, onBack }) {
   useEffect(() => {
     if (!state) return;
 
+    const snapshot = cloneHistoryState(state);
+
     if (!lastStateRef.current) {
-      lastStateRef.current = state;
+      lastStateRef.current = snapshot;
       setDirtySinceVersion(false);
       return;
     }
 
     if (skipHistoryRef.current) {
-      lastStateRef.current = state;
+      lastStateRef.current = snapshot;
       skipHistoryRef.current = false;
       return;
     }
 
-    undoStackRef.current = [...undoStackRef.current, lastStateRef.current].slice(-50);
+    undoStackRef.current = [...undoStackRef.current, cloneHistoryState(lastStateRef.current)].slice(-HISTORY_LIMIT);
     redoStackRef.current = [];
     setUndoCount(undoStackRef.current.length);
     setRedoCount(0);
     setDirtySinceVersion(true);
-    lastStateRef.current = state;
+    lastStateRef.current = snapshot;
   }, [state]);
 
   const setStateWithHistory = useCallback(
@@ -142,26 +152,26 @@ export function EditorPage({ newsletterId, onBack }) {
     const previous = undoStackRef.current.pop();
     if (!previous) return;
     if (lastStateRef.current) {
-      redoStackRef.current = [...redoStackRef.current, lastStateRef.current].slice(-50);
+      redoStackRef.current = [...redoStackRef.current, cloneHistoryState(lastStateRef.current)].slice(-HISTORY_LIMIT);
     }
     skipHistoryRef.current = true;
     setUndoCount(undoStackRef.current.length);
     setRedoCount(redoStackRef.current.length);
     setDirtySinceVersion(true);
-    setState(previous);
+    setState(cloneHistoryState(previous));
   };
 
   const handleRedo = () => {
     const next = redoStackRef.current.pop();
     if (!next) return;
     if (lastStateRef.current) {
-      undoStackRef.current = [...undoStackRef.current, lastStateRef.current].slice(-50);
+      undoStackRef.current = [...undoStackRef.current, cloneHistoryState(lastStateRef.current)].slice(-HISTORY_LIMIT);
     }
     skipHistoryRef.current = true;
     setUndoCount(undoStackRef.current.length);
     setRedoCount(redoStackRef.current.length);
     setDirtySinceVersion(true);
-    setState(next);
+    setState(cloneHistoryState(next));
   };
 
   const handleSave = async () => {
@@ -495,14 +505,27 @@ export function EditorPage({ newsletterId, onBack }) {
               {leaving ? "Sauvegarde…" : "Retour"}
             </button>
             <Tooltip label="Cliquer pour renommer cette newsletter" side="bottom" className="min-w-0 flex-1 sm:max-w-xs">
-              <input
-                type="text"
-                value={newsletter?.title || ""}
-                onChange={(e) => updateTitle(e.target.value)}
-                placeholder="Titre de la newsletter…"
-                className="w-full rounded-full border border-transparent bg-transparent px-2 py-1.5 text-xs font-medium text-d-fg transition-colors hover:border-line focus:border-line2 focus:bg-d-panel2 focus:outline-none sm:px-3 sm:text-sm"
-                style={{ fontFamily: "'Sora', sans-serif" }}
-              />
+              <div className="relative">
+                <input
+                  type="text"
+                  value={newsletter?.title || ""}
+                  onChange={(e) => updateTitle(e.target.value)}
+                  placeholder="Titre de la newsletter…"
+                  className={`w-full rounded-full border border-transparent bg-transparent px-2 py-1.5 ${newsletter?.title ? "pr-8" : ""} text-xs font-medium text-d-fg transition-colors hover:border-line focus:border-line2 focus:bg-d-panel2 focus:outline-none sm:px-3 sm:text-sm`}
+                  style={{ fontFamily: "'Sora', sans-serif" }}
+                />
+                {newsletter?.title && (
+                  <button
+                    type="button"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => updateTitle("")}
+                    className="absolute right-1.5 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full text-d-fg4 transition-colors hover:bg-d-panel2 hover:text-d-fg"
+                    aria-label="Vider le champ"
+                  >
+                    <X size={12} />
+                  </button>
+                )}
+              </div>
             </Tooltip>
             {labels.length > 0 && (
               <div className="relative flex items-center gap-1.5 overflow-visible">

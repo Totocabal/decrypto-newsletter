@@ -3,7 +3,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import React, { useEffect, useRef, useState } from "react";
-import { Loader2, Sparkles, ChevronUp, ChevronDown } from "lucide-react";
+import { Loader2, Sparkles, ChevronUp, ChevronDown, X } from "lucide-react";
 import Quill from "quill";
 import "quill/dist/quill.snow.css";
 import { supabase } from "../lib/supabase.js";
@@ -156,6 +156,10 @@ function countPlainText(html = "") {
 
 function PlainTextFallback({ showCount, onChange, value = "", rows = 3, onRetry, ...props }) {
   const textValue = String(value ?? "");
+  const canClear = !props.readOnly && !props.disabled && Boolean(textValue) && typeof onChange === "function";
+  const handleClear = () => {
+    onChange?.({ target: { value: "" }, currentTarget: { value: "" } });
+  };
   return (
     <div>
       <div className="border border-d-orange/40 rounded-xl bg-d-panel2 overflow-hidden">
@@ -169,14 +173,29 @@ function PlainTextFallback({ showCount, onChange, value = "", rows = 3, onRetry,
             Réessayer l'éditeur
           </button>
         </div>
-        <textarea
-          {...props}
-          rows={rows}
-          value={textValue}
-          onChange={onChange}
-          className="w-full px-3 py-2 bg-d-panel2 text-sm text-d-fg focus:outline-none leading-relaxed resize-y"
-          style={{ fontFamily: "'DM Sans', sans-serif" }}
-        />
+        <div className="relative">
+          <textarea
+            {...props}
+            rows={rows}
+            value={textValue}
+            onChange={onChange}
+            className={`w-full px-3 py-2 ${canClear ? "pr-10" : ""} bg-d-panel2 text-sm text-d-fg focus:outline-none leading-relaxed resize-y`}
+            style={{ fontFamily: "'DM Sans', sans-serif" }}
+          />
+          {canClear && (
+            <Tooltip label="Vider le champ">
+              <button
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={handleClear}
+                className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full border border-line bg-d-panel text-d-fg4 transition-colors hover:border-line2 hover:text-d-fg"
+                aria-label="Vider le champ"
+              >
+                <X size={12} />
+              </button>
+            </Tooltip>
+          )}
+        </div>
       </div>
       {showCount && (
         <div className="text-right text-[10px] text-d-fg4 mt-0.5 tabular-nums">
@@ -338,7 +357,19 @@ function RichTextEditor({ showCount, onChange, value = "", rows = 3, placeholder
     }
   };
 
+  const handleClear = () => {
+    const quill = quillRef.current;
+    if (quill) {
+      quill.setText("", "silent");
+      quill.setSelection(0, 0, "silent");
+    }
+    lastEmittedRef.current = "";
+    setPlainTextCount(0);
+    onChangeRef.current?.({ target: { value: "" }, currentTarget: { value: "" } });
+  };
+
   const minHeight = `${Math.max(Number(rows) || 3, 2) * 1.65}rem`;
+  const canClear = !props.readOnly && !props.disabled && Boolean(String(value ?? "")) && typeof onChange === "function";
 
   return (
     <div>
@@ -347,7 +378,19 @@ function RichTextEditor({ showCount, onChange, value = "", rows = 3, placeholder
         style={{ "--ql-min-height": minHeight }}
       >
         {/* Toolbar Quill sera insérée ici par Quill avant holderRef */}
-        <div className="flex items-center justify-end border-b border-line bg-d-panel2 px-2 py-1.5">
+        <div className="flex items-center justify-end gap-1.5 border-b border-line bg-d-panel2 px-2 py-1.5">
+          {canClear && (
+            <Tooltip label="Vider le champ">
+              <button
+                type="button"
+                onMouseDown={(e) => { e.preventDefault(); handleClear(); }}
+                className="flex h-7 w-7 items-center justify-center rounded-lg border border-line text-d-fg4 transition-colors hover:border-line2 hover:text-d-fg"
+                aria-label="Vider le champ"
+              >
+                <X size={12} />
+              </button>
+            </Tooltip>
+          )}
           <Tooltip label="Corriger l'orthographe et la grammaire avec l'IA">
             <button
               type="button"
@@ -390,17 +433,65 @@ export function Field({ label, children, hint, action, noMargin = false }) {
 }
 
 export function Input({ readOnly, ...props }) {
+  const {
+    clearable = true,
+    className = "",
+    disabled,
+    onChange,
+    type = "text",
+    value,
+    ...inputProps
+  } = props;
+  const textLikeTypes = new Set(["text", "search", "url", "email", "tel", "password", "date", "month", "week", "time", "datetime-local", "number"]);
+  const canClear = clearable !== false
+    && !readOnly
+    && !disabled
+    && textLikeTypes.has(type)
+    && value !== undefined
+    && value !== null
+    && String(value) !== ""
+    && typeof onChange === "function";
+  const inputRef = useRef(null);
+  const handleClear = () => {
+    const event = {
+      target: { value: "", name: inputProps.name, type },
+      currentTarget: { value: "", name: inputProps.name, type },
+    };
+    onChange?.(event);
+    inputRef.current?.focus();
+  };
+
   return (
-    <input
-      readOnly={readOnly}
-      {...props}
-      className={`w-full px-3 py-2 border rounded-xl text-sm focus:outline-none transition-colors ${
-        readOnly
-          ? "bg-d-panel3 border-line text-d-fg4 cursor-default"
-          : "bg-d-panel2 border-line text-d-fg focus:border-line2 hover:border-line2"
-      }`}
-      style={{ fontFamily: "'DM Sans', sans-serif" }}
-    />
+    <div className="relative">
+      <input
+        ref={inputRef}
+        readOnly={readOnly}
+        disabled={disabled}
+        type={type}
+        value={value}
+        onChange={onChange}
+        {...inputProps}
+        className={`w-full px-3 py-2 ${canClear ? "pr-9" : ""} border rounded-xl text-sm focus:outline-none transition-colors ${
+          readOnly
+            ? "bg-d-panel3 border-line text-d-fg4 cursor-default"
+            : "bg-d-panel2 border-line text-d-fg focus:border-line2 hover:border-line2"
+        } ${className}`}
+        style={{ fontFamily: "'DM Sans', sans-serif", ...inputProps.style }}
+      />
+      {canClear && (
+        <Tooltip label="Vider le champ">
+          <button
+            type="button"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={handleClear}
+            className="absolute right-2 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full border border-line bg-d-panel text-d-fg4 transition-colors hover:border-line2 hover:text-d-fg"
+            aria-label="Vider le champ"
+          >
+            <X size={12} />
+          </button>
+        </Tooltip>
+      )}
+    </div>
   );
 }
 
