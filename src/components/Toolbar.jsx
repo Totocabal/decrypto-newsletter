@@ -331,7 +331,7 @@ export function Toolbar({
                   </div>
                   <div className="min-w-0">
                     <div className="text-sm font-semibold text-d-fg">Export HubSpot</div>
-                    <div className="mt-0.5 text-xs text-d-fg3">Génère un ZIP avec HTML, HubL et assets pour HubSpot.</div>
+                    <div className="mt-0.5 text-xs text-d-fg3">Upload les images dans Braze et génère un HTML HubSpot.</div>
                   </div>
                 </button>
               )}

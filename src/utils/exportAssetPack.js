@@ -552,6 +552,21 @@ function convertBrazeLiquidToHubL(html = "") {
     );
 }
 
+const HUBSPOT_FOOTER_ADDRESS =
+  "SAS au capital de 210.000 € · RCS Paris 815 254 545 · {{ site_settings.company_street_address_1 }} {{ site_settings.company_city }}, {{ site_settings.company_zip }}, {{ site_settings.company_state }}, {{ site_settings.company_country }}";
+
+function convertHtmlToHubSpot(html = "") {
+  return convertBrazeLiquidToHubL(html)
+    .replaceAll(
+      "SAS au capital de 210.000 € · RCS Paris 815 254 545 · 14 avenue de l'Opéra, 75001 PARIS",
+      HUBSPOT_FOOTER_ADDRESS
+    )
+    .replaceAll(
+      "SAS au capital de 210.000 € · RCS Paris 815 254 545 · 14 avenue de l&#39;Opéra, 75001 PARIS",
+      HUBSPOT_FOOTER_ADDRESS
+    );
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // API publique
 // ─────────────────────────────────────────────────────────────────────────────
@@ -609,9 +624,7 @@ async function buildExternalHtmlPayload(state) {
   return { html, serializedAssets };
 }
 
-async function exportHostedAssetHtml(state, filename, accessToken) {
-  const { html, serializedAssets } = await buildExternalHtmlPayload(state);
-
+async function uploadAssetsToBrazeCdn(serializedAssets, accessToken) {
   const resp = await fetch("/api/export-braze", {
     method: "POST",
     headers: {
@@ -626,7 +639,12 @@ async function exportHostedAssetHtml(state, filename, accessToken) {
     throw new Error(payload?.error || `Export Braze impossible (HTTP ${resp.status})`);
   }
 
-  const assetUrlMap = payload.assets || {};
+  return payload.assets || {};
+}
+
+async function exportHostedAssetHtml(state, filename, accessToken) {
+  const { html, serializedAssets } = await buildExternalHtmlPayload(state);
+  const assetUrlMap = await uploadAssetsToBrazeCdn(serializedAssets, accessToken);
   const finalHtml = replaceGeneratedAssetUrls(html, assetUrlMap);
   downloadText(finalHtml, filename);
   return { html: finalHtml, assets: assetUrlMap };
@@ -636,25 +654,11 @@ export async function exportBrazeHtml(state, filename = "decrypto-braze.html", a
   return exportHostedAssetHtml(state, filename, accessToken);
 }
 
-export async function exportHubSpotPack(state, filename = "decrypto-hubspot.zip") {
-  const zip = new JSZip();
-  const { assets, focusImages } = await buildPngAssets(state);
-  const stateForExport = buildExternalAssetState(state, focusImages, assets);
-  const ctaGradientUrl = assets[GRADIENT_CTA_FILENAME] ? `assets/${GRADIENT_CTA_FILENAME}` : null;
-  const html = buildEmailHtml(stateForExport, { assetMode: "external", ctaGradientUrl });
-  const hubl = convertBrazeLiquidToHubL(html);
-
-  zip.file("email.html", html);
-  zip.file("email.hubl", hubl);
-
-  const assetsFolder = zip.folder("assets");
-  for (const [name, blob] of Object.entries(assets)) {
-    assetsFolder.file(name, blob);
-  }
-
-  zip.file("README-HUBSPOT.md", buildHubSpotReadme(state));
-
-  const blob = await zip.generateAsync({ type: "blob" });
-  downloadBlob(blob, filename);
-  return { html, hubl, assets };
+export async function exportHubSpotPack(state, filename = "decrypto-hubspot.html", accessToken) {
+  const { html, serializedAssets } = await buildExternalHtmlPayload(state);
+  const assetUrlMap = await uploadAssetsToBrazeCdn(serializedAssets, accessToken);
+  const hostedHtml = replaceGeneratedAssetUrls(html, assetUrlMap);
+  const hubSpotHtml = convertHtmlToHubSpot(hostedHtml);
+  downloadText(hubSpotHtml, filename);
+  return { html: hubSpotHtml, assets: assetUrlMap };
 }

@@ -304,12 +304,17 @@ export function EditorPage({ newsletterId, onBack }) {
     if (!state) return;
     setExportingHubSpot(true);
     try {
+      const { data, error } = await supabase.auth.getSession();
+      if (error) throw error;
+      const accessToken = data?.session?.access_token;
+      if (!accessToken) throw new Error("Session expirée. Reconnecte-toi puis réessaie.");
+
       const safe = (newsletter?.title || "newsletter")
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, "-");
-      const result = await exportHubSpotPack(state, `${safe}-hubspot.zip`);
+      const result = await exportHubSpotPack(state, `${safe}-hubspot.html`, accessToken);
       addToast(
-        `Export HubSpot terminé : ${Object.keys(result.assets).length} asset(s) inclus.`,
+        `Export HubSpot terminé : ${Object.keys(result.assets).length} image(s) uploadée(s).`,
         "success"
       );
     } catch (e) {
