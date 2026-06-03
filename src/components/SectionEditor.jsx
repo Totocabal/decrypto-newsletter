@@ -2377,7 +2377,7 @@ function CtaStyleControl({ value = "gradient", onChange }) {
   return (
     <div className="grid grid-cols-2 gap-1 rounded-xl border border-line bg-d-panel2 p-1">
       {[
-        ["gradient", "Dégradé", "linear-gradient(90deg, #8701FF 0%, #FF00AA 42%, #FF4B28 78%, #B7FF00 100%)"],
+        ["gradient", "Dégradé", "linear-gradient(90deg, #4141FF 0%, #FF00AA 60%, #FF4B28 100%)"],
         ["black", "Noir", "#050505"],
       ].map(([style, label, background]) => (
         <button

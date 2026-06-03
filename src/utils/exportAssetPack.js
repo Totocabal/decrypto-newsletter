@@ -78,7 +78,7 @@ function svgToPngBlob(svgString, width, height) {
 }
 
 /**
- * Génère un PNG du dégradé CTA (#8701FF → #FF00AA → #FF4B28 → #B7FF00) via canvas.
+ * Génère un PNG du dégradé CTA (#4141FF → #FF00AA → #FF4B28) via canvas.
  * Ce PNG est utilisé comme background-image sur les boutons CTA pour
  * conserver le dégradé dans Gmail app (qui ignore les CSS linear-gradient).
  */
@@ -91,10 +91,9 @@ function gradientCtaPngBlob() {
     canvas.height = H * PIXEL_RATIO;
     const ctx = canvas.getContext("2d");
     const grad = ctx.createLinearGradient(0, 0, W * PIXEL_RATIO, 0);
-    grad.addColorStop(0, "#8701FF");
-    grad.addColorStop(0.42, "#FF00AA");
-    grad.addColorStop(0.78, "#FF4B28");
-    grad.addColorStop(1, "#B7FF00");
+    grad.addColorStop(0, "#4141FF");
+    grad.addColorStop(0.6, "#FF00AA");
+    grad.addColorStop(1, "#FF4B28");
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, W * PIXEL_RATIO, H * PIXEL_RATIO);
     canvas.toBlob(

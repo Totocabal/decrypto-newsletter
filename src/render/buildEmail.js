@@ -61,8 +61,8 @@ let CTA_GRADIENT_URL = null;
 let SHOW_BLOCK_SEPARATORS = true;
 let CURRENT_SECTION_IS_FIRST = false;
 let CURRENT_SECTION_IS_LAST = false;
-const CTA_GRADIENT_FALLBACK = "linear-gradient(90deg, #8701FF 0%, #FF00AA 42%, #FF4B28 78%, #B7FF00 100%)";
-const CTA_GRADIENT_BG = "#8701FF";
+const CTA_GRADIENT_FALLBACK = "linear-gradient(90deg, #4141FF 0%, #FF00AA 60%, #FF4B28 100%)";
+const CTA_GRADIENT_BG = "#4141FF";
 const CTA_BLACK_BG = "#050505";
 
 function getEmailThemeVariant(state = {}) {
