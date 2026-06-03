@@ -2,17 +2,23 @@
 // Panneau d'aperçu — iframe pour rendu HTML, ou code brut, avec toggle device
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Monitor, Smartphone, Maximize2, Minimize2, Download, Loader2 } from "lucide-react";
 import { THEME } from "../config/theme.js";
 import { supabase } from "../lib/supabase.js";
 import { Tooltip } from "./Tooltip.jsx";
 
-function DeviceToggle({ previewDevice, setPreviewDevice }) {
+function DeviceToggle({ previewDevice, setPreviewDevice, onBeforeChange }) {
+  const selectDevice = (device) => {
+    if (device === previewDevice) return;
+    onBeforeChange?.();
+    setPreviewDevice(device);
+  };
+
   return (
     <div className="flex items-center rounded-full border border-line bg-d-panel2 p-1">
       <button
-        onClick={() => setPreviewDevice("desktop")}
+        onClick={() => selectDevice("desktop")}
         className={`flex flex-shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] uppercase tracking-[0.14em] font-semibold transition-colors outline-none ${
           previewDevice === "desktop"
             ? "bg-white text-[#15151A]"
@@ -22,7 +28,7 @@ function DeviceToggle({ previewDevice, setPreviewDevice }) {
         <Monitor size={12} /> Desktop
       </button>
       <button
-        onClick={() => setPreviewDevice("mobile")}
+        onClick={() => selectDevice("mobile")}
         className={`flex flex-shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] uppercase tracking-[0.14em] font-semibold transition-colors outline-none ${
           previewDevice === "mobile"
             ? "bg-white text-[#15151A]"
@@ -40,6 +46,67 @@ export function PreviewPanel({ html, view, previewDevice, setPreviewDevice }) {
   const [exporting, setExporting] = useState(false);
   const iframeRef = useRef(null);
   const fullscreenIframeRef = useRef(null);
+  const visibleZoneRef = useRef({ centerRatio: 0 });
+  const detachScrollRef = useRef(new WeakMap());
+
+  const getIframeScrollInfo = (iframe) => {
+    const win = iframe?.contentWindow;
+    const doc = iframe?.contentDocument;
+    const root = doc?.scrollingElement || doc?.documentElement || doc?.body;
+    if (!win || !root) return null;
+
+    const viewportHeight = Math.max(1, win.innerHeight || root.clientHeight || 1);
+    const scrollHeight = Math.max(viewportHeight, root.scrollHeight || doc?.body?.scrollHeight || viewportHeight);
+    const maxScrollTop = Math.max(0, scrollHeight - viewportHeight);
+    const scrollTop = Math.max(0, Math.min(maxScrollTop, win.scrollY || root.scrollTop || 0));
+    const centerRatio = maxScrollTop > 0
+      ? Math.max(0, Math.min(1, (scrollTop + viewportHeight / 2) / scrollHeight))
+      : 0;
+
+    return { win, root, viewportHeight, scrollHeight, maxScrollTop, centerRatio };
+  };
+
+  const rememberVisibleZone = (iframe = fullscreenIframeRef.current || iframeRef.current) => {
+    const info = getIframeScrollInfo(iframe);
+    if (!info) return;
+    visibleZoneRef.current = { centerRatio: info.centerRatio };
+  };
+
+  const restoreVisibleZone = (iframe) => {
+    const info = getIframeScrollInfo(iframe);
+    if (!info) return;
+    const { centerRatio } = visibleZoneRef.current;
+    const targetTop = Math.max(
+      0,
+      Math.min(info.maxScrollTop, centerRatio * info.scrollHeight - info.viewportHeight / 2),
+    );
+    info.win.scrollTo(0, targetTop);
+  };
+
+  const handleIframeLoad = (iframe) => {
+    if (!iframe) return;
+
+    detachScrollRef.current.get(iframe)?.();
+    const updateZone = () => rememberVisibleZone(iframe);
+    try {
+      iframe.contentWindow?.addEventListener("scroll", updateZone, { passive: true });
+      detachScrollRef.current.set(iframe, () => {
+        iframe.contentWindow?.removeEventListener("scroll", updateZone);
+      });
+    } catch {
+      // Best effort: l'iframe srcDoc est normalement accessible.
+    }
+
+    requestAnimationFrame(() => {
+      restoreVisibleZone(iframe);
+      setTimeout(() => restoreVisibleZone(iframe), 80);
+    });
+  };
+
+  useEffect(() => () => {
+    detachScrollRef.current.get(iframeRef.current)?.();
+    detachScrollRef.current.get(fullscreenIframeRef.current)?.();
+  }, []);
 
   const exportJpg = async () => {
     setExporting(true);
@@ -110,11 +177,14 @@ export function PreviewPanel({ html, view, previewDevice, setPreviewDevice }) {
             <div className="flex flex-1 justify-start">
               <ExportButton />
             </div>
-            <DeviceToggle previewDevice={previewDevice} setPreviewDevice={setPreviewDevice} />
+            <DeviceToggle previewDevice={previewDevice} setPreviewDevice={setPreviewDevice} onBeforeChange={() => rememberVisibleZone()} />
             <div className="flex flex-1 justify-end">
               <Tooltip label="Plein écran" side="bottom" align="right">
                 <button
-                  onClick={() => setFullscreen(true)}
+                  onClick={() => {
+                    rememberVisibleZone(iframeRef.current);
+                    setFullscreen(true);
+                  }}
                   className="flex items-center justify-center p-1.5 text-d-fg4 hover:text-d-fg2 transition-colors rounded-full"
                 >
                   <Maximize2 size={14} />
@@ -131,7 +201,7 @@ export function PreviewPanel({ html, view, previewDevice, setPreviewDevice }) {
               background: "radial-gradient(ellipse at top, rgba(65,65,255,0.05), transparent 60%), #0B0B0D",
             }}
           >
-            <iframe ref={iframeRef} title="Aperçu newsletter" srcDoc={html} style={iframeStyle} />
+            <iframe ref={iframeRef} title="Aperçu newsletter" srcDoc={html} style={iframeStyle} onLoad={(event) => handleIframeLoad(event.currentTarget)} />
           </div>
         ) : (
           <pre
@@ -153,11 +223,14 @@ export function PreviewPanel({ html, view, previewDevice, setPreviewDevice }) {
             <div className="flex flex-1 justify-start">
               <ExportButton />
             </div>
-            <DeviceToggle previewDevice={previewDevice} setPreviewDevice={setPreviewDevice} />
+            <DeviceToggle previewDevice={previewDevice} setPreviewDevice={setPreviewDevice} onBeforeChange={() => rememberVisibleZone()} />
             <div className="flex flex-1 justify-end">
               <Tooltip label="Quitter le plein écran" side="bottom" align="right">
                 <button
-                  onClick={() => setFullscreen(false)}
+                  onClick={() => {
+                    rememberVisibleZone(fullscreenIframeRef.current);
+                    setFullscreen(false);
+                  }}
                   className="flex items-center justify-center p-1.5 text-d-fg4 hover:text-d-fg2 transition-colors rounded-full"
                 >
                   <Minimize2 size={14} />
@@ -171,7 +244,7 @@ export function PreviewPanel({ html, view, previewDevice, setPreviewDevice }) {
               background: "radial-gradient(ellipse at top, rgba(65,65,255,0.05), transparent 60%), #0B0B0D",
             }}
           >
-            <iframe ref={fullscreenIframeRef} title="Aperçu newsletter plein écran" srcDoc={html} style={iframeStyle} />
+            <iframe ref={fullscreenIframeRef} title="Aperçu newsletter plein écran" srcDoc={html} style={iframeStyle} onLoad={(event) => handleIframeLoad(event.currentTarget)} />
           </div>
         </div>
       )}
