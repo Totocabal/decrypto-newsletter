@@ -620,13 +620,13 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
     setPreviewGenError(null);
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      const res = await fetch("/api/generate-preview-text", {
+      const res = await fetch("/api/gemini", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${session?.access_token || ""}`,
         },
-        body: JSON.stringify({ draft: newPreviewText }),
+        body: JSON.stringify({ action: "preview-text", draft: newPreviewText }),
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || "Erreur inconnue");

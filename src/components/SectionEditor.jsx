@@ -195,13 +195,13 @@ function HeroEditor({ data, set, sections }) {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const token = session?.access_token;
-      const res = await fetch("/api/generate-hero-subtitle", {
+      const res = await fetch("/api/gemini", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify({ state: { sections } }),
+        body: JSON.stringify({ action: "hero-subtitle", state: { sections } }),
       });
       const json = await res.json();
       if (json.subtitle) set({ subtitle: json.subtitle });
@@ -368,6 +368,7 @@ function IndexEditor({ data, set, sections }) {
           className="grid grid-cols-[60px_1fr_auto] gap-2 mb-2 items-center"
         >
           <Input
+            clearable={false}
             value={it.number}
             onChange={(e) =>
               set({

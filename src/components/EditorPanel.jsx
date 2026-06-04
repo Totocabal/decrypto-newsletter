@@ -105,13 +105,13 @@ function issueDateFromDateInput(value = "") {
 async function generatePreviewText(state) {
   const { data: { session } } = await supabase.auth.getSession();
   const token = session?.access_token;
-  const res = await fetch("/api/generate-preview-text", {
+  const res = await fetch("/api/gemini", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
-    body: JSON.stringify({ state }),
+    body: JSON.stringify({ action: "preview-text", state }),
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || "Erreur serveur");

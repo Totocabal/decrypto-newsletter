@@ -334,13 +334,13 @@ function RichTextEditor({ showCount, onChange, value = "", rows = 3, placeholder
       if (!html.trim()) return;
 
       const { data: { session } } = await supabase.auth.getSession();
-      const res = await fetch("/api/correct-text", {
+      const res = await fetch("/api/gemini", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
         },
-        body: JSON.stringify({ html }),
+        body: JSON.stringify({ action: "correct-text", html }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Erreur serveur");
