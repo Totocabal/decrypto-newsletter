@@ -1593,7 +1593,10 @@ ${renderEmailFontFaces()}
   a { text-decoration: none; }
   body { background-color: ${EMAIL_THEME.bgPage}; overflow-x: hidden; }
   @media only screen and (max-width: 640px) {
-    .em-container { width: 100% !important; max-width: 100% !important; overflow-x: hidden !important; }
+    .em-container { width: 100% !important; max-width: 100% !important; min-width: 0 !important; table-layout: fixed !important; overflow-x: hidden !important; }
+    .em-container table { max-width: 100% !important; }
+    .em-container td { box-sizing: border-box !important; max-width: 100% !important; }
+    .em-container img { max-width: 100% !important; height: auto !important; }
     .em-px { padding-left: 12px !important; padding-right: 12px !important; }
     .em-stack { display: block !important; width: 100% !important; max-width: 100% !important; border-right: none !important; box-sizing: border-box !important; }
     .em-stack-pad { padding-bottom: 16px !important; border-bottom: 1px solid ${EMAIL_THEME.borderStrong} !important; }
