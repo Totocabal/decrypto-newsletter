@@ -13,7 +13,7 @@ import {
   extractEmailSubject,
 } from "../../api/generate-markdown-import.js";
 import { importFromBody, parseRequestBody } from "../../api/import-markdown.js";
-import { buildEmailHtml } from "../render/buildEmail.js";
+import { buildEmailHtml, sanitizeRichText } from "../render/buildEmail.js";
 
 test("imports the complete Markdown example", () => {
   const example = readFileSync(
@@ -86,6 +86,15 @@ test("reads raw text/markdown API request bodies", async () => {
 
   assert.match(body.markdown, /title: "Raw API"/);
   assert.equal(importFromBody(body).title, "Raw API");
+});
+
+test("renders Quill links without exposing anchor HTML", () => {
+  const html = sanitizeRichText('<ul><li><a href="https://example.com/report.pdf" rel="noopener noreferrer" target="_blank">Politique d’exécution</a>, applicable.</li></ul>');
+
+  assert.match(html, /<a href="https:\/\/example\.com\/report\.pdf"/);
+  assert.match(html, />Politique d’exécution<\/a>/);
+  assert.doesNotMatch(html, /&lt;a href=/);
+  assert.doesNotMatch(html, /rel=&quot;noopener/);
 });
 
 test("cleans Gemini directive openings with a trailing colon", () => {

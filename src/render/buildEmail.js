@@ -53,6 +53,24 @@ function escapedClosingTagPattern(tagName) {
   return new RegExp(`&(?:amp;)?lt;\\/${tagName}&(?:amp;)?gt;`, "gi");
 }
 
+function decodeHtmlAttribute(str = "") {
+  return String(str)
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;|&#x27;|&apos;/gi, "'")
+    .replace(/&amp;/gi, "&");
+}
+
+function richTextLinkHtml(rawHref = "") {
+  const href = decodeHtmlAttribute(rawHref).trim();
+  if (!/^(https?:\/\/|mailto:|#)/i.test(href)) return "";
+  return `<a href="${escapeAttr(href)}" style="color:${EMAIL_THEME.textMuted}; text-decoration:underline;">`;
+}
+
+function escapedAnchorOpeningToHtml(match = "") {
+  const hrefMatch = String(match).match(/href\s*=\s*(?:&quot;([\s\S]*?)&quot;|&#39;([\s\S]*?)&#39;|&#x27;([\s\S]*?)&#x27;|&apos;([\s\S]*?)&apos;)/i);
+  return richTextLinkHtml(hrefMatch?.[1] || hrefMatch?.[2] || hrefMatch?.[3] || hrefMatch?.[4] || "");
+}
+
 const RICH_TEXT_WEIGHT = 400;
 const RICH_TEXT_BOLD_WEIGHT = 700;
 let EMAIL_THEME = THEME;
@@ -120,8 +138,7 @@ export function sanitizeRichText(text = "") {
     .replace(/&lt;\/ol&gt;/gi, "</ol>")
     .replace(/&lt;li&gt;/gi, `<li style="${listItemStyle}">`)
     .replace(/&lt;\/li&gt;/gi, "</li>")
-    .replace(/&lt;a href=&quot;([^&]+)&quot;&gt;/gi,
-      `<a href="$1" style="color:${EMAIL_THEME.textMuted}; text-decoration:underline;">`)
+    .replace(escapedOpeningTagPattern("a"), escapedAnchorOpeningToHtml)
     .replace(/&lt;\/a&gt;/gi, "</a>")
     .replace(/\[([^\]\n]+)\]\((https?:\/\/[^)\s]+|mailto:[^)\s]+|#[^)\s]+)\)/gi,
       `<a href="$2" style="color:${EMAIL_THEME.textMuted}; text-decoration:underline;">$1</a>`)

@@ -2113,6 +2113,7 @@ function FocusEditor({ data, set }) {
                         step="2"
                         value={Number.isFinite(Number(item.height)) ? Number(item.height) : 24}
                         onChange={(e) => updateItem(item.id, { height: Math.max(0, Math.min(120, Number(e.target.value) || 0)) })}
+                        clearable={false}
                       />
                     </div>
                     <span className="text-xs font-semibold text-d-fg3">px</span>
@@ -2595,6 +2596,7 @@ function SpacerEditor({ data, set }) {
           max="120"
           value={value}
           onChange={(e) => set({ height: Number(e.target.value) })}
+          clearable={false}
         />
       </div>
     </Field>
