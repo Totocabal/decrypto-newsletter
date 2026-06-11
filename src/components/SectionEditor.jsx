@@ -758,7 +758,7 @@ function PictoSelector({ value, color, onChange }) {
       {CALLOUT_PICTOS.map((p) => {
         const isSelected = (value || DEFAULT_PICTO_ID) === p.id;
         return (
-          <div key={p.id} className="relative group">
+          <div key={p.id} className="relative group/picto">
             <button
               type="button"
               onClick={() => onChange(p.id)}
@@ -773,7 +773,7 @@ function PictoSelector({ value, color, onChange }) {
               <span dangerouslySetInnerHTML={{ __html: buildPictoSvgHtml(p.svgInner, activeColor, 13) }} />
             </button>
             <div
-              className="pointer-events-none absolute bottom-[calc(100%+6px)] left-1/2 -translate-x-1/2 z-20 hidden h-10 w-10 items-center justify-center rounded-xl border shadow-xl group-hover:flex"
+              className="pointer-events-none absolute bottom-[calc(100%+6px)] left-1/2 -translate-x-1/2 z-20 hidden h-10 w-10 items-center justify-center rounded-xl border shadow-xl group-hover/picto:flex"
               style={{
                 background: `rgba(${rgb},0.16)`,
                 borderColor: `rgba(${rgb},0.4)`,
@@ -1688,6 +1688,12 @@ function MacroBarsEditor({ data, set }) {
 function CommentedNumberEditor({ data, set }) {
   return (
     <>
+      <Field label="Titre au sommaire" hint="Nom affiché dans le bloc Sommaire">
+        <Input
+          value={data.index_label || ""}
+          onChange={(e) => set({ index_label: e.target.value })}
+        />
+      </Field>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <Field label="Libellé">
           <Input value={data.kicker || ""} onChange={(e) => set({ kicker: e.target.value })} />
@@ -2263,7 +2269,7 @@ function FocusEditor({ data, set }) {
                           const rgb = hexToRgb(activeColor);
                           const isSelected = (item.picto || DEFAULT_PICTO_ID) === p.id;
                           return (
-                            <div key={p.id} className="relative group">
+                            <div key={p.id} className="relative group/picto">
                               <button
                                 type="button"
                                 onClick={() => updateItem(item.id, { picto: p.id })}
@@ -2279,7 +2285,7 @@ function FocusEditor({ data, set }) {
                               </button>
                               {/* Preview agrandie au survol */}
                               <div
-                                className="pointer-events-none absolute bottom-[calc(100%+6px)] left-1/2 -translate-x-1/2 z-20 hidden group-hover:flex h-10 w-10 items-center justify-center rounded-xl border shadow-xl"
+                                className="pointer-events-none absolute bottom-[calc(100%+6px)] left-1/2 -translate-x-1/2 z-20 hidden group-hover/picto:flex h-10 w-10 items-center justify-center rounded-xl border shadow-xl"
                                 style={{
                                   background: `rgba(${rgb},0.16)`,
                                   borderColor: `rgba(${rgb},0.4)`,

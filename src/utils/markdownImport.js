@@ -285,7 +285,7 @@ function parseCommaList(value = "") {
 
 function sectionTitle(section) {
   const data = section.data || {};
-  return data.title || data.label || data.kicker || section.type;
+  return data.index_label || data.title || data.label || data.kicker || section.type;
 }
 
 function populateImportedIndexes(sections) {

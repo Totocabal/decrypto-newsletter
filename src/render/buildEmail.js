@@ -208,7 +208,7 @@ function renderEmailFontFaces() {
 
 function sectionTitleForIndex(sec) {
   const d = sec.data || {};
-  return d.title || d.label || d.kicker || sec.type;
+  return d.index_label || d.title || d.label || d.kicker || sec.type;
 }
 
 function numberedSections(sections) {

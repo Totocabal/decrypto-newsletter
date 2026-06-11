@@ -51,7 +51,7 @@ import { useCoinGecko } from "../lib/useCoinGecko.js";
 
 function sectionTitle(sec) {
   const d = sec.data || {};
-  return d.title || d.label || d.kicker || sec.type;
+  return d.index_label || d.title || d.label || d.kicker || sec.type;
 }
 
 function buildIndexItems(sections) {

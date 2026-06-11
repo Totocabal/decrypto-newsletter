@@ -180,6 +180,7 @@ export const SECTION_TYPES = {
     label: "Chiffre commenté",
     icon: "Hash",
     factory: () => ({
+      index_label: "Le chiffre de la semaine",
       kicker: "LE CHIFFRE",
       value: "+1,2",
       unit: "Md $",
