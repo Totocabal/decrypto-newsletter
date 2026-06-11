@@ -900,9 +900,9 @@ function renderFeatureGrid(data, number, assetMode, anchor = "", isLastSection =
     const color = item.color || DEFAULT_CALLOUT_COLOR;
     const sidePadding = side === "single" ? "" : side === "left" ? "padding-right:6px;" : "padding-left:6px;";
     const bottomPadding = isBottom ? "" : "padding-bottom:12px;";
-    return `<td class="em-feature-cell" valign="top" width="${width}" style="${sidePadding} ${bottomPadding}">
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${cardBg}" style="background-color:${cardBg}; border:1px solid ${cardBorder}; border-radius:14px; height:100%; border-collapse:separate !important; border-spacing:0 !important; overflow:hidden;">
-        <tr><td style="padding:18px; border-radius:14px;">
+    return `<td class="em-feature-cell" valign="top" width="${width}" style="${sidePadding} ${bottomPadding} height:1px;">
+      <table role="presentation" width="100%" height="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${cardBg}" style="background-color:${cardBg}; border:1px solid ${cardBorder}; border-radius:14px; height:100%; border-collapse:separate !important; border-spacing:0 !important; overflow:hidden;">
+        <tr><td valign="top" style="padding:18px; border-radius:14px;">
           <div style="margin-bottom:10px;">${renderPictoBadge(item.picto, color, 14, assetMode)}</div>
           ${item.title ? `<p style="margin:0 0 4px; font-family:${FONTS.heading}; font-weight:600; font-size:13.5px; color:${cardText}; letter-spacing:-0.005em; line-height:1.28;">${escapeHtml(item.title)}</p>` : ""}
           ${item.body ? `<div style="margin:0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:12px; color:${cardMuted}; line-height:1.5;">${sanitizeRichText(item.body)}</div>` : ""}
@@ -1649,7 +1649,7 @@ ${renderEmailFontFaces()}
     .em-kpi-grid td { display: block !important; width: 100% !important; box-sizing: border-box !important; border-right: none !important; border-bottom: 1px solid ${EMAIL_THEME.border} !important; }
     .em-signal-col { display: block !important; width: 100% !important; box-sizing: border-box !important; border-right: none !important; border-bottom: 1px solid ${EMAIL_THEME.border} !important; }
     .em-signal-col:last-child { border-bottom: none !important; }
-    .em-feature-cell { display: block !important; width: 100% !important; box-sizing: border-box !important; padding-left: 0 !important; padding-right: 0 !important; padding-bottom: 12px !important; }
+    .em-feature-cell { display: block !important; width: 100% !important; height: auto !important; box-sizing: border-box !important; padding-left: 0 !important; padding-right: 0 !important; padding-bottom: 12px !important; }
     .em-feature-icon { width: 48px !important; padding-right: 12px !important; }
     .em-editorial-num { width: 40px !important; }
     .em-editorial-tag { display: none !important; mso-hide: all !important; max-height: 0 !important; overflow: hidden !important; width: 0 !important; }
