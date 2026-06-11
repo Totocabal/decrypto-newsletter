@@ -922,8 +922,9 @@ function renderFeatureGrid(data, number, assetMode, anchor = "", isLastSection =
   }
   const ctaText = String(data.cta_label || "").trim();
   const ctaStyle = ctaVisualStyle(data.cta_style);
+  const ctaGap = SHOW_BLOCK_SEPARATORS || CURRENT_SECTION_IS_LAST ? "44px" : "28px";
   const ctaHtml = ctaText
-    ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin:22px auto 0;">
+    ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin:${ctaGap} auto 0;">
         <tr>
           <td bgcolor="${ctaStyle.bgColor}" style="border-radius:99px; ${ctaStyle.background}">
             <a href="${escapeAttr(data.cta_url || "#")}" style="display:inline-block; padding:13px 22px; font-family:${FONTS.heading}; font-weight:600; font-size:13px; line-height:1.25; color:#ffffff; text-decoration:none; border-radius:99px; letter-spacing:0.01em; text-align:center;">${escapeHtml(ctaText)}${data.cta_arrow !== false ? "&nbsp;→" : ""}</a>
