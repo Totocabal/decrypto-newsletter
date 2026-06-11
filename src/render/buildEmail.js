@@ -903,8 +903,12 @@ function renderFeatureGrid(data, number, assetMode, anchor = "", isLastSection =
     return `<td class="em-feature-cell" valign="top" width="${width}" style="${sidePadding} ${bottomPadding} height:1px;">
       <table role="presentation" width="100%" height="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${cardBg}" style="background-color:${cardBg}; border:1px solid ${cardBorder}; border-radius:14px; height:100%; border-collapse:separate !important; border-spacing:0 !important; overflow:hidden;">
         <tr><td valign="top" style="padding:18px; border-radius:14px;">
-          <div style="margin-bottom:10px;">${renderPictoBadge(item.picto, color, 14, assetMode)}</div>
-          ${item.title ? `<p style="margin:0 0 4px; font-family:${FONTS.heading}; font-weight:600; font-size:13.5px; color:${cardText}; letter-spacing:-0.005em; line-height:1.28;">${escapeHtml(item.title)}</p>` : ""}
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:8px;">
+            <tr>
+              <td valign="middle" style="padding-right:10px;">${renderPictoBadge(item.picto, color, 14, assetMode)}</td>
+              ${item.title ? `<td valign="middle"><p style="margin:0; font-family:${FONTS.heading}; font-weight:600; font-size:13.5px; color:${cardText}; letter-spacing:-0.005em; line-height:1.28;">${escapeHtml(item.title)}</p></td>` : ""}
+            </tr>
+          </table>
           ${item.body ? `<div style="margin:0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:12px; color:${cardMuted}; line-height:1.5;">${sanitizeRichText(item.body)}</div>` : ""}
         </td></tr>
       </table>
