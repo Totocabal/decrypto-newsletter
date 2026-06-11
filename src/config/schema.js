@@ -204,6 +204,10 @@ export const SECTION_TYPES = {
       },
       bg_image_url: "",
       bg_image_path: "",
+      cta_label: "",
+      cta_url: "",
+      cta_style: "gradient",
+      cta_arrow: true,
       items: [
         {
           title: "Moins de frais qu'avec votre carte",

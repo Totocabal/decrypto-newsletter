@@ -46,7 +46,7 @@ const SECTION_FIELDS = {
   focus_divider: ["style"],
   signals: ["kicker", "title"],
   editorial_list: ["kicker"],
-  feature_grid: ["kicker", "bg_image_url"],
+  feature_grid: ["kicker", "bg_image_url", "cta_label", "cta_url", "cta_style", "cta_arrow"],
   feature_grid_featured: ["label", "title", "picto", "show_icon", "color"],
   image_block: ["image_url", "image_alt", "link_url"],
   divider: ["style"],
@@ -665,6 +665,7 @@ function normalizeExplicitSection(token, body, warnings) {
   if (type === "macro" && data.bg_image_url) assertHttpUrl(data.bg_image_url, "bg_image_url");
   if (type === "feature_grid") {
     if (data.bg_image_url) assertHttpUrl(data.bg_image_url, "bg_image_url");
+    if (data.cta_url) assertHttpUrl(data.cta_url, "cta_url");
     const parsedItems = parsePipeItems(markdownBody, type, 4);
     const items = parsedItems.slice(0, 4).map(([title, bodyText, picto, color]) => ({
       title,

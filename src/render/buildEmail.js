@@ -920,6 +920,17 @@ function renderFeatureGrid(data, number, assetMode, anchor = "", isLastSection =
       ${right ? cell(right, index + 1, "right", isLastRow, "50%") : ""}
     </tr>`);
   }
+  const ctaText = String(data.cta_label || "").trim();
+  const ctaStyle = ctaVisualStyle(data.cta_style);
+  const ctaHtml = ctaText
+    ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin:22px auto 0;">
+        <tr>
+          <td bgcolor="${ctaStyle.bgColor}" style="border-radius:99px; ${ctaStyle.background}">
+            <a href="${escapeAttr(data.cta_url || "#")}" style="display:inline-block; padding:13px 22px; font-family:${FONTS.heading}; font-weight:600; font-size:13px; line-height:1.25; color:#ffffff; text-decoration:none; border-radius:99px; letter-spacing:0.01em; text-align:center;">${escapeHtml(ctaText)}${data.cta_arrow !== false ? "&nbsp;→" : ""}</a>
+          </td>
+        </tr>
+      </table>`
+    : "";
 
   return `
     <tr>
@@ -929,6 +940,7 @@ function renderFeatureGrid(data, number, assetMode, anchor = "", isLastSection =
         <div style="height:18px; line-height:18px; font-size:1px;">&nbsp;</div>
         ${hasFeaturedCard ? featuredCard : ""}
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${rows.join("")}</table>
+        ${ctaHtml}
       </td>
     </tr>`;
 }

@@ -916,6 +916,39 @@ function FeatureGridEditor({ data, set }) {
         ))}
       </div>
 
+      <div className="mt-3 rounded-xl border border-line bg-d-panel2 p-3 space-y-3">
+        <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-d-pink">CTA</div>
+        <Field noMargin label="Fond du bouton">
+          <CtaStyleControl
+            value={data.cta_style || "gradient"}
+            onChange={(cta_style) => set({ ...data, cta_style })}
+          />
+        </Field>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <Field noMargin label="Texte">
+            <Input
+              value={data.cta_label || ""}
+              onChange={(e) => set({ ...data, cta_label: e.target.value })}
+            />
+          </Field>
+          <Field noMargin label="Lien">
+            <Input
+              value={data.cta_url || ""}
+              onChange={(e) => set({ ...data, cta_url: e.target.value })}
+            />
+          </Field>
+        </div>
+        <label className="flex items-center justify-between gap-3 rounded-xl border border-line bg-d-panel px-3 py-2 text-sm text-d-fg">
+          <span>Flèche</span>
+          <input
+            type="checkbox"
+            checked={data.cta_arrow !== false}
+            onChange={(e) => set({ ...data, cta_arrow: e.target.checked })}
+            className="h-4 w-4 accent-d-pink"
+          />
+        </label>
+      </div>
+
       {bgImageManagerOpen && (
         <ImageManagerModal
           currentPath={data.bg_image_path}

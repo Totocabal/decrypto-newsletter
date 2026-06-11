@@ -770,6 +770,10 @@ preview_text: "Benefits."
 :::feature_grid
 kicker: "Benefits"
 bg_image_url: "https://example.com/grid-bg.png"
+cta_label: "Découvrir"
+cta_url: "https://example.com/open"
+cta_style: "black"
+cta_arrow: false
 :::
 
 - Friction | Buy without card rejects. | euro | #00FFFF
@@ -792,6 +796,10 @@ Security and clarity stay together.
   assert.equal(featureGrid.data.featured.body, "Security and clarity stay together.");
   assert.equal(featureGrid.data.items[0].picto, "euro");
   assert.equal(featureGrid.data.items[1].color, "#FF8B28");
+  assert.equal(featureGrid.data.cta_label, "Découvrir");
+  assert.equal(featureGrid.data.cta_url, "https://example.com/open");
+  assert.equal(featureGrid.data.cta_style, "black");
+  assert.equal(featureGrid.data.cta_arrow, false);
 });
 
 test("renders feature grid with exactly three secondary cards", () => {
@@ -818,4 +826,31 @@ kicker: "Benefits"
   assert.doesNotMatch(html, /Benefice n/);
   assert.doesNotMatch(html, /undefined/);
   assert.doesNotMatch(html, /<td class="em-feature-cell"[^>]*>\s*<table[\s\S]*?<div style="margin-bottom:10px;">[\s\S]*?<p style="margin:0 0 4px;[^>]*"><\/p>/);
+});
+
+test("renders feature grid CTA", () => {
+  const html = buildEmailHtml({
+    issue_date: "Test",
+    preview_text: "Benefits.",
+    sections: [
+      {
+        id: "benefits",
+        type: "feature_grid",
+        data: {
+          kicker: "Benefits",
+          featured: { title: "Main", body: "Body", show_icon: false },
+          items: [],
+          cta_label: "Activer",
+          cta_url: "https://example.com/activate",
+          cta_style: "black",
+          cta_arrow: false,
+        },
+      },
+    ],
+    footer: { links: [], address: "", legal: "", unsub_url: "#" },
+  });
+
+  assert.match(html, /href="https:\/\/example\.com\/activate"/);
+  assert.match(html, />Activer<\/a>/);
+  assert.doesNotMatch(html, /Activer&nbsp;→/);
 });
