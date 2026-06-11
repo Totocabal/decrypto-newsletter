@@ -2539,7 +2539,7 @@ function CtaEditor({ data, set }) {
           />
         </Field>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <label className="flex items-center justify-between gap-3 rounded-xl border border-line bg-d-panel2 px-3 py-2 text-sm text-d-fg">
           <span>Flèche</span>
           <input
@@ -2555,6 +2555,15 @@ function CtaEditor({ data, set }) {
             type="checkbox"
             checked={data.centered === true}
             onChange={(e) => set({ centered: e.target.checked })}
+            className="h-4 w-4 accent-d-pink"
+          />
+        </label>
+        <label className="flex items-center justify-between gap-3 rounded-xl border border-line bg-d-panel2 px-3 py-2 text-sm text-d-fg">
+          <span>Séparateur au-dessus</span>
+          <input
+            type="checkbox"
+            checked={data.show_top_separator !== false}
+            onChange={(e) => set({ show_top_separator: e.target.checked })}
             className="h-4 w-4 accent-d-pink"
           />
         </label>

@@ -15,6 +15,7 @@ const SECTION_FIELDS = {
     "cta_style",
     "arrow",
     "centered",
+    "show_top_separator",
     "secondary_label",
     "secondary_url",
     "secondary_arrow",

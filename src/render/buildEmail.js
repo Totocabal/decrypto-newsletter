@@ -79,6 +79,7 @@ let CTA_GRADIENT_URL = null;
 let SHOW_BLOCK_SEPARATORS = true;
 let CURRENT_SECTION_IS_FIRST = false;
 let CURRENT_SECTION_IS_LAST = false;
+let CURRENT_SECTION_SUPPRESS_BOTTOM_SEPARATOR = false;
 const CTA_GRADIENT_FALLBACK = "linear-gradient(90deg, #4141FF 0%, #FF00AA 60%, #FF4B28 100%)";
 const CTA_GRADIENT_BG = "#4141FF";
 const CTA_BLACK_BG = "#050505";
@@ -400,7 +401,9 @@ function sectionTitleSpaced(title) {
 }
 
 function sectionBottomBorder(isLastSection) {
-  return isLastSection || !SHOW_BLOCK_SEPARATORS ? "" : ` border-bottom:1px solid ${EMAIL_THEME.border};`;
+  return isLastSection || CURRENT_SECTION_SUPPRESS_BOTTOM_SEPARATOR || !SHOW_BLOCK_SEPARATORS
+    ? ""
+    : ` border-bottom:1px solid ${EMAIL_THEME.border};`;
 }
 
 function expandPadding(value) {
@@ -1458,9 +1461,10 @@ function renderSpacer(data) {
 // Dispatcher : section → fonction de rendu
 // ─────────────────────────────────────────────────────────────────────────────
 
-function renderSection(sec, allSections, assetMode, showSectionNumbers = true, isLastSection = false, isFirstSection = false) {
+function renderSection(sec, allSections, assetMode, showSectionNumbers = true, isLastSection = false, isFirstSection = false, suppressBottomSeparator = false) {
   CURRENT_SECTION_IS_FIRST = isFirstSection;
   CURRENT_SECTION_IS_LAST = isLastSection;
+  CURRENT_SECTION_SUPPRESS_BOTTOM_SEPARATOR = suppressBottomSeparator;
   const number = showSectionNumbers === false
     ? null
     : computeSectionNumber(allSections, sec.id);
@@ -1571,6 +1575,13 @@ export function buildEmailHtml(state, options = {}) {
   const firstRenderedSectionIndex = renderedSections.length
     ? renderedSections[0].index
     : -1;
+  const suppressBottomSeparatorIndexes = new Set();
+  renderedSections.forEach((entry, position) => {
+    const nextEntry = renderedSections[position + 1];
+    if (nextEntry?.section.type === "cta" && nextEntry.section.data?.show_top_separator === false) {
+      suppressBottomSeparatorIndexes.add(entry.index);
+    }
+  });
   const sectionsHtml = sections
     .map((section, index) =>
       renderSection(
@@ -1579,7 +1590,8 @@ export function buildEmailHtml(state, options = {}) {
         assetMode,
         showSectionNumbers,
         index === lastRenderedSectionIndex,
-        index === firstRenderedSectionIndex
+        index === firstRenderedSectionIndex,
+        suppressBottomSeparatorIndexes.has(index)
       )
     )
     .join("");

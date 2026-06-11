@@ -308,6 +308,7 @@ export const SECTION_TYPES = {
       cta_style: "gradient",
       arrow: true,
       centered: false,
+      show_top_separator: true,
       secondary_label: "",
       secondary_url: "",
       secondary_arrow: false,

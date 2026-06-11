@@ -97,6 +97,32 @@ test("renders Quill links without exposing anchor HTML", () => {
   assert.doesNotMatch(html, /rel=&quot;noopener/);
 });
 
+test("can hide the separator above a standalone CTA", () => {
+  const baseState = {
+    issue_date: "Test",
+    preview_text: "Test",
+    show_block_separators: true,
+    sections: [
+      { id: "text-1", type: "text_block", data: { title: "", kicker: "", body: "Avant CTA" } },
+      { id: "cta-1", type: "cta", data: { label: "Découvrir", url: "#", show_top_separator: true } },
+      { id: "text-2", type: "text_block", data: { title: "", kicker: "", body: "Après CTA" } },
+    ],
+    footer: { links: [], address: "", legal: "", unsub_url: "#" },
+  };
+  const withSeparator = buildEmailHtml(baseState);
+  const withoutSeparator = buildEmailHtml({
+    ...baseState,
+    sections: baseState.sections.map((section) =>
+      section.id === "cta-1"
+        ? { ...section, data: { ...section.data, show_top_separator: false } }
+        : section
+    ),
+  });
+
+  const countSeparators = (html) => (html.match(/border-bottom:1px solid/g) || []).length;
+  assert.equal(countSeparators(withoutSeparator), countSeparators(withSeparator) - 1);
+});
+
 test("cleans Gemini directive openings with a trailing colon", () => {
   const markdown = cleanGeneratedMarkdown(`---
 title: "Gemini import"
