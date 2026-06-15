@@ -31,6 +31,7 @@ export function SectionEditor({ type, data, onChange, sections = [] }) {
     case "macro_bars": return <MacroBarsEditor data={data} set={set} />;
     case "commented_number": return <CommentedNumberEditor data={data} set={set} />;
     case "feature_grid": return <FeatureGridEditor data={data} set={set} />;
+    case "comparison": return <ComparisonEditor data={data} set={set} />;
     case "editorial_list": return <EditorialListEditor data={data} set={set} />;
     case "event":      return <EventEditor data={data} set={set} />;
     case "referral":   return <ReferralEditor data={data} set={set} />;
@@ -1743,6 +1744,120 @@ function CommentedNumberEditor({ data, set }) {
           onChange={(e) => set({ body: e.target.value })}
         />
       </Field>
+    </>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// COMPARATIF
+// ─────────────────────────────────────────────────────────────────────────────
+
+const COMPARISON_HIGHLIGHTS = [
+  { value: "none", label: "Aucune" },
+  { value: "left", label: "Colonne gauche" },
+  { value: "right", label: "Colonne droite" },
+];
+
+function ComparisonEditor({ data, set }) {
+  const rows = data.rows || [];
+  const updateRow = (index, patch) =>
+    set({ rows: rows.map((row, idx) => (idx === index ? { ...row, ...patch } : row)) });
+
+  return (
+    <>
+      <Field label="Libellé">
+        <Input
+          value={data.kicker || ""}
+          onChange={(e) => set({ kicker: e.target.value })}
+        />
+      </Field>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <Field label="Colonne gauche" hint="Tu peux utiliser <br> pour forcer un retour.">
+          <TextArea
+            rows={2}
+            value={data.column_left || ""}
+            onChange={(e) => set({ column_left: e.target.value })}
+          />
+        </Field>
+        <Field label="Colonne droite" hint="Tu peux utiliser <br> pour forcer un retour.">
+          <TextArea
+            rows={2}
+            value={data.column_right || ""}
+            onChange={(e) => set({ column_right: e.target.value })}
+          />
+        </Field>
+      </div>
+
+      <div className="text-[10px] uppercase tracking-[0.18em] font-semibold text-d-fg3 mb-2 mt-2">
+        Lignes comparatives
+      </div>
+      {rows.map((row, index) => (
+        <div key={index} className="mb-3 rounded-xl border border-line bg-d-panel2 p-3">
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <span className="text-[10px] uppercase tracking-[0.18em] text-d-fg4 font-semibold">
+              Ligne {String(index + 1).padStart(2, "0")}
+            </span>
+            <Tooltip label="Supprimer">
+              <button
+                type="button"
+                onClick={() => set({ rows: rows.filter((_, idx) => idx !== index) })}
+                className="p-1.5 text-d-fg4 hover:text-red-400 hover:bg-red-900/20 rounded-lg"
+              >
+                <Trash2 size={13} />
+              </button>
+            </Tooltip>
+          </div>
+          <div className="grid grid-cols-1 gap-2">
+            <Input
+              value={row.label || ""}
+              onChange={(e) => updateRow(index, { label: e.target.value })}
+              placeholder="Libellé de la ligne"
+            />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <Input
+                value={row.left || ""}
+                onChange={(e) => updateRow(index, { left: e.target.value })}
+                placeholder="Valeur gauche"
+              />
+              <Input
+                value={row.right || ""}
+                onChange={(e) => updateRow(index, { right: e.target.value })}
+                placeholder="Valeur droite"
+              />
+            </div>
+            <select
+              value={row.highlight || "none"}
+              onChange={(e) => updateRow(index, { highlight: e.target.value })}
+              className="w-full px-3 py-2 border border-line rounded-xl text-sm bg-d-panel2 text-d-fg"
+            >
+              {COMPARISON_HIGHLIGHTS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  Mise en avant : {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      ))}
+      <button
+        type="button"
+        onClick={() =>
+          set({
+            rows: [...rows, { label: "", left: "", right: "", highlight: "none" }],
+          })
+        }
+        className="w-full mt-1 flex items-center justify-center gap-2 px-4 py-2 border border-dashed border-line text-d-fg3 hover:border-line2 hover:text-d-fg2 rounded-xl text-[10px] uppercase tracking-[0.18em] transition-colors"
+      >
+        <Plus size={12} /> Ajouter une ligne
+      </button>
+      <div className="mt-4">
+        <Field label="Note">
+          <Input
+            value={data.footnote || ""}
+            onChange={(e) => set({ footnote: e.target.value })}
+          />
+        </Field>
+      </div>
     </>
   );
 }

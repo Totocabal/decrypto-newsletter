@@ -237,6 +237,42 @@ export const SECTION_TYPES = {
       ],
     }),
   },
+  comparison: {
+    label: "Comparatif",
+    icon: "Grid2X2",
+    factory: () => ({
+      kicker: "Comparatif",
+      column_left: "Staking<br>Standard",
+      column_right: "Staking<br>Flexible",
+      rows: [
+        {
+          label: "Disponibilité des fonds",
+          left: "Délai de 1 à 30 jours",
+          right: "Retrait instantané*",
+          highlight: "right",
+        },
+        {
+          label: "Taux de rendement annuel indicatif",
+          left: "Plus élevé",
+          right: "Plus faible",
+          highlight: "left",
+        },
+        {
+          label: "Idéal pour",
+          left: "Long terme, sans besoin de liquidité",
+          right: "Garder de la flexibilité",
+          highlight: "none",
+        },
+        {
+          label: "Compatible avec",
+          left: "Tous les abonnements",
+          right: "Tous les abonnements",
+          highlight: "none",
+        },
+      ],
+      footnote: "* Sous réserve des conditions de marché.",
+    }),
+  },
   editorial_list: {
     label: "Liste éditoriale",
     icon: "List",

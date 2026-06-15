@@ -161,6 +161,12 @@ function trimTrailingListSpacing(html = "") {
   );
 }
 
+function sanitizeLineBreakText(text = "") {
+  return escapeHtml(text)
+    .replace(/&lt;br\s*\/?&gt;/gi, "<br />")
+    .replace(/\n/g, "<br />");
+}
+
 function toneColor(tone) {
   switch (tone) {
     case "positive": return EMAIL_THEME.positive;
@@ -953,6 +959,55 @@ function renderFeatureGrid(data, number, assetMode, anchor = "", isLastSection =
     </tr>`;
 }
 
+function renderComparison(data, anchor = "", isLastSection = false) {
+  const rows = Array.isArray(data.rows) ? data.rows : [];
+  const isLightTheme = EMAIL_THEME === EMAIL_THEMES.light;
+  const cardBg = isLightTheme ? "#FAF7F1" : "#101018";
+  const cardBorder = isLightTheme ? "#E5E1D8" : "rgba(255,255,255,0.08)";
+  const headerBorder = isLightTheme ? "#E5E1D8" : "rgba(255,255,255,0.10)";
+  const rowBorder = isLightTheme ? "#EBE7DE" : "rgba(255,255,255,0.06)";
+  const kickerColor = isLightTheme ? "#C0008A" : "#FF00AA";
+  const headerTextColor = isLightTheme ? "#14141A" : "#FFFFFF";
+  const labelTextColor = isLightTheme ? "#2E323A" : "#C7CAD1";
+  const bodyTextColor = isLightTheme ? "#4A4F58" : "#A8AEB8";
+  const positiveColor = isLightTheme ? "#00875F" : "#03FFCF";
+  const footnoteColor = isLightTheme ? "#8C8F98" : "#5E6872";
+  const rowHtml = rows.map((row, index) => {
+    const isLast = index === rows.length - 1;
+    const borderStyle = isLast ? "" : `border-bottom:1px solid ${rowBorder};`;
+    const leftHighlighted = row.highlight === "left";
+    const rightHighlighted = row.highlight === "right";
+    return `<tr>
+      <td class="em-comparison-label" valign="top" width="40%" style="padding:14px 18px; ${borderStyle} font-family:${FONTS.heading}; font-weight:600; font-size:13px; line-height:1.35; color:${labelTextColor};">${sanitizeLineBreakText(row.label || "")}</td>
+      <td class="em-comparison-cell" valign="top" width="30%" style="padding:14px 16px; ${borderStyle} font-family:${FONTS.body}; font-size:13px; line-height:1.45; color:${leftHighlighted ? positiveColor : bodyTextColor}; font-weight:${leftHighlighted ? 700 : 400};">${sanitizeLineBreakText(row.left || "")}</td>
+      <td class="em-comparison-cell" valign="top" width="30%" style="padding:14px 18px 14px 16px; ${borderStyle} font-family:${FONTS.body}; font-size:13px; line-height:1.45; color:${rightHighlighted ? positiveColor : bodyTextColor}; font-weight:${rightHighlighted ? 700 : 400};">${sanitizeLineBreakText(row.right || "")}</td>
+    </tr>`;
+  }).join("");
+  const footnote = String(data.footnote || "").trim();
+
+  return `
+    <tr>
+      <td class="em-px" style="padding:${sectionPadding("36px", "24px 36px")};${sectionBottomBorder(isLastSection)}">
+        ${anchor}
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${cardBg}" style="background-color:${cardBg}; border:1px solid ${cardBorder}; border-radius:16px; border-collapse:separate !important; border-spacing:0 !important; overflow:hidden;">
+          <tr>
+            <td style="padding:0; border-radius:16px;">
+              <table class="em-comparison-table" role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:separate !important; border-spacing:0 !important;">
+                <tr>
+                  <td valign="top" width="40%" style="padding:18px 18px 16px; border-bottom:1px solid ${headerBorder}; font-family:${FONTS.body}; font-size:11px; line-height:1.35; letter-spacing:0.22em; text-transform:uppercase; font-weight:700; color:${kickerColor};">${sanitizeLineBreakText(data.kicker || "Comparatif")}</td>
+                  <td valign="top" width="30%" style="padding:18px 16px 16px; border-bottom:1px solid ${headerBorder}; font-family:${FONTS.heading}; font-weight:700; font-size:14px; line-height:1.25; color:${headerTextColor};">${sanitizeLineBreakText(data.column_left || "")}</td>
+                  <td valign="top" width="30%" style="padding:18px 18px 16px 16px; border-bottom:1px solid ${headerBorder}; font-family:${FONTS.heading}; font-weight:700; font-size:14px; line-height:1.25; color:${headerTextColor};">${sanitizeLineBreakText(data.column_right || "")}</td>
+                </tr>
+                ${rowHtml}
+              </table>
+            </td>
+          </tr>
+        </table>
+        ${footnote ? `<p style="margin:10px 0 0; font-family:${FONTS.body}; font-size:11px; line-height:1.45; color:${footnoteColor};">${sanitizeLineBreakText(footnote)}</p>` : ""}
+      </td>
+    </tr>`;
+}
+
 function renderMacro(data, number, assetMode, anchor = "", isLastSection = false) {
   const authorParts = String(data.quote_author || "").split(" · ");
   const authorName = authorParts.shift() || "";
@@ -1613,6 +1668,7 @@ function renderSection(sec, allSections, assetMode, showSectionNumbers = true, i
     case "macro_bars": return renderMacroBars(sec.data, isLastSection);
     case "commented_number": return renderCommentedNumber(sec.data, anchor, isLastSection);
     case "feature_grid": return renderFeatureGrid(sec.data, number, assetMode, anchor, isLastSection);
+    case "comparison":  return renderComparison(sec.data, anchor, isLastSection);
     case "editorial_list": return renderEditorialList(sec.data, number, anchor, isLastSection);
     case "event":      return renderEvent(sec.data, anchor, isLastSection);
     case "referral":   return renderReferral(sec.data, anchor, isLastSection, assetMode);

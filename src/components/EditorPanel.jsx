@@ -828,6 +828,7 @@ const SECTION_TYPE_DESCRIPTIONS = {
   macro_bars: "Barres de données pour comparer des indicateurs.",
   commented_number: "Chiffre fort accompagné d'un commentaire éditorial.",
   feature_grid: "Grille de bénéfices, avec carte vedette optionnelle.",
+  comparison: "Tableau comparatif ligne par ligne.",
   event: "Annonce d'évènement avec informations et CTA.",
   referral: "Bloc parrainage premium avec code Braze conditionnel.",
   text_block: "Bloc texte simple avec bouton optionnel.",
