@@ -370,7 +370,37 @@ const sid = () => `s${Date.now()}_${nextSectionId++}`;
 
 function section(type, dataOverride = {}) {
   const data = SECTION_TYPES[type].factory();
-  return { id: sid(), type, data: { ...data, ...dataOverride } };
+  return { id: sid(), type, data: normalizeSectionData(type, { ...data, ...dataOverride }) };
+}
+
+const REFERRAL_OLD_DEFAULTS = {
+  kicker: "→ Programme de parrainage",
+  title: "Chaque proche que vous parrainez, c'est <strong>20 €</strong> pour vous deux.",
+  description: "Aucun plafond. Plus vous partagez Décrypto autour de vous, plus vous cumulez.",
+};
+
+function normalizeSectionData(type, data = {}) {
+  if (type !== "referral") return data;
+  const defaults = SECTION_TYPES.referral.factory();
+  return {
+    ...data,
+    kicker: data.kicker === REFERRAL_OLD_DEFAULTS.kicker ? defaults.kicker : (data.kicker ?? defaults.kicker),
+    title: data.title === REFERRAL_OLD_DEFAULTS.title ? defaults.title : (data.title ?? defaults.title),
+    description: data.description === REFERRAL_OLD_DEFAULTS.description ? defaults.description : (data.description ?? defaults.description),
+    code_label: data.code_label ?? defaults.code_label,
+    code_liquid: data.code_liquid ?? defaults.code_liquid,
+    cta_label: data.cta_label ?? defaults.cta_label,
+    cta_url: data.cta_url ?? defaults.cta_url,
+    bg_image_url: data.bg_image_url ?? defaults.bg_image_url,
+    bg_image_path: data.bg_image_path ?? defaults.bg_image_path,
+  };
+}
+
+function normalizeExistingSections(sections = []) {
+  return sections.map((sec) => ({
+    ...sec,
+    data: normalizeSectionData(sec.type, sec.data || {}),
+  }));
 }
 
 function thursdayOfCurrentWeek() {
@@ -432,6 +462,7 @@ export function migrateLegacyState(oldState) {
     // Déjà au nouveau format
     return {
       ...oldState,
+      sections: normalizeExistingSections(oldState.sections),
       show_section_numbers: oldState.show_section_numbers !== false,
       show_block_separators: oldState.show_block_separators !== false,
       theme_variant: oldState.theme_variant === "light" ? "light" : "dark",
@@ -614,7 +645,7 @@ export function getAllDefaultSectionOverrides() {
 export function getDefaultSectionData(type) {
   const base = SECTION_TYPES[type]?.factory?.() ?? {};
   const overrides = getAllDefaultSectionOverrides();
-  return overrides[type] ? { ...base, ...overrides[type] } : base;
+  return normalizeSectionData(type, overrides[type] ? { ...base, ...overrides[type] } : base);
 }
 
 export function saveDefaultSectionOverride(type, data) {

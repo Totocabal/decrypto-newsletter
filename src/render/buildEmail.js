@@ -1061,6 +1061,14 @@ function renderEvent(data, anchor = "", isLastSection = false) {
 }
 
 function renderReferral(data, anchor = "", isLastSection = false, assetMode = "inline") {
+  const legacyReferralKicker = "→ Programme de parrainage";
+  const legacyReferralTitle = "Chaque proche que vous parrainez, c'est <strong>20 €</strong> pour vous deux.";
+  const legacyReferralDescription = "Aucun plafond. Plus vous partagez Décrypto autour de vous, plus vous cumulez.";
+  const referralKicker = data.kicker === legacyReferralKicker ? "Programme de parrainage" : data.kicker;
+  const referralTitle = data.title === legacyReferralTitle
+    ? "Invitez vos proches et recevez jusqu'a <strong>500€</strong> en bitcoin"
+    : data.title;
+  const referralDescription = data.description === legacyReferralDescription ? "" : data.description;
   const isLightTheme = EMAIL_THEME === EMAIL_THEMES.light;
   const defaultBg = assetMode === "external"
     ? `assets/${isLightTheme ? "referral-bg-light.png" : "referral-bg-dark.png"}`
@@ -1092,9 +1100,9 @@ function renderReferral(data, anchor = "", isLastSection = false, assetMode = "i
   const renderedCodeValue = assetMode === "inline"
     ? "REFERRAL_CODE"
     : (codeLiquid === `{{${codeCondition}}}` ? codeLiquid : `{{${codeCondition}}}`);
-  const titleHtml = sanitizeRichText(data.title || "")
+  const titleHtml = sanitizeRichText(referralTitle || "")
     .replace(/<strong style="font-weight:700;">/g, `<strong style="font-weight:700; color:${accentColor};">`);
-  const hasDescription = String(data.description || "").trim();
+  const hasDescription = String(referralDescription || "").trim();
   const ctaLabel = String(data.cta_label || "").trim();
   const ctaUrl = data.cta_url || "#";
   const ctaButton = `<table class="em-referral-button" role="presentation" cellpadding="0" cellspacing="0" border="0">
@@ -1139,9 +1147,9 @@ function renderReferral(data, anchor = "", isLastSection = false, assetMode = "i
         style="background-color:${cardBg}; background-image:url('${escapeAttr(effectiveBgImg)}'); background-size:cover; background-position:center; background-repeat:no-repeat; border:1px solid ${cardBorder}; border-radius:16px; border-collapse:separate !important; border-spacing:0 !important; overflow:hidden;">
         <tr>
           <td style="padding:32px 32px 30px; border-radius:16px;">
-            ${String(data.kicker || "").trim() ? `<p style="margin:0 0 14px; font-family:${FONTS.mono || "'JetBrains Mono', monospace"}; font-size:11px; line-height:1.35; letter-spacing:0.18em; text-transform:uppercase; color:${kickerColor};">${escapeHtml(data.kicker)}</p>` : ""}
-            ${String(data.title || "").trim() ? `<p style="margin:0; font-family:${FONTS.heading}; font-weight:700; font-size:28px; line-height:1.15; letter-spacing:-0.025em; color:${titleColor};">${titleHtml}</p>` : ""}
-            ${hasDescription ? `<div style="margin:16px 0 24px; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:14px; line-height:1.55; color:${bodyColor};">${sanitizeRichText(data.description)}</div>` : (codeRow ? `<div style="height:24px; line-height:24px; font-size:1px;">&nbsp;</div>` : "")}
+            ${String(referralKicker || "").trim() ? `<p style="margin:0 0 14px; font-family:${FONTS.mono || "'JetBrains Mono', monospace"}; font-size:11px; line-height:1.35; letter-spacing:0.18em; text-transform:uppercase; color:${kickerColor};">${escapeHtml(referralKicker)}</p>` : ""}
+            ${String(referralTitle || "").trim() ? `<p style="margin:0; font-family:${FONTS.heading}; font-weight:700; font-size:28px; line-height:1.15; letter-spacing:-0.025em; color:${titleColor};">${titleHtml}</p>` : ""}
+            ${hasDescription ? `<div style="margin:16px 0 24px; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:14px; line-height:1.55; color:${bodyColor};">${sanitizeRichText(referralDescription)}</div>` : (codeRow ? `<div style="height:24px; line-height:24px; font-size:1px;">&nbsp;</div>` : "")}
             ${codeRow}
           </td>
         </tr>
