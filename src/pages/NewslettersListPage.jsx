@@ -463,6 +463,83 @@ function LabelFilterDropdown({ labels, value, onChange }) {
   );
 }
 
+function AuthorFilterDropdown({ authors, value, onChange }) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useDropdownDismiss(open, () => setOpen(false));
+  const selectedAuthors = authors.filter((author) => value.includes(author.id));
+  const firstSelected = selectedAuthors[0];
+  const authorText =
+    selectedAuthors.length === 0
+      ? "Tous auteurs"
+      : selectedAuthors.length === 1
+        ? firstSelected.name
+        : `${selectedAuthors.length} auteurs`;
+
+  const toggleAuthor = (authorId) => {
+    onChange(
+      value.includes(authorId)
+        ? value.filter((id) => id !== authorId)
+        : [...value, authorId]
+    );
+  };
+
+  return (
+    <div ref={rootRef} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((current) => !current)}
+        className="flex w-full items-center justify-between gap-3 rounded-xl border border-line bg-d-panel px-3 py-2.5 text-left text-sm text-d-fg transition-colors hover:border-line2 focus:border-line2 focus:outline-none sm:min-w-[180px]"
+      >
+        <span className="flex min-w-0 items-center gap-2">
+          <User size={13} className="flex-shrink-0 text-d-fg4" />
+          <span
+            className="truncate text-[11px] font-semibold uppercase tracking-[0.14em]"
+            style={{ color: "rgb(var(--d-fg3))" }}
+          >
+            {authorText}
+          </span>
+        </span>
+        <ChevronRight size={14} className={`flex-shrink-0 text-d-fg4 transition-transform ${open ? "rotate-90" : ""}`} />
+      </button>
+
+      {open && (
+        <div className="absolute left-0 top-full z-50 mt-2 w-full min-w-[220px] rounded-xl border border-line bg-d-panel shadow-2xl">
+          <button
+            type="button"
+            onClick={() => onChange([])}
+            className="flex w-full items-center gap-3 rounded-t-xl px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.16em] text-d-fg3 transition-colors hover:bg-d-panel2"
+          >
+            <span className={`h-2.5 w-2.5 rounded-full ${value.length === 0 ? "bg-d-pink" : "bg-d-fg4"}`} />
+            Tous auteurs
+          </button>
+          {authors.map((author, index) => {
+            const selected = value.includes(author.id);
+            return (
+              <button
+                key={author.id}
+                type="button"
+                onClick={() => toggleAuthor(author.id)}
+                className={`flex w-full items-center gap-3 px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.16em] text-d-fg transition-colors hover:bg-d-panel2 ${
+                  index === authors.length - 1 ? "rounded-b-xl" : ""
+                }`}
+              >
+                <span
+                  className="h-2.5 w-2.5 rounded-full border-2"
+                  style={{
+                    borderColor: "rgb(var(--d-line2))",
+                    background: selected ? "rgb(var(--d-pink))" : "transparent",
+                  }}
+                />
+                {author.name}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function NewslettersListPage({ onOpen, onOpenAdmin }) {
   const { profile, signOut } = useAuth();
   const addToast = useToast();
@@ -488,6 +565,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
   const { labels } = useLabels();
   const [nlLabels, setNlLabels] = useState({});
   const [labelFilter, setLabelFilter] = useState([]);
+  const [authorFilter, setAuthorFilter] = useState([]);
   const [labelPickerOpen, setLabelPickerOpen] = useState(null);
   const [showArchived, setShowArchived] = useState(false);
   const [selectedNewsletterIds, setSelectedNewsletterIds] = useState([]);
@@ -1304,6 +1382,21 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
   const getCreatorName = (nl) =>
     nl?.creator?.full_name || nl?.creator?.email || "Créateur inconnu";
 
+  const authors = useMemo(() => {
+    const unique = new Map();
+    newsletters.forEach((nl) => {
+      if (nl.created_by) {
+        if (!unique.has(nl.created_by)) {
+          unique.set(nl.created_by, {
+            id: nl.created_by,
+            name: getCreatorName(nl),
+          });
+        }
+      }
+    });
+    return Array.from(unique.values()).sort((a, b) => a.name.localeCompare(b.name));
+  }, [newsletters]);
+
   const normalize = (s) =>
     String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
 
@@ -1323,6 +1416,10 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
       );
     }
 
+    if (authorFilter.length > 0) {
+      list = list.filter((nl) => authorFilter.includes(nl.created_by));
+    }
+
     if (sortBy === "updated_asc") list.sort((a, b) => new Date(a.updated_at) - new Date(b.updated_at));
     else if (sortBy === "updated_desc") list.sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
     else if (sortBy === "title_asc") list.sort((a, b) => normalize(a.title).localeCompare(normalize(b.title)));
@@ -1330,7 +1427,7 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
 
     return list;
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [newsletters, search, sortBy, labelFilter, nlLabels]);
+  }, [newsletters, search, sortBy, labelFilter, nlLabels, authorFilter]);
 
   const selectableNewsletters = useMemo(
     () => filteredNewsletters.filter(canArchiveNewsletter),
@@ -1508,12 +1605,19 @@ export function NewslettersListPage({ onOpen, onOpenAdmin }) {
                   </button>
                 )}
               </div>
-              <div className={`grid gap-3 sm:flex sm:flex-shrink-0 ${labels.length > 0 ? "grid-cols-2" : "grid-cols-1"}`}>
+              <div className="flex flex-wrap items-center gap-3 sm:flex-nowrap sm:flex-shrink-0">
                 {labels.length > 0 && (
                   <LabelFilterDropdown
                     labels={labels}
                     value={labelFilter}
                     onChange={setLabelFilter}
+                  />
+                )}
+                {authors.length > 1 && (
+                  <AuthorFilterDropdown
+                    authors={authors}
+                    value={authorFilter}
+                    onChange={setAuthorFilter}
                   />
                 )}
                 <div className="relative">
