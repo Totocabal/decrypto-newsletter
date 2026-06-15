@@ -295,9 +295,9 @@ export const SECTION_TYPES = {
     label: "Parrainage",
     icon: "Gift",
     factory: () => ({
-      kicker: "→ Programme de parrainage",
-      title: "Chaque proche que vous parrainez, c'est <strong>20 €</strong> pour vous deux.",
-      description: "Aucun plafond. Plus vous partagez Décrypto autour de vous, plus vous cumulez.",
+      kicker: "Programme de parrainage",
+      title: "Invitez vos proches et recevez jusqu'a <strong>500€</strong> en bitcoin",
+      description: "",
       code_label: "Votre code",
       code_liquid: "{{custom_attribute.${referral_code}}}",
       cta_label: "Partager →",

@@ -52,7 +52,28 @@ import { useCoinGecko } from "../lib/useCoinGecko.js";
 
 function sectionTitle(sec) {
   const d = sec.data || {};
-  return d.index_label || d.title || d.label || d.kicker || sec.type;
+  return cleanSectionPreview(d.index_label || d.title || d.label || d.kicker || sec.type);
+}
+
+function cleanSectionPreview(value = "") {
+  if (!value) return "";
+  const textarea = typeof document !== "undefined" ? document.createElement("textarea") : null;
+  const decoded = textarea
+    ? (() => {
+        textarea.innerHTML = String(value);
+        return textarea.value;
+      })()
+    : String(value);
+  return decoded
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;|&#x27;|&apos;/gi, "'")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function buildIndexItems(sections) {
@@ -640,9 +661,9 @@ function SectionCard({
 
   const preview = (() => {
     const d = section.data || {};
-    if (d.title) return d.title;
-    if (d.label) return d.label;
-    if (d.kicker) return d.kicker;
+    if (d.title) return cleanSectionPreview(d.title);
+    if (d.label) return cleanSectionPreview(d.label);
+    if (d.kicker) return cleanSectionPreview(d.kicker);
     return "";
   })();
 

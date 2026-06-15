@@ -863,6 +863,8 @@ function renderFeatureGrid(data, number, assetMode, anchor = "", isLastSection =
   const effectiveBgImg = bgImg || (assetMode === "external"
     ? "assets/macro-quote-bg.png"
     : "https://decrypto-newsletter.vercel.app/macro-quote-bg.png");
+  const featuredBorder = "rgba(255,255,255,0.08)";
+  const featuredMsoBorder = "#2D243A";
   const hasFeaturedCard = Boolean(
     String(featured.label || "").trim() ||
     String(featured.title || "").trim() ||
@@ -877,10 +879,10 @@ function renderFeatureGrid(data, number, assetMode, anchor = "", isLastSection =
     : "";
   const featuredCard = `
     <!--[if mso]>
-    <v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false" style="width:568px; border-radius:16px;">
+    <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="true" strokecolor="${featuredMsoBorder}" style="width:568px;" arcsize="8%">
       <v:fill type="frame" src="${escapeAttr(effectiveBgImg)}" color="#1a0c2e" />
       <v:textbox inset="0,0,0,0"><![endif]-->
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#1a0c2e" background="${escapeAttr(effectiveBgImg)}" style="background-color:#1a0c2e; background-image:url('${escapeAttr(effectiveBgImg)}'); background-size:cover; background-position:center; border-radius:16px; margin-bottom:12px; border-collapse:separate !important; border-spacing:0 !important; overflow:hidden;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#1a0c2e" background="${escapeAttr(effectiveBgImg)}" style="background-color:#1a0c2e; background-image:url('${escapeAttr(effectiveBgImg)}'); background-size:cover; background-position:center; border:1px solid ${featuredBorder}; border-radius:16px; margin-bottom:12px; border-collapse:separate !important; border-spacing:0 !important; overflow:hidden;">
       <tr>
         <td bgcolor="#1a0c2e" background="${escapeAttr(effectiveBgImg)}" style="padding:22px 24px; border-radius:16px; background-color:#1a0c2e; background-image:url('${escapeAttr(effectiveBgImg)}'); background-size:cover; background-position:center; background-repeat:no-repeat;">
           <table role="presentation" cellpadding="0" cellspacing="0" border="0">
@@ -896,7 +898,7 @@ function renderFeatureGrid(data, number, assetMode, anchor = "", isLastSection =
         </td>
       </tr>
     </table>
-    <!--[if mso]></v:textbox></v:rect><![endif]-->`;
+    <!--[if mso]></v:textbox></v:roundrect><![endif]-->`;
   const cell = (item, index, side, isBottom, width = "50%") => {
     const color = item.color || DEFAULT_CALLOUT_COLOR;
     const sidePadding = side === "single" ? "" : side === "left" ? "padding-right:6px;" : "padding-left:6px;";
@@ -1010,6 +1012,8 @@ function renderEvent(data, anchor = "", isLastSection = false) {
   const eventTextSecondary = "#D8DDE6";
   const eventTextMuted = "#A8AEB8";
   const bgImg = String(data.bg_image_url || "").trim();
+  const eventBorder = "rgba(255,255,255,0.08)";
+  const eventMsoBorder = "#2D243A";
 
   const cardInner = `
             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
@@ -1034,17 +1038,17 @@ function renderEvent(data, anchor = "", isLastSection = false) {
 
   const effectiveBgImg = bgImg || "https://decrypto-newsletter.vercel.app/event-bg.png";
   const cardTable = `<!--[if mso]>
-      <v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false" style="width:568px; border-radius:18px;">
+      <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="true" strokecolor="${eventMsoBorder}" style="width:568px;" arcsize="8%">
         <v:fill type="frame" src="${escapeAttr(effectiveBgImg)}" color="${EMAIL_THEME.bgEventCard}" />
         <v:textbox inset="0,0,0,0"><![endif]-->
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
         class="em-event-bg"
         bgcolor="${EMAIL_THEME.bgEventCard}"
         background="${escapeAttr(effectiveBgImg)}"
-        style="background-color:${EMAIL_THEME.bgEventCard}; background-image:url('${escapeAttr(effectiveBgImg)}'); background-size:cover; background-position:center; border-radius:18px;">
+        style="background-color:${EMAIL_THEME.bgEventCard}; background-image:url('${escapeAttr(effectiveBgImg)}'); background-size:cover; background-position:center; border:1px solid ${eventBorder}; border-radius:18px; border-collapse:separate !important; border-spacing:0 !important; overflow:hidden;">
         <tr><td>${cardInner}</td></tr>
       </table>
-      <!--[if mso]></v:textbox></v:rect><![endif]-->`;
+      <!--[if mso]></v:textbox></v:roundrect><![endif]-->`;
 
 
   return `
@@ -1085,9 +1089,12 @@ function renderReferral(data, anchor = "", isLastSection = false, assetMode = "i
     codeCondition = codeCondition.slice(2, -1);
   }
   codeCondition ||= "custom_attribute.${referral_code}";
-  const renderedCodeLiquid = codeLiquid === `{{${codeCondition}}}` ? codeLiquid : `{{${codeCondition}}}`;
+  const renderedCodeValue = assetMode === "inline"
+    ? "REFERRAL_CODE"
+    : (codeLiquid === `{{${codeCondition}}}` ? codeLiquid : `{{${codeCondition}}}`);
   const titleHtml = sanitizeRichText(data.title || "")
     .replace(/<strong style="font-weight:700;">/g, `<strong style="font-weight:700; color:${accentColor};">`);
+  const hasDescription = String(data.description || "").trim();
   const ctaLabel = String(data.cta_label || "").trim();
   const ctaUrl = data.cta_url || "#";
   const ctaButton = `<table class="em-referral-button" role="presentation" cellpadding="0" cellspacing="0" border="0">
@@ -1098,23 +1105,28 @@ function renderReferral(data, anchor = "", isLastSection = false, assetMode = "i
     </tr>
   </table>`;
 
-  const codeRow = ctaLabel ? `{% if ${codeCondition} != blank %}
-                <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%;">
+  const codeTable = `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%;">
                   <tr>
                     <td class="em-referral-code" valign="middle" bgcolor="${codeBg}" style="background-color:${codeBg}; border:1px dashed ${codeBorder}; border-radius:10px; padding:14px 18px;">
                       <p style="margin:0 0 2px; font-family:${FONTS.body}; font-size:10px; line-height:1.35; letter-spacing:0.18em; text-transform:uppercase; color:${codeLabelColor};">${escapeHtml(data.code_label || "Votre code")}</p>
-                      <p style="margin:0; font-family:${FONTS.mono || "'JetBrains Mono', monospace"}; font-size:20px; line-height:1.25; font-weight:500; letter-spacing:0.12em; color:${codeTextColor};">${renderedCodeLiquid}</p>
+                      <p style="margin:0; font-family:${FONTS.mono || "'JetBrains Mono', monospace"}; font-size:20px; line-height:1.25; font-weight:500; letter-spacing:0.12em; color:${codeTextColor};">${renderedCodeValue}</p>
                     </td>
                     <td class="em-referral-cta" valign="middle" align="right" width="150" style="padding-left:14px;">
                       ${ctaButton}
                     </td>
                   </tr>
-                </table>
+                </table>`;
+  const codeRow = ctaLabel
+    ? (assetMode === "inline"
+      ? codeTable
+      : `{% if ${codeCondition} != blank %}
+                ${codeTable}
                 {% else %}
                 <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin:0 auto;">
                   <tr><td align="center">${ctaButton}</td></tr>
                 </table>
-                {% endif %}` : "";
+                {% endif %}`)
+    : "";
 
   const cardTable = `<!--[if mso]>
       <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="true" strokecolor="${msoCardBorder}" style="width:568px;" arcsize="8%">
@@ -1129,7 +1141,7 @@ function renderReferral(data, anchor = "", isLastSection = false, assetMode = "i
           <td style="padding:32px 32px 30px; border-radius:16px;">
             ${String(data.kicker || "").trim() ? `<p style="margin:0 0 14px; font-family:${FONTS.mono || "'JetBrains Mono', monospace"}; font-size:11px; line-height:1.35; letter-spacing:0.18em; text-transform:uppercase; color:${kickerColor};">${escapeHtml(data.kicker)}</p>` : ""}
             ${String(data.title || "").trim() ? `<p style="margin:0; font-family:${FONTS.heading}; font-weight:700; font-size:28px; line-height:1.15; letter-spacing:-0.025em; color:${titleColor};">${titleHtml}</p>` : ""}
-            ${String(data.description || "").trim() ? `<div style="margin:16px 0 24px; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:14px; line-height:1.55; color:${bodyColor};">${sanitizeRichText(data.description)}</div>` : ""}
+            ${hasDescription ? `<div style="margin:16px 0 24px; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:14px; line-height:1.55; color:${bodyColor};">${sanitizeRichText(data.description)}</div>` : (codeRow ? `<div style="height:24px; line-height:24px; font-size:1px;">&nbsp;</div>` : "")}
             ${codeRow}
           </td>
         </tr>
