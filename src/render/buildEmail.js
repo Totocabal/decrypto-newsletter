@@ -847,7 +847,8 @@ function renderPictoBadge(pictoId, color, size, assetMode) {
   const icon = assetMode === "external"
     ? `<img src="assets/${getFeatureGridPictoFilename(pictoId || DEFAULT_PICTO_ID, accent)}" width="${size}" height="${size}" alt="" style="display:block; width:${size}px; height:${size}px; border:0; margin:0 auto;" />`
     : buildPictoSvgHtml(picto.svgInner, accent, size);
-  return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:separate !important; border-spacing:0 !important; border-radius:10px; overflow:hidden;"><tr><td width="${size + 18}" height="${size + 18}" align="center" valign="middle" bgcolor="${iconBg}" style="background-color:${iconBg}; border:1px solid ${iconBorder}; border-radius:10px; line-height:${size + 18}px; border-collapse:separate !important;">${icon}</td></tr></table>`;
+  const badgeSize = size + 18;
+  return `<table role="presentation" width="${badgeSize}" height="${badgeSize}" cellpadding="0" cellspacing="0" border="0" style="width:${badgeSize}px !important; height:${badgeSize}px !important; min-width:${badgeSize}px !important; max-width:${badgeSize}px !important; border-collapse:separate !important; border-spacing:0 !important; border-radius:10px; overflow:hidden;"><tr><td width="${badgeSize}" height="${badgeSize}" align="center" valign="middle" bgcolor="${iconBg}" style="width:${badgeSize}px !important; height:${badgeSize}px !important; min-width:${badgeSize}px !important; max-width:${badgeSize}px !important; background-color:${iconBg}; border:1px solid ${iconBorder}; border-radius:10px; line-height:${badgeSize}px; border-collapse:separate !important;">${icon}</td></tr></table>`;
 }
 
 function renderFeatureGrid(data, number, assetMode, anchor = "", isLastSection = false) {
@@ -1045,6 +1046,95 @@ function renderEvent(data, anchor = "", isLastSection = false) {
       </table>
       <!--[if mso]></v:textbox></v:rect><![endif]-->`;
 
+
+  return `
+    <tr>
+      <td class="em-px" style="padding:${sectionPadding("36px", "24px 36px")};${sectionBottomBorder(isLastSection)}">
+        ${anchor}
+        ${cardTable}
+      </td>
+    </tr>`;
+}
+
+function renderReferral(data, anchor = "", isLastSection = false, assetMode = "inline") {
+  const isLightTheme = EMAIL_THEME === EMAIL_THEMES.light;
+  const defaultBg = assetMode === "external"
+    ? `assets/${isLightTheme ? "referral-bg-light.png" : "referral-bg-dark.png"}`
+    : `https://decrypto-newsletter.vercel.app/${isLightTheme ? "referral-bg-light.png" : "referral-bg-dark.png"}`;
+  const bgImg = String(data.bg_image_url || "").trim();
+  const effectiveBgImg = bgImg || defaultBg;
+  const cardBg = isLightTheme ? "#FAF7F1" : "#1a0c2e";
+  const cardBorder = isLightTheme ? "rgba(135,1,255,0.18)" : "rgba(255,255,255,0.08)";
+  const msoCardBorder = isLightTheme ? "#D7C4F5" : "#2D243A";
+  const kickerColor = isLightTheme ? "#C0008A" : "#FF00AA";
+  const titleColor = isLightTheme ? "#14141A" : "#FFFFFF";
+  const accentColor = isLightTheme ? "#00875F" : "#03FFCF";
+  const bodyColor = isLightTheme ? "#4A4F58" : "#D8DDE6";
+  const codeBg = isLightTheme ? "#FFFFFF" : "rgba(0,0,0,0.28)";
+  const codeBorder = isLightTheme ? "rgba(20,20,26,0.28)" : "rgba(255,255,255,0.28)";
+  const codeLabelColor = isLightTheme ? "#5E6872" : "#C7CAD1";
+  const codeTextColor = isLightTheme ? "#14141A" : "#FFFFFF";
+  const ctaBg = isLightTheme ? "#14141A" : "#FFFFFF";
+  const ctaColor = isLightTheme ? "#FFFFFF" : "#14141A";
+  const codeLiquid = String(data.code_liquid || "{{custom_attribute.${referral_code}}}").trim();
+  let codeCondition = codeLiquid
+    .replace(/^\{\{\s*/, "")
+    .replace(/\s*\}\}$/, "")
+    .trim();
+  if (codeCondition.startsWith("${custom_attribute.${") && codeCondition.endsWith("}")) {
+    codeCondition = codeCondition.slice(2, -1);
+  }
+  codeCondition ||= "custom_attribute.${referral_code}";
+  const renderedCodeLiquid = codeLiquid === `{{${codeCondition}}}` ? codeLiquid : `{{${codeCondition}}}`;
+  const titleHtml = sanitizeRichText(data.title || "")
+    .replace(/<strong style="font-weight:700;">/g, `<strong style="font-weight:700; color:${accentColor};">`);
+  const ctaLabel = String(data.cta_label || "").trim();
+  const ctaUrl = data.cta_url || "#";
+  const ctaButton = `<table class="em-referral-button" role="presentation" cellpadding="0" cellspacing="0" border="0">
+    <tr>
+      <td bgcolor="${ctaBg}" style="background-color:${ctaBg}; border-radius:99px;">
+        <a href="${escapeAttr(ctaUrl)}" style="display:inline-block; padding:12px 22px; font-family:${FONTS.heading}; font-size:13px; line-height:1.25; font-weight:600; color:${ctaColor}; text-decoration:none; border-radius:99px; text-align:center;">${escapeHtml(ctaLabel)}</a>
+      </td>
+    </tr>
+  </table>`;
+
+  const codeRow = ctaLabel ? `{% if ${codeCondition} != blank %}
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%;">
+                  <tr>
+                    <td class="em-referral-code" valign="middle" bgcolor="${codeBg}" style="background-color:${codeBg}; border:1px dashed ${codeBorder}; border-radius:10px; padding:14px 18px;">
+                      <p style="margin:0 0 2px; font-family:${FONTS.body}; font-size:10px; line-height:1.35; letter-spacing:0.18em; text-transform:uppercase; color:${codeLabelColor};">${escapeHtml(data.code_label || "Votre code")}</p>
+                      <p style="margin:0; font-family:${FONTS.mono || "'JetBrains Mono', monospace"}; font-size:20px; line-height:1.25; font-weight:500; letter-spacing:0.12em; color:${codeTextColor};">${renderedCodeLiquid}</p>
+                    </td>
+                    <td class="em-referral-cta" valign="middle" align="right" width="150" style="padding-left:14px;">
+                      ${ctaButton}
+                    </td>
+                  </tr>
+                </table>
+                {% else %}
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin:0 auto;">
+                  <tr><td align="center">${ctaButton}</td></tr>
+                </table>
+                {% endif %}` : "";
+
+  const cardTable = `<!--[if mso]>
+      <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="true" strokecolor="${msoCardBorder}" style="width:568px;" arcsize="8%">
+        <v:fill type="frame" src="${escapeAttr(effectiveBgImg)}" color="${cardBg}" />
+        <v:textbox inset="0,0,0,0"><![endif]-->
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+        class="em-referral-bg"
+        bgcolor="${cardBg}"
+        background="${escapeAttr(effectiveBgImg)}"
+        style="background-color:${cardBg}; background-image:url('${escapeAttr(effectiveBgImg)}'); background-size:cover; background-position:center; background-repeat:no-repeat; border:1px solid ${cardBorder}; border-radius:16px; border-collapse:separate !important; border-spacing:0 !important; overflow:hidden;">
+        <tr>
+          <td style="padding:32px 32px 30px; border-radius:16px;">
+            ${String(data.kicker || "").trim() ? `<p style="margin:0 0 14px; font-family:${FONTS.mono || "'JetBrains Mono', monospace"}; font-size:11px; line-height:1.35; letter-spacing:0.18em; text-transform:uppercase; color:${kickerColor};">${escapeHtml(data.kicker)}</p>` : ""}
+            ${String(data.title || "").trim() ? `<p style="margin:0; font-family:${FONTS.heading}; font-weight:700; font-size:28px; line-height:1.15; letter-spacing:-0.025em; color:${titleColor};">${titleHtml}</p>` : ""}
+            ${String(data.description || "").trim() ? `<div style="margin:16px 0 24px; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:14px; line-height:1.55; color:${bodyColor};">${sanitizeRichText(data.description)}</div>` : ""}
+            ${codeRow}
+          </td>
+        </tr>
+      </table>
+      <!--[if mso]></v:textbox></v:roundrect><![endif]-->`;
 
   return `
     <tr>
@@ -1499,6 +1589,7 @@ function renderSection(sec, allSections, assetMode, showSectionNumbers = true, i
     case "feature_grid": return renderFeatureGrid(sec.data, number, assetMode, anchor, isLastSection);
     case "editorial_list": return renderEditorialList(sec.data, number, anchor, isLastSection);
     case "event":      return renderEvent(sec.data, anchor, isLastSection);
+    case "referral":   return renderReferral(sec.data, anchor, isLastSection, assetMode);
     case "focus":      return renderFocus(sec.data, number, assetMode, anchor, isLastSection);
     case "image_block": return renderImageBlock(sec.data, isLastSection);
     case "text_block": return renderTextBlock(sec.data, number, anchor, isLastSection);
@@ -1664,6 +1755,9 @@ ${renderEmailFontFaces()}
     .em-cta-button td { text-align: center !important; }
     .em-cta-link { display: block !important; box-sizing: border-box !important; width: 100% !important; min-width: 0 !important; text-align: center !important; white-space: normal !important; word-break: normal !important; overflow-wrap: normal !important; line-height: 1.25 !important; }
     .em-event-text { word-break: break-word !important; overflow-wrap: break-word !important; }
+    .em-referral-code { display: block !important; width: 100% !important; box-sizing: border-box !important; }
+    .em-referral-cta { display: block !important; width: 100% !important; box-sizing: border-box !important; padding-left: 0 !important; padding-top: 14px !important; text-align: center !important; }
+    .em-referral-button { margin: 0 auto !important; }
     .em-cn-num { width: 100% !important; max-width: 100% !important; box-sizing: border-box !important; border-right: none !important; border-bottom: 1px solid ${EMAIL_THEME.borderStrong} !important; border-radius: 12px 12px 0 0 !important; }
     .em-cn-text { width: 100% !important; max-width: 100% !important; box-sizing: border-box !important; padding: 24px !important; border-radius: 0 0 12px 12px !important; }
     .em-footer-link { font-size: 11px !important; letter-spacing: 0.02em !important; }

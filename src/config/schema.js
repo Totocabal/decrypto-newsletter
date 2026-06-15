@@ -291,6 +291,21 @@ export const SECTION_TYPES = {
       cta_url: "#",
     }),
   },
+  referral: {
+    label: "Parrainage",
+    icon: "Gift",
+    factory: () => ({
+      kicker: "→ Programme de parrainage",
+      title: "Chaque proche que vous parrainez, c'est <strong>20 €</strong> pour vous deux.",
+      description: "Aucun plafond. Plus vous partagez Décrypto autour de vous, plus vous cumulez.",
+      code_label: "Votre code",
+      code_liquid: "{{custom_attribute.${referral_code}}}",
+      cta_label: "Partager →",
+      cta_url: "#",
+      bg_image_url: "",
+      bg_image_path: "",
+    }),
+  },
   text_block: {
     label: "Texte",
     icon: "Type",

@@ -33,6 +33,7 @@ export function SectionEditor({ type, data, onChange, sections = [] }) {
     case "feature_grid": return <FeatureGridEditor data={data} set={set} />;
     case "editorial_list": return <EditorialListEditor data={data} set={set} />;
     case "event":      return <EventEditor data={data} set={set} />;
+    case "referral":   return <ReferralEditor data={data} set={set} />;
     case "focus":      return <FocusEditor data={data} set={set} />;
     case "image_block": return <ImageBlockEditor data={data} set={set} />;
     case "text_block": return <TextBlockEditor data={data} set={set} />;
@@ -1816,6 +1817,116 @@ function EventEditor({ data, set }) {
         )}
         <p className="mt-1.5 text-[10px] text-d-fg4 leading-relaxed">
           Visible dans Apple Mail, iOS Mail, Samsung Mail. Gmail affiche le fond sombre par défaut.
+        </p>
+      </div>
+
+      {bgImageManagerOpen && (
+        <ImageManagerModal
+          currentPath={data.bg_image_path}
+          onSelect={({ url, path }) => {
+            set({ bg_image_url: url, bg_image_path: path });
+            setBgImageManagerOpen(false);
+          }}
+          onClose={() => setBgImageManagerOpen(false)}
+          userId={profile?.id}
+          isAdmin={profile?.is_admin}
+        />
+      )}
+    </>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PARRAINAGE
+// ─────────────────────────────────────────────────────────────────────────────
+
+function ReferralEditor({ data, set }) {
+  const { profile } = useAuth();
+  const [bgImageManagerOpen, setBgImageManagerOpen] = useState(false);
+
+  return (
+    <>
+      <Field label="Kicker">
+        <Input value={data.kicker || ""} onChange={(e) => set({ kicker: e.target.value })} />
+      </Field>
+      <Field label="Titre" hint="Éditeur riche. Le montant peut rester en gras pour être coloré.">
+        <TextArea
+          showCount
+          rows={2}
+          value={data.title || ""}
+          onChange={(e) => set({ title: e.target.value })}
+        />
+      </Field>
+      <Field label="Description">
+        <TextArea
+          showCount
+          rows={3}
+          value={data.description || ""}
+          onChange={(e) => set({ description: e.target.value })}
+        />
+      </Field>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <Field label="Libellé du code">
+          <Input value={data.code_label || ""} onChange={(e) => set({ code_label: e.target.value })} />
+        </Field>
+        <Field label="Variable Braze du code">
+          <Input
+            value={data.code_liquid || ""}
+            onChange={(e) => set({ code_liquid: e.target.value })}
+            placeholder="{{custom_attribute.${referral_code}}}"
+          />
+        </Field>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <Field label="Texte du bouton">
+          <Input value={data.cta_label || ""} onChange={(e) => set({ cta_label: e.target.value })} />
+        </Field>
+        <Field label="Lien du bouton">
+          <Input value={data.cta_url || ""} onChange={(e) => set({ cta_url: e.target.value })} />
+        </Field>
+      </div>
+
+      <div>
+        <div className="text-[10px] uppercase tracking-[0.18em] font-semibold text-d-fg3 mb-1.5">
+          Image de fond personnalisée (1280×520 conseillé)
+        </div>
+        {data.bg_image_url ? (
+          <div className="bg-d-panel2 border border-line rounded-xl p-3">
+            <div className="relative mb-2">
+              <img
+                src={data.bg_image_url}
+                alt="Fond du bloc parrainage"
+                className="w-full h-auto rounded-xl border border-line object-cover"
+                style={{ maxHeight: 120 }}
+              />
+              <button
+                type="button"
+                onClick={() => set({ bg_image_url: "", bg_image_path: "" })}
+                className="absolute top-2 right-2 p-1.5 bg-d-panel2 border border-line rounded-lg hover:bg-red-900/20 hover:border-red-500/30 text-d-fg3 hover:text-red-400 shadow-sm"
+              >
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+              </button>
+            </div>
+            <button
+              type="button"
+              onClick={() => setBgImageManagerOpen(true)}
+              className="text-[10px] uppercase tracking-[0.18em] font-medium text-d-fg3 hover:text-d-fg transition-colors"
+            >
+              Changer l'image
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setBgImageManagerOpen(true)}
+            className="flex items-center gap-2 text-[10px] uppercase tracking-[0.18em] font-medium text-d-fg3 hover:text-d-fg border border-dashed border-line hover:border-line2 px-4 py-3 rounded-xl w-full justify-center transition-colors"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+            Choisir une image de fond
+          </button>
+        )}
+        <p className="mt-1.5 text-[10px] text-d-fg4 leading-relaxed">
+          Sans image personnalisée, l'export utilise un PNG de fond dark/light hébergé puis uploadé dans Braze.
         </p>
       </div>
 

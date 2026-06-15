@@ -25,6 +25,10 @@ const GRADIENT_HEADER_FILENAME = "gradient-header.png";
 const GRADIENT_HEADER_URL = "https://decrypto-newsletter.vercel.app/gradient-header.png";
 const EVENT_BG_FILENAME = "event-bg.png";
 const EVENT_BG_URL = "https://decrypto-newsletter.vercel.app/event-bg.png";
+const REFERRAL_BG_DARK_FILENAME = "referral-bg-dark.png";
+const REFERRAL_BG_LIGHT_FILENAME = "referral-bg-light.png";
+const REFERRAL_BG_DARK_URL = "https://decrypto-newsletter.vercel.app/referral-bg-dark.png";
+const REFERRAL_BG_LIGHT_URL = "https://decrypto-newsletter.vercel.app/referral-bg-light.png";
 const MACRO_QUOTE_BG_FILENAME = "macro-quote-bg.png";
 const MACRO_QUOTE_BG_URL = "https://decrypto-newsletter.vercel.app/macro-quote-bg.png";
 export const GRADIENT_CTA_FILENAME = "gradient-cta.png";
@@ -208,6 +212,15 @@ async function buildPngAssets(state) {
       const ext = guessImageExtension(sec.data.bg_image_url);
       focusImages.push({ sectionId: sec.id, kind: "macro_bg", originalUrl: sec.data.bg_image_url, filename: `macro-bg-${sec.id}.${ext}` });
     }
+    if (sec.type === "referral" && sec.data.bg_image_url) {
+      focusImages.push({
+        sectionId: sec.id,
+        kind: "referral_bg",
+        originalUrl: sec.data.bg_image_url,
+        filename: `referral-bg-${sec.id}.png`,
+        convertToPng: true,
+      });
+    }
     if (sec.type === "feature_grid") {
       if (sec.data.bg_image_url) {
         focusImages.push({
@@ -327,6 +340,22 @@ async function buildPngAssets(state) {
     }
   }
 
+  const needReferralBg = (state.sections || []).some(
+    (sec) => sec.type === "referral" && !String(sec.data?.bg_image_url || "").trim()
+  );
+  if (needReferralBg) {
+    const filename = state.theme_variant === "light" ? REFERRAL_BG_LIGHT_FILENAME : REFERRAL_BG_DARK_FILENAME;
+    const url = state.theme_variant === "light" ? REFERRAL_BG_LIGHT_URL : REFERRAL_BG_DARK_URL;
+    try {
+      const resp = await fetch(url);
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      assets[filename] = await resp.blob();
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.warn(`[export] ${filename} non récupéré :`, e);
+    }
+  }
+
   const needMacroQuoteBg = (state.sections || []).some(
     (sec) => ["macro", "feature_grid"].includes(sec.type) && !String(sec.data?.bg_image_url || "").trim()
   );
@@ -376,6 +405,12 @@ function buildExternalAssetState(state, focusImages, assets, assetUrlMap = {}) {
       }
       if (sec.type === "feature_grid" && sec.data.bg_image_url) {
         const fi = focusImages.find((f) => f.sectionId === sec.id && f.kind === "feature_grid_bg");
+        if (fi && assets[fi.filename]) {
+          return { ...sec, data: { ...sec.data, bg_image_url: assetUrlMap[fi.filename] || `assets/${fi.filename}` } };
+        }
+      }
+      if (sec.type === "referral" && sec.data.bg_image_url) {
+        const fi = focusImages.find((f) => f.sectionId === sec.id && f.kind === "referral_bg");
         if (fi && assets[fi.filename]) {
           return { ...sec, data: { ...sec.data, bg_image_url: assetUrlMap[fi.filename] || `assets/${fi.filename}` } };
         }
