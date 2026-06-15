@@ -650,7 +650,14 @@ function EditorialListEditor({ data, set }) {
 
   return (
     <>
-      <Field label="Libellé">
+      <Field label="Kicker" hint="Optionnel, affiché au-dessus du titre et du tableau.">
+        <Input
+          value={data.section_kicker || ""}
+          onChange={(e) => set({ section_kicker: e.target.value })}
+          placeholder="Laisser vide pour masquer"
+        />
+      </Field>
+      <Field label="Libellé du tableau">
         <Input
           value={data.kicker || ""}
           onChange={(e) => set({ kicker: e.target.value })}

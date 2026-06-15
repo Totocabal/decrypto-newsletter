@@ -959,7 +959,7 @@ function renderFeatureGrid(data, number, assetMode, anchor = "", isLastSection =
     </tr>`;
 }
 
-function renderComparison(data, anchor = "", isLastSection = false) {
+function renderComparison(data, number, anchor = "", isLastSection = false) {
   const rows = Array.isArray(data.rows) ? data.rows : [];
   const isLightTheme = EMAIL_THEME === EMAIL_THEMES.light;
   const cardBg = isLightTheme ? "#FAF7F1" : "#101018";
@@ -972,12 +972,14 @@ function renderComparison(data, anchor = "", isLastSection = false) {
   const bodyTextColor = isLightTheme ? "#4A4F58" : "#A8AEB8";
   const positiveColor = isLightTheme ? "#00875F" : "#03FFCF";
   const footnoteColor = isLightTheme ? "#8C8F98" : "#5E6872";
+  const sectionKicker = String(data.section_kicker || "").trim();
   const title = String(data.title || "").trim();
   const body = String(data.body || "").trim();
-  const introHtml = title || body
+  const introHtml = sectionKicker || title || body
     ? `<div style="margin:0 0 22px;">
-        ${title ? `<h2 class="em-h2" style="margin:0; font-family:${FONTS.heading}; font-weight:600; font-size:30px; line-height:1.1; letter-spacing:-0.025em; color:${EMAIL_THEME.textPrimary};">${escapeHtml(title)}</h2>` : ""}
-        ${body ? `<div style="margin:${title ? "12px" : "0"} 0 0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:15px; line-height:1.65; color:${EMAIL_THEME.textSecondary};">${sanitizeRichText(body)}</div>` : ""}
+        ${sectionKicker ? sectionHeader(number, sectionKicker) : ""}
+        ${title ? `<h2 class="em-h2" style="margin:${sectionKicker ? "12px" : "0"} 0 0; font-family:${FONTS.heading}; font-weight:600; font-size:30px; line-height:1.1; letter-spacing:-0.025em; color:${EMAIL_THEME.textPrimary};">${escapeHtml(title)}</h2>` : ""}
+        ${body ? `<div style="margin:${title || sectionKicker ? "12px" : "0"} 0 0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:15px; line-height:1.65; color:${EMAIL_THEME.textSecondary};">${sanitizeRichText(body)}</div>` : ""}
       </div>`
     : "";
   const rowHtml = rows.map((row, index) => {
@@ -1177,19 +1179,19 @@ function renderReferral(data, anchor = "", isLastSection = false, assetMode = "i
     </tr>
   </table>`;
 
-  const codeTable = `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%;">
+  const codeTable = `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%; max-width:100%; table-layout:fixed; border-collapse:collapse;">
                   <tr>
-                    <td class="em-referral-code" valign="middle" style="padding:0;">
-                      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${codeBg}" style="width:100%; background-color:${codeBg}; border:1px dashed ${codeBorder}; border-radius:10px; border-collapse:separate !important; border-spacing:0 !important; overflow:hidden;">
+                    <td class="em-referral-code" valign="middle" style="padding:0; width:auto; max-width:100%; min-width:0;">
+                      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${codeBg}" style="width:100%; max-width:100%; table-layout:fixed; background-color:${codeBg}; border:1px dashed ${codeBorder}; border-radius:10px; border-collapse:separate !important; border-spacing:0 !important; overflow:hidden;">
                         <tr>
-                          <td bgcolor="${codeBg}" style="background-color:${codeBg}; border-radius:10px; padding:14px 18px;">
+                          <td bgcolor="${codeBg}" style="background-color:${codeBg}; border-radius:10px; padding:14px 18px; min-width:0;">
                             <p style="margin:0 0 2px; font-family:${FONTS.body}; font-size:10px; line-height:1.35; letter-spacing:0.18em; text-transform:uppercase; color:${codeLabelColor};">${escapeHtml(data.code_label || "Votre code")}</p>
-                            <p style="margin:0; font-family:${FONTS.mono || "'JetBrains Mono', monospace"}; font-size:20px; line-height:1.25; font-weight:500; letter-spacing:0.12em; color:${codeTextColor};">${renderedCodeValue}</p>
+                            <p style="margin:0; max-width:100%; font-family:${FONTS.mono || "'JetBrains Mono', monospace"}; font-size:20px; line-height:1.25; font-weight:500; letter-spacing:0.12em; color:${codeTextColor}; word-break:break-all; overflow-wrap:anywhere;">${renderedCodeValue}</p>
                           </td>
                         </tr>
                       </table>
                     </td>
-                    <td class="em-referral-cta" valign="middle" align="right" width="150" style="padding-left:14px;">
+                    <td class="em-referral-cta" valign="middle" align="right" width="150" style="width:150px; max-width:150px; padding-left:14px;">
                       ${ctaButton}
                     </td>
                   </tr>
@@ -1680,7 +1682,7 @@ function renderSection(sec, allSections, assetMode, showSectionNumbers = true, i
     case "macro_bars": return renderMacroBars(sec.data, isLastSection);
     case "commented_number": return renderCommentedNumber(sec.data, anchor, isLastSection);
     case "feature_grid": return renderFeatureGrid(sec.data, number, assetMode, anchor, isLastSection);
-    case "comparison":  return renderComparison(sec.data, anchor, isLastSection);
+    case "comparison":  return renderComparison(sec.data, number, anchor, isLastSection);
     case "editorial_list": return renderEditorialList(sec.data, number, anchor, isLastSection);
     case "event":      return renderEvent(sec.data, anchor, isLastSection);
     case "referral":   return renderReferral(sec.data, anchor, isLastSection, assetMode);
@@ -1849,7 +1851,7 @@ ${renderEmailFontFaces()}
     .em-cta-button td { text-align: center !important; }
     .em-cta-link { display: block !important; box-sizing: border-box !important; width: 100% !important; min-width: 0 !important; text-align: center !important; white-space: normal !important; word-break: normal !important; overflow-wrap: normal !important; line-height: 1.25 !important; }
     .em-event-text { word-break: break-word !important; overflow-wrap: break-word !important; }
-    .em-referral-code { display: block !important; width: 100% !important; box-sizing: border-box !important; }
+    .em-referral-code { display: block !important; width: 100% !important; max-width: 100% !important; box-sizing: border-box !important; }
     .em-referral-cta { display: block !important; width: 100% !important; box-sizing: border-box !important; padding-left: 0 !important; padding-top: 14px !important; text-align: center !important; }
     .em-referral-button { margin: 0 auto !important; }
     .em-cn-num { width: 100% !important; max-width: 100% !important; box-sizing: border-box !important; border-right: none !important; border-bottom: 1px solid ${EMAIL_THEME.borderStrong} !important; border-radius: 12px 12px 0 0 !important; }

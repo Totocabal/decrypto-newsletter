@@ -241,6 +241,7 @@ export const SECTION_TYPES = {
     label: "Comparatif",
     icon: "Grid2X2",
     factory: () => ({
+      section_kicker: "",
       kicker: "Comparatif",
       title: "",
       body: "",
