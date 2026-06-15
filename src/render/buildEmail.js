@@ -1216,7 +1216,10 @@ function renderReferral(data, anchor = "", isLastSection = false, assetMode = "i
         background="${escapeAttr(effectiveBgImg)}"
         style="background-color:${cardBg}; background-image:url('${escapeAttr(effectiveBgImg)}'); background-size:cover; background-position:center; background-repeat:no-repeat; border:1px solid ${cardBorder}; border-radius:16px; border-collapse:separate !important; border-spacing:0 !important; overflow:hidden;">
         <tr>
-          <td style="padding:32px 32px 30px; border-radius:16px;">
+          <td
+            bgcolor="${cardBg}"
+            background="${escapeAttr(effectiveBgImg)}"
+            style="padding:32px 32px 30px; border-radius:16px; background-color:${cardBg}; background-image:url('${escapeAttr(effectiveBgImg)}'); background-size:cover; background-position:center; background-repeat:no-repeat;">
             ${String(referralKicker || "").trim() ? `<p style="margin:0 0 14px; font-family:${FONTS.mono || "'JetBrains Mono', monospace"}; font-size:11px; line-height:1.35; letter-spacing:0.18em; text-transform:uppercase; color:${kickerColor};">${escapeHtml(referralKicker)}</p>` : ""}
             ${String(referralTitle || "").trim() ? `<p style="margin:0; font-family:${FONTS.heading}; font-weight:700; font-size:28px; line-height:1.15; letter-spacing:-0.025em; color:${titleColor};">${titleHtml}</p>` : ""}
             ${hasDescription ? `<div style="margin:16px 0 24px; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:14px; line-height:1.55; color:${bodyColor};">${sanitizeRichText(referralDescription)}</div>` : (codeRow ? `<div style="height:24px; line-height:24px; font-size:1px;">&nbsp;</div>` : "")}
