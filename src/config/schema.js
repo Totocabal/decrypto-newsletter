@@ -242,6 +242,8 @@ export const SECTION_TYPES = {
     icon: "Grid2X2",
     factory: () => ({
       kicker: "Comparatif",
+      title: "",
+      body: "",
       column_left: "Staking<br>Standard",
       column_right: "Staking<br>Flexible",
       rows: [

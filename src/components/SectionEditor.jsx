@@ -1833,6 +1833,22 @@ function ComparisonEditor({ data, set }) {
           onChange={(e) => set({ kicker: e.target.value })}
         />
       </Field>
+      <Field label="Titre" hint="Optionnel, affiché au-dessus du tableau.">
+        <Input
+          value={data.title || ""}
+          onChange={(e) => set({ title: e.target.value })}
+          placeholder="Laisser vide pour masquer"
+        />
+      </Field>
+      <Field label="Texte" hint="Optionnel, éditeur riche affiché au-dessus du tableau.">
+        <TextArea
+          showCount
+          rows={3}
+          value={data.body || ""}
+          onChange={(e) => set({ body: e.target.value })}
+          placeholder="Laisser vide pour masquer"
+        />
+      </Field>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <Field label="Colonne gauche" hint="Tu peux utiliser <br> pour forcer un retour.">
           <TextArea

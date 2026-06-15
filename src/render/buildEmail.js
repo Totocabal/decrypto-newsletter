@@ -972,6 +972,14 @@ function renderComparison(data, anchor = "", isLastSection = false) {
   const bodyTextColor = isLightTheme ? "#4A4F58" : "#A8AEB8";
   const positiveColor = isLightTheme ? "#00875F" : "#03FFCF";
   const footnoteColor = isLightTheme ? "#8C8F98" : "#5E6872";
+  const title = String(data.title || "").trim();
+  const body = String(data.body || "").trim();
+  const introHtml = title || body
+    ? `<div style="margin:0 0 22px;">
+        ${title ? `<h2 class="em-h2" style="margin:0; font-family:${FONTS.heading}; font-weight:600; font-size:30px; line-height:1.1; letter-spacing:-0.025em; color:${EMAIL_THEME.textPrimary};">${escapeHtml(title)}</h2>` : ""}
+        ${body ? `<div style="margin:${title ? "12px" : "0"} 0 0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:15px; line-height:1.65; color:${EMAIL_THEME.textSecondary};">${sanitizeRichText(body)}</div>` : ""}
+      </div>`
+    : "";
   const rowHtml = rows.map((row, index) => {
     const isLast = index === rows.length - 1;
     const borderStyle = isLast ? "" : `border-bottom:1px solid ${rowBorder};`;
@@ -989,6 +997,7 @@ function renderComparison(data, anchor = "", isLastSection = false) {
     <tr>
       <td class="em-px" style="padding:${sectionPadding("36px", "24px 36px")};${sectionBottomBorder(isLastSection)}">
         ${anchor}
+        ${introHtml}
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${cardBg}" style="background-color:${cardBg}; border:1px solid ${cardBorder}; border-radius:16px; border-collapse:separate !important; border-spacing:0 !important; overflow:hidden;">
           <tr>
             <td style="padding:0; border-radius:16px;">
