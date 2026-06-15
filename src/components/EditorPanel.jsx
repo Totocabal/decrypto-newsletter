@@ -914,8 +914,8 @@ function AddSectionButton({ onAdd }) {
                   }}
                   className="group/item text-left rounded-2xl border border-line bg-d-panel2 p-3 text-d-fg2 transition-colors hover:border-line2 hover:bg-d-panel3"
                 >
-                  <span className="flex items-center gap-3">
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-line bg-d-panel text-d-fg3 transition-colors group-hover/item:border-d-pink/50 group-hover/item:text-d-pink">
+                  <span className="flex items-start gap-3">
+                    <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-line bg-d-panel text-d-fg3 transition-colors group-hover/item:border-d-pink/50 group-hover/item:text-d-pink">
                       <Icon size={18} />
                     </span>
                     <span className="min-w-0 flex-1">
@@ -931,7 +931,7 @@ function AddSectionButton({ onAdd }) {
                     </span>
                     <ChevronRight
                       size={15}
-                      className="shrink-0 text-d-fg5 transition-colors group-hover/item:text-d-fg3"
+                      className="self-center shrink-0 text-d-fg5 transition-colors group-hover/item:text-d-fg3"
                     />
                   </span>
                 </button>
