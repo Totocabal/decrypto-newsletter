@@ -326,7 +326,7 @@ function HeroEditor({ data, set, sections }) {
 
 function sectionTitle(sec) {
   const d = sec.data || {};
-  return cleanSectionTitle(d.title || d.label || d.kicker || sec.type);
+  return cleanSectionTitle(d.index_label || d.title || d.label || d.kicker || sec.type);
 }
 
 function cleanSectionTitle(value = "") {
@@ -356,7 +356,7 @@ function IndexEditor({ data, set, sections }) {
   const syncFromSections = () => {
     let counter = 0;
     const generated = sections
-      .filter((s) => !UNNUMBERED_TYPES.has(s.type))
+      .filter((s) => s.counts_for_numbering ?? !UNNUMBERED_TYPES.has(s.type))
       .map((s) => {
         counter++;
         return {
