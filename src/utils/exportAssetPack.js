@@ -27,8 +27,6 @@ const EVENT_BG_FILENAME = "event-bg.png";
 const EVENT_BG_URL = "https://decrypto-newsletter.vercel.app/event-bg.png";
 const REFERRAL_BG_DARK_FILENAME = "referral-bg-dark.png";
 const REFERRAL_BG_LIGHT_FILENAME = "referral-bg-light.png";
-const REFERRAL_BG_DARK_URL = "https://decrypto-newsletter.vercel.app/referral-bg-dark.png";
-const REFERRAL_BG_LIGHT_URL = "https://decrypto-newsletter.vercel.app/referral-bg-light.png";
 const MACRO_QUOTE_BG_FILENAME = "macro-quote-bg.png";
 const MACRO_QUOTE_BG_URL = "https://decrypto-newsletter.vercel.app/macro-quote-bg.png";
 export const GRADIENT_CTA_FILENAME = "gradient-cta.png";
@@ -102,6 +100,58 @@ function gradientCtaPngBlob() {
     ctx.fillRect(0, 0, W * PIXEL_RATIO, H * PIXEL_RATIO);
     canvas.toBlob(
       (blob) => blob ? resolve(blob) : reject(new Error("Canvas toBlob CTA gradient échoué")),
+      "image/png",
+      1.0
+    );
+  });
+}
+
+/**
+ * Génère le fond PNG du bloc Parrainage au moment de l'export.
+ * On évite ainsi de dépendre d'un asset déjà publié pour que l'export Braze
+ * embarque systématiquement une image de background, comme le bloc évènement.
+ */
+function referralBgPngBlob(themeVariant = "dark") {
+  return new Promise((resolve, reject) => {
+    const isLight = themeVariant === "light";
+    const W = 900;
+    const H = 420;
+    const canvas = document.createElement("canvas");
+    canvas.width = W * PIXEL_RATIO;
+    canvas.height = H * PIXEL_RATIO;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) {
+      reject(new Error("Canvas indisponible pour referral-bg"));
+      return;
+    }
+
+    const grad = ctx.createLinearGradient(0, 0, W * PIXEL_RATIO, H * PIXEL_RATIO);
+    if (isLight) {
+      grad.addColorStop(0, "#EADAF1");
+      grad.addColorStop(0.55, "#F5D6E7");
+      grad.addColorStop(1, "#FFF1EA");
+    } else {
+      grad.addColorStop(0, "#321052");
+      grad.addColorStop(0.58, "#32102C");
+      grad.addColorStop(1, "#2D120D");
+    }
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    const glowA = ctx.createRadialGradient(0, canvas.height, 0, 0, canvas.height, canvas.width * 0.72);
+    glowA.addColorStop(0, isLight ? "rgba(135,1,255,0.13)" : "rgba(135,1,255,0.22)");
+    glowA.addColorStop(1, "rgba(135,1,255,0)");
+    ctx.fillStyle = glowA;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    const glowB = ctx.createRadialGradient(canvas.width, 0, 0, canvas.width, 0, canvas.width * 0.58);
+    glowB.addColorStop(0, isLight ? "rgba(255,0,170,0.08)" : "rgba(255,0,170,0.14)");
+    glowB.addColorStop(1, "rgba(255,0,170,0)");
+    ctx.fillStyle = glowB;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    canvas.toBlob(
+      (blob) => blob ? resolve(blob) : reject(new Error("Canvas toBlob referral-bg échoué")),
       "image/png",
       1.0
     );
@@ -345,14 +395,11 @@ async function buildPngAssets(state) {
   );
   if (needReferralBg) {
     const filename = state.theme_variant === "light" ? REFERRAL_BG_LIGHT_FILENAME : REFERRAL_BG_DARK_FILENAME;
-    const url = state.theme_variant === "light" ? REFERRAL_BG_LIGHT_URL : REFERRAL_BG_DARK_URL;
     try {
-      const resp = await fetch(url);
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-      assets[filename] = await resp.blob();
+      assets[filename] = await referralBgPngBlob(state.theme_variant);
     } catch (e) {
       // eslint-disable-next-line no-console
-      console.warn(`[export] ${filename} non récupéré :`, e);
+      console.warn(`[export] ${filename} non généré :`, e);
     }
   }
 

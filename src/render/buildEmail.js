@@ -1115,9 +1115,15 @@ function renderReferral(data, anchor = "", isLastSection = false, assetMode = "i
 
   const codeTable = `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%;">
                   <tr>
-                    <td class="em-referral-code" valign="middle" bgcolor="${codeBg}" style="background-color:${codeBg}; border:1px dashed ${codeBorder}; border-radius:10px; padding:14px 18px;">
-                      <p style="margin:0 0 2px; font-family:${FONTS.body}; font-size:10px; line-height:1.35; letter-spacing:0.18em; text-transform:uppercase; color:${codeLabelColor};">${escapeHtml(data.code_label || "Votre code")}</p>
-                      <p style="margin:0; font-family:${FONTS.mono || "'JetBrains Mono', monospace"}; font-size:20px; line-height:1.25; font-weight:500; letter-spacing:0.12em; color:${codeTextColor};">${renderedCodeValue}</p>
+                    <td class="em-referral-code" valign="middle" style="padding:0;">
+                      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${codeBg}" style="width:100%; background-color:${codeBg}; border:1px dashed ${codeBorder}; border-radius:10px; border-collapse:separate !important; border-spacing:0 !important; overflow:hidden;">
+                        <tr>
+                          <td bgcolor="${codeBg}" style="background-color:${codeBg}; border-radius:10px; padding:14px 18px;">
+                            <p style="margin:0 0 2px; font-family:${FONTS.body}; font-size:10px; line-height:1.35; letter-spacing:0.18em; text-transform:uppercase; color:${codeLabelColor};">${escapeHtml(data.code_label || "Votre code")}</p>
+                            <p style="margin:0; font-family:${FONTS.mono || "'JetBrains Mono', monospace"}; font-size:20px; line-height:1.25; font-weight:500; letter-spacing:0.12em; color:${codeTextColor};">${renderedCodeValue}</p>
+                          </td>
+                        </tr>
+                      </table>
                     </td>
                     <td class="em-referral-cta" valign="middle" align="right" width="150" style="padding-left:14px;">
                       ${ctaButton}
