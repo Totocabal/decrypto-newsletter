@@ -247,6 +247,10 @@ export const SECTION_TYPES = {
       body: "",
       column_left: "Staking<br>Standard",
       column_right: "Staking<br>Flexible",
+      cta_label: "",
+      cta_url: "",
+      cta_style: "gradient",
+      cta_arrow: true,
       rows: [
         {
           id: "comparison_row_1",

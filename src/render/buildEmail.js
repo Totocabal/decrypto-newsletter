@@ -994,6 +994,17 @@ function renderComparison(data, number, anchor = "", isLastSection = false) {
     </tr>`;
   }).join("");
   const footnote = String(data.footnote || "").trim();
+  const ctaText = String(data.cta_label || "").trim();
+  const ctaStyle = ctaVisualStyle(data.cta_style);
+  const ctaHtml = ctaText
+    ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin:24px auto 0;">
+        <tr>
+          <td bgcolor="${ctaStyle.bgColor}" style="border-radius:99px; ${ctaStyle.background}">
+            <a href="${escapeAttr(data.cta_url || "#")}" style="display:inline-block; padding:13px 22px; font-family:${FONTS.heading}; font-weight:600; font-size:13px; line-height:1.25; color:#ffffff; text-decoration:none; border-radius:99px; letter-spacing:0.01em; text-align:center;">${escapeHtml(ctaText)}${data.cta_arrow !== false ? "&nbsp;→" : ""}</a>
+          </td>
+        </tr>
+      </table>`
+    : "";
 
   return `
     <tr>
@@ -1015,6 +1026,7 @@ function renderComparison(data, number, anchor = "", isLastSection = false) {
           </tr>
         </table>
         ${footnote ? `<p style="margin:10px 0 0; font-family:${FONTS.body}; font-size:11px; line-height:1.45; color:${footnoteColor};">${sanitizeLineBreakText(footnote)}</p>` : ""}
+        ${ctaHtml}
       </td>
     </tr>`;
 }

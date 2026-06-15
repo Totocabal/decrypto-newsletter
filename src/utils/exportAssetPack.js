@@ -322,6 +322,13 @@ async function buildPngAssets(state) {
         focusImages.push({ sectionId: sec.id, originalUrl: sec.data.image_url, filename: `focus-${sec.id}.${ext}` });
       }
     }
+    if (
+      sec.type === "comparison" &&
+      String(sec.data?.cta_label || "").trim() &&
+      (sec.data?.cta_style || "gradient") === "gradient"
+    ) {
+      needCtaGradient = true;
+    }
   }
 
   if (needChart) {

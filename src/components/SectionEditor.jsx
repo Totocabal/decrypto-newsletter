@@ -1774,7 +1774,7 @@ function comparisonRowId(row, index) {
   return row.id || `comparison_row_${index}`;
 }
 
-function ComparisonSortableRow({ row, index, rowId, children }) {
+function ComparisonSortableRow({ row, index, rowId, collapsed, onToggle, children }) {
   const { attributes, listeners, setActivatorNodeRef, setNodeRef, transform, transition, isDragging } = useSortable({ id: rowId });
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -1789,18 +1789,27 @@ function ComparisonSortableRow({ row, index, rowId, children }) {
         isDragging ? "border-d-pink/50 opacity-60" : "border-line hover:border-line2"
       }`}
     >
-      <div className="mb-2 flex items-center justify-between gap-2">
+      <div
+        className={`${collapsed ? "" : "mb-2"} flex cursor-pointer select-none items-center justify-between gap-2`}
+        onClick={onToggle}
+      >
         <div className="flex min-w-0 items-center gap-2">
           <button
             type="button"
             ref={setActivatorNodeRef}
             {...attributes}
             {...listeners}
+            onClick={(e) => e.stopPropagation()}
             className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg border border-line bg-d-panel text-d-fg4 transition-colors hover:border-line2 hover:text-d-fg"
             aria-label={`Déplacer la ligne ${index + 1}`}
           >
             <GripVertical size={14} />
           </button>
+          <ChevronDown
+            size={14}
+            className="flex-shrink-0 text-d-fg3 transition-transform"
+            style={{ transform: collapsed ? "rotate(-90deg)" : "rotate(0deg)" }}
+          />
           <span className="text-[10px] uppercase tracking-[0.18em] text-d-fg4 font-semibold">
             Ligne {String(index + 1).padStart(2, "0")}
           </span>
@@ -1808,15 +1817,16 @@ function ComparisonSortableRow({ row, index, rowId, children }) {
             {row.label || "Nouvelle ligne"}
           </span>
         </div>
-        {children.actions}
+        <div onClick={(e) => e.stopPropagation()}>{children.actions}</div>
       </div>
-      {children.body}
+      {!collapsed && children.body}
     </div>
   );
 }
 
 function ComparisonEditor({ data, set }) {
   const rows = data.rows || [];
+  const [collapsedRows, setCollapsedRows] = useState(() => new Set());
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 180, tolerance: 8 } }),
@@ -1824,6 +1834,11 @@ function ComparisonEditor({ data, set }) {
   const updateRow = (index, patch) =>
     set({ rows: rows.map((row, idx) => (idx === index ? { ...row, ...patch } : row)) });
   const removeRow = (index) => set({ rows: rows.filter((_, idx) => idx !== index) });
+  const toggleRow = (rowId) => setCollapsedRows((prev) => {
+    const next = new Set(prev);
+    next.has(rowId) ? next.delete(rowId) : next.add(rowId);
+    return next;
+  });
   const handleDragEnd = ({ active, over }) => {
     if (!over || active.id === over.id) return;
     const oldIndex = rows.findIndex((row, index) => comparisonRowId(row, index) === active.id);
@@ -1834,7 +1849,14 @@ function ComparisonEditor({ data, set }) {
 
   return (
     <>
-      <Field label="Libellé">
+      <Field label="Kicker" hint="Optionnel, affiché au-dessus du titre et du tableau.">
+        <Input
+          value={data.section_kicker || ""}
+          onChange={(e) => set({ section_kicker: e.target.value })}
+          placeholder="Laisser vide pour masquer"
+        />
+      </Field>
+      <Field label="Libellé du tableau">
         <Input
           value={data.kicker || ""}
           onChange={(e) => set({ kicker: e.target.value })}
@@ -1856,6 +1878,36 @@ function ComparisonEditor({ data, set }) {
           placeholder="Laisser vide pour masquer"
         />
       </Field>
+      <div className="text-[10px] uppercase tracking-[0.18em] font-semibold text-d-fg3 mb-2 mt-2">
+        Bouton — <span className="normal-case font-normal text-d-fg4">laisse vide pour ne pas l'afficher</span>
+      </div>
+      <Field label="Fond du bouton">
+        <CtaStyleControl
+          value={data.cta_style || "gradient"}
+          onChange={(cta_style) => set({ cta_style })}
+        />
+      </Field>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <Field label="Texte">
+          <Input
+            value={data.cta_label ?? ""}
+            onChange={(e) => set({ cta_label: e.target.value })}
+          />
+        </Field>
+        <Field label="Lien">
+          <Input
+            value={data.cta_url ?? ""}
+            onChange={(e) => set({ cta_url: e.target.value })}
+          />
+        </Field>
+      </div>
+      <button
+        type="button"
+        onClick={() => set({ cta_arrow: data.cta_arrow === false })}
+        className={`mb-4 px-3 py-1.5 text-[13px] font-semibold rounded-lg border transition-colors ${data.cta_arrow !== false ? "bg-d-fg3 border-d-fg3 text-d-bg" : "border-line text-d-fg3 hover:border-line2"}`}
+      >
+        Flèche →
+      </button>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <Field label="Colonne gauche" hint="Tu peux utiliser <br> pour forcer un retour.">
           <TextArea
@@ -1886,6 +1938,8 @@ function ComparisonEditor({ data, set }) {
                 row={row}
                 index={index}
                 rowId={rowId}
+                collapsed={collapsedRows.has(rowId)}
+                onToggle={() => toggleRow(rowId)}
               >
                 {{
                   actions: (
