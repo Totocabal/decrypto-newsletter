@@ -1758,10 +1758,72 @@ const COMPARISON_HIGHLIGHTS = [
   { value: "right", label: "Colonne droite" },
 ];
 
+function newComparisonRowId() {
+  if (typeof crypto !== "undefined" && crypto.randomUUID) return crypto.randomUUID();
+  return `comparison_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+}
+
+function comparisonRowId(row, index) {
+  return row.id || `comparison_row_${index}`;
+}
+
+function ComparisonSortableRow({ row, index, rowId, children }) {
+  const { attributes, listeners, setActivatorNodeRef, setNodeRef, transform, transition, isDragging } = useSortable({ id: rowId });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`mb-3 rounded-xl border bg-d-panel2 p-3 transition-colors ${
+        isDragging ? "border-d-pink/50 opacity-60" : "border-line hover:border-line2"
+      }`}
+    >
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <div className="flex min-w-0 items-center gap-2">
+          <button
+            type="button"
+            ref={setActivatorNodeRef}
+            {...attributes}
+            {...listeners}
+            className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg border border-line bg-d-panel text-d-fg4 transition-colors hover:border-line2 hover:text-d-fg"
+            aria-label={`Déplacer la ligne ${index + 1}`}
+          >
+            <GripVertical size={14} />
+          </button>
+          <span className="text-[10px] uppercase tracking-[0.18em] text-d-fg4 font-semibold">
+            Ligne {String(index + 1).padStart(2, "0")}
+          </span>
+          <span className="min-w-0 truncate text-xs font-semibold text-d-fg2">
+            {row.label || "Nouvelle ligne"}
+          </span>
+        </div>
+        {children.actions}
+      </div>
+      {children.body}
+    </div>
+  );
+}
+
 function ComparisonEditor({ data, set }) {
   const rows = data.rows || [];
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 180, tolerance: 8 } }),
+  );
   const updateRow = (index, patch) =>
     set({ rows: rows.map((row, idx) => (idx === index ? { ...row, ...patch } : row)) });
+  const removeRow = (index) => set({ rows: rows.filter((_, idx) => idx !== index) });
+  const handleDragEnd = ({ active, over }) => {
+    if (!over || active.id === over.id) return;
+    const oldIndex = rows.findIndex((row, index) => comparisonRowId(row, index) === active.id);
+    const newIndex = rows.findIndex((row, index) => comparisonRowId(row, index) === over.id);
+    if (oldIndex < 0 || newIndex < 0) return;
+    set({ rows: arrayMove(rows, oldIndex, newIndex) });
+  };
 
   return (
     <>
@@ -1791,59 +1853,72 @@ function ComparisonEditor({ data, set }) {
       <div className="text-[10px] uppercase tracking-[0.18em] font-semibold text-d-fg3 mb-2 mt-2">
         Lignes comparatives
       </div>
-      {rows.map((row, index) => (
-        <div key={index} className="mb-3 rounded-xl border border-line bg-d-panel2 p-3">
-          <div className="mb-2 flex items-center justify-between gap-2">
-            <span className="text-[10px] uppercase tracking-[0.18em] text-d-fg4 font-semibold">
-              Ligne {String(index + 1).padStart(2, "0")}
-            </span>
-            <Tooltip label="Supprimer">
-              <button
-                type="button"
-                onClick={() => set({ rows: rows.filter((_, idx) => idx !== index) })}
-                className="p-1.5 text-d-fg4 hover:text-red-400 hover:bg-red-900/20 rounded-lg"
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <SortableContext items={rows.map(comparisonRowId)} strategy={verticalListSortingStrategy}>
+          {rows.map((row, index) => {
+            const rowId = comparisonRowId(row, index);
+            return (
+              <ComparisonSortableRow
+                key={rowId}
+                row={row}
+                index={index}
+                rowId={rowId}
               >
-                <Trash2 size={13} />
-              </button>
-            </Tooltip>
-          </div>
-          <div className="grid grid-cols-1 gap-2">
-            <Input
-              value={row.label || ""}
-              onChange={(e) => updateRow(index, { label: e.target.value })}
-              placeholder="Libellé de la ligne"
-            />
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              <Input
-                value={row.left || ""}
-                onChange={(e) => updateRow(index, { left: e.target.value })}
-                placeholder="Valeur gauche"
-              />
-              <Input
-                value={row.right || ""}
-                onChange={(e) => updateRow(index, { right: e.target.value })}
-                placeholder="Valeur droite"
-              />
-            </div>
-            <select
-              value={row.highlight || "none"}
-              onChange={(e) => updateRow(index, { highlight: e.target.value })}
-              className="w-full px-3 py-2 border border-line rounded-xl text-sm bg-d-panel2 text-d-fg"
-            >
-              {COMPARISON_HIGHLIGHTS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  Mise en avant : {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-      ))}
+                {{
+                  actions: (
+                    <Tooltip label="Supprimer">
+                      <button
+                        type="button"
+                        onClick={() => removeRow(index)}
+                        className="p-1.5 text-d-fg4 hover:text-red-400 hover:bg-red-900/20 rounded-lg"
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    </Tooltip>
+                  ),
+                  body: (
+                    <div className="grid grid-cols-1 gap-2">
+                      <Input
+                        value={row.label || ""}
+                        onChange={(e) => updateRow(index, { label: e.target.value })}
+                        placeholder="Libellé de la ligne"
+                      />
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <Input
+                          value={row.left || ""}
+                          onChange={(e) => updateRow(index, { left: e.target.value })}
+                          placeholder="Valeur gauche"
+                        />
+                        <Input
+                          value={row.right || ""}
+                          onChange={(e) => updateRow(index, { right: e.target.value })}
+                          placeholder="Valeur droite"
+                        />
+                      </div>
+                      <select
+                        value={row.highlight || "none"}
+                        onChange={(e) => updateRow(index, { highlight: e.target.value })}
+                        className="w-full px-3 py-2 border border-line rounded-xl text-sm bg-d-panel2 text-d-fg"
+                      >
+                        {COMPARISON_HIGHLIGHTS.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            Mise en avant : {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  ),
+                }}
+              </ComparisonSortableRow>
+            );
+          })}
+        </SortableContext>
+      </DndContext>
       <button
         type="button"
         onClick={() =>
           set({
-            rows: [...rows, { label: "", left: "", right: "", highlight: "none" }],
+            rows: [...rows, { id: newComparisonRowId(), label: "", left: "", right: "", highlight: "none" }],
           })
         }
         className="w-full mt-1 flex items-center justify-center gap-2 px-4 py-2 border border-dashed border-line text-d-fg3 hover:border-line2 hover:text-d-fg2 rounded-xl text-[10px] uppercase tracking-[0.18em] transition-colors"

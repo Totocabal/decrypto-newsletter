@@ -246,24 +246,28 @@ export const SECTION_TYPES = {
       column_right: "Staking<br>Flexible",
       rows: [
         {
+          id: "comparison_row_1",
           label: "Disponibilité des fonds",
           left: "Délai de 1 à 30 jours",
           right: "Retrait instantané*",
           highlight: "right",
         },
         {
+          id: "comparison_row_2",
           label: "Taux de rendement annuel indicatif",
           left: "Plus élevé",
           right: "Plus faible",
           highlight: "left",
         },
         {
+          id: "comparison_row_3",
           label: "Idéal pour",
           left: "Long terme, sans besoin de liquidité",
           right: "Garder de la flexibilité",
           highlight: "none",
         },
         {
+          id: "comparison_row_4",
           label: "Compatible avec",
           left: "Tous les abonnements",
           right: "Tous les abonnements",
