@@ -1143,6 +1143,12 @@ function renderEvent(data, anchor = "", isLastSection = false) {
 }
 
 function renderReferral(data, anchor = "", isLastSection = false, assetMode = "inline") {
+  const referralStatusCondition = [
+    "custom_attribute.${status} == \"tier_0\"",
+    "custom_attribute.${status} == \"tier_1\"",
+    "custom_attribute.${status} == \"tier_2\"",
+    "custom_attribute.${status} == \"tier_3\"",
+  ].join(" or ");
   const legacyReferralKicker = "→ Programme de parrainage";
   const legacyReferralTitle = "Chaque proche que vous parrainez, c'est <strong>20 €</strong> pour vous deux.";
   const legacyReferralDescription = "Aucun plafond. Plus vous partagez Décrypto autour de vous, plus vous cumulez.";
@@ -1247,13 +1253,19 @@ function renderReferral(data, anchor = "", isLastSection = false, assetMode = "i
       </table>
       <!--[if mso]></v:textbox></v:roundrect><![endif]-->`;
 
-  return `
+  const referralRow = `
     <tr>
       <td class="em-px" style="padding:${sectionPadding("36px", "24px 36px")};${sectionBottomBorder(isLastSection)}">
         ${anchor}
         ${cardTable}
       </td>
     </tr>`;
+
+  return assetMode === "inline"
+    ? referralRow
+    : `{% if ${referralStatusCondition} %}
+${referralRow}
+{% endif %}`;
 }
 
 function renderFocusItem(item, assetMode, isLastItem = false) {
