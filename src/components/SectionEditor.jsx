@@ -98,26 +98,47 @@ const CHIP_TYPES = [
   { value: "fear_greed", label: "F&G auto" },
 ];
 
+function chipSettingsForCrypto(sections, cryptoId) {
+  const matchingCharts = sections.filter(
+    (sec) =>
+      sec.type === "chart" &&
+      sec.data?.chart_mode === "auto" &&
+      (sec.data.chart_crypto || "bitcoin") === cryptoId
+  );
+  const chart = matchingCharts.find((sec) => Number(sec.data?.chart_days || 7) === 7) || matchingCharts[0];
+  return {
+    currency: chart?.data?.chart_currency || "eur",
+    days: 7,
+  };
+}
+
+function chipLabelFromCoinGecko(cryptoId, result) {
+  const symbol = result.label?.split("/")?.[0]?.trim() || (cryptoId === "bitcoin" ? "BTC" : "ETH");
+  const sign = result.delta_tone === "positive" ? "▲" : "▼";
+  const pct = result.delta.replace(/^[▲▼]\s*/, "");
+  return `${symbol} ${sign} ${pct}`;
+}
+
 function ChipEditor({ chip, onChange, onDelete, sections }) {
   const { fetch7d, loading } = useCoinGecko();
   const type = chip.type ?? "manual";
 
-  const handleRefreshCrypto = async (cryptoId) => {
-    const result = await fetch7d(cryptoId);
+  const handleRefreshCrypto = async (cryptoId, nextChip = chip) => {
+    const { currency, days } = chipSettingsForCrypto(sections, cryptoId);
+    const result = await fetch7d(cryptoId, currency, days);
     if (!result) return;
-    const symbol = cryptoId === "bitcoin" ? "BTC" : "ETH";
-    const sign = result.delta_tone === "positive" ? "▲" : "▼";
-    const pct = result.delta.replace(/^[▲▼]\s*/, "");
-    onChange({ ...chip, label: `${symbol} ${sign} ${pct}` });
+    onChange({ ...nextChip, label: chipLabelFromCoinGecko(cryptoId, result) });
   };
 
   const handleTypeChange = (newType) => {
     if (newType === "btc") {
-      handleRefreshCrypto("bitcoin");
-      onChange({ ...chip, type: "btc" });
+      const nextChip = { ...chip, type: "btc" };
+      onChange(nextChip);
+      handleRefreshCrypto("bitcoin", nextChip);
     } else if (newType === "eth") {
-      handleRefreshCrypto("ethereum");
-      onChange({ ...chip, type: "eth" });
+      const nextChip = { ...chip, type: "eth" };
+      onChange(nextChip);
+      handleRefreshCrypto("ethereum", nextChip);
     } else if (newType === "fear_greed") {
       const fg = sections.find((s) => s.type === "fear_greed");
       const label = fg

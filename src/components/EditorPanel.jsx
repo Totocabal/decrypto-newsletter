@@ -91,10 +91,30 @@ function buildIndexItems(sections) {
 }
 
 function chipLabelFromCoinGecko(cryptoId, result) {
-  const symbol = cryptoId === "bitcoin" ? "BTC" : "ETH";
+  const symbol = result.label?.split("/")?.[0]?.trim() || (cryptoId === "bitcoin" ? "BTC" : "ETH");
   const sign = result.delta_tone === "positive" ? "▲" : "▼";
   const pct = result.delta.replace(/^[▲▼]\s*/, "");
   return `${symbol} ${sign} ${pct}`;
+}
+
+function cryptoIdFromChipType(type) {
+  if (type === "btc") return "bitcoin";
+  if (type === "eth") return "ethereum";
+  return null;
+}
+
+function chipSettingsForCrypto(sections, cryptoId) {
+  const matchingCharts = sections.filter(
+    (sec) =>
+      sec.type === "chart" &&
+      sec.data?.chart_mode === "auto" &&
+      (sec.data.chart_crypto || "bitcoin") === cryptoId
+  );
+  const chart = matchingCharts.find((sec) => Number(sec.data?.chart_days || 7) === 7) || matchingCharts[0];
+  return {
+    currency: chart?.data?.chart_currency || "eur",
+    days: 7,
+  };
 }
 
 function padDatePart(value) {
@@ -259,8 +279,14 @@ export function EditorPanel({ state, setState }) {
         (sec) => sec.type === "chart" && sec.data.chart_mode === "auto"
       );
 
-      if (bitcoinChips) await getCrypto("bitcoin");
-      if (ethereumChips) await getCrypto("ethereum");
+      if (bitcoinChips) {
+        const { currency, days } = chipSettingsForCrypto(state.sections, "bitcoin");
+        await getCrypto("bitcoin", currency, days);
+      }
+      if (ethereumChips) {
+        const { currency, days } = chipSettingsForCrypto(state.sections, "ethereum");
+        await getCrypto("ethereum", currency, days);
+      }
       await Promise.all(
         autoCharts.map((sec) =>
           getCrypto(
@@ -288,18 +314,14 @@ export function EditorPanel({ state, setState }) {
                 data: {
                   ...sec.data,
                   chips: (sec.data.chips || []).map((chip) => {
-                    if (chip.type === "btc" && cryptoCache[cryptoKey("bitcoin")]) {
-                      const bitcoin = cryptoCache[cryptoKey("bitcoin")];
+                    const cryptoId = cryptoIdFromChipType(chip.type);
+                    if (cryptoId) {
+                      const { currency, days } = chipSettingsForCrypto(s.sections, cryptoId);
+                      const cryptoResult = cryptoCache[cryptoKey(cryptoId, currency, days)];
+                      if (!cryptoResult) return chip;
                       return {
                         ...chip,
-                        label: chipLabelFromCoinGecko("bitcoin", bitcoin),
-                      };
-                    }
-                    if (chip.type === "eth" && cryptoCache[cryptoKey("ethereum")]) {
-                      const ethereum = cryptoCache[cryptoKey("ethereum")];
-                      return {
-                        ...chip,
-                        label: chipLabelFromCoinGecko("ethereum", ethereum),
+                        label: chipLabelFromCoinGecko(cryptoId, cryptoResult),
                       };
                     }
                     if (chip.type === "fear_greed" && fg) {
