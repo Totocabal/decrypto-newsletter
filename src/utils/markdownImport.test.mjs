@@ -97,6 +97,13 @@ test("renders Quill links without exposing anchor HTML", () => {
   assert.doesNotMatch(html, /rel=&quot;noopener/);
 });
 
+test("can render legal text with literal asterisks", () => {
+  const html = sanitizeRichText("Offre valable * sous conditions. ** Voir details.", { markdown: false });
+
+  assert.match(html, /Offre valable \* sous conditions\. \*\* Voir details\./);
+  assert.doesNotMatch(html, /<em|<strong/);
+});
+
 test("can hide the separator above a standalone CTA", () => {
   const baseState = {
     issue_date: "Test",

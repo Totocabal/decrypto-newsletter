@@ -107,7 +107,8 @@ function ctaVisualStyle(style = "gradient") {
   };
 }
 
-export function sanitizeRichText(text = "") {
+export function sanitizeRichText(text = "", options = {}) {
+  const parseMarkdown = options.markdown !== false;
   let out = escapeHtml(decodeStoredTextEntities(text));
   const listStyle = `margin:0; padding-left:20px; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:15px; line-height:1.65; color:${EMAIL_THEME.textSecondary};`;
   const listItemStyle = `margin:0 0 6px; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:15px; line-height:1.65; color:${EMAIL_THEME.textSecondary};`;
@@ -142,14 +143,17 @@ export function sanitizeRichText(text = "") {
     .replace(escapedOpeningTagPattern("a"), escapedAnchorOpeningToHtml)
     .replace(/&lt;\/a&gt;/gi, "</a>")
     .replace(/\[([^\]\n]+)\]\((https?:\/\/[^)\s]+|mailto:[^)\s]+|#[^)\s]+)\)/gi,
-      `<a href="$2" style="color:${EMAIL_THEME.textMuted}; text-decoration:underline;">$1</a>`)
-    .replace(/\*\*([^*\n][\s\S]*?[^*\n])\*\*/g,
-      `<strong style="font-weight:${RICH_TEXT_BOLD_WEIGHT};">$1</strong>`)
-    .replace(/__([^_\n][\s\S]*?[^_\n])__/g,
-      `<strong style="font-weight:${RICH_TEXT_BOLD_WEIGHT};">$1</strong>`)
-    .replace(/(^|[\s>])\*([^*\n]+)\*/g, `$1<em style="font-style:italic;">$2</em>`)
-    .replace(/(^|[\s>])_([^_\n]+)_/g, `$1<em style="font-style:italic;">$2</em>`)
-    .replace(/^-\s+(.+)$/gm, "• $1");
+      `<a href="$2" style="color:${EMAIL_THEME.textMuted}; text-decoration:underline;">$1</a>`);
+  if (parseMarkdown) {
+    out = out
+      .replace(/\*\*([^*\n][\s\S]*?[^*\n])\*\*/g,
+        `<strong style="font-weight:${RICH_TEXT_BOLD_WEIGHT};">$1</strong>`)
+      .replace(/__([^_\n][\s\S]*?[^_\n])__/g,
+        `<strong style="font-weight:${RICH_TEXT_BOLD_WEIGHT};">$1</strong>`)
+      .replace(/(^|[\s>])\*([^*\n]+)\*/g, `$1<em style="font-style:italic;">$2</em>`)
+      .replace(/(^|[\s>])_([^_\n]+)_/g, `$1<em style="font-style:italic;">$2</em>`)
+      .replace(/^-\s+(.+)$/gm, "• $1");
+  }
   out = out.replace(/\n/g, "<br />");
   return out;
 }
@@ -1773,7 +1777,7 @@ function renderFooter(footer, assetMode) {
         ${links ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:24px;" align="center"><tr>${links}</tr></table>` : ""}
         <p style="margin:0; font-family:${FONTS.body}; font-size:11px; color:${EMAIL_THEME.textDim}; line-height:1.6; letter-spacing:0.02em;">
           ${escapeHtml(footer.address)}<br /><br />
-          <span style="font-weight:${RICH_TEXT_WEIGHT}; color:${EMAIL_THEME.textFaint};">${sanitizeRichText(footer.legal)}</span>
+          <span style="font-weight:${RICH_TEXT_WEIGHT}; color:${EMAIL_THEME.textFaint};">${sanitizeRichText(footer.legal, { markdown: false })}</span>
         </p>
         <p style="margin:18px 0 0; font-family:${FONTS.body}; font-size:11px; color:${EMAIL_THEME.textFaint};">
           <a href="${escapeAttr(footer.unsub_url || "{{${set_user_to_unsubscribed_url}}}")}" style="color:${EMAIL_THEME.textFaint}; text-decoration:underline;">Se désinscrire</a>
