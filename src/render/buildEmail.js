@@ -1437,7 +1437,7 @@ function renderFocusItem(item, assetMode, isLastItem = false) {
         <tr>
           <td bgcolor="${calloutBg}" style="padding:22px 24px; background-color:${calloutBg}; border-radius:12px;">
             ${headerHtml}
-            <div style="margin:0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:14px; line-height:1.6; color:${bodyColor};">${bodyHtml}</div>
+            <div style="margin:0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:13px; line-height:1.6; color:${bodyColor};">${bodyHtml}</div>
             ${footer}
           </td>
         </tr>
