@@ -2195,6 +2195,32 @@ function ReferralEditor({ data, set }) {
         </Field>
       </div>
 
+      <Field label="Version du fond">
+        <div className="grid grid-cols-3 gap-1 rounded-xl border border-line bg-d-panel p-1">
+          {[
+            ["auto", "Auto"],
+            ["light", "Clair"],
+            ["dark", "Sombre"],
+          ].map(([value, label]) => {
+            const isActive = (data.bg_variant || "auto") === value;
+            return (
+              <button
+                key={value}
+                type="button"
+                onClick={() => set({ bg_variant: value })}
+                className={`rounded-lg px-3 py-2 text-xs font-semibold transition-colors ${
+                  isActive
+                    ? "bg-d-fg text-d-bg shadow-sm"
+                    : "text-d-fg3 hover:bg-d-panel2 hover:text-d-fg"
+                }`}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
+      </Field>
+
       <div>
         <div className="text-[10px] uppercase tracking-[0.18em] font-semibold text-d-fg3 mb-1.5">
           Image de fond personnalisée (1280×520 conseillé)

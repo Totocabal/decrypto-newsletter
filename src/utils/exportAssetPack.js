@@ -158,6 +158,10 @@ function referralBgPngBlob(themeVariant = "dark") {
   });
 }
 
+function getReferralBgVariant(sectionData = {}, themeVariant = "dark") {
+  return ["light", "dark"].includes(sectionData.bg_variant) ? sectionData.bg_variant : themeVariant;
+}
+
 function imageBlobToPngBlob(blob) {
   return new Promise((resolve, reject) => {
     const objectUrl = URL.createObjectURL(blob);
@@ -397,13 +401,15 @@ async function buildPngAssets(state) {
     }
   }
 
-  const needReferralBg = (state.sections || []).some(
-    (sec) => sec.type === "referral" && !String(sec.data?.bg_image_url || "").trim()
+  const neededReferralBgVariants = new Set(
+    (state.sections || [])
+      .filter((sec) => sec.type === "referral" && !String(sec.data?.bg_image_url || "").trim())
+      .map((sec) => getReferralBgVariant(sec.data, state.theme_variant))
   );
-  if (needReferralBg) {
-    const filename = state.theme_variant === "light" ? REFERRAL_BG_LIGHT_FILENAME : REFERRAL_BG_DARK_FILENAME;
+  for (const variant of neededReferralBgVariants) {
+    const filename = variant === "light" ? REFERRAL_BG_LIGHT_FILENAME : REFERRAL_BG_DARK_FILENAME;
     try {
-      assets[filename] = await referralBgPngBlob(state.theme_variant);
+      assets[filename] = await referralBgPngBlob(variant);
     } catch (e) {
       // eslint-disable-next-line no-console
       console.warn(`[export] ${filename} non généré :`, e);

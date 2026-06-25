@@ -1158,24 +1158,26 @@ function renderReferral(data, anchor = "", isLastSection = false, assetMode = "i
     : data.title;
   const referralDescription = data.description === legacyReferralDescription ? "" : data.description;
   const isLightTheme = EMAIL_THEME === EMAIL_THEMES.light;
+  const bgVariant = ["light", "dark"].includes(data.bg_variant) ? data.bg_variant : (isLightTheme ? "light" : "dark");
+  const isLightReferral = bgVariant === "light";
   const defaultBg = assetMode === "external"
-    ? `assets/${isLightTheme ? "referral-bg-light.png" : "referral-bg-dark.png"}`
-    : `https://decrypto-newsletter.vercel.app/${isLightTheme ? "referral-bg-light.png" : "referral-bg-dark.png"}`;
+    ? `assets/${isLightReferral ? "referral-bg-light.png" : "referral-bg-dark.png"}`
+    : `https://decrypto-newsletter.vercel.app/${isLightReferral ? "referral-bg-light.png" : "referral-bg-dark.png"}`;
   const bgImg = String(data.bg_image_url || "").trim();
   const effectiveBgImg = bgImg || defaultBg;
-  const cardBg = isLightTheme ? "#FAF7F1" : "#1a0c2e";
-  const cardBorder = isLightTheme ? "rgba(135,1,255,0.18)" : "rgba(255,255,255,0.08)";
-  const msoCardBorder = isLightTheme ? "#D7C4F5" : "#2D243A";
-  const kickerColor = isLightTheme ? "#C0008A" : "#FF00AA";
-  const titleColor = isLightTheme ? "#14141A" : "#FFFFFF";
-  const accentColor = isLightTheme ? "#00875F" : "#03FFCF";
-  const bodyColor = isLightTheme ? "#4A4F58" : "#D8DDE6";
-  const codeBg = isLightTheme ? "#FFFFFF" : "rgba(0,0,0,0.28)";
-  const codeBorder = isLightTheme ? "rgba(20,20,26,0.28)" : "rgba(255,255,255,0.28)";
-  const codeLabelColor = isLightTheme ? "#5E6872" : "#C7CAD1";
-  const codeTextColor = isLightTheme ? "#14141A" : "#FFFFFF";
-  const ctaBg = isLightTheme ? "#14141A" : "#FFFFFF";
-  const ctaColor = isLightTheme ? "#FFFFFF" : "#14141A";
+  const cardBg = isLightReferral ? "#FAF7F1" : "#1a0c2e";
+  const cardBorder = isLightReferral ? "rgba(135,1,255,0.18)" : "rgba(255,255,255,0.08)";
+  const msoCardBorder = isLightReferral ? "#D7C4F5" : "#2D243A";
+  const kickerColor = isLightReferral ? "#C0008A" : "#FF00AA";
+  const titleColor = isLightReferral ? "#14141A" : "#FFFFFF";
+  const accentColor = isLightReferral ? "#00875F" : "#03FFCF";
+  const bodyColor = isLightReferral ? "#4A4F58" : "#D8DDE6";
+  const codeBg = isLightReferral ? "#FFFFFF" : "rgba(0,0,0,0.28)";
+  const codeBorder = isLightReferral ? "rgba(20,20,26,0.28)" : "rgba(255,255,255,0.28)";
+  const codeLabelColor = isLightReferral ? "#5E6872" : "#C7CAD1";
+  const codeTextColor = isLightReferral ? "#14141A" : "#FFFFFF";
+  const ctaBg = isLightReferral ? "#14141A" : "#FFFFFF";
+  const ctaColor = isLightReferral ? "#FFFFFF" : "#14141A";
   const codeLiquid = String(data.code_liquid || "{{custom_attribute.${referral_code}}}").trim();
   let codeCondition = codeLiquid
     .replace(/^\{\{\s*/, "")
