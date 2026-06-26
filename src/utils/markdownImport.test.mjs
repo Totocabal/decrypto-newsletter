@@ -104,6 +104,11 @@ test("can render legal text with literal asterisks", () => {
   assert.doesNotMatch(html, /<em|<strong/);
 });
 
+test("preserves non-breaking spaces in rich text", () => {
+  assert.match(sanitizeRichText("Un&nbsp;mot"), /Un&nbsp;mot/);
+  assert.match(sanitizeRichText("Un&amp;nbsp;mot"), /Un&nbsp;mot/);
+});
+
 test("can hide the separator above a standalone CTA", () => {
   const baseState = {
     issue_date: "Test",
