@@ -836,6 +836,31 @@ kicker: "Benefits"
   assert.doesNotMatch(html, /<td class="em-feature-cell"[^>]*>\s*<table[\s\S]*?<div style="margin-bottom:10px;">[\s\S]*?<p style="margin:0 0 4px;[^>]*"><\/p>/);
 });
 
+test("renders feature grid title non-breaking spaces", () => {
+  const html = buildEmailHtml({
+    issue_date: "Test",
+    preview_text: "Benefits.",
+    sections: [
+      {
+        id: "benefits",
+        type: "feature_grid",
+        data: {
+          kicker: "Benefits",
+          featured: { title: "Carte&nbsp;vedette", body: "", show_icon: false },
+          items: [
+            { title: "Titre&nbsp;insécable", body: "Body", picto: "shield", color: "#03FFCF" },
+          ],
+        },
+      },
+    ],
+    footer: { links: [], address: "", legal: "", unsub_url: "#" },
+  });
+
+  assert.match(html, /Carte&nbsp;vedette/);
+  assert.match(html, /Titre&nbsp;insécable/);
+  assert.doesNotMatch(html, /Titre&amp;nbsp;insécable/);
+});
+
 test("renders feature grid CTA", () => {
   const html = buildEmailHtml({
     issue_date: "Test",

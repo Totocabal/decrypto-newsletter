@@ -19,6 +19,10 @@ export function escapeHtml(str = "") {
     .replace(/'/g, "&#39;");
 }
 
+function escapeHtmlWithNbsp(str = "") {
+  return escapeHtml(str).replace(/&amp;nbsp;/gi, "&nbsp;");
+}
+
 export function escapeAttr(str = "") {
   return String(str).replace(/"/g, "&quot;");
 }
@@ -904,7 +908,7 @@ function renderFeatureGrid(data, number, assetMode, anchor = "", isLastSection =
               ${featuredIcon}
               <td valign="top">
                 ${featuredLabel}
-                ${featured.title ? `<p style="margin:0; font-family:${FONTS.heading}; font-weight:600; font-size:18px; color:#ffffff; letter-spacing:-0.015em; line-height:1.25;">${escapeHtml(featured.title)}</p>` : ""}
+                ${featured.title ? `<p style="margin:0; font-family:${FONTS.heading}; font-weight:600; font-size:18px; color:#ffffff; letter-spacing:-0.015em; line-height:1.25;">${escapeHtmlWithNbsp(featured.title)}</p>` : ""}
                 ${featured.body ? `<div style="margin:8px 0 0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:13px; color:#D8DDE6; line-height:1.55;">${sanitizeRichText(featured.body)}</div>` : ""}
               </td>
             </tr>
@@ -933,7 +937,7 @@ function renderFeatureGrid(data, number, assetMode, anchor = "", isLastSection =
                 <table role="presentation" cellpadding="0" cellspacing="0" border="0">
                   <tr>
                     <td valign="middle" style="padding-right:10px;">${renderPictoBadge(item.picto, color, 14, assetMode)}</td>
-                    ${item.title ? `<td valign="middle"><p style="margin:0; font-family:${FONTS.heading}; font-weight:600; font-size:13.5px; color:${cardText}; letter-spacing:-0.005em; line-height:1.28;">${escapeHtml(item.title)}</p></td>` : ""}
+                    ${item.title ? `<td valign="middle"><p style="margin:0; font-family:${FONTS.heading}; font-weight:600; font-size:13.5px; color:${cardText}; letter-spacing:-0.005em; line-height:1.28;">${escapeHtmlWithNbsp(item.title)}</p></td>` : ""}
                   </tr>
                 </table>
               </td>
