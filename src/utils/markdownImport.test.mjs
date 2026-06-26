@@ -829,6 +829,7 @@ kicker: "Benefits"
   assert.match(html, /First body\./);
   assert.match(html, /Second body\./);
   assert.match(html, /Third body\./);
+  assert.match(html, /class="em-feature-body" valign="middle"/);
   assert.doesNotMatch(html, /macro-quote-bg\.png/);
   assert.doesNotMatch(html, /Benefice n/);
   assert.doesNotMatch(html, /undefined/);
