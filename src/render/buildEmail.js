@@ -20,7 +20,7 @@ export function escapeHtml(str = "") {
 }
 
 function escapeHtmlWithNbsp(str = "") {
-  return escapeHtml(str).replace(/&amp;nbsp;/gi, "&nbsp;").replace(/\u00a0/g, "&nbsp;");
+  return escapeHtml(str).replace(/&amp;nbsp;/gi, "&nbsp;");
 }
 
 export function escapeAttr(str = "") {
@@ -31,8 +31,7 @@ function decodeStoredTextEntities(str = "") {
   return String(str)
     .replace(/&#39;|&#x27;|&apos;/gi, "'")
     .replace(/&quot;/gi, '"')
-    .replace(/&amp;nbsp;/gi, "\u00a0")
-    .replace(/&nbsp;/gi, "\u00a0")
+    .replace(/&nbsp;/gi, " ")
     .replace(/&amp;/gi, "&");
 }
 
@@ -114,7 +113,7 @@ function ctaVisualStyle(style = "gradient") {
 
 export function sanitizeRichText(text = "", options = {}) {
   const parseMarkdown = options.markdown !== false;
-  let out = escapeHtml(decodeStoredTextEntities(text)).replace(/\u00a0/g, "&nbsp;");
+  let out = escapeHtml(decodeStoredTextEntities(text));
   const listStyle = `margin:0; padding-left:20px; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:15px; line-height:1.65; color:${EMAIL_THEME.textSecondary};`;
   const listItemStyle = `margin:0 0 6px; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:15px; line-height:1.65; color:${EMAIL_THEME.textSecondary};`;
   out = out
