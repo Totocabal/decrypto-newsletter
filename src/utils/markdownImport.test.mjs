@@ -609,6 +609,9 @@ secondary_url: "https://example.com/academy"
 label: "To remember"
 picto: "target"
 callout_color: "#03FFCF"
+footer: "Read the guide"
+footer_url: "https://example.com/guide"
+footer_accent: true
 :::
 
 Stay disciplined.
@@ -636,9 +639,13 @@ style: gradient
   );
   assert.equal(focus.data.items[2].secondary_label, "Academy");
   assert.equal(focus.data.items[3].body, "Stay disciplined.");
+  assert.equal(focus.data.items[3].footer_accent, true);
   assert.equal(focus.data.items[5].style, "gradient");
   assert.equal(macroBars.type, "macro_bars");
   assert.equal(macroBars.data.bars[1].percent, "53");
+
+  const html = buildEmailHtml(imported.state);
+  assert.match(html, /font-weight:700;[^>]*>\s*<a href="https:\/\/example\.com\/guide" style="color:#03FFCF;/);
 });
 
 test("imports standalone CTA and spacer directives", () => {

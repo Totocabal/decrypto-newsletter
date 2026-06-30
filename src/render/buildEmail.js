@@ -1427,7 +1427,9 @@ function renderFocusItem(item, assetMode, isLastItem = false) {
     // de comparaison d'objet qui ferait utiliser la mauvaise couleur de corps.
     const bodyColor = EMAIL_THEME.textSecondary;
     const footerBorder = mixHex(baseBg, accentHex, isLightTheme ? 0.24 : 0.28);
-    const footerColor = EMAIL_THEME.textDim;
+    const hasFooterAccent = item.footer_accent === true;
+    const footerColor = hasFooterAccent ? calloutAccent : EMAIL_THEME.textDim;
+    const footerWeight = hasFooterAccent ? 700 : 400;
     const iconHtml = item.show_icon === false
       ? ""
       : `<td valign="middle" style="padding-right:12px;">
@@ -1435,9 +1437,9 @@ function renderFocusItem(item, assetMode, isLastItem = false) {
                 </td>`;
     const footerText = String(item.footer || "").trim();
     const footer = footerText
-      ? `<p style="margin:14px 0 0; padding-top:12px; border-top:1px solid ${footerBorder}; font-family:${FONTS.mono || "'JetBrains Mono', monospace"}; font-size:11px; color:${footerColor}; letter-spacing:0.02em;">${
+      ? `<p style="margin:14px 0 0; padding-top:12px; border-top:1px solid ${footerBorder}; font-family:${FONTS.mono || "'JetBrains Mono', monospace"}; font-size:11px; color:${footerColor}; font-weight:${footerWeight}; letter-spacing:0.02em;">${
           item.footer_url
-            ? `<a href="${escapeAttr(item.footer_url)}" style="color:${calloutAccent}; text-decoration:none; border-bottom:1px solid ${footerBorder}; padding-bottom:1px;">${escapeHtml(footerText)}</a>`
+            ? `<a href="${escapeAttr(item.footer_url)}" style="color:${footerColor}; text-decoration:none; border-bottom:1px solid ${hasFooterAccent ? calloutAccent : footerBorder}; padding-bottom:1px;">${escapeHtml(footerText)}</a>`
             : escapeHtml(footerText)
         }</p>`
       : "";

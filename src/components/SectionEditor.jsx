@@ -2446,7 +2446,7 @@ function FocusEditor({ data, set }) {
     let item;
     if (type === "text") item = { id, type: "text", body: "" };
     else if (type === "image") item = { id, type: "image", image_url: "", image_path: "", image_alt: "Visuel d'illustration", link_url: "" };
-    else if (type === "callout") item = { id, type: "callout", label: "Note de la rédac", body: "", footer: "", footer_url: "", show_icon: true, picto: DEFAULT_PICTO_ID, callout_color: DEFAULT_CALLOUT_COLOR };
+    else if (type === "callout") item = { id, type: "callout", label: "Note de la rédac", body: "", footer: "", footer_url: "", footer_accent: false, show_icon: true, picto: DEFAULT_PICTO_ID, callout_color: DEFAULT_CALLOUT_COLOR };
     else if (type === "spacer") item = { id, type: "spacer", height: 24 };
     else if (type === "divider") item = { id, type: "divider", style: "thin" };
     else item = { id, type: "cta", label: "", url: "", cta_style: "gradient", arrow: false, centered: false, secondary_label: "", secondary_url: "" };
@@ -2776,6 +2776,19 @@ function FocusEditor({ data, set }) {
                       />
                     </Field>
                   </div>
+                  <label className="flex items-center justify-between gap-4 rounded-xl border border-line bg-d-panel px-3 py-2.5 cursor-pointer">
+                    <span className="text-xs font-semibold text-d-fg">Accentuer la ligne de bas</span>
+                    <span className="relative inline-flex h-6 w-11 flex-shrink-0 items-center">
+                      <input
+                        type="checkbox"
+                        checked={item.footer_accent === true}
+                        onChange={(e) => updateItem(item.id, { footer_accent: e.target.checked })}
+                        className="peer sr-only"
+                      />
+                      <span className="absolute inset-0 rounded-full border border-line bg-d-panel transition-colors peer-checked:border-d-pink peer-checked:bg-d-pink/25" />
+                      <span className="relative ml-1 h-4 w-4 rounded-full bg-d-fg4 transition-transform peer-checked:translate-x-5 peer-checked:bg-d-pink" />
+                    </span>
+                  </label>
                 </>
               )}
                 </FocusSortableItem>
