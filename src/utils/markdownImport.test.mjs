@@ -894,3 +894,36 @@ test("renders feature grid CTA", () => {
   assert.match(html, />Activer<\/a>/);
   assert.doesNotMatch(html, /Activer&nbsp;→/);
 });
+
+test("renders referral separators inside the Liquid condition", () => {
+  const html = buildEmailHtml({
+    issue_date: "Test",
+    preview_text: "Referral.",
+    show_block_separators: true,
+    sections: [
+      {
+        id: "referral",
+        type: "referral",
+        data: {
+          kicker: "Programme de parrainage",
+          title: "Invitez vos proches",
+          description: "",
+          code_label: "Votre code",
+          code_liquid: "{{custom_attribute.${referral_code}}}",
+          cta_label: "Partager",
+          cta_url: "#",
+          show_top_separator: true,
+          show_bottom_separator: true,
+        },
+      },
+      {
+        id: "after",
+        type: "text_block",
+        data: { kicker: "", title: "", body: "Après parrainage" },
+      },
+    ],
+    footer: { links: [], address: "", legal: "", unsub_url: "#" },
+  }, { assetMode: "external" });
+
+  assert.match(html, /{% if custom_attribute\.\$\{status\} == "tier_0"[\s\S]*em-referral-separator-top[\s\S]*em-referral-bg[\s\S]*em-referral-separator-bottom[\s\S]*{% endif %}/);
+});

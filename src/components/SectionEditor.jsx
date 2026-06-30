@@ -2221,6 +2221,29 @@ function ReferralEditor({ data, set }) {
         </div>
       </Field>
 
+      <Field label="Séparateurs du bloc">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          <label className="flex items-center justify-between gap-3 rounded-xl border border-line bg-d-panel px-3 py-2.5 text-sm text-d-fg">
+            <span>Au-dessus</span>
+            <input
+              type="checkbox"
+              checked={data.show_top_separator === true}
+              onChange={(e) => set({ show_top_separator: e.target.checked })}
+              className="h-4 w-4 accent-d-pink"
+            />
+          </label>
+          <label className="flex items-center justify-between gap-3 rounded-xl border border-line bg-d-panel px-3 py-2.5 text-sm text-d-fg">
+            <span>En dessous</span>
+            <input
+              type="checkbox"
+              checked={data.show_bottom_separator !== false}
+              onChange={(e) => set({ show_bottom_separator: e.target.checked })}
+              className="h-4 w-4 accent-d-pink"
+            />
+          </label>
+        </div>
+      </Field>
+
       <div>
         <div className="text-[10px] uppercase tracking-[0.18em] font-semibold text-d-fg3 mb-1.5">
           Image de fond personnalisée (1280×520 conseillé)

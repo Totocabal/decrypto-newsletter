@@ -420,6 +420,16 @@ function sectionBottomBorder(isLastSection) {
     : ` border-bottom:1px solid ${EMAIL_THEME.border};`;
 }
 
+function sectionSeparatorRow(className = "em-section-separator") {
+  return `<tr>
+      <td class="em-px ${className}" style="padding:0 36px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+          <tr><td height="1" style="height:1px; line-height:1px; font-size:1px; background-color:${EMAIL_THEME.border};">&nbsp;</td></tr>
+        </table>
+      </td>
+    </tr>`;
+}
+
 function expandPadding(value) {
   const parts = String(value || "").trim().split(/\s+/).filter(Boolean);
   const [top = "0", right = top, bottom = top, left = right] = parts;
@@ -1216,6 +1226,12 @@ function renderReferral(data, anchor = "", isLastSection = false, assetMode = "i
   const hasDescription = String(referralDescription || "").trim();
   const ctaLabel = String(data.cta_label || "").trim();
   const ctaUrl = data.cta_url || "#";
+  const topSeparator = data.show_top_separator === true
+    ? sectionSeparatorRow("em-referral-separator-top")
+    : "";
+  const bottomSeparator = data.show_bottom_separator !== false && SHOW_BLOCK_SEPARATORS && !CURRENT_SECTION_SUPPRESS_BOTTOM_SEPARATOR && !isLastSection
+    ? sectionSeparatorRow("em-referral-separator-bottom")
+    : "";
   const ctaButton = `<table class="em-referral-button" role="presentation" cellpadding="0" cellspacing="0" border="0">
     <tr>
       <td bgcolor="${ctaBg}" style="background-color:${ctaBg}; border-radius:99px;">
@@ -1277,12 +1293,14 @@ function renderReferral(data, anchor = "", isLastSection = false, assetMode = "i
       <!--[if mso]></v:textbox></v:roundrect><![endif]-->`;
 
   const referralRow = `
+    ${topSeparator}
     <tr>
-      <td class="em-px" style="padding:${sectionPadding("36px", "24px 36px")};${sectionBottomBorder(isLastSection)}">
+      <td class="em-px" style="padding:${sectionPadding("36px", "24px 36px")};">
         ${anchor}
         ${cardTable}
       </td>
-    </tr>`;
+    </tr>
+    ${bottomSeparator}`;
 
   return assetMode === "inline"
     ? referralRow
