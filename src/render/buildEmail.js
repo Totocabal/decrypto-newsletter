@@ -881,7 +881,8 @@ function renderPictoBadge(pictoId, color, size, assetMode) {
 
 function renderFeatureGrid(data, number, assetMode, anchor = "", isLastSection = false) {
   const featured = data.featured || {};
-  const items = (data.items || []).slice(0, 4);
+  const secondaryCount = Number(data.secondary_count) === 2 ? 2 : 4;
+  const items = (data.items || []).slice(0, secondaryCount);
   const isLightTheme = EMAIL_THEME === EMAIL_THEMES.light;
   const cardBg = isLightTheme ? "#FFFFFF" : "#101018";
   const cardBorder = isLightTheme ? "#E4E7EE" : "#24242C";

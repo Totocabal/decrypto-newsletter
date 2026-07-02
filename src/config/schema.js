@@ -209,6 +209,7 @@ export const SECTION_TYPES = {
       cta_url: "",
       cta_style: "gradient",
       cta_arrow: true,
+      secondary_count: 4,
       items: [
         {
           title: "Moins de frais qu'avec votre carte",
@@ -430,6 +431,13 @@ const REFERRAL_OLD_DEFAULTS = {
 };
 
 function normalizeSectionData(type, data = {}) {
+  if (type === "feature_grid") {
+    const defaults = SECTION_TYPES.feature_grid.factory();
+    return {
+      ...data,
+      secondary_count: Number(data.secondary_count) === 2 ? 2 : (Number(data.secondary_count) === 4 ? 4 : defaults.secondary_count),
+    };
+  }
   if (type !== "referral") return data;
   const defaults = SECTION_TYPES.referral.factory();
   return {

@@ -870,14 +870,32 @@ function FeatureGridEditor({ data, set }) {
   const [collapsedCards, setCollapsedCards] = useState(() => new Set());
   const featured = data.featured || {};
   const items = data.items || [];
+  const createEmptyItem = (index) => ({
+    title: "",
+    body: "",
+    picto: ["euro", "pin", "shield", "check"][index] || DEFAULT_PICTO_ID,
+    color: ["#00FFFF", "#FF8B28", "#B36BFF", "#03FFCF"][index] || DEFAULT_CALLOUT_COLOR,
+  });
+  const secondaryCount = Number(data.secondary_count) === 2 ? 2 : 4;
+  const editorItems = [...items];
+  while (editorItems.length < secondaryCount) editorItems.push(createEmptyItem(editorItems.length));
+  const visibleItems = editorItems.slice(0, secondaryCount);
   const toggleCard = (key) => setCollapsedCards((prev) => {
     const next = new Set(prev);
     next.has(key) ? next.delete(key) : next.add(key);
     return next;
   });
   const updateFeatured = (patch) => set({ ...data, featured: { ...featured, ...patch } });
+  const updateSecondaryCount = (count) => {
+    const nextCount = count === 2 ? 2 : 4;
+    const nextItems = [...items];
+    while (nextItems.length < nextCount) nextItems.push(createEmptyItem(nextItems.length));
+    set({ ...data, secondary_count: nextCount, items: nextItems });
+  };
   const updateItem = (index, patch) => {
-    const nextItems = items.map((item, i) => (i === index ? { ...item, ...patch } : item));
+    const nextItems = [...items];
+    while (nextItems.length <= index) nextItems.push(createEmptyItem(nextItems.length));
+    nextItems[index] = { ...nextItems[index], ...patch };
     set({ ...data, items: nextItems });
   };
   const featuredSummary = [
@@ -890,6 +908,31 @@ function FeatureGridEditor({ data, set }) {
     <>
       <Field label="Kicker">
         <Input value={data.kicker || ""} onChange={(e) => set({ ...data, kicker: e.target.value })} />
+      </Field>
+
+      <Field label="Cartes secondaires">
+        <div className="grid grid-cols-2 gap-1 rounded-xl border border-line bg-d-panel p-1">
+          {[
+            [2, "2 cartes"],
+            [4, "4 cartes"],
+          ].map(([count, label]) => {
+            const isActive = secondaryCount === count;
+            return (
+              <button
+                key={count}
+                type="button"
+                onClick={() => updateSecondaryCount(count)}
+                className={`rounded-lg px-3 py-2 text-xs font-semibold transition-colors ${
+                  isActive
+                    ? "bg-d-fg text-d-bg shadow-sm"
+                    : "text-d-fg3 hover:bg-d-panel2 hover:text-d-fg"
+                }`}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
       </Field>
 
       <div className="rounded-xl border border-line bg-d-panel2">
@@ -969,7 +1012,7 @@ function FeatureGridEditor({ data, set }) {
       </div>
 
       <div className="mt-3 space-y-3">
-        {items.map((item, index) => {
+        {visibleItems.map((item, index) => {
           const cardKey = `item-${index}`;
           const isCollapsed = collapsedCards.has(cardKey);
           const summary = [

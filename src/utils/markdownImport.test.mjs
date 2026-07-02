@@ -810,6 +810,7 @@ Security and clarity stay together.
   assert.equal(featureGrid.data.featured.body, "Security and clarity stay together.");
   assert.equal(featureGrid.data.items[0].picto, "euro");
   assert.equal(featureGrid.data.items[1].color, "#FF8B28");
+  assert.equal(featureGrid.data.secondary_count, 2);
   assert.equal(featureGrid.data.cta_label, "Découvrir");
   assert.equal(featureGrid.data.cta_url, "https://example.com/open");
   assert.equal(featureGrid.data.cta_style, "black");
@@ -866,6 +867,36 @@ test("renders feature grid title non-breaking spaces", () => {
   assert.match(html, /Carte&nbsp;vedette/);
   assert.match(html, /Titre&nbsp;insécable/);
   assert.doesNotMatch(html, /Titre&amp;nbsp;insécable/);
+});
+
+test("renders only the selected number of feature grid secondary cards", () => {
+  const html = buildEmailHtml({
+    issue_date: "Test",
+    preview_text: "Benefits.",
+    sections: [
+      {
+        id: "benefits",
+        type: "feature_grid",
+        data: {
+          kicker: "Benefits",
+          secondary_count: 2,
+          featured: { title: "", body: "", show_icon: false },
+          items: [
+            { title: "One", body: "First body.", picto: "shield", color: "#03FFCF" },
+            { title: "Two", body: "Second body.", picto: "pin", color: "#FF8B28" },
+            { title: "Three", body: "Third body.", picto: "euro", color: "#00FFFF" },
+            { title: "Four", body: "Fourth body.", picto: "check", color: "#B36BFF" },
+          ],
+        },
+      },
+    ],
+    footer: { links: [], address: "", legal: "", unsub_url: "#" },
+  });
+
+  assert.match(html, /First body\./);
+  assert.match(html, /Second body\./);
+  assert.doesNotMatch(html, /Third body\./);
+  assert.doesNotMatch(html, /Fourth body\./);
 });
 
 test("renders feature grid CTA", () => {

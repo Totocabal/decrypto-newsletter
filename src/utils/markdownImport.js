@@ -47,7 +47,7 @@ const SECTION_FIELDS = {
   focus_divider: ["style"],
   signals: ["kicker", "title"],
   editorial_list: ["kicker"],
-  feature_grid: ["kicker", "bg_image_url", "cta_label", "cta_url", "cta_style", "cta_arrow"],
+  feature_grid: ["kicker", "bg_image_url", "cta_label", "cta_url", "cta_style", "cta_arrow", "secondary_count"],
   feature_grid_featured: ["label", "title", "picto", "show_icon", "color"],
   image_block: ["image_url", "image_alt", "link_url"],
   divider: ["style"],
@@ -669,6 +669,9 @@ function normalizeExplicitSection(token, body, warnings) {
     if (data.bg_image_url) assertHttpUrl(data.bg_image_url, "bg_image_url");
     if (data.cta_url) assertHttpUrl(data.cta_url, "cta_url");
     const parsedItems = parsePipeItems(markdownBody, type, 4);
+    if (data.secondary_count !== undefined && ![2, 4].includes(Number(data.secondary_count))) {
+      throw new MarkdownImportError(":::feature_grid secondary_count doit valoir 2 ou 4.");
+    }
     const items = parsedItems.slice(0, 4).map(([title, bodyText, picto, color]) => ({
       title,
       body: bodyText,
@@ -677,6 +680,9 @@ function normalizeExplicitSection(token, body, warnings) {
     }));
     if (parsedItems.length > 4) warnings.push("Directive :::feature_grid: seules quatre cartes secondaires sont rendues.");
     data.items = items;
+    data.secondary_count = data.secondary_count !== undefined
+      ? Number(data.secondary_count)
+      : (items.length <= 2 ? 2 : 4);
   }
 
   if (type === "focus") {
