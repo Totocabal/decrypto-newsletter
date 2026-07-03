@@ -432,14 +432,20 @@ function sectionTitleSpaced(title, number = null) {
 function sectionBottomBorder(isLastSection) {
   return isLastSection || CURRENT_SECTION_SUPPRESS_BOTTOM_SEPARATOR || !SHOW_BLOCK_SEPARATORS
     ? ""
-    : ` border-bottom:1px solid ${EMAIL_THEME.border};`;
+    : ` border-bottom:1px solid ${separatorColor("subtle")};`;
+}
+
+function separatorColor(strength = "strong") {
+  const isLightTheme = EMAIL_THEME === EMAIL_THEMES.light;
+  if (strength === "subtle") return isLightTheme ? "#E5E1D8" : "#242832";
+  return isLightTheme ? "#D8D2C4" : "#343A46";
 }
 
 function sectionSeparatorRow(className = "em-section-separator") {
   return `<tr>
       <td class="em-px ${className}" style="padding:0 36px;">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-          <tr><td height="1" style="height:1px; line-height:1px; font-size:1px; background-color:${EMAIL_THEME.border};">&nbsp;</td></tr>
+          <tr><td height="1" bgcolor="${separatorColor("subtle")}" style="height:1px; line-height:1px; font-size:1px; background-color:${separatorColor("subtle")};">&nbsp;</td></tr>
         </table>
       </td>
     </tr>`;
@@ -1439,10 +1445,10 @@ function renderFocusItem(item, assetMode, isLastItem = false) {
     const height = style === "thick" ? "4" : style === "gradient" ? "3" : "1";
     const backgroundStyle = style === "gradient"
       ? `background-color:${EMAIL_THEME.accentTertiary}; background-image:linear-gradient(90deg, ${EMAIL_THEME.accentSecondary} 0%, ${EMAIL_THEME.accentTertiary} 50%, ${EMAIL_THEME.accentPrimary} 100%);`
-      : `background-color:${EMAIL_THEME.borderStrong};`;
+      : `background-color:${separatorColor("strong")};`;
     return `<table role="presentation" width="${style === "centered" ? "50%" : "100%"}" align="${style === "centered" ? "center" : "left"}" cellpadding="0" cellspacing="0" border="0" style="width:${style === "centered" ? "50%" : "100%"}; margin:${style === "centered" ? `0 auto ${itemMarginBottom}` : `0 0 ${itemMarginBottom}`};">
         <tr>
-          <td style="height:${height}px; line-height:${height}px; font-size:1px; ${backgroundStyle}">&nbsp;</td>
+          <td bgcolor="${style === "gradient" ? EMAIL_THEME.accentTertiary : separatorColor("strong")}" style="height:${height}px; line-height:${height}px; font-size:1px; ${backgroundStyle}">&nbsp;</td>
         </tr>
       </table>`;
   }
@@ -1779,7 +1785,7 @@ function renderDivider(data, isLastSection = false) {
     return `<tr><td style="height:3px; line-height:3px; font-size:1px; background-color:${EMAIL_THEME.accentTertiary}; background-image:linear-gradient(90deg, ${EMAIL_THEME.accentSecondary} 0%, ${EMAIL_THEME.accentTertiary} 50%, ${EMAIL_THEME.accentPrimary} 100%);">&nbsp;</td></tr>`;
   }
   const height = data.style === "thick" ? "4" : "1";
-  return `<tr><td style="height:${height}px; line-height:${height}px; font-size:1px; background-color:${EMAIL_THEME.borderStrong};">&nbsp;</td></tr>`;
+  return `<tr><td bgcolor="${separatorColor("strong")}" style="height:${height}px; line-height:${height}px; font-size:1px; background-color:${separatorColor("strong")};">&nbsp;</td></tr>`;
 }
 
 function renderStandaloneCta(data, isLastSection = false) {
