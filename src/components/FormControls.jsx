@@ -108,12 +108,22 @@ function injectQuillCss() {
     }
 
     /* Tooltip lien */
+    .ql-wrapper .ql-container.ql-snow {
+      overflow: visible !important;
+    }
     .ql-tooltip {
       background: rgb(var(--d-panel)) !important;
       border: 1px solid var(--d-line2) !important;
       border-radius: 8px !important;
       box-shadow: 0 4px 20px rgba(0,0,0,0.6) !important;
       color: rgb(var(--d-fg2)) !important;
+      z-index: 80 !important;
+      max-width: min(460px, calc(100vw - 40px)) !important;
+      white-space: nowrap !important;
+    }
+    .ql-tooltip.ql-editing {
+      margin-top: -10px !important;
+      transform: translateY(-100%) !important;
     }
     .ql-tooltip input[type=text] {
       background: rgb(var(--d-panel2)) !important;
@@ -121,6 +131,7 @@ function injectQuillCss() {
       color: rgb(var(--d-fg)) !important;
       border-radius: 4px !important;
       outline: none !important;
+      max-width: min(280px, calc(100vw - 170px)) !important;
     }
     .ql-tooltip a.ql-action::after { color: #aaa !important; border-right-color: #3A3A44 !important; }
     .ql-tooltip a.ql-remove::before { color: #aaa !important; }
@@ -374,7 +385,7 @@ function RichTextEditor({ showCount, onChange, value = "", rows = 3, placeholder
   return (
     <div>
       <div
-        className="ql-wrapper border border-line rounded-xl bg-d-panel2 focus-within:border-line2 transition-colors overflow-hidden"
+        className="ql-wrapper border border-line rounded-xl bg-d-panel2 focus-within:border-line2 transition-colors"
         style={{ "--ql-min-height": minHeight }}
       >
         {/* Toolbar Quill sera insérée ici par Quill avant holderRef */}

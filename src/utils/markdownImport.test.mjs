@@ -686,7 +686,7 @@ height: 32
 :::
 
 :::focus_divider
-style: gradient
+style: centered
 :::
 
 :::macro_bars
@@ -704,7 +704,8 @@ style: gradient
   assert.equal(focus.data.items[2].secondary_label, "Academy");
   assert.equal(focus.data.items[3].body, "Stay disciplined.");
   assert.equal(focus.data.items[3].footer_accent, true);
-  assert.equal(focus.data.items[5].style, "gradient");
+  assert.equal(focus.data.items[5].style, "centered");
+  assert.match(buildEmailHtml(imported.state), /width="50%" align="center"[^>]*width:50%; margin:0 auto/);
   assert.equal(macroBars.type, "macro_bars");
   assert.equal(macroBars.data.bars[1].percent, "53");
 

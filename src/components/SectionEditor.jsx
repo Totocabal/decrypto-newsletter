@@ -2834,11 +2834,12 @@ function FocusEditor({ data, set }) {
                     value={item.style || "thin"}
                     onChange={(e) => updateItem(item.id, { style: e.target.value })}
                     className="w-full rounded-xl border border-line bg-d-panel px-3 py-2.5 text-sm text-d-fg focus:border-line2 focus:outline-none"
-                  >
-                    <option value="thin">Fin</option>
-                    <option value="thick">Épais</option>
-                    <option value="gradient">Gradient</option>
-                  </select>
+                    >
+                      <option value="thin">Fin</option>
+                      <option value="centered">Fin centré 50%</option>
+                      <option value="thick">Épais</option>
+                      <option value="gradient">Gradient</option>
+                    </select>
                 </Field>
               )}
               {item.type === "callout" && (

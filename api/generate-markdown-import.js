@@ -576,7 +576,7 @@ kicker: "EN 3 ETAPES"
 - chart_currency : eur ou usd uniquement. chart_days : 7 ou 30 uniquement.
 - fear_greed.value, macro_bars.percent : nombre entre 0 et 100.
 - focus_spacer.height : nombre entre 0 et 120.
-- focus_divider.style : thin, thick ou gradient.
+- focus_divider.style : thin, thick, gradient ou centered.
 - spacer.height : nombre entre 0 et 120.
 - Tons autorisés : positive, negative, warning, muted.
 - N'utilise jamais d'émojis ni d'émoticônes dans aucun champ ni dans aucun corps de texte.
@@ -596,7 +596,7 @@ Mapping recommandé :
 - CTA principal : focus + focus_cta avec arrow: true.
 - CTA seul, sans texte avant/après : cta avec label, url, arrow et centered.
 - Espace vertical seul : spacer avec height.
-- Séparateur dans un bloc focus : focus_divider avec style thin, thick ou gradient.
+- Séparateur dans un bloc focus : focus_divider avec style thin, thick, gradient ou centered. Utilise centered pour une ligne fine centrée qui prend environ la moitié de la largeur.
 - Texte + CTA + texte : privilégier obligatoirement un seul focus, avec focus_text pour le texte avant le CTA, focus_cta pour le bouton, puis focus_text pour le texte après le CTA. Ne crée pas text_block + focus_cta + text_block.
 - Format correct pour texte + CTA + texte :
 :::focus
@@ -645,7 +645,7 @@ Corrige le fichier pour qu'il passe la validation. Règles obligatoires :
 - focus_cta exige toujours label.
 - cta exige toujours label.
 - spacer.height doit être compris entre 0 et 120.
-- focus_divider.style doit valoir thin, thick ou gradient.
+- focus_divider.style doit valoir thin, thick, gradient ou centered.
 - Dans editorial_list : chaque ligne contient exactement - tag | title | body | couleur_optionnelle. Les colonnes tag, title et body ne peuvent jamais être vides. La couleur hexadécimale (#03FFCF...) est uniquement la 4e colonne, jamais dans body.
 - N'invente pas de contenu. Restructure uniquement.
 - N'utilise jamais d'émojis ni d'émoticônes.

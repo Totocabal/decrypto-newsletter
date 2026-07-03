@@ -380,8 +380,8 @@ function focusItemFromDirective(token, body) {
 
   if (token.type === "focus_divider") {
     const style = data.style || "thin";
-    if (!["thin", "thick", "gradient"].includes(style)) {
-      throw new MarkdownImportError(":::focus_divider style doit valoir thin, thick ou gradient.");
+    if (!["thin", "thick", "gradient", "centered"].includes(style)) {
+      throw new MarkdownImportError(":::focus_divider style doit valoir thin, thick, gradient ou centered.");
     }
     return { id: importId("focus"), type: "divider", style };
   }
