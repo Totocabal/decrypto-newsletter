@@ -97,6 +97,24 @@ test("renders Quill links without exposing anchor HTML", () => {
   assert.doesNotMatch(html, /rel=&quot;noopener/);
 });
 
+test("renders rich text lists with compact spacing", () => {
+  const html = sanitizeRichText(`<ol>
+    <li><strong>Ne communiquez jamais :</strong>
+      <ul>
+        <li>votre mot de passe</li>
+        <li>vos codes de validation</li>
+        <li>vos informations d'authentification</li>
+      </ul>
+    </li>
+  </ol>
+  Aucun collaborateur légitime ne vous demandera ces informations.`);
+
+  assert.match(html, /<ol style="margin:0; padding-left:20px;[^"]*line-height:1\.45/);
+  assert.match(html, /<li style="margin:0 0 2px; padding:0;[^"]*line-height:1\.45/);
+  assert.doesNotMatch(html, /<br \/>\s*<li/);
+  assert.match(html, /<\/ol><br \/>Aucun collaborateur/);
+});
+
 test("can render legal text with literal asterisks", () => {
   const html = sanitizeRichText("Offre valable * sous conditions. ** Voir details.", { markdown: false });
 
