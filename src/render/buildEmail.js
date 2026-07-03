@@ -396,7 +396,7 @@ function sectionHeader(number, kicker) {
   if (!number && !cleanKicker) return "";
   return `<table role="presentation" cellpadding="0" cellspacing="0" border="0">
     <tr>
-      ${number ? `<td style="font-family:${FONTS.heading}; font-weight:700; font-size:13px; color:${EMAIL_THEME.accentPrimary}; padding-right:12px;">${escapeHtml(number)}</td>` : ""}
+      ${number ? `<td class="em-section-number" width="28" style="width:28px; min-width:28px; font-family:${FONTS.heading}; font-weight:700; font-size:13px; line-height:1.1; color:${EMAIL_THEME.accentPrimary}; padding-right:12px; white-space:nowrap; word-break:keep-all; overflow-wrap:normal;">${escapeHtml(number)}</td>` : ""}
       ${cleanKicker ? `<td style="font-family:${FONTS.body}; font-size:11px; letter-spacing:0.2em; text-transform:uppercase; color:${EMAIL_THEME.textMuted}; font-weight:500;">${escapeHtml(cleanKicker)}</td>` : ""}
     </tr>
   </table>`;
@@ -413,7 +413,7 @@ function numberPlacement(data, number) {
 
 function titleNumberHtml(number) {
   return number
-    ? `<span style="display:inline-block; padding-right:12px; font-family:${FONTS.heading}; font-weight:700; font-size:0.72em; line-height:1; letter-spacing:0; color:${EMAIL_THEME.accentPrimary}; vertical-align:0.08em;">${escapeHtml(number)}</span>`
+    ? `<span class="em-section-number" style="display:inline-block; min-width:1.8em; padding-right:12px; font-family:${FONTS.heading}; font-weight:700; font-size:0.72em; line-height:1; letter-spacing:0; color:${EMAIL_THEME.accentPrimary}; vertical-align:0.08em; white-space:nowrap; word-break:keep-all; overflow-wrap:normal;">${escapeHtml(number)}</span>`
     : "";
 }
 
@@ -1994,6 +1994,7 @@ ${renderEmailFontFaces()}
     .em-signal-col:last-child { border-bottom: none !important; }
     .em-feature-cell { display: block !important; width: 100% !important; height: auto !important; box-sizing: border-box !important; padding-left: 0 !important; padding-right: 0 !important; padding-bottom: 12px !important; }
     .em-feature-icon { width: 48px !important; padding-right: 12px !important; }
+    .em-section-number { white-space: nowrap !important; word-break: keep-all !important; overflow-wrap: normal !important; min-width: 28px !important; width: 28px !important; }
     .em-editorial-num { width: 40px !important; }
     .em-editorial-tag { display: none !important; mso-hide: all !important; max-height: 0 !important; overflow: hidden !important; width: 0 !important; }
     .em-editorial-tag-mobile { display: block !important; max-height: none !important; overflow: visible !important; padding-top: 10px !important; }
