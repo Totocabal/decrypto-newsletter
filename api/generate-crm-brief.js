@@ -241,7 +241,8 @@ Blocs disponibles et usages recommandés :
 - hero_chips : 3 à 4 repères courts associés au hero, par exemple offre, bénéfice, profil, marché.
 - index : sommaire si le contenu comporte plusieurs sections nettes.
 - text_block : paragraphes simples, introduction, explication, signature.
-- editorial_list : listes de 2 à 4 étapes, bénéfices, arguments produit, raisons de passer à l'action. Chaque item doit pouvoir devenir tag court + titre + corps explicatif.
+- editorial_list : listes de 2 à 4 bénéfices, arguments produit, raisons de passer à l'action. Chaque item doit pouvoir devenir tag court + titre + corps explicatif.
+- timeline : parcours chronologique, tutoriel ou étapes à suivre dans l'ordre, avec étapes reliées visuellement.
 - focus : encadré central pour une idée clé, une offre, une recommandation ou un message à retenir.
 - focus_callout : point d'attention, à retenir, preuve, rappel réglementaire ou élément de réassurance.
 - focus_cta : CTA principal ou secondaire.
@@ -264,7 +265,8 @@ Blocs disponibles et usages recommandés :
 
 Mapping éditorial à privilégier :
 - Une salutation + introduction courte doit pouvoir devenir un text_block.
-- Une liste de bénéfices, étapes ou arguments produit doit être pensée comme editorial_list plutôt que comme simple liste Markdown.
+- Un parcours chronologique ou tutoriel étape par étape doit être pensé comme timeline.
+- Une liste de bénéfices ou arguments produit non chronologiques doit être pensée comme editorial_list plutôt que comme simple liste Markdown.
 - Une comparaison d'offres doit être pensée comme feature_grid.
 - Un argument principal ou une offre prioritaire doit être isolé en focus.
 - Si le contenu suit une logique texte + CTA + texte, Gemini doit privilégier un seul bloc focus : focus_text pour le premier texte, focus_cta pour le bouton, puis focus_text pour le texte qui suit. Ne transforme pas cette séquence en text_block + CTA + text_block.

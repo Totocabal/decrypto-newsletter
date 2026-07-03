@@ -33,6 +33,7 @@ export function SectionEditor({ type, data, onChange, sections = [] }) {
     case "feature_grid": return <FeatureGridEditor data={data} set={set} />;
     case "comparison": return <ComparisonEditor data={data} set={set} />;
     case "editorial_list": return <EditorialListEditor data={data} set={set} />;
+    case "timeline": return <TimelineEditor data={data} set={set} />;
     case "event":      return <EventEditor data={data} set={set} />;
     case "referral":   return <ReferralEditor data={data} set={set} />;
     case "focus":      return <FocusEditor data={data} set={set} />;
@@ -793,6 +794,90 @@ function EditorialListEditor({ data, set }) {
       >
         <Plus size={12} /> Ajouter une entrée
       </button>
+    </>
+  );
+}
+
+function TimelineEditor({ data, set }) {
+  const items = data.items || [];
+  const helpers = listHelpers(items, set, () => ({
+    title: "Nouvelle étape",
+    body: "",
+  }));
+
+  return (
+    <>
+      <Field label="Kicker">
+        <Input
+          value={data.kicker || ""}
+          onChange={(e) => set({ kicker: e.target.value })}
+          placeholder="Activer votre DCA en 4 étapes"
+        />
+      </Field>
+      <Field label="Position de la numérotation">
+        <div className="grid grid-cols-2 gap-1 rounded-xl border border-line bg-d-panel2 p-1">
+          {[
+            ["title", "Titre du bloc"],
+            ["kicker", "Kicker"],
+          ].map(([value, label]) => {
+            const active = (data.number_position || "title") === value;
+            return (
+              <button
+                key={value}
+                type="button"
+                onClick={() => set({ number_position: value })}
+                className={`rounded-lg px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] transition-colors ${
+                  active ? "bg-d-panel text-d-fg shadow-sm" : "text-d-fg4 hover:text-d-fg2"
+                }`}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
+      </Field>
+      <Field label="Texte d'introduction" hint="Optionnel, affiché au-dessus des étapes.">
+        <TextArea
+          showCount
+          rows={3}
+          value={data.body || ""}
+          onChange={(e) => set({ body: e.target.value })}
+        />
+      </Field>
+      <Section
+        title="Étapes"
+        action={
+          <button type="button" onClick={helpers.add} className="text-xs text-d-pink">
+            + Ajouter
+          </button>
+        }
+      >
+        <div className="space-y-3">
+          {items.map((item, index) => (
+            <div key={index} className="rounded-xl border border-line bg-d-panel2 p-3">
+              <div className="mb-3 flex items-center justify-between">
+                <div className="font-mono text-xs font-semibold text-d-pink">{String(index + 1).padStart(2, "0")}</div>
+                <button
+                  type="button"
+                  onClick={() => helpers.remove(index)}
+                  className="rounded-lg border border-line p-1.5 text-d-fg3 hover:bg-red-900/20 hover:text-red-400"
+                  title="Supprimer"
+                >
+                  <Trash2 size={13} />
+                </button>
+              </div>
+              <div className="space-y-3">
+                <Field noMargin label="Titre">
+                  <Input value={item.title || ""} onChange={(e) => helpers.set(index, { ...item, title: e.target.value })} />
+                </Field>
+                <Field noMargin label="Texte" hint="Éditeur riche">
+                  <TextArea rows={3} value={item.body || ""} onChange={(e) => helpers.set(index, { ...item, body: e.target.value })} />
+                </Field>
+              </div>
+            </div>
+          ))}
+        </div>
+      </Section>
     </>
   );
 }

@@ -1694,6 +1694,69 @@ function renderEditorialList(data, number, anchor = "", isLastSection = false) {
     </tr>`;
 }
 
+function renderTimeline(data, number, anchor = "", isLastSection = false) {
+  const isLightTheme = EMAIL_THEME === EMAIL_THEMES.light;
+  const accentColor = isLightTheme ? "#C0008A" : EMAIL_THEME.accentPrimary;
+  const badgeBg = isLightTheme ? "#FFF0F8" : mixHex(EMAIL_THEME.bgEmail || "#0B0B0D", accentColor, 0.18);
+  const badgeBorder = isLightTheme ? "rgba(255,0,170,0.4)" : mixHex(EMAIL_THEME.bgEmail || "#0B0B0D", accentColor, 0.46);
+  const lineColor = isLightTheme ? "#E5E1D8" : EMAIL_THEME.borderStrong;
+  const titleColor = EMAIL_THEME.textPrimary;
+  const bodyColor = isLightTheme ? "#4A4F58" : EMAIL_THEME.textMuted;
+  const items = (data.items || []).filter((item) => String(item.title || item.body || "").trim());
+  const kicker = String(data.kicker || "").trim();
+  const intro = String(data.body || "").trim();
+  const numberPosition = data.number_position === "kicker" ? "kicker" : "title";
+  const headerNumber = numberPosition === "title" ? number : null;
+  const kickerNumber = numberPosition === "kicker" ? number : null;
+  const kickerHtml = (kicker || kickerNumber)
+    ? `<tr><td style="padding:0 0 6px; font-family:${FONTS.body}; font-size:11px; letter-spacing:0.2em; text-transform:uppercase; color:${accentColor}; font-weight:600;">${kickerNumber ? `${escapeHtml(kickerNumber)} &nbsp; ` : ""}${kicker ? `━━ &nbsp; ${escapeHtml(kicker)}` : ""}</td></tr>`
+    : "";
+
+  const rows = items.map((item, index) => {
+    const isLast = index === items.length - 1;
+    const marker = isLast ? "✓" : String(index + 1);
+    const markerBg = isLast ? EMAIL_THEME.positive : badgeBg;
+    const markerColor = isLast ? "#FFFFFF" : accentColor;
+    const markerBorder = isLast ? EMAIL_THEME.positive : badgeBorder;
+    const connector = isLast
+      ? ""
+      : `<table role="presentation" width="34" cellpadding="0" cellspacing="0" border="0">
+          <tr><td align="center"><table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td width="2" height="34" style="width:2px; height:34px; line-height:1px; font-size:1px; background-color:${lineColor};">&nbsp;</td></tr></table></td></tr>
+        </table>`;
+    return `<tr>
+      <td style="${isLast ? "" : "padding-bottom:4px;"}">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+          <tr>
+            <td width="50" valign="top" style="width:50px; padding-right:16px;">
+              <table role="presentation" width="34" height="34" cellpadding="0" cellspacing="0" border="0" style="width:34px; height:34px; border-collapse:separate !important;">
+                <tr><td width="34" height="34" align="center" valign="middle" bgcolor="${markerBg}" style="width:34px; height:34px; background-color:${markerBg}; border:1px solid ${markerBorder}; border-radius:10px; color:${markerColor}; font-family:${FONTS.heading}; font-size:${isLast ? "15px" : "14px"}; font-weight:700; line-height:34px;">${escapeHtml(marker)}</td></tr>
+              </table>
+              ${connector}
+            </td>
+            <td valign="top" style="${isLast ? "" : "padding-bottom:22px;"}">
+              <p style="margin:0 0 4px; font-family:${FONTS.heading}; font-weight:600; font-size:16px; color:${titleColor}; letter-spacing:-0.01em; line-height:1.3;">${escapeHtmlWithNbsp(item.title || "")}</p>
+              ${item.body ? `<div style="margin:0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:13.5px; color:${bodyColor}; line-height:1.55;">${sanitizeRichText(item.body)}</div>` : ""}
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>`;
+  }).join("");
+
+  return `
+    <tr>
+      <td class="em-px" style="padding:${sectionPadding("44px 36px", "28px 36px")};${sectionBottomBorder(isLastSection)}">
+        ${anchor}
+        ${sectionHeader(headerNumber, "")}
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+          ${kickerHtml}
+          ${intro ? `<tr><td style="padding:0 0 20px; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:14px; line-height:1.6; color:${bodyColor};">${sanitizeRichText(intro)}</td></tr>` : ""}
+          ${rows}
+        </table>
+      </td>
+    </tr>`;
+}
+
 function renderDivider(data, isLastSection = false) {
   if (isLastSection) return "";
   if (data.style === "gradient") {
@@ -1756,6 +1819,7 @@ function renderSection(sec, allSections, assetMode, showSectionNumbers = true, i
     case "feature_grid": return renderFeatureGrid(sec.data, number, assetMode, anchor, isLastSection);
     case "comparison":  return renderComparison(sec.data, number, anchor, isLastSection);
     case "editorial_list": return renderEditorialList(sec.data, number, anchor, isLastSection);
+    case "timeline":    return renderTimeline(sec.data, number, anchor, isLastSection);
     case "event":      return renderEvent(sec.data, anchor, isLastSection);
     case "referral":   return renderReferral(sec.data, anchor, isLastSection, assetMode);
     case "focus":      return renderFocus(sec.data, number, assetMode, anchor, isLastSection);

@@ -47,6 +47,7 @@ const SECTION_FIELDS = {
   focus_divider: ["style"],
   signals: ["kicker", "title"],
   editorial_list: ["kicker"],
+  timeline: ["kicker", "body", "number_position"],
   feature_grid: ["kicker", "bg_image_url", "cta_label", "cta_url", "cta_style", "cta_arrow", "secondary_count"],
   feature_grid_featured: ["label", "title", "picto", "show_icon", "color"],
   image_block: ["image_url", "image_alt", "link_url"],
@@ -109,6 +110,7 @@ const BODY_DIRECTIVE_TYPES = new Set([
   "focus",
   "signals",
   "editorial_list",
+  "timeline",
   "macro_bars",
   "focus_text",
   "focus_callout",
@@ -711,6 +713,14 @@ function normalizeExplicitSection(token, body, warnings) {
       title,
       body,
       tag_color: tagColor || "#FF00AA",
+    }));
+    return createSection(type, { ...data, items }, extra);
+  }
+
+  if (type === "timeline") {
+    const items = parsePipeItems(markdownBody, type, 2).map(([title, body]) => ({
+      title,
+      body,
     }));
     return createSection(type, { ...data, items }, extra);
   }

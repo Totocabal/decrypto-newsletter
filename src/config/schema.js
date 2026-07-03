@@ -324,6 +324,33 @@ export const SECTION_TYPES = {
       ],
     }),
   },
+  timeline: {
+    label: "Timeline",
+    icon: "ListOrdered",
+    factory: () => ({
+      kicker: "Activer votre DCA en 4 étapes",
+      number_position: "title",
+      body: "Quatre étapes suffisent pour mettre en place un investissement programmé, sans y repenser ensuite.",
+      items: [
+        {
+          title: "Ouvrez votre compte euro",
+          body: "Un IBAN français gratuit, en partenariat avec une filiale Société Générale.",
+        },
+        {
+          title: "Choisissez un actif et un montant",
+          body: "BTC, ETH ou un panier diversifié — à partir de 10 € par échéance.",
+        },
+        {
+          title: "Fixez la fréquence",
+          body: "Hebdomadaire ou mensuelle — modifiable à tout moment.",
+        },
+        {
+          title: "C'est fait — le DCA travaille pour vous",
+          body: "Vos achats s'exécutent automatiquement, sans y repenser.",
+        },
+      ],
+    }),
+  },
   event: {
     label: "Évènement",
     icon: "Calendar",

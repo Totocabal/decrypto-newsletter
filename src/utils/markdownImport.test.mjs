@@ -579,6 +579,34 @@ kicker: "Three reasons"
   assert.equal(editorialList.data.items[1].tag_color, "#FF00AA");
 });
 
+test("imports and renders timeline directives", () => {
+  const imported = importNewsletterMarkdown(`---
+title: "Timeline import"
+preview_text: "Steps."
+---
+
+:::timeline
+kicker: "Activer votre DCA en 3 étapes"
+number_position: "kicker"
+body: "Un parcours simple pour automatiser vos achats."
+:::
+
+- Ouvrez votre compte euro | Un IBAN français gratuit.
+- Choisissez un montant | À partir de 10 € par échéance.
+- Lancez le DCA | Vos achats s'exécutent automatiquement.
+`);
+  const [timeline] = imported.state.sections;
+  const html = buildEmailHtml(imported.state);
+
+  assert.equal(timeline.type, "timeline");
+  assert.equal(timeline.data.items.length, 3);
+  assert.equal(timeline.data.number_position, "kicker");
+  assert.equal(timeline.data.items[1].title, "Choisissez un montant");
+  assert.match(html, /Activer votre DCA en 3 étapes/);
+  assert.match(html, /01 &nbsp; ━━ &nbsp; Activer votre DCA en 3 étapes/);
+  assert.match(html, /Vos achats s&#39;exécutent automatiquement\./);
+});
+
 test("imports focus items and macro bars directives", () => {
   const imported = importNewsletterMarkdown(`---
 title: "Focus import"
