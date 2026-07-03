@@ -1471,8 +1471,8 @@ function renderFocusItem(item, assetMode, isLastItem = false) {
     const footerWeight = hasFooterAccent ? 700 : 400;
     const iconHtml = item.show_icon === false
       ? ""
-      : `<td valign="middle" style="padding-right:12px;">
-                  <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:separate !important; border-spacing:0 !important;"><tr><td width="30" height="30" align="center" valign="middle" bgcolor="${iconBg}" style="background-color:${iconBg}; border:1px solid ${iconBorder}; border-radius:8px;">${iconContent}</td></tr></table>
+      : `<td class="em-callout-icon-wrap" width="42" valign="middle" style="width:42px; min-width:42px; padding-right:12px;">
+                  <table class="em-callout-icon-table" role="presentation" width="30" height="30" cellpadding="0" cellspacing="0" border="0" style="width:30px; height:30px; min-width:30px; border-collapse:separate !important; border-spacing:0 !important;"><tr><td class="em-callout-icon" width="30" height="30" align="center" valign="middle" bgcolor="${iconBg}" style="width:30px; height:30px; min-width:30px; max-width:30px; line-height:30px; background-color:${iconBg}; border:1px solid ${iconBorder}; border-radius:8px;">${iconContent}</td></tr></table>
                 </td>`;
     const footerText = String(item.footer || "").trim();
     const footer = footerText
@@ -1995,6 +1995,10 @@ ${renderEmailFontFaces()}
     .em-feature-cell { display: block !important; width: 100% !important; height: auto !important; box-sizing: border-box !important; padding-left: 0 !important; padding-right: 0 !important; padding-bottom: 12px !important; }
     .em-feature-icon { width: 48px !important; padding-right: 12px !important; }
     .em-section-number { white-space: nowrap !important; word-break: keep-all !important; overflow-wrap: normal !important; min-width: 28px !important; width: 28px !important; }
+    .em-callout-icon-wrap { display: table-cell !important; width: 42px !important; min-width: 42px !important; max-width: 42px !important; }
+    .em-callout-icon-table { width: 30px !important; height: 30px !important; min-width: 30px !important; max-width: 30px !important; }
+    .em-callout-icon { width: 30px !important; height: 30px !important; min-width: 30px !important; max-width: 30px !important; line-height: 30px !important; }
+    .em-callout-icon img, .em-callout-icon svg { width: 16px !important; height: 16px !important; max-width: 16px !important; max-height: 16px !important; display: block !important; }
     .em-editorial-num { width: 40px !important; }
     .em-editorial-tag { display: none !important; mso-hide: all !important; max-height: 0 !important; overflow: hidden !important; width: 0 !important; }
     .em-editorial-tag-mobile { display: block !important; max-height: none !important; overflow: visible !important; padding-top: 10px !important; }

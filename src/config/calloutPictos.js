@@ -167,5 +167,5 @@ export function hexToRgb(hex) {
 
 export function buildPictoSvgHtml(svgInner, color, size = 16) {
   const inner = svgInner.replace(/currentColor/g, color);
-  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${inner}</svg>`;
+  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="display:block; width:${size}px; height:${size}px;">${inner}</svg>`;
 }
