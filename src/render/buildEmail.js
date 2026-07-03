@@ -114,8 +114,8 @@ function ctaVisualStyle(style = "gradient") {
 export function sanitizeRichText(text = "", options = {}) {
   const parseMarkdown = options.markdown !== false;
   let out = escapeHtml(decodeStoredTextEntities(text));
-  const listStyle = `margin:0; padding-left:20px; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:15px; line-height:1.45; color:${EMAIL_THEME.textSecondary};`;
-  const listItemStyle = `margin:0 0 2px; padding:0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:15px; line-height:1.45; color:${EMAIL_THEME.textSecondary};`;
+  const listStyle = `margin:0; padding-left:20px; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:15px; line-height:1.65; color:${EMAIL_THEME.textSecondary};`;
+  const listItemStyle = `margin:0 0 6px; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:15px; line-height:1.65; color:${EMAIL_THEME.textSecondary};`;
   out = out
     .replace(/&lt;br\s*\/?&gt;/gi, "<br />")
     .replace(/&lt;div&gt;/gi, "")
@@ -138,11 +138,11 @@ export function sanitizeRichText(text = "", options = {}) {
     .replace(/&lt;\/strike&gt;/gi, "</s>")
     .replace(/&lt;sup&gt;/gi, "<sup>")
     .replace(/&lt;\/sup&gt;/gi, "</sup>")
-    .replace(escapedOpeningTagPattern("ul"), `<ul style="${listStyle}">`)
+    .replace(/&lt;ul&gt;/gi, `<ul style="${listStyle}">`)
     .replace(/&lt;\/ul&gt;/gi, "</ul>")
-    .replace(escapedOpeningTagPattern("ol"), `<ol style="${listStyle}">`)
+    .replace(/&lt;ol&gt;/gi, `<ol style="${listStyle}">`)
     .replace(/&lt;\/ol&gt;/gi, "</ol>")
-    .replace(escapedOpeningTagPattern("li"), `<li style="${listItemStyle}">`)
+    .replace(/&lt;li&gt;/gi, `<li style="${listItemStyle}">`)
     .replace(/&lt;\/li&gt;/gi, "</li>")
     .replace(escapedOpeningTagPattern("a"), escapedAnchorOpeningToHtml)
     .replace(/&lt;\/a&gt;/gi, "</a>")
@@ -159,16 +159,12 @@ export function sanitizeRichText(text = "", options = {}) {
       .replace(/^-\s+(.+)$/gm, "• $1");
   }
   out = out.replace(/\n/g, "<br />");
-  out = out
-    .replace(/(?:<br\s*\/?>\s*)+(?=<\/?(?:ul|ol|li)\b)/gi, "")
-    .replace(/(<\/li>)\s*(?:<br\s*\/?>\s*)+/gi, "$1")
-    .replace(/(<\/(?:ul|ol)>)\s*(<br\s*\/?>\s*)+(?=\S)/gi, "$1<br />");
   return out;
 }
 
 function trimTrailingListSpacing(html = "") {
   return String(html).replace(
-    /(<li style=")margin:0 0 2px;([^"]*">(?:(?!<li style=)[\s\S])*?<\/li>)(\s*<\/(?:ul|ol)>)/g,
+    /(<li style=")margin:0 0 6px;([^"]*">(?:(?!<li style=)[\s\S])*?<\/li>)(\s*<\/(?:ul|ol)>)/g,
     "$1margin:0;$2$3"
   );
 }
