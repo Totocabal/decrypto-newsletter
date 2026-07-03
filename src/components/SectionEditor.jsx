@@ -61,6 +61,31 @@ function listHelpers(list, set, factory) {
   };
 }
 
+function NumberPositionControl({ value, onChange }) {
+  const current = value === "title" ? "title" : "kicker";
+  return (
+    <Field label="Position de la numérotation">
+      <div className="grid grid-cols-2 gap-1 rounded-xl border border-line bg-d-panel2 p-1">
+        {[
+          ["kicker", "Devant kicker"],
+          ["title", "Devant titre"],
+        ].map(([option, label]) => (
+          <button
+            key={option}
+            type="button"
+            onClick={() => onChange(option)}
+            className={`rounded-lg px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] transition-colors ${
+              current === option ? "bg-d-panel text-d-fg shadow-sm" : "text-d-fg4 hover:text-d-fg2"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+    </Field>
+  );
+}
+
 function getLegacyHeroTitle(data) {
   return [data.title_part1, data.title_part2, data.title_highlight].filter(Boolean).join("");
 }
@@ -484,6 +509,10 @@ function EditoEditor({ data, set }) {
       <Field label="Titre">
         <Input value={data.title} onChange={(e) => set({ title: e.target.value })} />
       </Field>
+      <NumberPositionControl
+        value={data.number_position}
+        onChange={(number_position) => set({ number_position })}
+      />
       <Field
         label="Corps"
         hint="Éditeur riche : gras, italique, souligné, rayé, lien et listes"
@@ -813,28 +842,6 @@ function TimelineEditor({ data, set }) {
           onChange={(e) => set({ kicker: e.target.value })}
           placeholder="Activer votre DCA en 4 étapes"
         />
-      </Field>
-      <Field label="Position de la numérotation">
-        <div className="grid grid-cols-2 gap-1 rounded-xl border border-line bg-d-panel2 p-1">
-          {[
-            ["title", "Titre du bloc"],
-            ["kicker", "Kicker"],
-          ].map(([value, label]) => {
-            const active = (data.number_position || "title") === value;
-            return (
-              <button
-                key={value}
-                type="button"
-                onClick={() => set({ number_position: value })}
-                className={`rounded-lg px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] transition-colors ${
-                  active ? "bg-d-panel text-d-fg shadow-sm" : "text-d-fg4 hover:text-d-fg2"
-                }`}
-              >
-                {label}
-              </button>
-            );
-          })}
-        </div>
       </Field>
       <Field label="Texte d'introduction" hint="Optionnel, affiché au-dessus des étapes.">
         <TextArea
@@ -1506,6 +1513,10 @@ function FearGreedEditor({ data, set }) {
       <Field label="Titre">
         <Input value={data.title} onChange={(e) => set({ title: e.target.value })} />
       </Field>
+      <NumberPositionControl
+        value={data.number_position}
+        onChange={(number_position) => set({ number_position })}
+      />
       <Field label="Valeur (0–100)">
         <div className="flex items-center gap-3">
           <input
@@ -1562,6 +1573,10 @@ function SignalsEditor({ data, set }) {
       <Field label="Titre">
         <Input value={data.title} onChange={(e) => set({ title: e.target.value })} />
       </Field>
+      <NumberPositionControl
+        value={data.number_position}
+        onChange={(number_position) => set({ number_position })}
+      />
       <div className="text-[11px] text-d-fg4 italic mb-2 mt-1">
         Affichage en grille 2×2. Idéal : 4 signaux.
       </div>
@@ -1711,6 +1726,10 @@ function MacroEditor({ data, set }) {
       <Field label="Titre">
         <Input value={data.title} onChange={(e) => set({ title: e.target.value })} />
       </Field>
+      <NumberPositionControl
+        value={data.number_position}
+        onChange={(number_position) => set({ number_position })}
+      />
       <Field label="Corps" hint="Éditeur riche">
         <TextArea
           showCount
@@ -2018,6 +2037,10 @@ function ComparisonEditor({ data, set }) {
           placeholder="Laisser vide pour masquer"
         />
       </Field>
+      <NumberPositionControl
+        value={data.number_position}
+        onChange={(number_position) => set({ number_position })}
+      />
       <Field label="Texte" hint="Optionnel, éditeur riche affiché au-dessus du tableau.">
         <TextArea
           showCount
@@ -2637,6 +2660,10 @@ function FocusEditor({ data, set }) {
       <Field label="Titre">
         <Input value={data.title || ""} onChange={(e) => set({ ...data, title: e.target.value })} />
       </Field>
+      <NumberPositionControl
+        value={data.number_position}
+        onChange={(number_position) => set({ ...data, number_position })}
+      />
 
       <div className="mt-2 rounded-2xl border border-line bg-d-panel/40 p-2">
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd} onDragCancel={handleDragCancel}>
@@ -3157,6 +3184,10 @@ function TextBlockEditor({ data, set }) {
       <Field label="Titre">
         <Input value={data.title} onChange={(e) => set({ title: e.target.value })} />
       </Field>
+      <NumberPositionControl
+        value={data.number_position}
+        onChange={(number_position) => set({ number_position })}
+      />
       <Field label="Corps" hint="Éditeur riche : gras, italique, souligné, rayé, lien et listes">
         <TextArea
           showCount

@@ -587,7 +587,6 @@ preview_text: "Steps."
 
 :::timeline
 kicker: "Activer votre DCA en 3 étapes"
-number_position: "kicker"
 body: "Un parcours simple pour automatiser vos achats."
 :::
 
@@ -600,11 +599,30 @@ body: "Un parcours simple pour automatiser vos achats."
 
   assert.equal(timeline.type, "timeline");
   assert.equal(timeline.data.items.length, 3);
-  assert.equal(timeline.data.number_position, "kicker");
   assert.equal(timeline.data.items[1].title, "Choisissez un montant");
   assert.match(html, /Activer votre DCA en 3 étapes/);
-  assert.match(html, /01 &nbsp; ━━ &nbsp; Activer votre DCA en 3 étapes/);
   assert.match(html, /Vos achats s&#39;exécutent automatiquement\./);
+});
+
+test("renders section number before titled block title when requested", () => {
+  const imported = importNewsletterMarkdown(`---
+title: "Number placement"
+preview_text: "Number."
+---
+
+:::edito
+kicker: "EDITO"
+title: "Le marché respire"
+number_position: "title"
+:::
+
+Le texte de l'édito.
+`);
+  const html = buildEmailHtml(imported.state);
+
+  assert.equal(imported.state.sections[0].data.number_position, "title");
+  assert.match(html, /<span[^>]*>01<\/span>Le marché respire/);
+  assert.doesNotMatch(html, /padding-right:12px;">01<\/td>\s*<td[^>]*>EDITO/);
 });
 
 test("imports focus items and macro bars directives", () => {

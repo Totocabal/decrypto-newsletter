@@ -402,16 +402,31 @@ function sectionHeader(number, kicker) {
   </table>`;
 }
 
-function sectionTitle(title) {
+function numberPlacement(data, number) {
+  const title = String(data?.title || "").trim();
+  const useTitle = data?.number_position === "title" && title && number;
+  return {
+    headerNumber: useTitle ? null : number,
+    titleNumber: useTitle ? number : null,
+  };
+}
+
+function titleNumberHtml(number) {
+  return number
+    ? `<span style="display:inline-block; padding-right:12px; font-family:${FONTS.heading}; font-weight:700; font-size:13px; line-height:1; letter-spacing:0; color:${EMAIL_THEME.accentPrimary}; vertical-align:middle;">${escapeHtml(number)}</span>`
+    : "";
+}
+
+function sectionTitle(title, number = null) {
   if (!String(title || "").trim()) return "";
   return `<h2 class="em-h2" style="margin:12px 0 0; font-family:${FONTS.heading}; font-weight:600; font-size:30px; line-height:1.1; letter-spacing:-0.025em; color:${EMAIL_THEME.textPrimary};">
-    ${escapeHtml(title)}
+    ${titleNumberHtml(number)}${escapeHtml(title)}
   </h2>`;
 }
 
-function sectionTitleSpaced(title) {
+function sectionTitleSpaced(title, number = null) {
   if (!String(title || "").trim()) return "";
-  return `<h2 class="em-h2" style="margin:12px 0 22px; font-family:${FONTS.heading}; font-weight:600; font-size:30px; line-height:1.1; letter-spacing:-0.025em; color:${EMAIL_THEME.textPrimary};">${escapeHtml(title)}</h2>`;
+  return `<h2 class="em-h2" style="margin:12px 0 22px; font-family:${FONTS.heading}; font-weight:600; font-size:30px; line-height:1.1; letter-spacing:-0.025em; color:${EMAIL_THEME.textPrimary};">${titleNumberHtml(number)}${escapeHtml(title)}</h2>`;
 }
 
 function sectionBottomBorder(isLastSection) {
@@ -612,6 +627,7 @@ function renderIndex(data, allSections, isLastSection = false) {
 }
 
 function renderEdito(data, number, anchor = "", isLastSection = false) {
+  const numberSlot = numberPlacement(data, number);
   const kpis = data.kpis || [];
   const cells = kpis.map((k, i) => {
     const isLast = i === kpis.length - 1;
@@ -633,8 +649,8 @@ function renderEdito(data, number, anchor = "", isLastSection = false) {
     <tr>
       <td class="em-px" style="padding:${sectionPadding("44px 36px", "20px 36px")};${sectionBottomBorder(isLastSection)}">
         ${anchor}
-        ${sectionHeader(number, data.kicker)}
-        ${sectionTitle(data.title)}
+        ${sectionHeader(numberSlot.headerNumber, data.kicker)}
+        ${sectionTitle(data.title, numberSlot.titleNumber)}
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
           <tr><td style="padding-top:22px;"><div style="margin:0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:15px; line-height:1.65; color:${EMAIL_THEME.textSecondary};">${sanitizeRichText(data.body)}</div></td></tr>
           ${grid ? `<tr><td style="padding-top:24px;">${grid}</td></tr>` : ""}
@@ -693,6 +709,7 @@ function renderChart(data, assetMode, isLastSection = false) {
 }
 
 function renderFearGreed(data, number, assetMode, anchor = "", isLastSection = false) {
+  const numberSlot = numberPlacement(data, number);
   const fgColor = fgClassificationColor(data.classification);
   const legend = [
     { color: "#FF4B28", range: "0–24", label: "Extreme Fear" },
@@ -710,8 +727,8 @@ function renderFearGreed(data, number, assetMode, anchor = "", isLastSection = f
     <tr>
       <td class="em-px" style="padding:${sectionPadding("44px 36px", "28px 36px")};${sectionBottomBorder(isLastSection)}">
         ${anchor}
-        ${sectionHeader(number, data.kicker)}
-        ${sectionTitleSpaced(data.title)}
+        ${sectionHeader(numberSlot.headerNumber, data.kicker)}
+        ${sectionTitleSpaced(data.title, numberSlot.titleNumber)}
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
           <tr>
             <td class="em-stack em-stack-pad" valign="top" width="220" style="padding-right:24px;">${buildFgGauge(data.value, assetMode)}</td>
@@ -728,6 +745,7 @@ function renderFearGreed(data, number, assetMode, anchor = "", isLastSection = f
 }
 
 function renderSignals(data, number, anchor = "", isLastSection = false, assetMode = "inline") {
+  const numberSlot = numberPlacement(data, number);
   const items = data.signals || [];
   const rows = [];
   for (let i = 0; i < items.length; i += 2) {
@@ -777,8 +795,8 @@ function renderSignals(data, number, anchor = "", isLastSection = false, assetMo
     <tr>
       <td class="em-px" style="padding:${sectionPadding("44px 36px", "28px 36px")};${sectionBottomBorder(isLastSection)}">
         ${anchor}
-        ${sectionHeader(number, data.kicker)}
-        ${sectionTitleSpaced(data.title)}
+        ${sectionHeader(numberSlot.headerNumber, data.kicker)}
+        ${sectionTitleSpaced(data.title, numberSlot.titleNumber)}
         ${grid}
       </td>
     </tr>`;
@@ -996,6 +1014,7 @@ function renderFeatureGrid(data, number, assetMode, anchor = "", isLastSection =
 }
 
 function renderComparison(data, number, anchor = "", isLastSection = false) {
+  const numberSlot = numberPlacement(data, number);
   const rows = Array.isArray(data.rows) ? data.rows : [];
   const isLightTheme = EMAIL_THEME === EMAIL_THEMES.light;
   const cardBg = isLightTheme ? "#FAF7F1" : "#101018";
@@ -1013,8 +1032,8 @@ function renderComparison(data, number, anchor = "", isLastSection = false) {
   const body = String(data.body || "").trim();
   const introHtml = sectionKicker || title || body
     ? `<div style="margin:0 0 22px;">
-        ${sectionKicker ? sectionHeader(number, sectionKicker) : ""}
-        ${title ? `<h2 class="em-h2" style="margin:${sectionKicker ? "12px" : "0"} 0 0; font-family:${FONTS.heading}; font-weight:600; font-size:30px; line-height:1.1; letter-spacing:-0.025em; color:${EMAIL_THEME.textPrimary};">${escapeHtml(title)}</h2>` : ""}
+        ${sectionKicker ? sectionHeader(numberSlot.headerNumber, sectionKicker) : ""}
+        ${title ? `<h2 class="em-h2" style="margin:${sectionKicker ? "12px" : "0"} 0 0; font-family:${FONTS.heading}; font-weight:600; font-size:30px; line-height:1.1; letter-spacing:-0.025em; color:${EMAIL_THEME.textPrimary};">${titleNumberHtml(numberSlot.titleNumber)}${escapeHtml(title)}</h2>` : ""}
         ${body ? `<div style="margin:${title || sectionKicker ? "12px" : "0"} 0 0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:15px; line-height:1.65; color:${EMAIL_THEME.textSecondary};">${sanitizeRichText(body)}</div>` : ""}
       </div>`
     : "";
@@ -1068,6 +1087,7 @@ function renderComparison(data, number, anchor = "", isLastSection = false) {
 }
 
 function renderMacro(data, number, assetMode, anchor = "", isLastSection = false) {
+  const numberSlot = numberPlacement(data, number);
   const authorParts = String(data.quote_author || "").split(" · ");
   const authorName = authorParts.shift() || "";
   const authorDetails = authorParts.join(" · ");
@@ -1112,8 +1132,8 @@ function renderMacro(data, number, assetMode, anchor = "", isLastSection = false
     <tr>
       <td class="em-px" style="padding:${sectionPadding("44px 36px", "28px 36px")};${sectionBottomBorder(isLastSection)}">
         ${anchor}
-        ${sectionHeader(number, data.kicker)}
-        ${sectionTitleSpaced(data.title)}
+        ${sectionHeader(numberSlot.headerNumber, data.kicker)}
+        ${sectionTitleSpaced(data.title, numberSlot.titleNumber)}
         <div style="margin:0 0 22px; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:15px; line-height:1.65; color:${EMAIL_THEME.textSecondary};">${sanitizeRichText(data.body)}</div>
         ${quoteBlock}
       </td>
@@ -1491,6 +1511,7 @@ function renderFocusItem(item, assetMode, isLastItem = false) {
 }
 
 function renderFocus(data, number, assetMode, anchor = "", isLastSection = false) {
+  const numberSlot = numberPlacement(data, number);
   // Items-based rendering (new format)
   if (data.items) {
     const renderableItems = data.items.filter((item) => {
@@ -1509,8 +1530,8 @@ function renderFocus(data, number, assetMode, anchor = "", isLastSection = false
     <tr>
       <td class="em-px" style="padding:${sectionPadding("44px 36px", "20px 36px")};${sectionBottomBorder(isLastSection)}">
         ${anchor}
-        ${sectionHeader(number, data.kicker)}
-        ${sectionTitleSpaced(data.title)}
+        ${sectionHeader(numberSlot.headerNumber, data.kicker)}
+        ${sectionTitleSpaced(data.title, numberSlot.titleNumber)}
         ${renderedItems}
       </td>
     </tr>`;
@@ -1577,8 +1598,8 @@ function renderFocus(data, number, assetMode, anchor = "", isLastSection = false
     <tr>
       <td class="em-px" style="padding:${sectionPadding("44px 36px", "20px 36px")};${sectionBottomBorder(isLastSection)}">
         ${anchor}
-        ${sectionHeader(number, data.kicker)}
-        ${sectionTitleSpaced(data.title)}
+        ${sectionHeader(numberSlot.headerNumber, data.kicker)}
+        ${sectionTitleSpaced(data.title, numberSlot.titleNumber)}
         ${imageBlock}
         ${textBlock}
         ${ctaRow}
@@ -1612,11 +1633,12 @@ function renderImageBlock(data, isLastSection = false) {
 }
 
 function renderTextBlock(data, number, anchor = "", isLastSection = false) {
+  const numberSlot = numberPlacement(data, number);
   const padding = isLastSection
     ? "44px 36px"
     : sectionPadding("44px 36px", "20px 36px");
   const hasHeadingText = Boolean(String(data.kicker || "").trim() || String(data.title || "").trim());
-  const headerNumber = hasHeadingText ? number : null;
+  const headerNumber = hasHeadingText ? numberSlot.headerNumber : null;
   const ctaStyle = ctaVisualStyle(data.cta_style);
   const ctaBtn = data.cta_label
     ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:28px;">
@@ -1633,7 +1655,7 @@ function renderTextBlock(data, number, anchor = "", isLastSection = false) {
       <td class="em-px" style="padding:${padding};${sectionBottomBorder(isLastSection)}">
         ${anchor}
         ${sectionHeader(headerNumber, data.kicker)}
-        ${sectionTitle(data.title)}
+        ${sectionTitle(data.title, numberSlot.titleNumber)}
         <div style="margin:${hasHeadingText ? "22px" : "0"} 0 0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:15px; line-height:1.65; color:${EMAIL_THEME.textSecondary};">${sanitizeRichText(data.body)}</div>
         ${ctaBtn}
       </td>
@@ -1705,12 +1727,6 @@ function renderTimeline(data, number, anchor = "", isLastSection = false) {
   const items = (data.items || []).filter((item) => String(item.title || item.body || "").trim());
   const kicker = String(data.kicker || "").trim();
   const intro = String(data.body || "").trim();
-  const numberPosition = data.number_position === "kicker" ? "kicker" : "title";
-  const headerNumber = numberPosition === "title" ? number : null;
-  const kickerNumber = numberPosition === "kicker" ? number : null;
-  const kickerHtml = (kicker || kickerNumber)
-    ? `<tr><td style="padding:0 0 6px; font-family:${FONTS.body}; font-size:11px; letter-spacing:0.2em; text-transform:uppercase; color:${accentColor}; font-weight:600;">${kickerNumber ? `${escapeHtml(kickerNumber)} &nbsp; ` : ""}${kicker ? `━━ &nbsp; ${escapeHtml(kicker)}` : ""}</td></tr>`
-    : "";
 
   const rows = items.map((item, index) => {
     const isLast = index === items.length - 1;
@@ -1747,9 +1763,9 @@ function renderTimeline(data, number, anchor = "", isLastSection = false) {
     <tr>
       <td class="em-px" style="padding:${sectionPadding("44px 36px", "28px 36px")};${sectionBottomBorder(isLastSection)}">
         ${anchor}
-        ${sectionHeader(headerNumber, "")}
+        ${sectionHeader(number, "")}
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-          ${kickerHtml}
+          ${kicker ? `<tr><td style="padding:0 0 6px; font-family:${FONTS.body}; font-size:11px; letter-spacing:0.2em; text-transform:uppercase; color:${accentColor}; font-weight:600;">━━ &nbsp; ${escapeHtml(kicker)}</td></tr>` : ""}
           ${intro ? `<tr><td style="padding:0 0 20px; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:14px; line-height:1.6; color:${bodyColor};">${sanitizeRichText(intro)}</td></tr>` : ""}
           ${rows}
         </table>

@@ -66,6 +66,7 @@ export const SECTION_TYPES = {
     factory: () => ({
       kicker: "ÉDITO",
       title: "La détente du marché",
+      number_position: "kicker",
       body:
         "Bitcoin a refranchi les <strong>64 000 €</strong> sans accroc, dans un climat où la volatilité implicite à 30 jours s'est effondrée. Le mouvement n'a rien d'euphorique — et c'est ce qui le rend solide.",
       kpis: [],
@@ -77,6 +78,7 @@ export const SECTION_TYPES = {
     factory: () => ({
       kicker: "FOCUS",
       title: "Confier ses crypto à des experts, sans renoncer au contrôle",
+      number_position: "kicker",
       items: [
         {
           id: (typeof crypto !== "undefined" && crypto.randomUUID) ? crypto.randomUUID() : Math.random().toString(36).slice(2),
@@ -114,6 +116,7 @@ export const SECTION_TYPES = {
     factory: () => ({
       kicker: "INDICATEUR",
       title: "Fear & Greed Index",
+      number_position: "kicker",
       value: "72",
       classification: "GREED",
       commentary:
@@ -126,6 +129,7 @@ export const SECTION_TYPES = {
     factory: () => ({
       kicker: "ANALYSE",
       title: "4 signaux à suivre cette semaine",
+      number_position: "kicker",
       signals: [
         {
           direction: "up",
@@ -156,6 +160,7 @@ export const SECTION_TYPES = {
     factory: () => ({
       kicker: "MACRO",
       title: "Que retenir de la FED",
+      number_position: "kicker",
       body:
         "Powell confirme une posture <strong>« higher for longer »</strong>, tout en ouvrant la porte à une première baisse en septembre si l'inflation cœur poursuit sa décrue.",
       quote:
@@ -245,6 +250,7 @@ export const SECTION_TYPES = {
       section_kicker: "",
       kicker: "Comparatif",
       title: "",
+      number_position: "kicker",
       body: "",
       column_left: "Staking<br>Standard",
       column_right: "Staking<br>Flexible",
@@ -329,7 +335,6 @@ export const SECTION_TYPES = {
     icon: "ListOrdered",
     factory: () => ({
       kicker: "Activer votre DCA en 4 étapes",
-      number_position: "title",
       body: "Quatre étapes suffisent pour mettre en place un investissement programmé, sans y repenser ensuite.",
       items: [
         {
@@ -390,6 +395,7 @@ export const SECTION_TYPES = {
     factory: () => ({
       kicker: "État du marché",
       title: "Ce qu'il faut retenir",
+      number_position: "kicker",
       body:
         "Bitcoin vient de repasser le cap des 80 000 $. Mais derrière ce beau rebond, s'agit-il d'une vraie reprise ou d'une simple respiration du marché ? On fait le point.\n\n\nLe meilleur mois depuis un an : \nLe cours a franchi la barre symbolique des 80 000 $ (flirtant même avec les 81 000 $), son plus haut niveau depuis fin janvier.  \nAvec près de 12 % de hausse sur le mois d'avril, le Bitcoin signe sa meilleure performance depuis un an et met fin à cinq longs mois de baisse.\n \nLes institutionnels à la manœuvre : \nCe regain d'énergie est largement porté par la finance traditionnelle via les ETF.  \nPrès de 1,97 milliard de dollars y ont été injectés en avril, avec un pic impressionnant de 630 millions sur la seule journée du 1er mai.",
       cta_label: "",
