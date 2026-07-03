@@ -97,6 +97,13 @@ test("renders Quill links without exposing anchor HTML", () => {
   assert.doesNotMatch(html, /rel=&quot;noopener/);
 });
 
+test("renders bullet points without extra item spacing", () => {
+  const html = sanitizeRichText("<ul><li>Premier point</li><li>Second point</li></ul>");
+
+  assert.match(html, /<li style="margin:0;[^"]*line-height:1\.65/);
+  assert.doesNotMatch(html, /margin:0 0 6px/);
+});
+
 test("can render legal text with literal asterisks", () => {
   const html = sanitizeRichText("Offre valable * sous conditions. ** Voir details.", { markdown: false });
 

@@ -115,7 +115,7 @@ export function sanitizeRichText(text = "", options = {}) {
   const parseMarkdown = options.markdown !== false;
   let out = escapeHtml(decodeStoredTextEntities(text));
   const listStyle = `margin:0; padding-left:20px; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:15px; line-height:1.65; color:${EMAIL_THEME.textSecondary};`;
-  const listItemStyle = `margin:0 0 6px; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:15px; line-height:1.65; color:${EMAIL_THEME.textSecondary};`;
+  const listItemStyle = `margin:0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:15px; line-height:1.65; color:${EMAIL_THEME.textSecondary};`;
   out = out
     .replace(/&lt;br\s*\/?&gt;/gi, "<br />")
     .replace(/&lt;div&gt;/gi, "")

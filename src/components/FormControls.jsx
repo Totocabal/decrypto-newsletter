@@ -56,7 +56,7 @@ function injectQuillCss() {
     /* Listes */
     .ql-wrapper .ql-editor ul,
     .ql-wrapper .ql-editor ol { padding-left: 1.4em; margin: 4px 0; }
-    .ql-wrapper .ql-editor li { color: rgb(var(--d-fg)); padding: 1px 0; line-height: 1.65; white-space: pre-wrap; }
+    .ql-wrapper .ql-editor li { color: rgb(var(--d-fg)); padding: 0; line-height: 1.65; white-space: pre-wrap; }
     .ql-wrapper .ql-editor li::before { color: rgb(var(--d-fg3)); }
 
     /* Toolbar */
