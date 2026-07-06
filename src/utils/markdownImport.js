@@ -83,6 +83,7 @@ const SECTION_FIELDS = {
     "cta_url",
     "bg_image_url",
   ],
+  commercial_offer: ["bg_variant", "kicker", "amount", "cta_label", "cta_url"],
 };
 
 const BODY_FIELD_BY_TYPE = {
@@ -91,6 +92,7 @@ const BODY_FIELD_BY_TYPE = {
   macro: "body",
   fear_greed: "commentary",
   commented_number: "body",
+  commercial_offer: "body",
 };
 
 const FRONT_MATTER_FIELDS = new Set([

@@ -36,6 +36,7 @@ export function SectionEditor({ type, data, onChange, sections = [] }) {
     case "timeline": return <TimelineEditor data={data} set={set} />;
     case "event":      return <EventEditor data={data} set={set} />;
     case "referral":   return <ReferralEditor data={data} set={set} />;
+    case "commercial_offer": return <CommercialOfferEditor data={data} set={set} />;
     case "focus":      return <FocusEditor data={data} set={set} />;
     case "image_block": return <ImageBlockEditor data={data} set={set} />;
     case "text_block": return <TextBlockEditor data={data} set={set} />;
@@ -2451,6 +2452,60 @@ function ReferralEditor({ data, set }) {
           isAdmin={profile?.is_admin}
         />
       )}
+    </>
+  );
+}
+
+function CommercialOfferEditor({ data, set }) {
+  return (
+    <>
+      <Field label="Version du fond">
+        <div className="grid grid-cols-2 gap-1 rounded-xl border border-line bg-d-panel p-1">
+          {[
+            ["dark", "Sombre"],
+            ["light", "Clair"],
+          ].map(([value, label]) => {
+            const isActive = (data.bg_variant || "dark") === value;
+            return (
+              <button
+                key={value}
+                type="button"
+                onClick={() => set({ bg_variant: value })}
+                className={`rounded-lg px-3 py-2 text-xs font-semibold transition-colors ${
+                  isActive
+                    ? "bg-d-fg text-d-bg shadow-sm"
+                    : "text-d-fg3 hover:bg-d-panel2 hover:text-d-fg"
+                }`}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
+      </Field>
+
+      <Field label="Kicker">
+        <Input value={data.kicker || ""} onChange={(e) => set({ kicker: e.target.value })} />
+      </Field>
+      <Field label="Montant / promesse">
+        <Input value={data.amount || ""} onChange={(e) => set({ amount: e.target.value })} />
+      </Field>
+      <Field label="Description">
+        <TextArea
+          showCount
+          rows={3}
+          value={data.body || ""}
+          onChange={(e) => set({ body: e.target.value })}
+        />
+      </Field>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <Field label="Texte du bouton">
+          <Input value={data.cta_label || ""} onChange={(e) => set({ cta_label: e.target.value })} />
+        </Field>
+        <Field label="Lien du bouton">
+          <Input value={data.cta_url || ""} onChange={(e) => set({ cta_url: e.target.value })} />
+        </Field>
+      </div>
     </>
   );
 }

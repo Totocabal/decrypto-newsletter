@@ -251,6 +251,7 @@ Blocs disponibles et usages recommandés :
 - spacer : respiration verticale autonome si le rythme visuel doit être marqué sans séparateur.
 - feature_grid : comparaison de fonctionnalités, grille de bénéfices ou avantages d'une offre, différences entre Classique / Investisseur / Gestion Privée. Utilisable dès 3 fonctionnalités/bénéfices structurés ; ne crée pas de 4e carte si seulement 3 éléments sont présents.
 - feature_grid_featured : carte mise en avant pour l'offre ou le bénéfice prioritaire. Optionnelle : ne l'utilise que si le brief fournit clairement une valeur, un message ou un bénéfice vedette. Sinon, laisse uniquement les cartes feature_grid.
+- commercial_offer : offre commerciale, bonus, promotion, cashback ou montant d'avantage à mettre en avant, avec version claire ou sombre.
 - commented_number : chiffre fort avec commentaire. À utiliser seulement quand le brief place explicitement un nombre au centre du message ou quand la variante repose principalement sur une preuve chiffrée unique. Si le nombre est seulement une information de prix, plafond, durée ou détail produit parmi d'autres, garde-le dans un text_block, editorial_list ou feature_grid.
 - event : rendez-vous, webinar, échéance, session d'accompagnement ou temps fort daté.
 - image_block : visuel utile si le brief mentionne une image ou une ressource graphique.
@@ -268,6 +269,7 @@ Mapping éditorial à privilégier :
 - Un parcours chronologique ou tutoriel étape par étape doit être pensé comme timeline.
 - Une liste de bénéfices ou arguments produit non chronologiques doit être pensée comme editorial_list plutôt que comme simple liste Markdown.
 - Une comparaison d'offres doit être pensée comme feature_grid.
+- Un bonus, cashback, montant promotionnel ou avantage commercial prioritaire doit être pensé comme commercial_offer.
 - Un argument principal ou une offre prioritaire doit être isolé en focus.
 - Si le contenu suit une logique texte + CTA + texte, Gemini doit privilégier un seul bloc focus : focus_text pour le premier texte, focus_cta pour le bouton, puis focus_text pour le texte qui suit. Ne transforme pas cette séquence en text_block + CTA + text_block.
 - Plus largement, un enchaînement texte court + CTA, texte + image + CTA, image + texte + CTA, callout + CTA, ou recommandation + action doit être pensé comme un seul bloc focus avec sous-items focus_text, focus_callout, focus_image et focus_cta. Évite de séparer ce parcours en text_block puis CTA isolé.

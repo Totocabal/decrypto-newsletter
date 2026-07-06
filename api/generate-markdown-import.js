@@ -34,6 +34,7 @@ const DIRECTIVE_TYPES = [
   "focus_divider",
   "feature_grid",
   "feature_grid_featured",
+  "commercial_offer",
   "event",
 ];
 const DIRECTIVE_LINE_FIX_RE = new RegExp(`^:::(${DIRECTIVE_TYPES.join("|")}):\\s*$`, "gim");
@@ -52,6 +53,7 @@ const BODY_DIRECTIVE_TYPES = new Set([
   "macro_bars",
   "feature_grid",
   "feature_grid_featured",
+  "commercial_offer",
 ]);
 const FOCUS_ITEM_TYPES = new Set([
   "focus_text",
@@ -548,7 +550,7 @@ Règles critiques :
 - Si le brief contient une ligne "Objet :", le champ front matter title doit reprendre exactement cet objet, sans le comptage entre parenthèses.
 - preview_text est obligatoire.
 - Toute URL doit être absolue http ou https. Si aucune URL n'est fournie, utiliser https://www.coinhouse.com/.
-- N'utilise que ces directives : hero, hero_chips, index, edito, edito_kpis, text_block, cta, spacer, image_block, divider, chart, fear_greed, signals, macro, macro_bars, commented_number, editorial_list, timeline, focus, focus_text, focus_image, focus_cta, focus_callout, focus_spacer, focus_divider, feature_grid, feature_grid_featured, event.
+- N'utilise que ces directives : hero, hero_chips, index, edito, edito_kpis, text_block, cta, spacer, image_block, divider, chart, fear_greed, signals, macro, macro_bars, commented_number, editorial_list, timeline, focus, focus_text, focus_image, focus_cta, focus_callout, focus_spacer, focus_divider, feature_grid, feature_grid_featured, commercial_offer, event.
 - Une ligne d'ouverture de directive doit contenir uniquement les trois deux-points et le type, par exemple :::hero. N'écris jamais :::hero:, :::text_block: ou :::focus_cta:.
 - Les paramètres d'une directive sont toujours sur les lignes suivantes au format champ: "valeur", puis une ligne ::: ferme le bloc.
 - Toute directive ouverte doit obligatoirement être fermée par une ligne :::, y compris cta, spacer, focus_cta, focus_callout, focus_image, focus_text, focus_spacer, focus_divider, divider et image_block.
@@ -571,6 +573,7 @@ kicker: "EN 3 ETAPES"
 - Dans editorial_list, tag est toujours un mot-clé court ou un numéro (ex. "01", "IBAN", "Frais"). title est le message principal, qui peut être une phrase ou une question. Ne jamais mettre une question ou une phrase longue dans tag. Si le contenu source est une question ("Pourquoi choisir ?"), elle devient title, et tag prend un mot-clé résumant le sujet.
 - Dans editorial_list, la couleur hexadecimale est uniquement la 4e colonne tag_color. Ne mets jamais #03FFCF, #FF8B28, #B36BFF ou #00FFFF dans la colonne body, sinon elle sera affichee comme texte.
 - feature_grid utilise exactement : - title | body obligatoire | picto | color. Les 4 colonnes doivent être présentes pour chaque carte. Picto par défaut si incertain : target. Couleurs par défaut : #03FFCF, #FF8B28, #B36BFF, #00FFFF. Si le brief contient seulement 3 fonctionnalités ou bénéfices, génère exactement 3 lignes, pas une 4e carte inventée.
+- commercial_offer : bloc offre commerciale ou bonus. Champs : bg_variant "dark" ou "light", kicker, amount, cta_label, cta_url ; le texte descriptif est le corps Markdown après la fermeture :::. Utilise "dark" par défaut sauf demande explicite de fond clair.
 - signals direction : up ou down uniquement.
 - divider.style : thin, thick ou gradient uniquement.
 - chart_currency : eur ou usd uniquement. chart_days : 7 ou 30 uniquement.
@@ -587,6 +590,7 @@ Mapping recommandé :
 - Parcours chronologique, tutoriel ou étapes à suivre dans l'ordre : utiliser timeline avec 2 à 6 étapes.
 - Listes à puces, bénéfices, arguments produit ou points pédagogiques non chronologiques : privilégier editorial_list dès qu'il y a 2 à 4 items.
 - Comparaison d'offres, grille d'avantages ou fonctionnalités parallèles : utiliser feature_grid seulement si chaque carte a un titre et un corps explicatif. Le bloc est pertinent dès 3 cartes ; ne complète jamais artificiellement à 4 cartes.
+- Offre commerciale, bonus, promotion, cashback, dépôt récompensé ou montant d'avantage mis en avant : utiliser commercial_offer.
 - Citation explicite attribuée à une personne : utiliser macro avec quote et quote_author. Exemple : "Citation de Nicolas Louvet, CEO : ..." devient :::macro avec quote_author: "Nicolas Louvet, CEO". Ce bloc est autorisé pour une prise de parole corporate, pas seulement pour la macroéconomie.
 - Utilise commented_number uniquement si le brief contient explicitement "Chiffre clé :" ou si un nombre est clairement le message central d'une section. Ne transforme pas automatiquement chaque prix, plafond, pourcentage ou durée en chiffre commenté.
 - Si le brief contient "Chiffre clé :", crée obligatoirement un bloc commented_number avec value, unit, caption, title et un court commentaire.
@@ -639,7 +643,7 @@ ${markdown}
 
 Corrige le fichier pour qu'il passe la validation. Règles obligatoires :
 - Chaque directive ouverte :::type se ferme par une ligne ::: seule sur sa propre ligne.
-- Le corps Markdown d'une directive (focus_callout, focus_text, edito, text_block, macro, fear_greed, commented_number, signals, editorial_list, macro_bars, feature_grid, feature_grid_featured) se place APRÈS la ligne ::: de fermeture, jamais entre l'ouverture et la fermeture.
+- Le corps Markdown d'une directive (focus_callout, focus_text, edito, text_block, macro, fear_greed, commented_number, signals, editorial_list, macro_bars, feature_grid, feature_grid_featured, commercial_offer) se place APRÈS la ligne ::: de fermeture, jamais entre l'ouverture et la fermeture.
 - focus_callout et focus_text exigent un corps non vide après leur :::.
 - focus_cta, focus_callout, focus_image, focus_text, focus_spacer et focus_divider doivent appartenir à un bloc focus : écris :::focus puis ::: avant le premier sous-bloc focus_*, puis enchaîne les sous-blocs focus_*.
 - focus_cta exige toujours label.

@@ -137,6 +137,35 @@ test("can hide the separator above a standalone CTA", () => {
   assert.equal(countSeparators(withoutSeparator), countSeparators(withSeparator) - 1);
 });
 
+test("imports and renders commercial offer directives", () => {
+  const imported = importNewsletterMarkdown(`---
+title: "Offre bonus"
+preview_text: "Bonus."
+theme_variant: dark
+---
+
+:::commercial_offer
+bg_variant: light
+kicker: "Bonus de bienvenue"
+amount: "Jusqu'à 1 000 €"
+cta_label: "Sécuriser mon dépôt →"
+cta_url: "https://example.com/bonus"
+:::
+
+Transférez vos actifs maintenant et recevez un bonus sur votre dépôt.
+`);
+
+  const [section] = imported.state.sections;
+  const html = buildEmailHtml(imported.state);
+
+  assert.equal(section.type, "commercial_offer");
+  assert.equal(section.data.bg_variant, "light");
+  assert.equal(section.data.body, "Transférez vos actifs maintenant et recevez un bonus sur votre dépôt.");
+  assert.match(html, /background-color:#FAF7F1/);
+  assert.match(html, /Jusqu&#39;à 1 000 €/);
+  assert.match(html, /href="https:\/\/example\.com\/bonus"/);
+});
+
 test("cleans Gemini directive openings with a trailing colon", () => {
   const markdown = cleanGeneratedMarkdown(`---
 title: "Gemini import"

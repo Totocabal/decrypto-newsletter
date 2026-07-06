@@ -389,6 +389,18 @@ export const SECTION_TYPES = {
       bg_image_path: "",
     }),
   },
+  commercial_offer: {
+    label: "Offre commerciale",
+    icon: "Gift",
+    factory: () => ({
+      bg_variant: "dark",
+      kicker: "Bonus de bienvenue",
+      amount: "Jusqu'à 1 000 €",
+      body: "Transférez vos actifs maintenant et recevez un bonus sur votre dépôt.",
+      cta_label: "Sécuriser mon dépôt →",
+      cta_url: "#",
+    }),
+  },
   text_block: {
     label: "Texte",
     icon: "Type",
@@ -981,7 +993,7 @@ export function buildInitialStateFromTypes(types, options = {}) {
 
 // Numéro affiché d'une section (selon sa position parmi les sections numérotables)
 // Hero, sommaire, graphique et divider ne portent pas de numéro.
-export const UNNUMBERED_TYPES = new Set(["hero", "index", "chart", "macro_bars", "image_block", "cta", "spacer", "divider"]);
+export const UNNUMBERED_TYPES = new Set(["hero", "index", "chart", "macro_bars", "commercial_offer", "image_block", "cta", "spacer", "divider"]);
 
 export function computeSectionNumber(sections, sectionId) {
   let counter = 0;

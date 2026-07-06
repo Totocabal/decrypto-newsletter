@@ -47,6 +47,7 @@ import {
   UserPlus,
   X,
   FileEdit,
+  Gift,
 } from "lucide-react";
 import { supabase } from "../lib/supabase.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
@@ -751,6 +752,7 @@ const SECTION_ICON_MAP = {
   editorial_list: List,
   timeline: ListOrdered,
   event: Calendar,
+  commercial_offer: Gift,
   text_block: Type,
   cta: MousePointerClick,
   spacer: ChevronsUpDown,
@@ -773,6 +775,7 @@ const SECTION_TYPE_DESCRIPTIONS = {
   editorial_list: "Liste éditoriale numérotée avec tags de lecture.",
   timeline: "Timeline d'étapes reliées pour tutoriel ou parcours.",
   event: "Annonce d'évènement avec informations et CTA.",
+  commercial_offer: "Bloc offre commerciale bonus avec variante claire ou sombre.",
   text_block: "Bloc texte simple avec bouton optionnel.",
   cta: "Bouton d'action autonome.",
   spacer: "Espace vertical entre deux blocs.",

@@ -855,6 +855,7 @@ const SECTION_TYPE_DESCRIPTIONS = {
   timeline: "Timeline d'étapes reliées pour tutoriel ou parcours.",
   event: "Annonce d'évènement avec informations et CTA.",
   referral: "Bloc parrainage premium avec code Braze conditionnel.",
+  commercial_offer: "Bloc offre commerciale bonus avec variante claire ou sombre.",
   text_block: "Bloc texte simple avec bouton optionnel.",
   cta: "Bouton d'action autonome.",
   spacer: "Espace vertical entre deux blocs.",

@@ -1336,6 +1336,52 @@ ${referralRow}
 {% endif %}`;
 }
 
+function renderCommercialOffer(data, isLastSection = false) {
+  const isLight = data.bg_variant === "light";
+  const cardBg = isLight ? "#FAF7F1" : "#1A0C2E";
+  const cardBorder = isLight ? "#E7D8EE" : "#2D203B";
+  const kickerColor = isLight ? "#C0008A" : "#FF00AA";
+  const amountColor = isLight ? "#00875F" : "#03FFCF";
+  const bodyColor = isLight ? "#4A4F58" : "#D8DDE6";
+  const ctaBg = isLight ? "#14141A" : "#FFFFFF";
+  const ctaColor = isLight ? "#FFFFFF" : "#0B0B0D";
+  const gradient = isLight
+    ? "linear-gradient(135deg, rgba(135,1,255,0.10), rgba(255,0,170,0.06) 55%, rgba(255,75,40,0.05) 100%)"
+    : "linear-gradient(135deg, rgba(135,1,255,0.24), rgba(255,0,170,0.14) 55%, rgba(255,75,40,0.10) 100%)";
+  const kicker = String(data.kicker || "").trim();
+  const amount = String(data.amount || "").trim();
+  const body = String(data.body || "").trim();
+  const ctaLabel = String(data.cta_label || "").trim();
+  const ctaUrl = String(data.cta_url || "#").trim() || "#";
+
+  return `
+    <tr>
+      <td class="em-px" style="padding:${sectionPadding("36px", "24px 36px")};${sectionBottomBorder(isLastSection)}">
+        <!--[if mso]>
+        <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="true" strokecolor="${cardBorder}" style="width:568px;" arcsize="8%">
+          <v:fill type="solid" color="${cardBg}" />
+          <v:textbox inset="0,0,0,0"><![endif]-->
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${cardBg}" style="background-color:${cardBg}; background-image:${gradient}; border:1px solid ${cardBorder}; border-radius:18px; border-collapse:separate !important; border-spacing:0 !important; overflow:hidden;">
+          <tr>
+            <td align="center" bgcolor="${cardBg}" style="padding:30px 24px; background-color:${cardBg}; background-image:${gradient}; border-radius:18px;">
+              ${kicker ? `<p style="margin:0 0 12px; font-family:${FONTS.mono || "'JetBrains Mono', monospace"}; font-size:11px; line-height:1.35; letter-spacing:0.18em; text-transform:uppercase; color:${kickerColor};">${escapeHtml(kicker)}</p>` : ""}
+              ${amount ? `<p style="margin:0; font-family:${FONTS.heading}; font-size:46px; line-height:1.05; font-weight:800; letter-spacing:0; color:${amountColor};">${escapeHtml(amount)}</p>` : ""}
+              ${body ? `<div style="margin:18px auto 0; max-width:420px; font-family:${FONTS.body}; font-size:15px; line-height:1.55; font-weight:${RICH_TEXT_WEIGHT}; color:${bodyColor};">${sanitizeRichText(body)}</div>` : ""}
+              ${ctaLabel ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin:24px auto 0;">
+                <tr>
+                  <td bgcolor="${ctaBg}" style="background-color:${ctaBg}; border-radius:99px;">
+                    <a href="${escapeAttr(ctaUrl)}" style="display:inline-block; padding:12px 22px; font-family:${FONTS.heading}; font-size:13px; line-height:1.25; font-weight:700; color:${ctaColor}; text-decoration:none; border-radius:99px; text-align:center;">${escapeHtml(ctaLabel)}</a>
+                  </td>
+                </tr>
+              </table>` : ""}
+            </td>
+          </tr>
+        </table>
+        <!--[if mso]></v:textbox></v:roundrect><![endif]-->
+      </td>
+    </tr>`;
+}
+
 function renderFocusItem(item, assetMode, isLastItem = false) {
   const itemMarginBottom = isLastItem ? "0" : "26px";
   const ctaMarginBottom = isLastItem ? "0" : "18px";
@@ -1844,6 +1890,7 @@ function renderSection(sec, allSections, assetMode, showSectionNumbers = true, i
     case "timeline":    return renderTimeline(sec.data, number, anchor, isLastSection);
     case "event":      return renderEvent(sec.data, anchor, isLastSection);
     case "referral":   return renderReferral(sec.data, anchor, isLastSection, assetMode);
+    case "commercial_offer": return renderCommercialOffer(sec.data, isLastSection);
     case "focus":      return renderFocus(sec.data, number, assetMode, anchor, isLastSection);
     case "image_block": return renderImageBlock(sec.data, isLastSection);
     case "text_block": return renderTextBlock(sec.data, number, anchor, isLastSection);
