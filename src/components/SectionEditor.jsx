@@ -9,7 +9,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { Plus, Trash2, ChevronUp, ChevronDown, CopyPlus, Upload, Loader2, X, RefreshCw, Sparkles, Minus, GripVertical } from "lucide-react";
 import { useCoinGecko, CRYPTO_CONFIG } from "../lib/useCoinGecko.js";
 import { UNNUMBERED_TYPES } from "../config/schema.js";
-import { Field, Input, TextArea } from "./FormControls.jsx";
+import { Field, Input, TextArea, Section } from "./FormControls.jsx";
 import { MAX_IMAGE_FILE_SIZE_LABEL } from "../lib/imageUpload.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import { supabase } from "../lib/supabase.js";
