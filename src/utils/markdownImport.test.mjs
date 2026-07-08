@@ -1041,3 +1041,42 @@ test("renders referral separators inside the Liquid condition", () => {
 
   assert.match(html, /{% if custom_attribute\.\$\{status\} == "tier_0"[\s\S]*em-referral-separator-top[\s\S]*em-referral-bg[\s\S]*em-referral-separator-bottom[\s\S]*{% endif %}/);
 });
+
+test("does not render an automatic separator before a hidden referral block", () => {
+  const html = buildEmailHtml({
+    issue_date: "Test",
+    preview_text: "Referral.",
+    show_block_separators: true,
+    sections: [
+      {
+        id: "before",
+        type: "text_block",
+        data: { kicker: "", title: "", body: "Avant parrainage" },
+      },
+      {
+        id: "referral",
+        type: "referral",
+        data: {
+          kicker: "Programme de parrainage",
+          title: "Invitez vos proches",
+          description: "",
+          code_label: "Votre code",
+          code_liquid: "{{custom_attribute.${referral_code}}}",
+          cta_label: "Partager",
+          cta_url: "#",
+          show_top_separator: true,
+          show_bottom_separator: true,
+        },
+      },
+    ],
+    footer: { links: [], address: "", legal: "", unsub_url: "#" },
+  }, { assetMode: "external" });
+
+  const betweenPreviousBlockAndReferralCondition = html.slice(
+    html.indexOf("Avant parrainage"),
+    html.indexOf("{% if custom_attribute.${status}")
+  );
+
+  assert.doesNotMatch(betweenPreviousBlockAndReferralCondition, /border-bottom:1px solid/);
+  assert.match(html, /{% if custom_attribute\.\$\{status\} == "tier_0"[\s\S]*em-referral-separator-top[\s\S]*{% endif %}/);
+});

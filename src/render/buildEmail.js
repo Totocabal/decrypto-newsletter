@@ -1990,6 +1990,9 @@ export function buildEmailHtml(state, options = {}) {
     if (nextEntry?.section.type === "cta" && nextEntry.section.data?.show_top_separator === false) {
       suppressBottomSeparatorIndexes.add(entry.index);
     }
+    if (nextEntry?.section.type === "referral") {
+      suppressBottomSeparatorIndexes.add(entry.index);
+    }
   });
   const sectionsHtml = sections
     .map((section, index) =>
