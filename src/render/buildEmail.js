@@ -111,6 +111,62 @@ function ctaVisualStyle(style = "gradient") {
   };
 }
 
+function visibleTextFromHtml(html = "") {
+  return decodeStoredTextEntities(String(html).replace(/<[^>]*>/g, " ")).replace(/\s+/g, " ").trim();
+}
+
+function buttonWidthForLabel(label = "", min = 168, max = 320) {
+  const text = visibleTextFromHtml(label);
+  return Math.max(min, Math.min(max, 54 + text.length * 8));
+}
+
+function renderBulletproofButton({
+  label = "",
+  url = "#",
+  variant = "primary",
+  ctaStyle = "gradient",
+  align = "left",
+  width,
+  className = "em-cta-button",
+  bgColor,
+  textColor,
+  borderColor,
+} = {}) {
+  const text = String(label || "").trim();
+  if (!text) return "";
+  const isSecondary = variant === "secondary";
+  const visual = ctaVisualStyle(ctaStyle);
+  const href = escapeAttr(url || "#");
+  const buttonWidth = width || buttonWidthForLabel(text);
+  const height = isSecondary ? 44 : 46;
+  const resolvedBorderColor = borderColor || (isSecondary ? EMAIL_THEME.borderStrong : visual.msoFill);
+  const fillColor = bgColor || (isSecondary ? EMAIL_THEME.bgEmail : visual.msoFill);
+  const resolvedTextColor = textColor || (isSecondary ? EMAIL_THEME.textSecondary : "#ffffff");
+  const fontWeight = isSecondary ? 500 : 600;
+  const tdStyle = isSecondary
+    ? `background-color:${fillColor}; border:1px solid ${resolvedBorderColor}; border-radius:99px;`
+    : `border-radius:99px; ${bgColor ? `background-color:${bgColor};` : visual.background}`;
+  const tableAlign = align === "center" ? `align="center" style="margin:0 auto;"` : `align="${align}"`;
+  const stroke = isSecondary ? "t" : "f";
+  const safeMsoLabel = text.replace(/&nbsp;/gi, " ");
+
+  return `<!--[if mso]>
+<v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${href}" style="height:${height}px; v-text-anchor:middle; width:${buttonWidth}px;" arcsize="50%" stroke="${stroke}" strokecolor="${resolvedBorderColor}" fillcolor="${fillColor}">
+  <w:anchorlock/>
+  <center style="color:${resolvedTextColor}; font-family:Calibri, 'Trebuchet MS', Arial, sans-serif; font-size:13px; font-weight:${fontWeight === 600 ? "bold" : "normal"};">${safeMsoLabel}</center>
+</v:roundrect>
+<![endif]-->
+<!--[if !mso]><!-->
+<table role="presentation" class="${className}" cellpadding="0" cellspacing="0" border="0" ${tableAlign}>
+  <tr>
+    <td bgcolor="${fillColor}" style="${tdStyle}">
+      <a class="em-cta-link" href="${href}" style="display:inline-block; padding:${isSecondary ? "12px 20px" : "13px 22px"}; font-family:${FONTS.heading}; font-weight:${fontWeight}; font-size:13px; line-height:1.25; color:${resolvedTextColor}; text-decoration:none; border-radius:99px; letter-spacing:0.01em; text-align:center;">${text}</a>
+    </td>
+  </tr>
+</table>
+<!--<![endif]-->`;
+}
+
 export function sanitizeRichText(text = "", options = {}) {
   const parseMarkdown = options.markdown !== false;
   let out = escapeHtml(decodeStoredTextEntities(text));
@@ -994,15 +1050,18 @@ function renderFeatureGrid(data, number, assetMode, anchor = "", isLastSection =
     </tr>`);
   }
   const ctaText = String(data.cta_label || "").trim();
-  const ctaStyle = ctaVisualStyle(data.cta_style);
   const ctaGap = SHOW_BLOCK_SEPARATORS || CURRENT_SECTION_IS_LAST ? "44px" : "28px";
+  const ctaButton = ctaText
+    ? renderBulletproofButton({
+      label: `${escapeHtml(ctaText)}${data.cta_arrow !== false ? "&nbsp;→" : ""}`,
+      url: data.cta_url || "#",
+      ctaStyle: data.cta_style,
+      align: "center",
+    })
+    : "";
   const ctaHtml = ctaText
     ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin:${ctaGap} auto 0;">
-        <tr>
-          <td bgcolor="${ctaStyle.bgColor}" style="border-radius:99px; ${ctaStyle.background}">
-            <a href="${escapeAttr(data.cta_url || "#")}" style="display:inline-block; padding:13px 22px; font-family:${FONTS.heading}; font-weight:600; font-size:13px; line-height:1.25; color:#ffffff; text-decoration:none; border-radius:99px; letter-spacing:0.01em; text-align:center;">${escapeHtml(ctaText)}${data.cta_arrow !== false ? "&nbsp;→" : ""}</a>
-          </td>
-        </tr>
+        <tr><td align="center">${ctaButton}</td></tr>
       </table>`
     : "";
 
@@ -1056,14 +1115,17 @@ function renderComparison(data, number, anchor = "", isLastSection = false) {
   }).join("");
   const footnote = String(data.footnote || "").trim();
   const ctaText = String(data.cta_label || "").trim();
-  const ctaStyle = ctaVisualStyle(data.cta_style);
+  const ctaButton = ctaText
+    ? renderBulletproofButton({
+      label: `${escapeHtml(ctaText)}${data.cta_arrow !== false ? "&nbsp;→" : ""}`,
+      url: data.cta_url || "#",
+      ctaStyle: data.cta_style,
+      align: "center",
+    })
+    : "";
   const ctaHtml = ctaText
     ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin:24px auto 0;">
-        <tr>
-          <td bgcolor="${ctaStyle.bgColor}" style="border-radius:99px; ${ctaStyle.background}">
-            <a href="${escapeAttr(data.cta_url || "#")}" style="display:inline-block; padding:13px 22px; font-family:${FONTS.heading}; font-weight:600; font-size:13px; line-height:1.25; color:#ffffff; text-decoration:none; border-radius:99px; letter-spacing:0.01em; text-align:center;">${escapeHtml(ctaText)}${data.cta_arrow !== false ? "&nbsp;→" : ""}</a>
-          </td>
-        </tr>
+        <tr><td align="center">${ctaButton}</td></tr>
       </table>`
     : "";
 
@@ -1167,11 +1229,16 @@ function renderEvent(data, anchor = "", isLastSection = false) {
                   ${kicker ? `<p style="margin:0 0 12px; font-family:${FONTS.body}; font-size:11px; letter-spacing:0.2em; text-transform:uppercase; font-weight:600; color:${EMAIL_THEME.positive};">${escapeHtml(kicker)}</p>` : ""}
                   ${String(data.title || "").trim() ? `<h3 style="margin:0; font-family:${FONTS.heading}; font-weight:700; font-size:28px; letter-spacing:-0.025em; line-height:1.05; color:${eventTextPrimary};">${escapeHtml(data.title)}</h3>` : ""}
                   <div style="margin:12px 0 0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:13px; line-height:1.5; color:${eventTextSecondary};">${sanitizeRichText(data.description)}</div>
-                  <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:18px;">
-                    <tr><td bgcolor="#ffffff" style="border-radius:99px;">
-                      <a href="${escapeAttr(data.cta_url)}" style="display:inline-block; padding:11px 20px; font-family:${FONTS.heading}; font-weight:600; font-size:13px; color:${EMAIL_THEME.bgEventCard}; text-decoration:none; border-radius:99px;">${escapeHtml(data.cta_label)}</a>
-                    </td></tr>
-                  </table>
+                  ${String(data.cta_label || "").trim() ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:18px;">
+                    <tr><td>${renderBulletproofButton({
+                      label: escapeHtml(data.cta_label),
+                      url: data.cta_url || "#",
+                      bgColor: "#ffffff",
+                      textColor: EMAIL_THEME.bgEventCard,
+                      borderColor: "#ffffff",
+                      align: "left",
+                    })}</td></tr>
+                  </table>` : ""}
                 </td>
               </tr>
             </table>`;
@@ -1224,14 +1291,14 @@ function renderReferral(data, anchor = "", isLastSection = false, assetMode = "i
   const bgImg = String(data.bg_image_url || "").trim();
   const effectiveBgImg = bgImg || defaultBg;
   const cardBg = isLightReferral ? "#FAF7F1" : "#1a0c2e";
-  const cardBorder = isLightReferral ? "rgba(135,1,255,0.18)" : "rgba(255,255,255,0.08)";
-  const msoCardBorder = isLightReferral ? "#D7C4F5" : "#2D243A";
+  const cardBorder = isLightReferral ? "#D7C4F5" : "#2D243A";
+  const msoCardBorder = cardBorder;
   const kickerColor = isLightReferral ? "#C0008A" : "#FF00AA";
   const titleColor = isLightReferral ? "#14141A" : "#FFFFFF";
   const accentColor = isLightReferral ? "#00875F" : "#03FFCF";
   const bodyColor = isLightReferral ? "#4A4F58" : "#D8DDE6";
-  const codeBg = isLightReferral ? "#FFFFFF" : "rgba(0,0,0,0.28)";
-  const codeBorder = isLightReferral ? "rgba(20,20,26,0.28)" : "rgba(255,255,255,0.28)";
+  const codeBg = isLightReferral ? "#FFFFFF" : "#12081F";
+  const codeBorder = isLightReferral ? "#BEB8C4" : "#5F526D";
   const codeLabelColor = isLightReferral ? "#5E6872" : "#C7CAD1";
   const codeTextColor = isLightReferral ? "#14141A" : "#FFFFFF";
   const ctaBg = isLightReferral ? "#14141A" : "#FFFFFF";
@@ -1259,13 +1326,15 @@ function renderReferral(data, anchor = "", isLastSection = false, assetMode = "i
   const bottomSeparator = data.show_bottom_separator !== false && SHOW_BLOCK_SEPARATORS && !CURRENT_SECTION_SUPPRESS_BOTTOM_SEPARATOR && !isLastSection
     ? sectionSeparatorRow("em-referral-separator-bottom")
     : "";
-  const ctaButton = `<table class="em-referral-button" role="presentation" cellpadding="0" cellspacing="0" border="0">
-    <tr>
-      <td bgcolor="${ctaBg}" style="background-color:${ctaBg}; border-radius:99px;">
-        <a href="${escapeAttr(ctaUrl)}" style="display:inline-block; padding:12px 22px; font-family:${FONTS.heading}; font-size:13px; line-height:1.25; font-weight:600; color:${ctaColor}; text-decoration:none; border-radius:99px; text-align:center;">${escapeHtml(ctaLabel)}</a>
-      </td>
-    </tr>
-  </table>`;
+  const ctaButton = renderBulletproofButton({
+    label: escapeHtml(ctaLabel),
+    url: ctaUrl,
+    bgColor: ctaBg,
+    textColor: ctaColor,
+    borderColor: ctaBg,
+    align: "center",
+    className: "em-referral-button",
+  });
 
   const codeTable = `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%; max-width:100%; table-layout:fixed; border-collapse:collapse;">
                   <tr>
@@ -1299,7 +1368,7 @@ function renderReferral(data, anchor = "", isLastSection = false, assetMode = "i
   const cardTable = `<!--[if mso]>
       <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="true" strokecolor="${msoCardBorder}" style="width:568px;" arcsize="8%">
         <v:fill type="frame" src="${escapeAttr(effectiveBgImg)}" color="${cardBg}" />
-        <v:textbox inset="0,0,0,0"><![endif]-->
+        <v:textbox inset="0,0,0,0" style="mso-fit-shape-to-text:true"><![endif]-->
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
         class="em-referral-bg"
         bgcolor="${cardBg}"
@@ -1367,13 +1436,14 @@ function renderCommercialOffer(data, isLastSection = false) {
               ${kicker ? `<p style="margin:0 0 12px; font-family:${FONTS.mono || "'JetBrains Mono', monospace"}; font-size:11px; line-height:1.35; letter-spacing:0.18em; text-transform:uppercase; color:${kickerColor};">${escapeHtml(kicker)}</p>` : ""}
               ${amount ? `<p style="margin:0; font-family:${FONTS.heading}; font-size:46px; line-height:1.05; font-weight:800; letter-spacing:0; color:${amountColor};">${escapeHtml(amount)}</p>` : ""}
               ${body ? `<div style="margin:18px auto 0; max-width:420px; font-family:${FONTS.body}; font-size:15px; line-height:1.55; font-weight:${RICH_TEXT_WEIGHT}; color:${bodyColor};">${sanitizeRichText(body)}</div>` : ""}
-              ${ctaLabel ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin:24px auto 0;">
-                <tr>
-                  <td bgcolor="${ctaBg}" style="background-color:${ctaBg}; border-radius:99px;">
-                    <a href="${escapeAttr(ctaUrl)}" style="display:inline-block; padding:12px 22px; font-family:${FONTS.heading}; font-size:13px; line-height:1.25; font-weight:700; color:${ctaColor}; text-decoration:none; border-radius:99px; text-align:center;">${escapeHtml(ctaLabel)}</a>
-                  </td>
-                </tr>
-              </table>` : ""}
+              ${ctaLabel ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin:24px auto 0;"><tr><td align="center">${renderBulletproofButton({
+                label: escapeHtml(ctaLabel),
+                url: ctaUrl,
+                bgColor: ctaBg,
+                textColor: ctaColor,
+                borderColor: ctaBg,
+                align: "center",
+              })}</td></tr></table>` : ""}
             </td>
           </tr>
         </table>
@@ -1414,53 +1484,41 @@ function renderFocusItem(item, assetMode, isLastItem = false) {
     const ctaText = escapeHtml(item.label) + (item.arrow ? "&nbsp;→" : "");
     const align = item.centered ? "center" : "left";
     const ctaTableAlign = item.centered ? `align="center" style="margin:0 auto;"` : `align="left"`;
-    const ctaStyle = ctaVisualStyle(item.cta_style);
 
     // Legacy: items with explicit style="secondary" render as standalone outline button
     if (item.style === "secondary") {
       return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:${ctaMarginBottom};">
         <tr>
           <td align="${align}" valign="middle">
-            <table role="presentation" class="em-cta-button" cellpadding="0" cellspacing="0" border="0" ${ctaTableAlign}>
-              <tr>
-                <td style="border:1px solid ${EMAIL_THEME.borderStrong}; border-radius:99px;">
-                  <a class="em-cta-link" href="${escapeAttr(item.url || "#")}" style="display:inline-block; padding:12px 20px; font-family:${FONTS.heading}; font-weight:500; font-size:13px; line-height:1.25; color:${EMAIL_THEME.textSecondary}; text-decoration:none; border-radius:99px; letter-spacing:0.01em; text-align:center;">${ctaText}</a>
-                </td>
-              </tr>
-            </table>
+            ${renderBulletproofButton({
+              label: ctaText,
+              url: item.url || "#",
+              variant: "secondary",
+              align,
+            })}
           </td>
         </tr>
       </table>`;
     }
 
-    const primaryBtn = `<!--[if mso]>
-            <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${escapeAttr(item.url || "#")}" style="height:46px; v-text-anchor:middle; width:200px;" arcsize="50%" stroke="f" fillcolor="${ctaStyle.msoFill}">
-                  <w:anchorlock/>
-                  <center style="color:#ffffff; font-family:${FONTS.heading}; font-size:13px; font-weight:bold;">${ctaText}</center>
-            </v:roundrect>
-            <![endif]-->
-            <!--[if !mso]><!-->
-            <table role="presentation" class="em-cta-button" cellpadding="0" cellspacing="0" border="0">
-              <tr>
-                <td bgcolor="${ctaStyle.bgColor}" style="border-radius:99px; ${ctaStyle.background}">
-                  <a class="em-cta-link" href="${escapeAttr(item.url || "#")}" style="display:inline-block; padding:13px 22px; font-family:${FONTS.heading}; font-weight:600; font-size:13px; line-height:1.25; color:#ffffff; text-decoration:none; border-radius:99px; letter-spacing:0.01em; text-align:center;">${ctaText}</a>
-                </td>
-              </tr>
-            </table>
-            <!--<![endif]-->`;
+    const primaryBtn = renderBulletproofButton({
+      label: ctaText,
+      url: item.url || "#",
+      ctaStyle: item.cta_style,
+      align,
+    });
 
     const secondaryText = item.secondary_label
       ? escapeHtml(item.secondary_label) + (item.secondary_arrow ? "&nbsp;→" : "")
       : "";
     const secondaryBtn = secondaryText
       ? `<td valign="middle" style="padding-left:10px;">
-            <table role="presentation" class="em-cta-button" cellpadding="0" cellspacing="0" border="0">
-              <tr>
-                <td style="border:1px solid ${EMAIL_THEME.borderStrong}; border-radius:99px;">
-                  <a class="em-cta-link" href="${escapeAttr(item.secondary_url || "#")}" style="display:inline-block; padding:12px 20px; font-family:${FONTS.heading}; font-weight:500; font-size:13px; line-height:1.25; color:${EMAIL_THEME.textSecondary}; text-decoration:none; border-radius:99px; letter-spacing:0.01em; text-align:center;">${secondaryText}</a>
-                </td>
-              </tr>
-            </table>
+            ${renderBulletproofButton({
+              label: secondaryText,
+              url: item.secondary_url || "#",
+              variant: "secondary",
+              align: "left",
+            })}
           </td>`
       : "";
 
@@ -1608,37 +1666,21 @@ function renderFocus(data, number, assetMode, anchor = "", isLastSection = false
       </div>`
     : "";
   const primaryBtn = data.cta_primary_label
-    ? (() => {
-      const ctaStyle = ctaVisualStyle(data.cta_primary_style || data.cta_style);
-      return `<td valign="middle" style="padding-right:10px;">
-        <!--[if mso]>
-        <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${escapeAttr(data.cta_primary_url || "#")}" style="height:46px; v-text-anchor:middle; width:260px;" arcsize="50%" stroke="f" fillcolor="${ctaStyle.msoFill}">
-          <w:anchorlock/>
-          <center style="color:#ffffff; font-family:${FONTS.heading}; font-size:13px; font-weight:bold;">${escapeHtml(data.cta_primary_label)}</center>
-        </v:roundrect>
-        <![endif]-->
-        <!--[if !mso]><!-->
-        <table role="presentation" class="em-cta-button" cellpadding="0" cellspacing="0" border="0">
-          <tr>
-            <td bgcolor="${ctaStyle.bgColor}" style="border-radius:99px; ${ctaStyle.background}">
-              <a class="em-cta-link" href="${escapeAttr(data.cta_primary_url || "#")}" style="display:inline-block; padding:13px 22px; font-family:${FONTS.heading}; font-weight:600; font-size:13px; line-height:1.25; color:#ffffff; text-decoration:none; border-radius:99px; letter-spacing:0.01em; text-align:center;">${escapeHtml(data.cta_primary_label).replace(/\s+→$/, "&nbsp;→")}</a>
-            </td>
-          </tr>
-        </table>
-        <!--<![endif]-->
-      </td>`;
-    })()
+    ? `<td valign="middle" style="padding-right:10px;">${renderBulletproofButton({
+      label: escapeHtml(data.cta_primary_label).replace(/\s+→$/, "&nbsp;→"),
+      url: data.cta_primary_url || "#",
+      ctaStyle: data.cta_primary_style || data.cta_style,
+      width: 260,
+    })}</td>`
     : "";
   const secondaryBtn = data.cta_secondary_label
-    ? `<td valign="middle">
-        <table role="presentation" class="em-cta-button" cellpadding="0" cellspacing="0" border="0">
-          <tr>
-            <td style="border:1px solid #3C424D; border-radius:99px;">
-              <a class="em-cta-link" href="${escapeAttr(data.cta_secondary_url || "#")}" style="display:inline-block; padding:12px 20px; font-family:${FONTS.heading}; font-weight:500; font-size:13px; line-height:1.25; color:#E9EEF2; text-decoration:none; border-radius:99px; letter-spacing:0.01em; text-align:center;">${escapeHtml(data.cta_secondary_label).replace(/\s+→$/, "&nbsp;→")}</a>
-            </td>
-          </tr>
-        </table>
-      </td>`
+    ? `<td valign="middle">${renderBulletproofButton({
+      label: escapeHtml(data.cta_secondary_label).replace(/\s+→$/, "&nbsp;→"),
+      url: data.cta_secondary_url || "#",
+      variant: "secondary",
+      borderColor: "#3C424D",
+      textColor: "#E9EEF2",
+    })}</td>`
     : "";
   const ctaRow = (primaryBtn || secondaryBtn)
     ? `<table role="presentation" class="em-cta-row" cellpadding="0" cellspacing="0" border="0" style="${textBlock || imageBlock ? "margin-top:26px;" : ""}">
@@ -1691,14 +1733,13 @@ function renderTextBlock(data, number, anchor = "", isLastSection = false) {
     : sectionPadding("44px 36px", "20px 36px");
   const hasHeadingText = Boolean(String(data.kicker || "").trim() || String(data.title || "").trim());
   const headerNumber = hasHeadingText ? numberSlot.headerNumber : null;
-  const ctaStyle = ctaVisualStyle(data.cta_style);
   const ctaBtn = data.cta_label
     ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:28px;">
-        <tr>
-          <td bgcolor="${ctaStyle.bgColor}" style="border-radius:99px; ${ctaStyle.background}">
-            <a href="${escapeAttr(data.cta_url || "#")}" style="display:inline-block; padding:13px 22px; font-family:${FONTS.heading}; font-weight:600; font-size:13px; color:#ffffff; text-decoration:none; border-radius:99px; letter-spacing:0.01em;">${escapeHtml(data.cta_label)}</a>
-          </td>
-        </tr>
+        <tr><td>${renderBulletproofButton({
+          label: escapeHtml(data.cta_label),
+          url: data.cta_url || "#",
+          ctaStyle: data.cta_style,
+        })}</td></tr>
       </table>`
     : "";
 
