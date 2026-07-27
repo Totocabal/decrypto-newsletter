@@ -87,6 +87,7 @@ let CURRENT_SECTION_SUPPRESS_BOTTOM_SEPARATOR = false;
 const CTA_GRADIENT_FALLBACK = "linear-gradient(90deg, #4141FF 0%, #FF00AA 60%, #FF4B28 100%)";
 const CTA_GRADIENT_BG = "#4141FF";
 const CTA_BLACK_BG = "#050505";
+const PREHEADER_SPACER = Array.from({ length: 180 }, () => "&zwnj;&nbsp;").join("");
 
 function getEmailThemeVariant(state = {}) {
   return state.theme_variant === "light" ? "light" : "dark";
@@ -165,6 +166,13 @@ function renderBulletproofButton({
   </tr>
 </table>
 <!--<![endif]-->`;
+}
+
+function renderHiddenPreheader(previewText = "") {
+  const text = escapeHtml(stripHtmlForPreheader(previewText));
+  return `<div style="display:none !important; visibility:hidden; mso-hide:all; font-size:1px; line-height:1px; color:${EMAIL_THEME.bgPage}; max-height:0; max-width:0; opacity:0; overflow:hidden;">
+  ${text}${PREHEADER_SPACER}
+</div>`;
 }
 
 export function sanitizeRichText(text = "", options = {}) {
@@ -2127,9 +2135,7 @@ ${renderEmailFontFaces()}
 </head>
 <body style="margin:0; padding:0; background-color:${EMAIL_THEME.bgPage}; font-family:${FONTS.body};">
 
-<div style="display:none; font-size:1px; color:${EMAIL_THEME.bgPage}; line-height:1px; max-height:0; max-width:0; opacity:0; overflow:hidden;">
-  ${escapeHtml(stripHtmlForPreheader(state.preview_text))}&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;
-</div>
+${renderHiddenPreheader(state.preview_text)}
 
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${EMAIL_THEME.bgPage}" style="background-color:${EMAIL_THEME.bgPage};">
   <tr><td align="center" style="padding:0;">

@@ -90,6 +90,27 @@ test("email renderer keeps core webmail compatibility invariants", () => {
   assert.doesNotMatch(html, /<script[\s>]/i);
 });
 
+test("hidden preheader is padded enough to stop mobile previews before visible content", () => {
+  const state = {
+    ...buildCompatState("dark"),
+    preview_text: "La fin des cloches de cloture",
+    issue_date: "23.07.2026",
+  };
+  const html = buildEmailHtml(state);
+  const preheaderEnd = html.indexOf("</div>", html.indexOf("La fin des cloches"));
+  const preheaderHtml = html.slice(html.indexOf("<body"), preheaderEnd);
+  const mainTableIndex = html.indexOf("<table role=\"presentation\" width=\"100%\"", preheaderEnd);
+  const spacerMatches = preheaderHtml.match(/&zwnj;&nbsp;/g) || [];
+
+  assert.ok(preheaderEnd > -1);
+  assert.ok(mainTableIndex > preheaderEnd);
+  assert.match(preheaderHtml, /display:none !important/i);
+  assert.match(preheaderHtml, /visibility:hidden/i);
+  assert.match(preheaderHtml, /mso-hide:all/i);
+  assert.equal(spacerMatches.length, 180);
+  assert.doesNotMatch(preheaderHtml, /23\.07\.2026|DÉCRYPTO|L'HEBDO COINHOUSE/i);
+});
+
 test("external export mode replaces fragile inline visuals with image assets", () => {
   const html = buildEmailHtml(buildCompatState("dark"), {
     assetMode: "external",
