@@ -160,3 +160,37 @@ test("referral block includes Outlook-safe VML background and button fallbacks",
   assert.match(referralHtml, /border:1px dashed #5F526D/i);
   assert.doesNotMatch(referralHtml, /rgba\(/i);
 });
+
+test("timeline connector height grows with step text length", () => {
+  const state = {
+    ...clone(INITIAL_STATE),
+    issue_date: "28.07.2026",
+    sections: [{
+      id: "timeline_variable_connectors",
+      type: "timeline",
+      data: {
+        kicker: "Compte euro",
+        body: "Trois étapes suffisent.",
+        items: [
+          {
+            title: "Court",
+            body: "Une ligne.",
+          },
+          {
+            title: "Etape avec un texte plus long",
+            body: "Ce texte volontairement plus long doit forcer le liseré de gauche à descendre davantage pour accompagner la hauteur réelle du contenu sur plusieurs lignes.",
+          },
+          {
+            title: "Terminé",
+            body: "Dernière étape sans connecteur.",
+          },
+        ],
+      },
+    }],
+  };
+  const html = buildEmailHtml(state);
+  const heights = [...html.matchAll(/<td width="2" height="(\d+)"/g)].map((match) => Number(match[1]));
+
+  assert.equal(heights.length, 2);
+  assert.ok(heights[1] > heights[0]);
+});

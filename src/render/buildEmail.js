@@ -1817,6 +1817,15 @@ function renderEditorialList(data, number, anchor = "", isLastSection = false) {
     </tr>`;
 }
 
+function estimateTimelineConnectorHeight(item = {}) {
+  const titleLength = plainTextFromRichText(item.title || "").length;
+  const bodyLength = plainTextFromRichText(item.body || "").length;
+  const titleLines = Math.max(1, Math.ceil(titleLength / 34));
+  const bodyLines = bodyLength ? Math.max(1, Math.ceil(bodyLength / 56)) : 0;
+  const estimatedTextHeight = (titleLines * 21) + (bodyLines ? 4 + bodyLines * 21 : 0);
+  return Math.max(52, Math.min(180, estimatedTextHeight + 12));
+}
+
 function renderTimeline(data, number, anchor = "", isLastSection = false) {
   const isLightTheme = EMAIL_THEME === EMAIL_THEMES.light;
   const accentColor = isLightTheme ? "#C0008A" : EMAIL_THEME.accentPrimary;
@@ -1835,10 +1844,11 @@ function renderTimeline(data, number, anchor = "", isLastSection = false) {
     const markerBg = isLast ? EMAIL_THEME.positive : badgeBg;
     const markerColor = isLast ? "#FFFFFF" : accentColor;
     const markerBorder = isLast ? EMAIL_THEME.positive : badgeBorder;
+    const connectorHeight = estimateTimelineConnectorHeight(item);
     const connector = isLast
       ? ""
       : `<table role="presentation" width="34" cellpadding="0" cellspacing="0" border="0">
-          <tr><td align="center"><table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td width="2" height="34" style="width:2px; height:34px; line-height:1px; font-size:1px; background-color:${lineColor};">&nbsp;</td></tr></table></td></tr>
+          <tr><td align="center"><table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td width="2" height="${connectorHeight}" style="width:2px; height:${connectorHeight}px; line-height:1px; font-size:1px; background-color:${lineColor};">&nbsp;</td></tr></table></td></tr>
         </table>`;
     return `<tr>
       <td style="${isLast ? "" : "padding-bottom:4px;"}">
