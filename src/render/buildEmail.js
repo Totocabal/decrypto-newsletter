@@ -87,7 +87,7 @@ let CURRENT_SECTION_SUPPRESS_BOTTOM_SEPARATOR = false;
 const CTA_GRADIENT_FALLBACK = "linear-gradient(90deg, #4141FF 0%, #FF00AA 60%, #FF4B28 100%)";
 const CTA_GRADIENT_BG = "#4141FF";
 const CTA_BLACK_BG = "#050505";
-const PREHEADER_SPACER = Array.from({ length: 180 }, () => "&zwnj;&nbsp;").join("");
+const PREHEADER_SPACER = Array.from({ length: 220 }, () => "&nbsp;&zwnj;&#847;&shy;").join("");
 
 function getEmailThemeVariant(state = {}) {
   return state.theme_variant === "light" ? "light" : "dark";
@@ -171,7 +171,10 @@ function renderBulletproofButton({
 function renderHiddenPreheader(previewText = "") {
   const text = escapeHtml(stripHtmlForPreheader(previewText));
   return `<div style="display:none !important; visibility:hidden; mso-hide:all; font-size:1px; line-height:1px; color:${EMAIL_THEME.bgPage}; max-height:0; max-width:0; opacity:0; overflow:hidden;">
-  ${text}${PREHEADER_SPACER}
+  ${text}
+</div>
+<div style="display:none !important; visibility:hidden; mso-hide:all; font-size:1px; line-height:1px; color:${EMAIL_THEME.bgPage}; max-height:0; max-width:0; opacity:0; overflow:hidden;">
+  ${PREHEADER_SPACER}
 </div>`;
 }
 
@@ -1823,7 +1826,7 @@ function estimateTimelineConnectorHeight(item = {}) {
   const titleLines = Math.max(1, Math.ceil(titleLength / 34));
   const bodyLines = bodyLength ? Math.max(1, Math.ceil(bodyLength / 56)) : 0;
   const estimatedTextHeight = (titleLines * 21) + (bodyLines ? 4 + bodyLines * 21 : 0);
-  return Math.max(52, Math.min(180, estimatedTextHeight + 12));
+  return Math.max(28, Math.min(132, estimatedTextHeight - 18));
 }
 
 function renderTimeline(data, number, anchor = "", isLastSection = false) {

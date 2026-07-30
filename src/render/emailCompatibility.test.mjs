@@ -98,16 +98,18 @@ test("hidden preheader is padded enough to stop mobile previews before visible c
   };
   const html = buildEmailHtml(state);
   const preheaderEnd = html.indexOf("</div>", html.indexOf("La fin des cloches"));
-  const preheaderHtml = html.slice(html.indexOf("<body"), preheaderEnd);
-  const mainTableIndex = html.indexOf("<table role=\"presentation\" width=\"100%\"", preheaderEnd);
-  const spacerMatches = preheaderHtml.match(/&zwnj;&nbsp;/g) || [];
+  const spacerEnd = html.indexOf("</div>", preheaderEnd + 1);
+  const preheaderHtml = html.slice(html.indexOf("<body"), spacerEnd);
+  const mainTableIndex = html.indexOf("<table role=\"presentation\" width=\"100%\"", spacerEnd);
+  const spacerMatches = preheaderHtml.match(/&nbsp;&zwnj;&#847;&shy;/g) || [];
 
   assert.ok(preheaderEnd > -1);
-  assert.ok(mainTableIndex > preheaderEnd);
+  assert.ok(spacerEnd > preheaderEnd);
+  assert.ok(mainTableIndex > spacerEnd);
   assert.match(preheaderHtml, /display:none !important/i);
   assert.match(preheaderHtml, /visibility:hidden/i);
   assert.match(preheaderHtml, /mso-hide:all/i);
-  assert.equal(spacerMatches.length, 180);
+  assert.equal(spacerMatches.length, 220);
   assert.doesNotMatch(preheaderHtml, /23\.07\.2026|DÉCRYPTO|L'HEBDO COINHOUSE/i);
 });
 
@@ -192,5 +194,7 @@ test("timeline connector height grows with step text length", () => {
   const heights = [...html.matchAll(/<td width="2" height="(\d+)"/g)].map((match) => Number(match[1]));
 
   assert.equal(heights.length, 2);
+  assert.ok(heights[0] <= 36);
   assert.ok(heights[1] > heights[0]);
+  assert.ok(heights[1] <= 90);
 });
