@@ -486,14 +486,14 @@ function titleNumberHtml(number) {
 
 function sectionTitle(title, number = null) {
   if (!String(title || "").trim()) return "";
-  return `<h2 class="em-h2" style="margin:12px 0 0; font-family:${FONTS.heading}; font-weight:600; font-size:30px; line-height:1.1; letter-spacing:-0.025em; color:${EMAIL_THEME.textPrimary};">
+  return `<h2 class="em-h2" style="margin:12px 0 0; font-family:${FONTS.heading}; font-weight:600; font-size:30px; line-height:33px; mso-line-height-rule:exactly; letter-spacing:-0.025em; color:${EMAIL_THEME.textPrimary};">
     ${titleNumberHtml(number)}${escapeHtml(title)}
   </h2>`;
 }
 
 function sectionTitleSpaced(title, number = null) {
   if (!String(title || "").trim()) return "";
-  return `<h2 class="em-h2" style="margin:12px 0 22px; font-family:${FONTS.heading}; font-weight:600; font-size:30px; line-height:1.1; letter-spacing:-0.025em; color:${EMAIL_THEME.textPrimary};">${titleNumberHtml(number)}${escapeHtml(title)}</h2>`;
+  return `<h2 class="em-h2" style="margin:12px 0 22px; font-family:${FONTS.heading}; font-weight:600; font-size:30px; line-height:33px; mso-line-height-rule:exactly; letter-spacing:-0.025em; color:${EMAIL_THEME.textPrimary};">${titleNumberHtml(number)}${escapeHtml(title)}</h2>`;
 }
 
 function sectionBottomBorder(isLastSection) {
@@ -647,7 +647,7 @@ function renderHero(data, isLastSection = false) {
     <tr>
       <td class="em-px" style="padding:${sectionPadding("56px 36px 40px", "42px 36px 28px")};${sectionBottomBorder(isLastSection)}">
         ${kickerHtml}
-        <h1 class="em-h1" style="margin:0; font-family:${FONTS.heading}; font-weight:700; font-size:60px; line-height:0.98; letter-spacing:-0.035em; color:${EMAIL_THEME.textPrimary};">
+        <h1 class="em-h1" style="margin:0; font-family:${FONTS.heading}; font-weight:700; font-size:60px; line-height:59px; mso-line-height-rule:exactly; letter-spacing:-0.035em; color:${EMAIL_THEME.textPrimary};">
           ${titleHtml}
         </h1>
         <p style="margin:22px 0 0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:17px; line-height:1.5; color:${EMAIL_THEME.textMuted}; max-width:460px;">
@@ -942,7 +942,7 @@ function renderCommentedNumber(data, anchor = "", isLastSection = false) {
                     ${data.caption ? `<p style="margin:8px 0 0; font-family:${FONTS.body}; font-size:12px; color:${EMAIL_THEME.textMuted}; letter-spacing:0.02em;">${escapeHtml(data.caption)}</p>` : ""}
                   </td>
                   <td class="em-stack em-cn-text" valign="middle" bgcolor="${cardBg}" style="padding:24px 28px; background-color:${cardBg}; box-sizing:border-box;">
-                    ${data.title ? `<p style="margin:0 0 8px; font-family:${FONTS.heading}; font-weight:600; font-size:17px; line-height:1.25; letter-spacing:-0.015em; color:${titleColor};">${escapeHtml(data.title)}</p>` : ""}
+                    ${data.title ? `<p style="margin:0 0 8px; font-family:${FONTS.heading}; font-weight:600; font-size:17px; line-height:21px; mso-line-height-rule:exactly; letter-spacing:-0.015em; color:${titleColor};">${escapeHtml(data.title)}</p>` : ""}
                     <div style="margin:0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:13.5px; line-height:1.55; color:${bodyColor};">${sanitizeRichText(data.body)}</div>
                   </td>
                 </tr>
@@ -1010,7 +1010,7 @@ function renderFeatureGrid(data, number, assetMode, anchor = "", isLastSection =
               ${featuredIcon}
               <td valign="top">
                 ${featuredLabel}
-                ${featured.title ? `<p style="margin:0; font-family:${FONTS.heading}; font-weight:600; font-size:18px; color:#ffffff; letter-spacing:-0.015em; line-height:1.25;">${escapeHtmlWithNbsp(featured.title)}</p>` : ""}
+                ${featured.title ? `<p style="margin:0; font-family:${FONTS.heading}; font-weight:600; font-size:18px; color:#ffffff; letter-spacing:-0.015em; line-height:23px; mso-line-height-rule:exactly;">${escapeHtmlWithNbsp(featured.title)}</p>` : ""}
                 ${featured.body ? `<div style="margin:8px 0 0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:13px; color:#D8DDE6; line-height:1.55;">${sanitizeRichText(featured.body)}</div>` : ""}
               </td>
             </tr>
@@ -1039,7 +1039,7 @@ function renderFeatureGrid(data, number, assetMode, anchor = "", isLastSection =
                 <table role="presentation" cellpadding="0" cellspacing="0" border="0">
                   <tr>
                     <td valign="middle" style="padding-right:10px;">${renderPictoBadge(item.picto, color, 14, assetMode)}</td>
-                    ${item.title ? `<td valign="middle"><p style="margin:0; font-family:${FONTS.heading}; font-weight:600; font-size:13.5px; color:${cardText}; letter-spacing:-0.005em; line-height:1.28;">${escapeHtmlWithNbsp(item.title)}</p></td>` : ""}
+                    ${item.title ? `<td valign="middle"><p style="margin:0; font-family:${FONTS.heading}; font-weight:600; font-size:13.5px; color:${cardText}; letter-spacing:-0.005em; line-height:18px; mso-line-height-rule:exactly;">${escapeHtmlWithNbsp(item.title)}</p></td>` : ""}
                   </tr>
                 </table>
               </td>
@@ -1109,7 +1109,7 @@ function renderComparison(data, number, anchor = "", isLastSection = false) {
   const introHtml = sectionKicker || title || body
     ? `<div style="margin:0 0 22px;">
         ${sectionKicker ? sectionHeader(numberSlot.headerNumber, sectionKicker) : ""}
-        ${title ? `<h2 class="em-h2" style="margin:${sectionKicker ? "12px" : "0"} 0 0; font-family:${FONTS.heading}; font-weight:600; font-size:30px; line-height:1.1; letter-spacing:-0.025em; color:${EMAIL_THEME.textPrimary};">${titleNumberHtml(numberSlot.titleNumber)}${escapeHtml(title)}</h2>` : ""}
+        ${title ? `<h2 class="em-h2" style="margin:${sectionKicker ? "12px" : "0"} 0 0; font-family:${FONTS.heading}; font-weight:600; font-size:30px; line-height:33px; mso-line-height-rule:exactly; letter-spacing:-0.025em; color:${EMAIL_THEME.textPrimary};">${titleNumberHtml(numberSlot.titleNumber)}${escapeHtml(title)}</h2>` : ""}
         ${body ? `<div style="margin:${title || sectionKicker ? "12px" : "0"} 0 0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:15px; line-height:1.65; color:${EMAIL_THEME.textSecondary};">${sanitizeRichText(body)}</div>` : ""}
       </div>`
     : "";
@@ -1188,7 +1188,7 @@ function renderMacro(data, number, assetMode, anchor = "", isLastSection = false
       <tr>
         <td style="padding:32px 32px 28px;">
           <p style="margin:0; font-family:${FONTS.heading}; font-weight:800; font-size:80px; line-height:0.6; color:#FF00AA; letter-spacing:-0.05em;">&quot;</p>
-          <p style="margin:16px 0 0; font-family:${FONTS.heading}; font-weight:500; font-size:24px; line-height:1.32; letter-spacing:-0.015em; color:#ffffff;">${sanitizeRichText(data.quote)}</p>
+          <p style="margin:16px 0 0; font-family:${FONTS.heading}; font-weight:500; font-size:24px; line-height:32px; mso-line-height-rule:exactly; letter-spacing:-0.015em; color:#ffffff;">${sanitizeRichText(data.quote)}</p>
           ${data.quote_author ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:22px;">
             <tr>
               <td style="padding-right:12px;">
@@ -1238,7 +1238,7 @@ function renderEvent(data, anchor = "", isLastSection = false) {
                 </td>
                 <td class="em-stack em-event-text" valign="middle" style="padding:32px 28px;">
                   ${kicker ? `<p style="margin:0 0 12px; font-family:${FONTS.body}; font-size:11px; letter-spacing:0.2em; text-transform:uppercase; font-weight:600; color:${EMAIL_THEME.positive};">${escapeHtml(kicker)}</p>` : ""}
-                  ${String(data.title || "").trim() ? `<h3 style="margin:0; font-family:${FONTS.heading}; font-weight:700; font-size:28px; letter-spacing:-0.025em; line-height:1.05; color:${eventTextPrimary};">${escapeHtml(data.title)}</h3>` : ""}
+                  ${String(data.title || "").trim() ? `<h3 style="margin:0; font-family:${FONTS.heading}; font-weight:700; font-size:28px; letter-spacing:-0.025em; line-height:30px; mso-line-height-rule:exactly; color:${eventTextPrimary};">${escapeHtml(data.title)}</h3>` : ""}
                   <div style="margin:12px 0 0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:13px; line-height:1.5; color:${eventTextSecondary};">${sanitizeRichText(data.description)}</div>
                   ${String(data.cta_label || "").trim() ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:18px;">
                     <tr><td>${renderBulletproofButton({
@@ -1391,7 +1391,7 @@ function renderReferral(data, anchor = "", isLastSection = false, assetMode = "i
             background="${escapeAttr(effectiveBgImg)}"
             style="padding:32px 32px 30px; border-radius:16px; background-color:${cardBg}; background-image:url('${escapeAttr(effectiveBgImg)}'); background-size:cover; background-position:center; background-repeat:no-repeat;">
             ${String(referralKicker || "").trim() ? `<p style="margin:0 0 14px; font-family:${FONTS.mono || "'JetBrains Mono', monospace"}; font-size:11px; line-height:1.35; letter-spacing:0.18em; text-transform:uppercase; color:${kickerColor};">${escapeHtml(referralKicker)}</p>` : ""}
-            ${String(referralTitle || "").trim() ? `<p style="margin:0; font-family:${FONTS.heading}; font-weight:700; font-size:28px; line-height:1.15; letter-spacing:-0.025em; color:${titleColor};">${titleHtml}</p>` : ""}
+            ${String(referralTitle || "").trim() ? `<p style="margin:0; font-family:${FONTS.heading}; font-weight:700; font-size:28px; line-height:32px; mso-line-height-rule:exactly; letter-spacing:-0.025em; color:${titleColor};">${titleHtml}</p>` : ""}
             ${hasDescription ? `<div style="margin:16px 0 24px; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:14px; line-height:1.55; color:${bodyColor};">${sanitizeRichText(referralDescription)}</div>` : (codeRow ? `<div style="height:24px; line-height:24px; font-size:1px;">&nbsp;</div>` : "")}
             ${codeRow}
           </td>
@@ -1445,7 +1445,7 @@ function renderCommercialOffer(data, isLastSection = false) {
           <tr>
             <td align="center" bgcolor="${cardBg}" style="padding:30px 24px; background-color:${cardBg}; background-image:${gradient}; border-radius:18px;">
               ${kicker ? `<p style="margin:0 0 12px; font-family:${FONTS.mono || "'JetBrains Mono', monospace"}; font-size:11px; line-height:1.35; letter-spacing:0.18em; text-transform:uppercase; color:${kickerColor};">${escapeHtml(kicker)}</p>` : ""}
-              ${amount ? `<p style="margin:0; font-family:${FONTS.heading}; font-size:46px; line-height:1.05; font-weight:800; letter-spacing:0; color:${amountColor};">${escapeHtml(amount)}</p>` : ""}
+              ${amount ? `<p style="margin:0; font-family:${FONTS.heading}; font-size:46px; line-height:48px; mso-line-height-rule:exactly; font-weight:800; letter-spacing:0; color:${amountColor};">${escapeHtml(amount)}</p>` : ""}
               ${body ? `<div style="margin:18px auto 0; max-width:420px; font-family:${FONTS.body}; font-size:15px; line-height:1.55; font-weight:${RICH_TEXT_WEIGHT}; color:${bodyColor};">${sanitizeRichText(body)}</div>` : ""}
               ${ctaLabel ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin:24px auto 0;"><tr><td align="center">${renderBulletproofButton({
                 label: escapeHtml(ctaLabel),
@@ -1796,7 +1796,7 @@ function renderEditorialList(data, number, anchor = "", isLastSection = false) {
           <tr>
             <td class="em-editorial-num" valign="top" width="48" style="font-family:${FONTS.heading}; font-weight:700; font-size:24px; color:${numberColor}; letter-spacing:-0.02em; line-height:1;">${String(index + 1).padStart(2, "0")}</td>
             <td valign="top" style="padding-right:14px;">
-              <p style="margin:0 0 4px; font-family:${FONTS.heading}; font-weight:600; font-size:17px; color:${EMAIL_THEME.textPrimary}; letter-spacing:-0.015em; line-height:1.25;">${escapeHtml(item.title || "")}</p>
+              <p style="margin:0 0 4px; font-family:${FONTS.heading}; font-weight:600; font-size:17px; color:${EMAIL_THEME.textPrimary}; letter-spacing:-0.015em; line-height:21px; mso-line-height-rule:exactly;">${escapeHtml(item.title || "")}</p>
               <div style="margin:0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:13.5px; color:${EMAIL_THEME.textMuted}; line-height:1.55;">${sanitizeRichText(item.body || "")}</div>
               ${tagHtml ? `<div class="em-editorial-tag-mobile" style="display:none; max-height:0; overflow:hidden; mso-hide:all; padding-top:0;">${tagHtml}</div>` : ""}
             </td>
@@ -1864,7 +1864,7 @@ function renderTimeline(data, number, anchor = "", isLastSection = false) {
               ${connector}
             </td>
             <td valign="top" style="${isLast ? "" : "padding-bottom:22px;"}">
-              <p style="margin:0 0 4px; font-family:${FONTS.heading}; font-weight:600; font-size:16px; color:${titleColor}; letter-spacing:-0.01em; line-height:1.3;">${escapeHtmlWithNbsp(item.title || "")}</p>
+              <p style="margin:0 0 4px; font-family:${FONTS.heading}; font-weight:600; font-size:16px; color:${titleColor}; letter-spacing:-0.01em; line-height:21px; mso-line-height-rule:exactly;">${escapeHtmlWithNbsp(item.title || "")}</p>
               ${item.body ? `<div style="margin:0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:13.5px; color:${bodyColor}; line-height:1.55;">${sanitizeRichText(item.body)}</div>` : ""}
             </td>
           </tr>

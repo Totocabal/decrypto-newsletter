@@ -90,6 +90,18 @@ test("email renderer keeps core webmail compatibility invariants", () => {
   assert.doesNotMatch(html, /<script[\s>]/i);
 });
 
+test("heading line-heights are explicit for Outlook desktop", () => {
+  const html = buildEmailHtml(buildCompatState("dark"));
+  const exactLineHeightCount = (html.match(/mso-line-height-rule:exactly/g) || []).length;
+
+  assert.match(html, /<h1 class="em-h1"[^>]*line-height:59px; mso-line-height-rule:exactly/i);
+  assert.match(html, /<h2 class="em-h2"[^>]*line-height:33px; mso-line-height-rule:exactly/i);
+  assert.match(html, /<h3 style="[^"]*line-height:30px; mso-line-height-rule:exactly/i);
+  assert.match(html, /Programme de parrainage[\s\S]*line-height:32px; mso-line-height-rule:exactly|line-height:32px; mso-line-height-rule:exactly[\s\S]*Invitez vos proches/i);
+  assert.match(html, /line-height:21px; mso-line-height-rule:exactly[\s\S]*Ouvrez votre compte euro/i);
+  assert.ok(exactLineHeightCount >= 10);
+});
+
 test("hidden preheader is padded enough to stop mobile previews before visible content", () => {
   const state = {
     ...buildCompatState("dark"),
