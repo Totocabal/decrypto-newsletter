@@ -2567,7 +2567,7 @@ function focusItemSummary(item) {
   return item.label || item.secondary_label || "CTA sans texte";
 }
 
-function FocusSortableItem({ item, index, collapsed, onToggle, onRemove, children }) {
+function FocusSortableItem({ item, index, collapsed, onToggle, onDuplicate, onRemove, children }) {
   const { attributes, listeners, setActivatorNodeRef, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id });
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -2617,6 +2617,9 @@ function FocusSortableItem({ item, index, collapsed, onToggle, onRemove, childre
           </div>
         </div>
         <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+          <button type="button" onClick={onDuplicate} className="flex h-9 w-9 items-center justify-center rounded-xl text-d-fg3 transition-colors hover:bg-d-panel3 hover:text-d-fg">
+            <CopyPlus size={14} />
+          </button>
           <button type="button" onClick={onRemove} className="flex h-9 w-9 items-center justify-center rounded-xl text-d-fg3 transition-colors hover:bg-red-900/20 hover:text-red-400">
             <Trash2 size={14} />
           </button>
@@ -2687,6 +2690,21 @@ function FocusEditor({ data, set }) {
 
   const updateItem = (id, patch) => setItems(items.map((it) => it.id === id ? { ...it, ...patch } : it));
   const removeItem = (id) => setItems(items.filter((it) => it.id !== id));
+  const duplicateItem = (id) => {
+    const index = items.findIndex((it) => it.id === id);
+    if (index < 0) return;
+    const duplicate = { ...items[index], id: focusNewId() };
+    setItems([
+      ...items.slice(0, index + 1),
+      duplicate,
+      ...items.slice(index + 1),
+    ]);
+    setCollapsed((prev) => {
+      const next = new Set(prev);
+      next.delete(duplicate.id);
+      return next;
+    });
+  };
   const handleDragStart = ({ active }) => {
     setActiveDragItemId(active.id);
     setCollapsed((prev) => {
@@ -2734,6 +2752,7 @@ function FocusEditor({ data, set }) {
                   index={i}
                   collapsed={collapsed.has(item.id)}
                   onToggle={() => toggleCollapse(item.id)}
+                  onDuplicate={() => duplicateItem(item.id)}
                   onRemove={() => removeItem(item.id)}
                 >
               {item.type === "text" && (
