@@ -674,6 +674,11 @@ title: "Inside the block"
 
 Opening text.
 
+:::focus_subtitle
+:::
+
+A compact heading inside the block
+
 :::focus_image
 image_url: "https://example.com/focus.png"
 image_alt: "Focus visual"
@@ -717,12 +722,13 @@ style: centered
   const [focus, macroBars] = imported.state.sections;
   assert.deepEqual(
     focus.data.items.map((item) => item.type),
-    ["text", "image", "cta", "callout", "spacer", "divider"]
+    ["text", "subtitle", "image", "cta", "callout", "spacer", "divider"]
   );
-  assert.equal(focus.data.items[2].secondary_label, "Academy");
-  assert.equal(focus.data.items[3].body, "Stay disciplined.");
-  assert.equal(focus.data.items[3].footer_accent, true);
-  assert.equal(focus.data.items[5].style, "centered");
+  assert.equal(focus.data.items[1].text, "A compact heading inside the block");
+  assert.equal(focus.data.items[3].secondary_label, "Academy");
+  assert.equal(focus.data.items[4].body, "Stay disciplined.");
+  assert.equal(focus.data.items[4].footer_accent, true);
+  assert.equal(focus.data.items[6].style, "centered");
   assert.match(buildEmailHtml(imported.state), /width="50%" align="center"[^>]*width:50%; margin:0 auto/);
   assert.equal(macroBars.type, "macro_bars");
   assert.equal(macroBars.data.bars[1].percent, "53");

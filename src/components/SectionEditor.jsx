@@ -2539,6 +2539,7 @@ function migrateFocusItems(data) {
 
 function focusItemLabel(type) {
   if (type === "text") return "Texte";
+  if (type === "subtitle") return "Sous-titre";
   if (type === "image") return "Image";
   if (type === "callout") return "Encadré";
   if (type === "spacer") return "Spacer";
@@ -2558,6 +2559,7 @@ function decodePreviewEntities(value = "") {
 
 function focusItemSummary(item) {
   if (item.type === "text") return decodePreviewEntities(String(item.body || "").replace(/<[^>]*>/g, " ")).replace(/\s+/g, " ").trim() || "Corps vide";
+  if (item.type === "subtitle") return item.text || item.title || "Sous-titre vide";
   if (item.type === "image") return item.image_alt || item.image_path || (item.image_url ? "Image sélectionnée" : "Aucune image");
   if (item.type === "callout") return item.label || "Encadré sans libellé";
   if (item.type === "spacer") return `${Number.isFinite(Number(item.height)) ? Number(item.height) : 24}px`;
@@ -2674,6 +2676,7 @@ function FocusEditor({ data, set }) {
     const id = focusNewId();
     let item;
     if (type === "text") item = { id, type: "text", body: "" };
+    else if (type === "subtitle") item = { id, type: "subtitle", text: "" };
     else if (type === "image") item = { id, type: "image", image_url: "", image_path: "", image_alt: "Visuel d'illustration", link_url: "" };
     else if (type === "callout") item = { id, type: "callout", label: "Note de la rédac", body: "", footer: "", footer_url: "", footer_accent: false, show_icon: true, picto: DEFAULT_PICTO_ID, callout_color: DEFAULT_CALLOUT_COLOR };
     else if (type === "spacer") item = { id, type: "spacer", height: 24 };
@@ -2740,6 +2743,15 @@ function FocusEditor({ data, set }) {
                     rows={6}
                     value={item.body || ""}
                     onChange={(e) => updateItem(item.id, { body: e.target.value })}
+                  />
+                </Field>
+              )}
+              {item.type === "subtitle" && (
+                <Field noMargin label="Sous-titre" hint="Même typographie que le titre du bloc, dans une taille plus petite.">
+                  <Input
+                    value={item.text || item.title || ""}
+                    onChange={(e) => updateItem(item.id, { text: e.target.value })}
+                    placeholder="Sous-titre du bloc"
                   />
                 </Field>
               )}
@@ -3036,7 +3048,7 @@ function FocusEditor({ data, set }) {
       </div>
 
       <div className="flex flex-wrap gap-2 mt-3">
-        {[["text", "Texte"], ["image", "Image"], ["cta", "CTA"], ["callout", "Encadré"], ["spacer", "Spacer"], ["divider", "Séparateur"]].map(([type, label]) => (
+        {[["text", "Texte"], ["subtitle", "Sous-titre"], ["image", "Image"], ["cta", "CTA"], ["callout", "Encadré"], ["spacer", "Spacer"], ["divider", "Séparateur"]].map(([type, label]) => (
           <button
             key={type}
             type="button"

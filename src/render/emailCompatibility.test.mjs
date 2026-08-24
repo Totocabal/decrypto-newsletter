@@ -36,6 +36,7 @@ function compatSection(type, index) {
   if (type === "focus") {
     data.items = [
       { type: "text", body: "Texte riche avec <strong>mise en avant</strong>." },
+      { type: "subtitle", text: "Un sous-titre interne" },
       {
         type: "callout",
         label: "A retenir",
@@ -100,6 +101,12 @@ test("heading line-heights are explicit for Outlook desktop", () => {
   assert.match(html, /Programme de parrainage[\s\S]*line-height:32px; mso-line-height-rule:exactly|line-height:32px; mso-line-height-rule:exactly[\s\S]*Invitez vos proches/i);
   assert.match(html, /line-height:21px; mso-line-height-rule:exactly[\s\S]*Ouvrez votre compte euro/i);
   assert.ok(exactLineHeightCount >= 10);
+});
+
+test("focus subtitle uses smaller title typography with Outlook-safe line-height", () => {
+  const html = buildEmailHtml(buildCompatState("dark"));
+
+  assert.match(html, /<h3 style="[^"]*font-family:[^;]+;[^"]*font-weight:600; font-size:22px; line-height:26px; mso-line-height-rule:exactly;[^"]*">Un sous-titre interne<\/h3>/i);
 });
 
 test("hidden preheader is padded enough to stop mobile previews before visible content", () => {

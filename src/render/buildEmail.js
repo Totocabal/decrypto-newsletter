@@ -1490,6 +1490,11 @@ function renderFocusItem(item, assetMode, isLastItem = false) {
         ${sanitizeRichText(item.body)}
       </div>`;
   }
+  if (item.type === "subtitle") {
+    const text = String(item.text || item.title || "").trim();
+    if (!text) return "";
+    return `<h3 style="margin:0 0 ${itemMarginBottom}; font-family:${FONTS.heading}; font-weight:600; font-size:22px; line-height:26px; mso-line-height-rule:exactly; letter-spacing:-0.02em; color:${EMAIL_THEME.textPrimary};">${escapeHtmlWithNbsp(text)}</h3>`;
+  }
   if (item.type === "cta") {
     if (!item.label) return "";
     const ctaText = escapeHtml(item.label) + (item.arrow ? "&nbsp;→" : "");
@@ -1638,6 +1643,7 @@ function renderFocus(data, number, assetMode, anchor = "", isLastSection = false
     const renderableItems = data.items.filter((item) => {
       if (item.type === "image") return Boolean(String(item.image_url || "").trim());
       if (item.type === "text") return Boolean(String(item.body || "").replace(/<[^>]*>/g, "").trim());
+      if (item.type === "subtitle") return Boolean(String(item.text || item.title || "").trim());
       if (item.type === "cta") return Boolean(item.label);
       if (item.type === "callout") return Boolean(plainTextFromRichText(item.body));
       if (item.type === "spacer") return Number(item.height) > 0;

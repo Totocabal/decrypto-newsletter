@@ -23,6 +23,7 @@ const SECTION_FIELDS = {
   spacer: ["height"],
   focus: ["kicker", "title", "number_position"],
   focus_text: [],
+  focus_subtitle: [],
   focus_image: ["image_url", "image_alt", "link_url"],
   focus_cta: [
     "label",
@@ -115,10 +116,12 @@ const BODY_DIRECTIVE_TYPES = new Set([
   "timeline",
   "macro_bars",
   "focus_text",
+  "focus_subtitle",
   "focus_callout",
 ]);
 const FOCUS_ITEM_TYPES = new Set([
   "focus_text",
+  "focus_subtitle",
   "focus_image",
   "focus_cta",
   "focus_callout",
@@ -322,6 +325,11 @@ function focusItemFromDirective(token, body) {
     const item = focusTextItem(markdownBody);
     if (!item) throw new MarkdownImportError(":::focus_text exige un corps Markdown.");
     return item;
+  }
+
+  if (token.type === "focus_subtitle") {
+    if (!markdownBody) throw new MarkdownImportError(":::focus_subtitle exige un corps Markdown.");
+    return { id: importId("focus"), type: "subtitle", text: markdownBody };
   }
 
   if (token.type === "focus_image") {
