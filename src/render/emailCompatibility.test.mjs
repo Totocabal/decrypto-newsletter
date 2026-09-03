@@ -109,6 +109,25 @@ test("focus subtitle uses smaller title typography with Outlook-safe line-height
   assert.match(html, /<h3 style="[^"]*font-family:[^;]+;[^"]*font-weight:600; font-size:22px; line-height:26px; mso-line-height-rule:exactly;[^"]*">Un sous-titre interne<\/h3>/i);
 });
 
+test("commented number CTA renders with bulletproof Outlook fallback", () => {
+  const section = compatSection("commented_number", 1);
+  section.data.cta_label = "Lire l'analyse";
+  section.data.cta_url = "https://example.com/analyse";
+  section.data.cta_arrow = true;
+  section.data.cta_centered = true;
+  const state = {
+    ...clone(INITIAL_STATE),
+    issue_date: "23.07.2026",
+    theme_variant: "dark",
+    sections: [section],
+  };
+  const html = buildEmailHtml(state);
+
+  assert.match(html, /Lire l&#39;analyse&nbsp;→/i);
+  assert.match(html, /<v:roundrect[\s\S]*href="https:\/\/example\.com\/analyse"/i);
+  assert.match(html, /align="center"[\s\S]*Lire l&#39;analyse&nbsp;→/i);
+});
+
 test("hidden preheader is padded enough to stop mobile previews before visible content", () => {
   const state = {
     ...buildCompatState("dark"),

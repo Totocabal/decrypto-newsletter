@@ -1920,6 +1920,51 @@ function CommentedNumberEditor({ data, set }) {
           onChange={(e) => set({ body: e.target.value })}
         />
       </Field>
+      <div className="border-t border-line pt-3 space-y-3">
+        <div className="text-[10px] uppercase tracking-[0.15em] font-semibold text-d-fg4">
+          CTA optionnel
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <Field noMargin label="Texte">
+            <Input
+              value={data.cta_label || ""}
+              onChange={(e) => set({ cta_label: e.target.value })}
+              placeholder="Laisser vide pour masquer"
+            />
+          </Field>
+          <Field noMargin label="Lien">
+            <Input
+              value={data.cta_url || ""}
+              onChange={(e) => set({ cta_url: e.target.value })}
+              placeholder="https://..."
+            />
+          </Field>
+        </div>
+        <Field noMargin label="Fond du bouton">
+          <CtaStyleControl
+            value={data.cta_style || "gradient"}
+            onChange={(cta_style) => set({ cta_style })}
+          />
+        </Field>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => set({ cta_centered: !data.cta_centered })}
+            title="Centrer"
+            className={`px-3 py-1.5 text-[13px] font-semibold rounded-lg border transition-colors ${data.cta_centered ? "bg-d-fg3 border-d-fg3 text-d-bg" : "border-line text-d-fg3 hover:border-line2"}`}
+          >
+            ≡
+          </button>
+          <button
+            type="button"
+            onClick={() => set({ cta_arrow: !data.cta_arrow })}
+            title="Flèche →"
+            className={`px-3 py-1.5 text-[13px] font-semibold rounded-lg border transition-colors ${data.cta_arrow ? "bg-d-fg3 border-d-fg3 text-d-bg" : "border-line text-d-fg3 hover:border-line2"}`}
+          >
+            →
+          </button>
+        </div>
+      </div>
     </>
   );
 }

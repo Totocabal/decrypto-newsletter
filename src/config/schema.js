@@ -193,6 +193,11 @@ export const SECTION_TYPES = {
       title: "Les allocations institutionnelles reprennent leur place.",
       body:
         "Premier flux net hebdo positif depuis trois semaines. BlackRock et Fidelity captent à eux deux <strong>62 %</strong> du volume — la concentration s'accentue.",
+      cta_label: "",
+      cta_url: "",
+      cta_style: "gradient",
+      cta_arrow: false,
+      cta_centered: false,
     }),
   },
   feature_grid: {

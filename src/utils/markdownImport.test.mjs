@@ -567,6 +567,36 @@ counts_for_numbering: false
   assert.deepEqual(imported.warnings, ["Front matter: preview_text absent.", "Aucun hero importé."]);
 });
 
+test("imports commented number CTA fields", () => {
+  const imported = importNewsletterMarkdown(`---
+title: "Number import"
+---
+
+:::commented_number
+kicker: "LE CHIFFRE"
+value: "+12"
+unit: "%"
+caption: "sur 7 jours"
+title: "Les volumes repartent."
+cta_label: "Voir le détail"
+cta_url: "https://example.com/detail"
+cta_style: "black"
+cta_arrow: true
+cta_centered: true
+:::
+
+Un commentaire court.
+`);
+
+  const [section] = imported.state.sections;
+  assert.equal(section.type, "commented_number");
+  assert.equal(section.data.cta_label, "Voir le détail");
+  assert.equal(section.data.cta_url, "https://example.com/detail");
+  assert.equal(section.data.cta_style, "black");
+  assert.equal(section.data.cta_arrow, true);
+  assert.equal(section.data.cta_centered, true);
+});
+
 test("rejects unsupported image URLs", () => {
   assert.throws(
     () => importNewsletterMarkdown(`---

@@ -72,7 +72,7 @@ const SECTION_FIELDS = {
   macro: ["kicker", "title", "number_position", "quote", "quote_author", "bg_image_url"],
   macro_bars: [],
   fear_greed: ["kicker", "title", "number_position", "value", "classification"],
-  commented_number: ["kicker", "value", "unit", "caption", "title"],
+  commented_number: ["kicker", "value", "unit", "caption", "title", "cta_label", "cta_url", "cta_style", "cta_arrow", "cta_centered"],
   event: [
     "day",
     "month",

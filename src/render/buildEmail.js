@@ -927,6 +927,21 @@ function renderCommentedNumber(data, anchor = "", isLastSection = false) {
   const numberColor = isLightTheme ? "#63C3A2" : EMAIL_THEME.positive;
   const titleColor = isLightTheme ? "#111318" : EMAIL_THEME.textPrimary;
   const bodyColor = isLightTheme ? "#555E6E" : EMAIL_THEME.textMuted;
+  const ctaLabel = String(data.cta_label || "").trim();
+  const ctaHtml = ctaLabel
+    ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:18px;">
+        <tr>
+          <td align="${data.cta_centered ? "center" : "left"}">
+            ${renderBulletproofButton({
+              label: escapeHtml(ctaLabel) + (data.cta_arrow ? "&nbsp;→" : ""),
+              url: data.cta_url || "#",
+              ctaStyle: data.cta_style,
+              align: data.cta_centered ? "center" : "left",
+            })}
+          </td>
+        </tr>
+      </table>`
+    : "";
   return `
     <tr>
       <td class="em-px" style="padding:${sectionPadding("36px", "24px 36px")};${sectionBottomBorder(isLastSection)}">
@@ -944,6 +959,7 @@ function renderCommentedNumber(data, anchor = "", isLastSection = false) {
                   <td class="em-stack em-cn-text" valign="middle" bgcolor="${cardBg}" style="padding:24px 28px; background-color:${cardBg}; box-sizing:border-box;">
                     ${data.title ? `<p style="margin:0 0 8px; font-family:${FONTS.heading}; font-weight:600; font-size:17px; line-height:21px; mso-line-height-rule:exactly; letter-spacing:-0.015em; color:${titleColor};">${escapeHtml(data.title)}</p>` : ""}
                     <div style="margin:0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:13.5px; line-height:1.55; color:${bodyColor};">${sanitizeRichText(data.body)}</div>
+                    ${ctaHtml}
                   </td>
                 </tr>
               </table>
