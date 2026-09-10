@@ -647,6 +647,35 @@ function convertBrazeLiquidToHubL(html = "") {
     );
 }
 
+export const BRAZE_PREFERENCE_CENTER_LIQUID = `{% assign investor = {{custom_attribute.\${has_investor_membership}}} %}
+{% assign private_management = {{custom_attribute.\${has_private_management_membership}}} %}
+{% if investor == true and private_management == false %}
+{% assign pf_url = {{preference_center.\${Preference_Center_Abonnement_Investisseur}}} %}
+{% elsif investor == false and private_management == true %}
+{% assign pf_url = {{preference_center.\${Preference_Center_Gestion_Privee}}} %}
+{% else %}
+{% assign pf_url = {{preference_center.\${Preference_Center}}} %}
+{% endif %}`;
+
+export function applyBrazePreferenceCenterLiquid(html = "") {
+  let out = String(html)
+    .replace(/\{\{\$\{set_user_to_unsubscribed_url\}\}\}/gi, "{{pf_url}}")
+    .replace(/\{\{&dollar;\{set_user_to_unsubscribed_url\}\}\}/gi, "{{pf_url}}")
+    .replace(/\{\{&#36;\{set_user_to_unsubscribed_url\}\}\}/gi, "{{pf_url}}")
+    .replace(/\{\{\s*\$?\{?set_user_to_unsubscribed_url\}?\s*\}\}/gi, "{{pf_url}}");
+
+  out = out.replace(
+    /(<a\b[^>]*\bhref=")[^"]*("[^>]*>\s*Se désinscrire\s*<\/a>)/i,
+    "$1{{pf_url}}$2"
+  );
+
+  if (!out.includes("assign pf_url")) {
+    out = out.replace(/<body([^>]*)>/i, `<body$1>\n${BRAZE_PREFERENCE_CENTER_LIQUID}`);
+  }
+
+  return out;
+}
+
 const HUBSPOT_FOOTER_ADDRESS =
   "SAS au capital de 210.000 € · RCS Paris 815 254 545 · {{ site_settings.company_street_address_1 }} {{ site_settings.company_city }}, {{ site_settings.company_zip }}, {{ site_settings.company_state }}, {{ site_settings.company_country }}";
 const HUBSPOT_LEGAL_NOTICE =
@@ -768,7 +797,11 @@ async function exportHostedAssetHtml(state, filename, accessToken) {
 }
 
 export async function exportBrazeHtml(state, filename = "decrypto-braze.html", accessToken) {
-  return exportHostedAssetHtml(state, filename, accessToken);
+  const { html, serializedAssets } = await buildExternalHtmlPayload(state);
+  const assetUrlMap = await uploadAssetsToBrazeCdn(serializedAssets, accessToken);
+  const finalHtml = applyBrazePreferenceCenterLiquid(replaceGeneratedAssetUrls(html, assetUrlMap));
+  downloadText(finalHtml, filename);
+  return { html: finalHtml, assets: assetUrlMap };
 }
 
 export async function exportHubSpotPack(state, filename = "decrypto-hubspot.html", accessToken) {
