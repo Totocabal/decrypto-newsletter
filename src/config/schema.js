@@ -105,6 +105,7 @@ export const SECTION_TYPES = {
       delta: "▲ +2,93 %",
       delta_tone: "positive",
       subdelta: "+1 838 € sur 7j",
+      show_subdelta: true,
       // Points : 0 = bas du graphique (prix bas), 100 = haut (prix élevé)
       points: [31.1, 40, 21.1, 50, 59.4, 70.6, 93.3],
       x_labels: ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"],

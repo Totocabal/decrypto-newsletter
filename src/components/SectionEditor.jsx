@@ -1395,6 +1395,15 @@ function ChartEditor({ data, set }) {
           readOnly={mode === "auto"}
         />
       </Field>
+      <label className="flex items-center justify-between gap-3 rounded-xl border border-line bg-d-panel px-3 py-2 text-sm text-d-fg mb-3">
+        <span>Afficher la sous-variation</span>
+        <input
+          type="checkbox"
+          checked={data.show_subdelta !== false}
+          onChange={(e) => set({ show_subdelta: e.target.checked })}
+          className="h-4 w-4 accent-d-pink"
+        />
+      </label>
 
       {mode === "manual" && (
         <>

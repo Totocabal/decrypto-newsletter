@@ -372,31 +372,59 @@ function buildChartSvg(points, assetMode, {
   const hiIsEdge = hiIdx === 0 || hiIdx === n - 1;
   const loIsEdge = loIdx === 0 || loIdx === n - 1;
 
+  // Estime la largeur d'un label (font-size 11, ~6.5 px/char) + marge
+  const textWidth = (label) => label.length * 6.5 + 8;
+  const halfW = (label) => Math.ceil(label.length * 6.5 / 2) + 6;
+  const clampX = (x, label) => Math.max(halfW(label), Math.min(W - halfW(label), x));
+  // Deux labels se superposent si leurs plages horizontales se croisent et
+  // qu'ils sont sur une bande verticale proche (hauteur d'une ligne de texte).
+  const rowOverlaps = (aMin, aMax, aY, bMin, bMax, bY) =>
+    aMin <= bMax && bMin <= aMax && Math.abs(aY - bY) < 13;
+
+  const startY = Math.max(12, first[1] - 8);
+  const startSpan = priceStart ? [4, 4 + textWidth(priceStart)] : null;
+
+  const endY = Math.max(12, last[1] - 8);
+  const endSpan = priceEnd ? [W - 4 - textWidth(priceEnd), W - 4] : null;
+
+  const highX = priceHigh ? clampX(hiPt[0], priceHigh) : 0;
+  const highY = Math.max(12, hiPt[1] - 9);
+  const highSpan = priceHigh ? [highX - halfW(priceHigh), highX + halfW(priceHigh)] : null;
+
+  const lowX = priceLow ? clampX(loPt[0], priceLow) : 0;
+  const lowY = Math.min(H - 4, loPt[1] + 16);
+  const lowSpan = priceLow ? [lowX - halfW(priceLow), lowX + halfW(priceLow)] : null;
+
+  // Masqué si confondu avec Start/End (index identique) ou si le label
+  // se superposerait visuellement au label Start ou End.
+  const highHidden = hiIsEdge
+    || (highSpan && startSpan && rowOverlaps(...highSpan, highY, ...startSpan, startY))
+    || (highSpan && endSpan && rowOverlaps(...highSpan, highY, ...endSpan, endY));
+  const lowHidden = loIsEdge
+    || (lowSpan && startSpan && rowOverlaps(...lowSpan, lowY, ...startSpan, startY))
+    || (lowSpan && endSpan && rowOverlaps(...lowSpan, lowY, ...endSpan, endY));
+
   // ── Start (gris, gauche) ──
   const startSvg = priceStart
     ? `<circle cx="${first[0]}" cy="${first[1]}" r="4" fill="#888899" stroke="${EMAIL_THEME.bgPage}" stroke-width="1.5"/>
-    <text x="4" y="${Math.max(12, first[1] - 8)}" font-family="${FONT}" font-size="11" fill="#888899" text-anchor="start">${escapeHtml(priceStart)}</text>`
+    <text x="4" y="${startY}" font-family="${FONT}" font-size="11" fill="#888899" text-anchor="start">${escapeHtml(priceStart)}</text>`
     : "";
 
   // ── End (cyan, droite) ──
   const endSvg = priceEnd
-    ? `<text x="${W - 4}" y="${Math.max(12, last[1] - 8)}" font-family="${FONT}" font-size="11" font-weight="600" fill="#00FFFF" text-anchor="end">${escapeHtml(priceEnd)}</text>`
+    ? `<text x="${W - 4}" y="${endY}" font-family="${FONT}" font-size="11" font-weight="600" fill="#00FFFF" text-anchor="end">${escapeHtml(priceEnd)}</text>`
     : "";
 
-  // Estime la demi-largeur d'un label centré (font-size 11, ~6.5 px/char) + marge
-  const halfW = (label) => Math.ceil(label.length * 6.5 / 2) + 6;
-  const clampX = (x, label) => Math.max(halfW(label), Math.min(W - halfW(label), x));
-
-  // ── High (orange) — masqué si c'est Start ou End ──
-  const highSvg = (priceHigh && !hiIsEdge)
+  // ── High (orange) — masqué si confondu avec Start/End ou trop proche ──
+  const highSvg = (priceHigh && !highHidden)
     ? `<circle cx="${hiPt[0]}" cy="${hiPt[1]}" r="4" fill="#FF8B28" stroke="${EMAIL_THEME.bgPage}" stroke-width="1.5"/>
-    <text x="${clampX(hiPt[0], priceHigh)}" y="${Math.max(12, hiPt[1] - 9)}" font-family="${FONT}" font-size="11" font-weight="600" fill="#FF8B28" text-anchor="middle">${escapeHtml(priceHigh)}</text>`
+    <text x="${highX}" y="${highY}" font-family="${FONT}" font-size="11" font-weight="600" fill="#FF8B28" text-anchor="middle">${escapeHtml(priceHigh)}</text>`
     : "";
 
-  // ── Low (rouge) — masqué si c'est Start ou End ──
-  const lowSvg = (priceLow && !loIsEdge)
+  // ── Low (rouge) — masqué si confondu avec Start/End ou trop proche ──
+  const lowSvg = (priceLow && !lowHidden)
     ? `<circle cx="${loPt[0]}" cy="${loPt[1]}" r="4" fill="#FF4B28" stroke="${EMAIL_THEME.bgPage}" stroke-width="1.5"/>
-    <text x="${clampX(loPt[0], priceLow)}" y="${Math.min(H - 4, loPt[1] + 16)}" font-family="${FONT}" font-size="11" font-weight="600" fill="#FF4B28" text-anchor="middle">${escapeHtml(priceLow)}</text>`
+    <text x="${lowX}" y="${lowY}" font-family="${FONT}" font-size="11" font-weight="600" fill="#FF4B28" text-anchor="middle">${escapeHtml(priceLow)}</text>`
     : "";
 
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="100%" style="display:block; width:100%; height:auto;" preserveAspectRatio="xMidYMid meet">
@@ -758,7 +786,7 @@ function renderChart(data, assetMode, isLastSection = false) {
             </td>
             <td align="right" valign="bottom">
               <p style="margin:0; font-family:${FONTS.heading}; font-weight:600; font-size:18px; color:${toneColor(data.delta_tone)};">${escapeHtml(data.delta)}</p>
-              <p style="margin:2px 0 0; font-family:${FONTS.body}; font-size:12px; color:${EMAIL_THEME.textDim}; letter-spacing:0.04em;">${escapeHtml(data.subdelta)}</p>
+              ${data.show_subdelta !== false ? `<p style="margin:2px 0 0; font-family:${FONTS.body}; font-size:12px; color:${EMAIL_THEME.textDim}; letter-spacing:0.04em;">${escapeHtml(data.subdelta)}</p>` : ""}
             </td>
           </tr>
           <tr>
