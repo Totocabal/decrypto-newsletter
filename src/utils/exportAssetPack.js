@@ -17,6 +17,7 @@ import {
   getChartSvgFull,
   getGaugeSvgFull,
 } from "../render/buildEmail.js";
+import { minifyEmailHtml } from "./minifyEmailHtml.js";
 import { CALLOUT_PICTOS_MAP, DEFAULT_PICTO_ID, DEFAULT_CALLOUT_COLOR } from "../config/calloutPictos.js";
 
 // Densité PNG : 2× pour les écrans Retina + une marge de sécurité pour le zoom
@@ -799,7 +800,9 @@ async function exportHostedAssetHtml(state, filename, accessToken) {
 export async function exportBrazeHtml(state, filename = "decrypto-braze.html", accessToken) {
   const { html, serializedAssets } = await buildExternalHtmlPayload(state);
   const assetUrlMap = await uploadAssetsToBrazeCdn(serializedAssets, accessToken);
-  const finalHtml = applyBrazePreferenceCenterLiquid(replaceGeneratedAssetUrls(html, assetUrlMap));
+  const finalHtml = minifyEmailHtml(
+    applyBrazePreferenceCenterLiquid(replaceGeneratedAssetUrls(html, assetUrlMap))
+  );
   downloadText(finalHtml, filename);
   return { html: finalHtml, assets: assetUrlMap };
 }
@@ -808,7 +811,7 @@ export async function exportHubSpotPack(state, filename = "decrypto-hubspot.html
   const { html, serializedAssets } = await buildExternalHtmlPayload(state);
   const assetUrlMap = await uploadAssetsToBrazeCdn(serializedAssets, accessToken);
   const hostedHtml = replaceGeneratedAssetUrls(html, assetUrlMap);
-  const hubSpotHtml = convertHtmlToHubSpot(hostedHtml);
+  const hubSpotHtml = minifyEmailHtml(convertHtmlToHubSpot(hostedHtml));
   downloadText(hubSpotHtml, filename);
   return { html: hubSpotHtml, assets: assetUrlMap };
 }

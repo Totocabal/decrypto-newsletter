@@ -5,6 +5,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, History, Loader2, CloudOff, Cloud, Tag, Undo2, Redo2, X, BookMarked, Check, Mail, Send, ExternalLink, Copy, Trash2 } from "lucide-react";
 import { Toolbar } from "../components/Toolbar.jsx";
+import { EmailSizeAlert } from "../components/EmailSizeAlert.jsx";
 import { PreviewPanel } from "../components/PreviewPanel.jsx";
 import { EditorPanel } from "../components/EditorPanel.jsx";
 import { LockBanner } from "../components/LockBanner.jsx";
@@ -641,6 +642,8 @@ export function EditorPage({ newsletterId, onBack }) {
         sendingPreview={sendingPreview}
         publishingPreview={publishingPreview}
       />
+
+      <EmailSizeAlert state={state} />
 
       <div
         className="grid grid-cols-1 gap-5 p-4 sm:p-6 sm:grid-cols-[minmax(380px,480px)_1fr] sm:gap-6"
