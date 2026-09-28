@@ -1937,6 +1937,51 @@ function renderTimeline(data, number, anchor = "", isLastSection = false) {
     </tr>`;
 }
 
+function kpiToneColor(tone) {
+  return tone === "neutral" ? EMAIL_THEME.textPrimary : toneColor(tone);
+}
+
+function renderKpis(data, number, anchor = "", isLastSection = false) {
+  const numberSlot = numberPlacement(data, number);
+  const isLightTheme = EMAIL_THEME === EMAIL_THEMES.light;
+  const cardBg = isLightTheme ? EMAIL_THEME.bgSection : "#141418";
+  const items = (data.items || []).filter((item) => String(item.label || item.value || "").trim());
+  const subtitle = String(data.subtitle || "").trim();
+  const disclaimer = String(data.disclaimer || "").trim();
+  const perRow = items.length === 4 ? 2 : Math.min(Math.max(items.length, 1), 3);
+  const gap = 12;
+
+  const card = (item) => `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${cardBg}" style="background-color:${cardBg}; border:1px solid ${EMAIL_THEME.borderSubtle}; border-radius:14px; border-collapse:separate !important;"><tr><td class="em-kpi-in" style="padding:18px 16px;">
+        <p class="em-kpi-l" style="margin:0; font-family:${FONTS.body}; font-size:10px; line-height:14px; letter-spacing:0.16em; text-transform:uppercase; color:${EMAIL_THEME.textDim}; font-weight:500;">${escapeHtmlWithNbsp(item.label || "")}</p>
+        <p class="em-kpi-v" style="margin:10px 0 ${item.caption ? "6px" : "0"}; font-family:${FONTS.heading}; font-weight:600; font-size:30px; line-height:32px; mso-line-height-rule:exactly; letter-spacing:-0.03em; color:${kpiToneColor(item.tone)};">${escapeHtmlWithNbsp(item.value || "").replace(/\s+(?=[%€$])/g, "&nbsp;")}</p>
+        ${item.caption ? `<p style="margin:0; font-family:${FONTS.body}; font-size:12px; line-height:16px; color:${EMAIL_THEME.textMuted};">${escapeHtmlWithNbsp(item.caption)}</p>` : ""}
+      </td></tr></table>`;
+
+  const rows = [];
+  for (let start = 0; start < items.length; start += perRow) {
+    const chunk = items.slice(start, start + perRow);
+    const cells = Array.from({ length: perRow }, (_, i) => {
+      const left = +(i * gap / perRow).toFixed(1);
+      const right = +((perRow - 1 - i) * gap / perRow).toFixed(1);
+      const pad = `padding:${start > 0 ? gap : 0}px ${right}px 0 ${left}px;`;
+      return `<td class="em-kpi-col" width="${Math.floor(100 / perRow)}%" valign="top" style="${pad}">${chunk[i] ? card(chunk[i]) : "&nbsp;"}</td>`;
+    }).join("");
+    rows.push(`<tr>${cells}</tr>`);
+  }
+
+  return `
+    <tr>
+      <td class="em-px" style="padding:${sectionPadding("44px 36px", "28px 36px")};${sectionBottomBorder(isLastSection)}">
+        ${anchor}
+        ${sectionHeader(numberSlot.headerNumber, data.kicker)}
+        ${sectionTitle(data.title, numberSlot.titleNumber)}
+        ${subtitle ? `<div style="margin:10px 0 0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:15px; line-height:1.5; color:${EMAIL_THEME.textMuted};">${sanitizeRichText(subtitle)}</div>` : ""}
+        ${rows.length ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:24px;">${rows.join("")}</table>` : ""}
+        ${disclaimer ? `<div style="margin:18px 0 0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:11px; line-height:1.5; color:${EMAIL_THEME.textDim};">${sanitizeRichText(disclaimer)}</div>` : ""}
+      </td>
+    </tr>`;
+}
+
 function renderDivider(data, isLastSection = false) {
   if (isLastSection) return "";
   if (data.style === "gradient") {
@@ -2000,6 +2045,7 @@ function renderSection(sec, allSections, assetMode, showSectionNumbers = true, i
     case "comparison":  return renderComparison(sec.data, number, anchor, isLastSection);
     case "editorial_list": return renderEditorialList(sec.data, number, anchor, isLastSection);
     case "timeline":    return renderTimeline(sec.data, number, anchor, isLastSection);
+    case "kpis":        return renderKpis(sec.data, number, anchor, isLastSection);
     case "event":      return renderEvent(sec.data, anchor, isLastSection);
     case "referral":   return renderReferral(sec.data, anchor, isLastSection, assetMode);
     case "commercial_offer": return renderCommercialOffer(sec.data, isLastSection);
@@ -2157,6 +2203,9 @@ ${renderEmailFontFaces()}
     .em-h2 { font-size: 22px !important; }
     .em-event-day { font-size: 52px !important; }
     .em-chart-value { font-size: 26px !important; }
+    .em-kpi-in { padding: 14px 10px !important; }
+    .em-kpi-v { font-size: 22px !important; line-height: 26px !important; }
+    .em-kpi-l { font-size: 9px !important; letter-spacing: 0.08em !important; }
     .em-kpi-grid td { display: block !important; width: 100% !important; box-sizing: border-box !important; border-right: none !important; border-bottom: 1px solid ${EMAIL_THEME.border} !important; }
     .em-signal-col { display: block !important; width: 100% !important; box-sizing: border-box !important; border-right: none !important; border-bottom: 1px solid ${EMAIL_THEME.border} !important; }
     .em-signal-col:last-child { border-bottom: none !important; }

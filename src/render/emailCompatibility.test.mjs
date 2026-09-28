@@ -236,3 +236,23 @@ test("timeline connector height grows with step text length", () => {
   assert.ok(heights[1] > heights[0]);
   assert.ok(heights[1] <= 90);
 });
+
+test("kpis block renders bulletproof cards laid out in rows", () => {
+  const build = (count) => {
+    const data = clone(SECTION_TYPES.kpis.factory());
+    data.items = Array.from({ length: count }, (_, i) => ({
+      label: `KPI ${i + 1}`, value: `+${i + 1} %`, caption: "2024", tone: "positive",
+    }));
+    return buildEmailHtml({ ...clone(INITIAL_STATE), sections: [{ id: "kpis-1", type: "kpis", data }] });
+  };
+
+  const three = build(3);
+  assert.equal((three.match(/class="em-kpi-col"/g) || []).length, 3);
+  assert.equal((three.match(/<tr><td class="em-kpi-col"/g) || []).length, 1);
+  assert.match(three, /border-collapse:separate !important/);
+  assert.match(three, /\+1&nbsp;%/);
+
+  const four = build(4);
+  assert.equal((four.match(/class="em-kpi-col"/g) || []).length, 4);
+  assert.equal((four.match(/<tr><td class="em-kpi-col"/g) || []).length, 2);
+});

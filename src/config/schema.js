@@ -362,6 +362,23 @@ export const SECTION_TYPES = {
       ],
     }),
   },
+  kpis: {
+    label: "KPIs",
+    icon: "LayoutGrid",
+    factory: () => ({
+      kicker: "EN CHIFFRES",
+      number_position: "kicker",
+      title: "Bitcoin face au compte à terme",
+      subtitle: "Rendement annuel moyen sur cinq ans, et le revers de la volatilité.",
+      items: [
+        { label: "Perf. moy. BTC / an", value: "+115 %", caption: "2020 – 2024", tone: "positive" },
+        { label: "Perf. moy. CAT / an", value: "+1,6 %", caption: "2020 – 2024", tone: "neutral" },
+        { label: "Pire année BTC", value: "–65 %", caption: "2022", tone: "negative" },
+      ],
+      disclaimer:
+        "Les performances passées ne préjugent pas des performances futures. Investir dans les crypto-actifs comporte un risque de perte en capital.",
+    }),
+  },
   event: {
     label: "Évènement",
     icon: "Calendar",
