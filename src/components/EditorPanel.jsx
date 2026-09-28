@@ -3,6 +3,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState } from "react";
+import { useEditorShortcuts, useEditorEvent, COLLAPSE_SECTIONS_EVENT, shortcutLabel } from "../utils/editorShortcuts.js";
 import { DndContext, DragOverlay, PointerSensor, TouchSensor, useSensor, useSensors, closestCenter } from "@dnd-kit/core";
 import { SortableContext, useSortable, verticalListSortingStrategy, arrayMove } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -10,6 +11,7 @@ import { useConfirm } from "./Dialog.jsx";
 import {
   ChevronUp,
   ChevronDown,
+  ChevronsDownUp,
   ChevronsUpDown,
   Trash2,
   CopyPlus,
@@ -163,6 +165,7 @@ async function generatePreviewText(state) {
 }
 
 export function EditorPanel({ state, setState }) {
+  useEditorShortcuts();
   const { fetch7d, error: syncError } = useCoinGecko();
   const [globalSyncing, setGlobalSyncing] = useState(false);
   const [previewGenerating, setPreviewGenerating] = useState(false);
@@ -488,6 +491,16 @@ export function EditorPanel({ state, setState }) {
             Sections de la newsletter
           </div>
           <div className="flex flex-wrap items-center gap-2">
+            <Tooltip side="bottom" align="right" label={`Replier tous les blocs (${shortcutLabel(COLLAPSE_SECTIONS_EVENT)})`}>
+              <button
+                type="button"
+                onClick={() => window.dispatchEvent(new CustomEvent(COLLAPSE_SECTIONS_EVENT))}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] uppercase tracking-[0.14em] font-semibold rounded-full border border-line text-d-fg3 hover:border-line2 hover:text-d-fg transition-colors"
+              >
+                <ChevronsDownUp size={12} />
+                Tout replier
+              </button>
+            </Tooltip>
             <Tooltip
               side="bottom"
               align="right"
@@ -667,6 +680,7 @@ function SectionCard({
 }) {
   const confirm = useConfirm();
   const [open, setOpen] = useState(false);
+  useEditorEvent(COLLAPSE_SECTIONS_EVENT, () => setOpen(false));
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: section.id });
   const type = SECTION_TYPES[section.type];
   const label = type?.label || section.type;

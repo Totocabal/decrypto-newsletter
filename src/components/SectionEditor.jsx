@@ -3,10 +3,11 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState } from "react";
+import { useEditorEvent, COLLAPSE_FOCUS_ITEMS_EVENT, shortcutLabel } from "../utils/editorShortcuts.js";
 import { DndContext, DragOverlay, PointerSensor, TouchSensor, closestCenter, useSensor, useSensors } from "@dnd-kit/core";
 import { SortableContext, arrayMove, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Plus, Trash2, ChevronUp, ChevronDown, CopyPlus, Upload, Loader2, X, RefreshCw, Sparkles, Minus, GripVertical } from "lucide-react";
+import { Plus, Trash2, ChevronUp, ChevronDown, ChevronsDownUp, CopyPlus, Upload, Loader2, X, RefreshCw, Sparkles, Minus, GripVertical } from "lucide-react";
 import { useCoinGecko, CRYPTO_CONFIG } from "../lib/useCoinGecko.js";
 import { UNNUMBERED_TYPES } from "../config/schema.js";
 import { Field, Input, TextArea, Section } from "./FormControls.jsx";
@@ -2834,6 +2835,8 @@ function FocusEditor({ data, set }) {
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 180, tolerance: 8 } }),
   );
+  const collapseAllItems = () => setCollapsed(new Set((data.items ?? migrateFocusItems(data)).map((it) => it.id)));
+  useEditorEvent(COLLAPSE_FOCUS_ITEMS_EVENT, collapseAllItems);
   const toggleCollapse = (id) => setCollapsed((prev) => {
     const next = new Set(prev);
     next.has(id) ? next.delete(id) : next.add(id);
@@ -2909,6 +2912,18 @@ function FocusEditor({ data, set }) {
         onChange={(number_position) => set({ ...data, number_position })}
       />
 
+      <div className="mt-2 flex justify-end">
+        <Tooltip label={`Replier tous les éléments (${shortcutLabel(COLLAPSE_FOCUS_ITEMS_EVENT)})`}>
+          <button
+            type="button"
+            onClick={collapseAllItems}
+            className="flex items-center gap-1.5 rounded-full border border-line px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-d-fg3 transition-colors hover:border-line2 hover:text-d-fg"
+          >
+            <ChevronsDownUp size={12} />
+            Tout replier
+          </button>
+        </Tooltip>
+      </div>
       <div className="mt-2 rounded-2xl border border-line bg-d-panel/40 p-2">
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd} onDragCancel={handleDragCancel}>
           <SortableContext items={items.map((item) => item.id)} strategy={verticalListSortingStrategy}>
