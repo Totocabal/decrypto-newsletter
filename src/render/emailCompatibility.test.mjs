@@ -264,3 +264,19 @@ test("rich text highlights become inline email-safe spans", () => {
   assert.match(html, /<span style="background-color:#03FFCF; color:#111318;[^"]*">mot clé<\/span>/);
   assert.match(html, /<span style="background-color:#FFE45C;[^"]*">autre<\/span>/);
 });
+
+test("rich text colors become inline spans adapted to the theme", () => {
+  const withColor = (theme) => {
+    const state = clone(INITIAL_STATE);
+    state.theme_variant = theme;
+    state.sections = [{
+      id: "edito-1",
+      type: "edito",
+      data: { ...clone(SECTION_TYPES.edito.factory()), body: 'Un <span data-tc="cyan">mot cyan</span>.' },
+    }];
+    return buildEmailHtml(state);
+  };
+
+  assert.match(withColor("dark"), /<span style="color:#03FFCF;">mot cyan<\/span>/);
+  assert.match(withColor("light"), /<span style="color:#00967A;">mot cyan<\/span>/);
+});

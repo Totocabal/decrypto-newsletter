@@ -37,14 +37,36 @@ class HighlightBlot extends InlineBlot {
 
 Quill.register(HighlightBlot, true);
 
+class TextColorBlot extends InlineBlot {
+  static blotName = "textcolor";
+  static tagName = "span";
+  static create(value) {
+    const node = super.create();
+    node.setAttribute("data-tc", HIGHLIGHTS[value] ? value : DEFAULT_HIGHLIGHT);
+    return node;
+  }
+  static formats(node) {
+    return node.getAttribute("data-tc") || DEFAULT_HIGHLIGHT;
+  }
+}
+
+Quill.register(TextColorBlot, true);
+
 const HIGHLIGHT_CSS = Object.entries(HIGHLIGHTS)
-  .map(([key, { bg, fg, label }]) => `
+  .map(([key, { bg, fg, textDark }]) => `
     .ql-wrapper .ql-editor mark[data-hl="${key}"] { background-color: ${bg}; color: ${fg}; border-radius: 3px; padding: 0 2px; }
+    .ql-wrapper .ql-editor span[data-tc="${key}"] { color: ${textDark}; }
     .ql-wrapper .ql-toolbar.ql-snow button.ql-highlight[value="${key}"]::before {
       content: ""; display: block; width: 14px; height: 14px; border-radius: 4px;
       background: ${bg}; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.25);
     }
-    .ql-wrapper .ql-toolbar.ql-snow button.ql-highlight[value="${key}"].ql-active { box-shadow: 0 0 0 2px rgb(var(--d-fg3)); }`)
+    .ql-wrapper .ql-toolbar.ql-snow button.ql-highlight[value="${key}"].ql-active { box-shadow: 0 0 0 2px rgb(var(--d-fg3)); }
+    .ql-wrapper .ql-toolbar.ql-snow button.ql-textcolor[value="${key}"]::before {
+      content: "A"; display: block; width: 14px; height: 14px; line-height: 14px;
+      font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 700; text-align: center;
+      color: ${textDark};
+    }
+    .ql-wrapper .ql-toolbar.ql-snow button.ql-textcolor[value="${key}"].ql-active { box-shadow: 0 0 0 2px rgb(var(--d-fg3)); border-radius: 5px; }`)
   .join("\n");
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -134,7 +156,8 @@ function injectQuillCss() {
 
     /* Surlignages */
     ${HIGHLIGHT_CSS}
-    .ql-wrapper .ql-toolbar.ql-snow button.ql-highlight { margin-right: 2px; }
+    .ql-wrapper .ql-toolbar.ql-snow button.ql-highlight,
+    .ql-wrapper .ql-toolbar.ql-snow button.ql-textcolor { margin-right: 2px; }
 
     /* Séparateur de groupes */
     .ql-wrapper .ql-toolbar.ql-snow .ql-formats + .ql-formats::before {
@@ -278,6 +301,7 @@ class RichTextErrorBoundary extends React.Component {
 const TOOLBAR_OPTIONS = [
   ["bold", "italic", "underline", "strike"],
   Object.keys(HIGHLIGHTS).map((key) => ({ highlight: key })),
+  Object.keys(HIGHLIGHTS).map((key) => ({ textcolor: key })),
   [{ list: "ordered" }, { list: "bullet" }],
   ["link"],
   ["clean"],
@@ -336,7 +360,7 @@ function RichTextEditor({ showCount, onChange, value = "", rows = 3, placeholder
           },
         },
       },
-      formats: ["bold", "italic", "underline", "strike", "highlight", "link", "list", "indent", "softbreak"],
+      formats: ["bold", "italic", "underline", "strike", "highlight", "textcolor", "link", "list", "indent", "softbreak"],
       placeholder: placeholder || "",
     });
 

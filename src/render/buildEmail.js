@@ -2,7 +2,7 @@
 // Génération du HTML email Décrypto — modulaire, section par section
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { highlightStyle } from "../config/highlights.js";
+import { highlightStyle, textColorStyle } from "../config/highlights.js";
 import { THEME, EMAIL_THEMES, BRAND_LOGOS, FONTS } from "../config/theme.js";
 import { computeSectionNumber } from "../config/schema.js";
 import { CALLOUT_PICTOS_MAP, DEFAULT_PICTO_ID, DEFAULT_CALLOUT_COLOR, buildPictoSvgHtml } from "../config/calloutPictos.js";
@@ -207,6 +207,9 @@ export function sanitizeRichText(text = "", options = {}) {
     .replace(/&lt;mark(?:\s+[^&]*?)?\bdata-hl=&quot;([a-z]+)&quot;[^&]*?&gt;/gi, (_, key) => `<span style="${highlightStyle(key)}">`)
     .replace(/&lt;mark(?:\s[^&]*)?&gt;/gi, () => `<span style="${highlightStyle()}">`)
     .replace(/&lt;\/mark&gt;/gi, "</span>")
+    .replace(/&lt;span(?:\s+[^&]*?)?\bdata-tc=&quot;([a-z]+)&quot;[^&]*?&gt;/gi,
+      (_, key) => `<span style="${textColorStyle(key, EMAIL_THEME === EMAIL_THEMES.light)}">`)
+    .replace(/&lt;\/span&gt;/gi, "</span>")
     .replace(/&lt;sup&gt;/gi, "<sup>")
     .replace(/&lt;\/sup&gt;/gi, "</sup>")
     .replace(/&lt;ul&gt;/gi, `<ul style="${listStyle}">`)
