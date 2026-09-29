@@ -412,6 +412,18 @@ export const SECTION_TYPES = {
       disclaimer: "",
     }),
   },
+  bon_a_savoir: {
+    label: "Bon à savoir",
+    icon: "Info",
+    factory: () => ({
+      title: "Bon à savoir",
+      items: [
+        { label: "Montant minimum de souscription", value: "1 €" },
+        { label: "Délai de mise à disposition des fonds après une demande de rachat", value: "48 h" },
+        { label: "Frais", value: "Aucun frais supplémentaire n'est facturé par Coinhouse" },
+      ],
+    }),
+  },
   event: {
     label: "Évènement",
     icon: "Calendar",
@@ -1049,7 +1061,7 @@ export function buildInitialStateFromTypes(types, options = {}) {
 
 // Numéro affiché d'une section (selon sa position parmi les sections numérotables)
 // Hero, sommaire, graphique et divider ne portent pas de numéro.
-export const UNNUMBERED_TYPES = new Set(["hero", "index", "chart", "macro_bars", "commercial_offer", "image_block", "cta", "spacer", "divider", "fonds"]);
+export const UNNUMBERED_TYPES = new Set(["hero", "index", "chart", "macro_bars", "commercial_offer", "image_block", "cta", "spacer", "divider", "fonds", "bon_a_savoir"]);
 
 export function computeSectionNumber(sections, sectionId) {
   let counter = 0;

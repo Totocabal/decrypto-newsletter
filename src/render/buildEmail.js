@@ -2029,6 +2029,35 @@ function renderFonds(data, isLastSection = false) {
     </tr>`;
 }
 
+function renderBonASavoir(data, isLastSection = false) {
+  const isLightTheme = EMAIL_THEME === EMAIL_THEMES.light;
+  const cardBg = isLightTheme ? EMAIL_THEME.bgSection : "#141418";
+  const dividerColor = isLightTheme ? EMAIL_THEME.border : "rgba(255,255,255,0.10)";
+  const title = String(data.title || "").trim();
+  const items = (data.items || []).filter((item) => String(item.label || item.value || "").trim());
+
+  if (!items.length && !title) return "";
+
+  const rows = items.map((item, index) => {
+    const isLast = index === items.length - 1;
+    const borderBottom = isLast ? "" : `border-bottom:1px solid ${dividerColor};`;
+    return `<tr>
+        <td class="em-bas-l" valign="middle" style="padding:14px 12px 14px 0; ${borderBottom} font-family:${FONTS.body}; font-size:14px; line-height:21px; color:${EMAIL_THEME.textMuted};">${escapeHtmlWithNbsp(item.label || "")}</td>
+        <td class="em-bas-v" width="46%" valign="middle" align="right" style="text-align:right; padding:14px 0 14px 12px; ${borderBottom} font-family:${FONTS.heading}; font-weight:700; font-size:15px; line-height:21px; color:${EMAIL_THEME.textPrimary};">${escapeHtmlWithNbsp(item.value || "")}</td>
+      </tr>`;
+  }).join("");
+
+  return `
+    <tr>
+      <td class="em-px" style="padding:${sectionPadding("44px 36px", "28px 36px")};${sectionBottomBorder(isLastSection)}">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${cardBg}" style="background-color:${cardBg}; border:1px solid ${EMAIL_THEME.borderSubtle}; border-radius:14px; border-collapse:separate !important;"><tr><td class="em-bas-in" style="padding:24px 22px 10px;">
+          ${title ? `<p style="margin:0 0 6px; font-family:${FONTS.heading}; font-weight:700; font-size:17px; line-height:22px; mso-line-height-rule:exactly; letter-spacing:-0.01em; color:${EMAIL_THEME.accentPrimary};">${escapeHtmlWithNbsp(title)}</p>` : ""}
+          ${rows ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">${rows}</table>` : ""}
+        </td></tr></table>
+      </td>
+    </tr>`;
+}
+
 function renderDivider(data, isLastSection = false) {
   if (isLastSection) return "";
   if (data.style === "gradient") {
@@ -2094,6 +2123,7 @@ function renderSection(sec, allSections, assetMode, showSectionNumbers = true, i
     case "timeline":    return renderTimeline(sec.data, number, anchor, isLastSection);
     case "kpis":        return renderKpis(sec.data, number, anchor, isLastSection);
     case "fonds":       return renderFonds(sec.data, isLastSection);
+    case "bon_a_savoir": return renderBonASavoir(sec.data, isLastSection);
     case "event":      return renderEvent(sec.data, anchor, isLastSection);
     case "referral":   return renderReferral(sec.data, anchor, isLastSection, assetMode);
     case "commercial_offer": return renderCommercialOffer(sec.data, isLastSection);
@@ -2257,6 +2287,9 @@ ${renderEmailFontFaces()}
     .em-fonds-txt { padding: 18px 8px 18px 16px !important; }
     .em-fonds-rate { width: 120px !important; padding: 18px 16px 18px 4px !important; }
     .em-fonds-v { font-size: 24px !important; line-height: 28px !important; }
+    .em-bas-in { padding: 20px 16px 8px !important; }
+    .em-bas-l { font-size: 13px !important; line-height: 19px !important; }
+    .em-bas-v { font-size: 14px !important; line-height: 19px !important; }
     .em-kpi-grid td { display: block !important; width: 100% !important; box-sizing: border-box !important; border-right: none !important; border-bottom: 1px solid ${EMAIL_THEME.border} !important; }
     .em-signal-col { display: block !important; width: 100% !important; box-sizing: border-box !important; border-right: none !important; border-bottom: 1px solid ${EMAIL_THEME.border} !important; }
     .em-signal-col:last-child { border-bottom: none !important; }

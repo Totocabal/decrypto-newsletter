@@ -37,6 +37,7 @@ export function SectionEditor({ type, data, onChange, sections = [] }) {
     case "timeline": return <TimelineEditor data={data} set={set} />;
     case "kpis":       return <KpisEditor data={data} set={set} />;
     case "fonds":      return <FondsEditor data={data} set={set} />;
+    case "bon_a_savoir": return <BonASavoirEditor data={data} set={set} />;
     case "event":      return <EventEditor data={data} set={set} />;
     case "referral":   return <ReferralEditor data={data} set={set} />;
     case "commercial_offer": return <CommercialOfferEditor data={data} set={set} />;
@@ -1096,6 +1097,62 @@ function FondsEditor({ data, set }) {
           onChange={(e) => set({ disclaimer: e.target.value })}
         />
       </Field>
+    </>
+  );
+}
+
+function BonASavoirEditor({ data, set }) {
+  const items = data.items || [];
+  const helpers = listHelpers(items, set, () => ({ label: "", value: "" }));
+  const move = (i, dir) => {
+    const j = i + dir;
+    if (j < 0 || j >= items.length) return;
+    const arr = [...items];
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+    set({ items: arr });
+  };
+
+  return (
+    <>
+      <Field label="Titre">
+        <Input value={data.title || ""} onChange={(e) => set({ title: e.target.value })} placeholder="Bon à savoir" />
+      </Field>
+
+      <Section
+        title="Lignes"
+        action={
+          <button type="button" onClick={helpers.add} className="text-xs text-d-pink">
+            + Ajouter
+          </button>
+        }
+      >
+        <div className="space-y-2">
+          {items.map((item, i) => (
+            <div key={i} className="rounded-xl border border-line bg-d-panel2 p-3">
+              <div className="mb-2 flex items-center justify-between">
+                <span className="text-[10px] uppercase tracking-[0.18em] text-d-fg4 font-semibold">
+                  Ligne {String(i + 1).padStart(2, "0")}
+                </span>
+                <div className="flex items-center gap-1">
+                  <button type="button" onClick={() => move(i, -1)} disabled={i === 0} className="p-1 text-d-fg4 hover:text-d-fg2 hover:bg-d-panel3 rounded-lg disabled:opacity-20">
+                    <ChevronUp size={12} />
+                  </button>
+                  <button type="button" onClick={() => move(i, 1)} disabled={i === items.length - 1} className="p-1 text-d-fg4 hover:text-d-fg2 hover:bg-d-panel3 rounded-lg disabled:opacity-20">
+                    <ChevronDown size={12} />
+                  </button>
+                  <button type="button" onClick={() => helpers.remove(i)} className="p-1 text-d-fg4 hover:text-red-400 hover:bg-red-900/20 rounded-lg" title="Supprimer">
+                    <Trash2 size={12} />
+                  </button>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <Input value={item.label || ""} onChange={(e) => helpers.set(i, { ...item, label: e.target.value })} placeholder="Libellé" />
+                <Input value={item.value || ""} onChange={(e) => helpers.set(i, { ...item, value: e.target.value })} placeholder="Valeur" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </Section>
     </>
   );
 }

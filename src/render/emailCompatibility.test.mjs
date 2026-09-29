@@ -297,3 +297,19 @@ test("fonds block renders one card per fund with rate, asterisk and disclaimer",
   const htmlNoAsterisk = buildEmailHtml({ ...clone(INITIAL_STATE), sections: [{ id: "fonds-2", type: "fonds", data: noAsterisk }] });
   assert.doesNotMatch(htmlNoAsterisk.split("Spiko EU")[0], /\*<\/span>/);
 });
+
+test("bon_a_savoir block renders label/value rows with dividers except the last", () => {
+  const data = clone(SECTION_TYPES.bon_a_savoir.factory());
+  const html = buildEmailHtml({ ...clone(INITIAL_STATE), sections: [{ id: "bas-1", type: "bon_a_savoir", data }] });
+
+  assert.equal((html.match(/class="em-bas-l"/g) || []).length, 3);
+  assert.match(html, /Bon à savoir/);
+  assert.match(html, /Montant minimum de souscription/);
+  assert.match(html, /1 €/);
+  assert.equal((html.match(/class="em-bas-l"[^>]*border-bottom:1px solid/g) || []).length, 2);
+
+  const empty = { ...clone(data), items: [], title: "" };
+  const emptyHtml = buildEmailHtml({ ...clone(INITIAL_STATE), sections: [{ id: "bas-2", type: "bon_a_savoir", data: empty }] });
+  assert.doesNotMatch(emptyHtml, /class="em-bas-l"/);
+  assert.doesNotMatch(emptyHtml, /Bon à savoir/);
+});
