@@ -313,3 +313,17 @@ test("bon_a_savoir block renders label/value rows with dividers except the last"
   assert.doesNotMatch(emptyHtml, /class="em-bas-l"/);
   assert.doesNotMatch(emptyHtml, /Bon à savoir/);
 });
+
+test("bon_a_savoir block tints its background and title from the chosen accent color", () => {
+  const data = { ...clone(SECTION_TYPES.bon_a_savoir.factory()), bg_color: "#FF8B28" };
+  const html = buildEmailHtml({ ...clone(INITIAL_STATE), sections: [{ id: "bas-3", type: "bon_a_savoir", data }] });
+
+  assert.match(html, /color:#FF8B28;">Bon à savoir/);
+  assert.doesNotMatch(html, /background-color:#141418;/);
+
+  const neutralHtml = buildEmailHtml({
+    ...clone(INITIAL_STATE),
+    sections: [{ id: "bas-4", type: "bon_a_savoir", data: clone(SECTION_TYPES.bon_a_savoir.factory()) }],
+  });
+  assert.match(neutralHtml, /background-color:#141418;/);
+});

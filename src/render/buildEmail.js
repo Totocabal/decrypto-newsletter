@@ -2031,7 +2031,14 @@ function renderFonds(data, isLastSection = false) {
 
 function renderBonASavoir(data, isLastSection = false) {
   const isLightTheme = EMAIL_THEME === EMAIL_THEMES.light;
-  const cardBg = isLightTheme ? EMAIL_THEME.bgSection : "#141418";
+  const accentHex = data.bg_color || "";
+  const baseBg = isLightTheme ? "#FFFFFF" : EMAIL_THEME.bgEmail || "#0B0B0D";
+  const cardBg = accentHex
+    ? mixHex(baseBg, accentHex, isLightTheme ? 0.07 : 0.12)
+    : (isLightTheme ? EMAIL_THEME.bgSection : "#141418");
+  const cardBorder = accentHex
+    ? mixHex(baseBg, accentHex, isLightTheme ? 0.32 : 0.36)
+    : EMAIL_THEME.borderSubtle;
   const dividerColor = isLightTheme ? EMAIL_THEME.border : "rgba(255,255,255,0.10)";
   const title = String(data.title || "").trim();
   const items = (data.items || []).filter((item) => String(item.label || item.value || "").trim());
@@ -2050,8 +2057,8 @@ function renderBonASavoir(data, isLastSection = false) {
   return `
     <tr>
       <td class="em-px" style="padding:${sectionPadding("44px 36px", "28px 36px")};${sectionBottomBorder(isLastSection)}">
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${cardBg}" style="background-color:${cardBg}; border:1px solid ${EMAIL_THEME.borderSubtle}; border-radius:14px; border-collapse:separate !important;"><tr><td class="em-bas-in" style="padding:24px 22px 10px;">
-          ${title ? `<p style="margin:0 0 6px; font-family:${FONTS.heading}; font-weight:700; font-size:17px; line-height:22px; mso-line-height-rule:exactly; letter-spacing:-0.01em; color:${EMAIL_THEME.accentPrimary};">${escapeHtmlWithNbsp(title)}</p>` : ""}
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${cardBg}" style="background-color:${cardBg}; border:1px solid ${cardBorder}; border-radius:14px; border-collapse:separate !important;"><tr><td class="em-bas-in" style="padding:24px 22px 10px;">
+          ${title ? `<p style="margin:0 0 6px; font-family:${FONTS.heading}; font-weight:700; font-size:17px; line-height:22px; mso-line-height-rule:exactly; letter-spacing:-0.01em; color:${accentHex || EMAIL_THEME.accentPrimary};">${escapeHtmlWithNbsp(title)}</p>` : ""}
           ${rows ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">${rows}</table>` : ""}
         </td></tr></table>
       </td>

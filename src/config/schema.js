@@ -417,6 +417,7 @@ export const SECTION_TYPES = {
     icon: "Info",
     factory: () => ({
       title: "Bon à savoir",
+      bg_color: null,
       items: [
         { label: "Montant minimum de souscription", value: "1 €" },
         { label: "Délai de mise à disposition des fonds après une demande de rachat", value: "48 h" },

@@ -1118,6 +1118,40 @@ function BonASavoirEditor({ data, set }) {
         <Input value={data.title || ""} onChange={(e) => set({ title: e.target.value })} placeholder="Bon à savoir" />
       </Field>
 
+      <div className="mb-4">
+        <div className="text-[10px] uppercase tracking-[0.15em] font-semibold text-d-fg4 mb-2">Couleur de fond</div>
+        <div className="flex flex-wrap items-center gap-1.5">
+          <Tooltip label="Neutre">
+            <button
+              type="button"
+              onClick={() => set({ bg_color: null })}
+              className={`h-6 w-6 rounded-full border-2 transition-all bg-d-panel2 ${!data.bg_color ? "scale-110" : "opacity-50 hover:opacity-80"}`}
+              style={{
+                borderColor: !data.bg_color ? "rgb(var(--d-fg3))" : "transparent",
+                boxShadow: !data.bg_color ? "0 0 0 2px rgba(255,255,255,0.25)" : "none",
+              }}
+            />
+          </Tooltip>
+          {CALLOUT_COLORS.map((c) => {
+            const isSelected = (data.bg_color || "").toUpperCase() === c.hex.toUpperCase();
+            return (
+              <Tooltip key={c.hex} label={c.label}>
+                <button
+                  type="button"
+                  onClick={() => set({ bg_color: c.hex })}
+                  className={`h-6 w-6 rounded-full border-2 transition-all ${isSelected ? "scale-110" : "opacity-50 hover:opacity-80"}`}
+                  style={{
+                    backgroundColor: c.hex,
+                    borderColor: isSelected ? c.hex : "transparent",
+                    boxShadow: isSelected ? "0 0 0 2px rgba(255,255,255,0.25)" : "none",
+                  }}
+                />
+              </Tooltip>
+            );
+          })}
+        </div>
+      </div>
+
       <Section
         title="Lignes"
         action={
