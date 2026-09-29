@@ -379,6 +379,39 @@ export const SECTION_TYPES = {
         "Les performances passées ne préjugent pas des performances futures. Investir dans les crypto-actifs comporte un risque de perte en capital.",
     }),
   },
+  fonds: {
+    label: "Fonds",
+    icon: "Landmark",
+    factory: () => ({
+      items: [
+        {
+          name: "Spiko Euro",
+          description: "OPCVM de droit français (compartiment Spiko Amundi Overnight Swap Fund de la Spiko SICAV), libellé en euros.",
+          rate: "2,84 %",
+          show_asterisk: true,
+          rate_caption_1: "taux net annualisé",
+          rate_caption_2: "indicatif au 22/09/2026",
+        },
+        {
+          name: "Spiko EU T-Bills Money Market Fund",
+          description: "Fonds monétaire court terme de droit français, exposé aux bons du Trésor de la zone euro, libellé en euros.",
+          rate: "2,09 %",
+          show_asterisk: true,
+          rate_caption_1: "taux net annualisé",
+          rate_caption_2: "indicatif au 22/09/2026",
+        },
+        {
+          name: "Spiko US T-Bills Money Market Fund",
+          description: "Fonds monétaire court terme de droit français, exposé aux bons du Trésor américain, libellé en dollars. Ce fonds expose au risque de change.",
+          rate: "3,37 %",
+          show_asterisk: true,
+          rate_caption_1: "taux net annualisé",
+          rate_caption_2: "indicatif au 22/09/2026",
+        },
+      ],
+      disclaimer: "",
+    }),
+  },
   event: {
     label: "Évènement",
     icon: "Calendar",
@@ -1016,7 +1049,7 @@ export function buildInitialStateFromTypes(types, options = {}) {
 
 // Numéro affiché d'une section (selon sa position parmi les sections numérotables)
 // Hero, sommaire, graphique et divider ne portent pas de numéro.
-export const UNNUMBERED_TYPES = new Set(["hero", "index", "chart", "macro_bars", "commercial_offer", "image_block", "cta", "spacer", "divider"]);
+export const UNNUMBERED_TYPES = new Set(["hero", "index", "chart", "macro_bars", "commercial_offer", "image_block", "cta", "spacer", "divider", "fonds"]);
 
 export function computeSectionNumber(sections, sectionId) {
   let counter = 0;

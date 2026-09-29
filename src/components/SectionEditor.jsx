@@ -36,6 +36,7 @@ export function SectionEditor({ type, data, onChange, sections = [] }) {
     case "editorial_list": return <EditorialListEditor data={data} set={set} />;
     case "timeline": return <TimelineEditor data={data} set={set} />;
     case "kpis":       return <KpisEditor data={data} set={set} />;
+    case "fonds":      return <FondsEditor data={data} set={set} />;
     case "event":      return <EventEditor data={data} set={set} />;
     case "referral":   return <ReferralEditor data={data} set={set} />;
     case "commercial_offer": return <CommercialOfferEditor data={data} set={set} />;
@@ -988,6 +989,100 @@ function KpisEditor({ data, set }) {
                   <option value="neutral">Neutre (blanc)</option>
                   <option value="muted">Discret (gris)</option>
                 </select>
+              </div>
+            </div>
+          ))}
+        </div>
+      </Section>
+
+      <Field label="Mention légale" hint="Optionnel, affichée sous les cartes.">
+        <TextArea
+          rows={3}
+          value={data.disclaimer || ""}
+          onChange={(e) => set({ disclaimer: e.target.value })}
+        />
+      </Field>
+    </>
+  );
+}
+
+function FondsEditor({ data, set }) {
+  const items = data.items || [];
+  const helpers = listHelpers(items, set, () => ({
+    name: "Nom du fonds",
+    description: "",
+    rate: "0,00 %",
+    show_asterisk: true,
+    rate_caption_1: "taux net annualisé",
+    rate_caption_2: "",
+  }));
+  const move = (i, dir) => {
+    const j = i + dir;
+    if (j < 0 || j >= items.length) return;
+    const arr = [...items];
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+    set({ items: arr });
+  };
+
+  return (
+    <>
+      <Section
+        title="Fonds"
+        action={
+          <button type="button" onClick={helpers.add} className="text-xs text-d-pink">
+            + Ajouter
+          </button>
+        }
+      >
+        <div className="space-y-3">
+          {items.map((item, i) => (
+            <div key={i} className="rounded-xl border border-line bg-d-panel2 p-3">
+              <div className="mb-3 flex items-center justify-between">
+                <span className="text-[10px] uppercase tracking-[0.18em] text-d-fg4 font-semibold">
+                  Fonds {String(i + 1).padStart(2, "0")}
+                </span>
+                <div className="flex items-center gap-1">
+                  <button type="button" onClick={() => move(i, -1)} disabled={i === 0} className="p-1 text-d-fg4 hover:text-d-fg2 hover:bg-d-panel3 rounded-lg disabled:opacity-20">
+                    <ChevronUp size={12} />
+                  </button>
+                  <button type="button" onClick={() => move(i, 1)} disabled={i === items.length - 1} className="p-1 text-d-fg4 hover:text-d-fg2 hover:bg-d-panel3 rounded-lg disabled:opacity-20">
+                    <ChevronDown size={12} />
+                  </button>
+                  <Tooltip label="Dupliquer">
+                    <button
+                      type="button"
+                      onClick={() => set({ items: [...items.slice(0, i + 1), { ...item }, ...items.slice(i + 1)] })}
+                      className="p-1 text-d-fg4 hover:text-d-fg2 hover:bg-d-panel3 rounded-lg"
+                    >
+                      <CopyPlus size={12} />
+                    </button>
+                  </Tooltip>
+                  <button type="button" onClick={() => helpers.remove(i)} className="p-1 text-d-fg4 hover:text-red-400 hover:bg-red-900/20 rounded-lg" title="Supprimer">
+                    <Trash2 size={12} />
+                  </button>
+                </div>
+              </div>
+              <Field noMargin label="Nom du fonds">
+                <Input value={item.name || ""} onChange={(e) => helpers.set(i, { ...item, name: e.target.value })} />
+              </Field>
+              <Field noMargin label="Description" hint="Éditeur riche">
+                <TextArea rows={3} value={item.description || ""} onChange={(e) => helpers.set(i, { ...item, description: e.target.value })} />
+              </Field>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3 mb-2">
+                <Input value={item.rate || ""} onChange={(e) => helpers.set(i, { ...item, rate: e.target.value })} placeholder="Taux (2,84 %)" />
+                <label className="flex items-center justify-between gap-3 rounded-xl border border-line bg-d-panel px-3 py-2 text-sm text-d-fg">
+                  <span>Astérisque *</span>
+                  <input
+                    type="checkbox"
+                    checked={item.show_asterisk !== false}
+                    onChange={(e) => helpers.set(i, { ...item, show_asterisk: e.target.checked })}
+                    className="h-4 w-4 accent-d-pink"
+                  />
+                </label>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <Input value={item.rate_caption_1 || ""} onChange={(e) => helpers.set(i, { ...item, rate_caption_1: e.target.value })} placeholder="taux net annualisé" />
+                <Input value={item.rate_caption_2 || ""} onChange={(e) => helpers.set(i, { ...item, rate_caption_2: e.target.value })} placeholder="indicatif au JJ/MM/AAAA" />
               </div>
             </div>
           ))}

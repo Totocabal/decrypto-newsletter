@@ -280,3 +280,20 @@ test("rich text colors become inline spans adapted to the theme", () => {
   assert.match(withColor("dark"), /<span style="color:#03FFCF;">mot cyan<\/span>/);
   assert.match(withColor("light"), /<span style="color:#00967A;">mot cyan<\/span>/);
 });
+
+test("fonds block renders one card per fund with rate, asterisk and disclaimer", () => {
+  const data = clone(SECTION_TYPES.fonds.factory());
+  data.disclaimer = "Les performances passées ne préjugent pas des performances futures.";
+  const html = buildEmailHtml({ ...clone(INITIAL_STATE), sections: [{ id: "fonds-1", type: "fonds", data }] });
+
+  assert.equal((html.match(/class="em-fonds-txt"/g) || []).length, 3);
+  assert.match(html, /Spiko Euro/);
+  assert.match(html, /2,84&nbsp;%<span[^>]*>\*<\/span>/);
+  assert.match(html, /taux net annualisé<br \/>indicatif au 22\/09\/2026/);
+  assert.match(html, /Les performances passées ne préjugent pas des performances futures\./);
+
+  const noAsterisk = clone(data);
+  noAsterisk.items[0].show_asterisk = false;
+  const htmlNoAsterisk = buildEmailHtml({ ...clone(INITIAL_STATE), sections: [{ id: "fonds-2", type: "fonds", data: noAsterisk }] });
+  assert.doesNotMatch(htmlNoAsterisk.split("Spiko EU")[0], /\*<\/span>/);
+});

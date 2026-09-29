@@ -1989,6 +1989,46 @@ function renderKpis(data, number, anchor = "", isLastSection = false) {
     </tr>`;
 }
 
+function renderFonds(data, isLastSection = false) {
+  const isLightTheme = EMAIL_THEME === EMAIL_THEMES.light;
+  const cardBg = isLightTheme ? EMAIL_THEME.bgSection : "#141418";
+  const items = (data.items || []).filter((item) => String(item.name || "").trim());
+  const disclaimer = String(data.disclaimer || "").trim();
+
+  const rows = items.map((item, index) => {
+    const isLast = index === items.length - 1;
+    const rateCaptionLines = [item.rate_caption_1, item.rate_caption_2].map((l) => String(l || "").trim()).filter(Boolean);
+    const rateHtml = escapeHtmlWithNbsp(item.rate || "").replace(/\s+(?=%)/g, "&nbsp;");
+    const asterisk = item.show_asterisk !== false && item.rate
+      ? `<span style="color:${EMAIL_THEME.accentPrimary}; font-size:16px; vertical-align:top;">*</span>`
+      : "";
+    return `<tr><td style="padding:0 0 ${isLast ? 0 : 10}px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${cardBg}" style="background-color:${cardBg}; border:1px solid ${EMAIL_THEME.borderSubtle}; border-radius:14px; border-collapse:separate !important;"><tr>
+          <td class="em-fonds-txt" valign="middle" style="padding:22px 12px 22px 22px;">
+            <p style="margin:0 0 6px; font-family:${FONTS.heading}; font-weight:700; font-size:17px; line-height:22px; mso-line-height-rule:exactly; letter-spacing:-0.01em; color:${EMAIL_THEME.textPrimary};">${escapeHtmlWithNbsp(item.name || "")}</p>
+            ${item.description ? `<div style="margin:0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:14px; line-height:21px; color:${EMAIL_THEME.textMuted};">${sanitizeRichText(item.description)}</div>` : ""}
+          </td>
+          <td class="em-fonds-rate" width="150" valign="middle" align="right" style="text-align:right; padding:22px 22px 22px 8px;">
+            <p class="em-fonds-v" style="margin:0 0 4px; font-family:${FONTS.heading}; font-weight:600; font-size:30px; line-height:32px; mso-line-height-rule:exactly; letter-spacing:-0.03em; color:${EMAIL_THEME.textPrimary}; white-space:nowrap;">${rateHtml}${asterisk}</p>
+            ${rateCaptionLines.length ? `<p style="margin:0; font-family:${FONTS.body}; font-size:12px; line-height:17px; color:${EMAIL_THEME.textMuted};">${rateCaptionLines.map(escapeHtmlWithNbsp).join("<br />")}</p>` : ""}
+          </td>
+        </tr></table>
+      </td></tr>`;
+  }).join("");
+
+  if (!rows) return "";
+
+  return `
+    <tr>
+      <td class="em-px" style="padding:${sectionPadding("44px 36px", "28px 36px")};${sectionBottomBorder(isLastSection)}">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+          ${rows}
+        </table>
+        ${disclaimer ? `<div style="margin:18px 0 0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:11px; line-height:1.5; color:${EMAIL_THEME.textDim};">${sanitizeRichText(disclaimer)}</div>` : ""}
+      </td>
+    </tr>`;
+}
+
 function renderDivider(data, isLastSection = false) {
   if (isLastSection) return "";
   if (data.style === "gradient") {
@@ -2053,6 +2093,7 @@ function renderSection(sec, allSections, assetMode, showSectionNumbers = true, i
     case "editorial_list": return renderEditorialList(sec.data, number, anchor, isLastSection);
     case "timeline":    return renderTimeline(sec.data, number, anchor, isLastSection);
     case "kpis":        return renderKpis(sec.data, number, anchor, isLastSection);
+    case "fonds":       return renderFonds(sec.data, isLastSection);
     case "event":      return renderEvent(sec.data, anchor, isLastSection);
     case "referral":   return renderReferral(sec.data, anchor, isLastSection, assetMode);
     case "commercial_offer": return renderCommercialOffer(sec.data, isLastSection);
@@ -2213,6 +2254,9 @@ ${renderEmailFontFaces()}
     .em-kpi-in { padding: 14px 10px !important; }
     .em-kpi-v { font-size: 22px !important; line-height: 26px !important; }
     .em-kpi-l { font-size: 9px !important; letter-spacing: 0.08em !important; }
+    .em-fonds-txt { padding: 18px 8px 18px 16px !important; }
+    .em-fonds-rate { width: 120px !important; padding: 18px 16px 18px 4px !important; }
+    .em-fonds-v { font-size: 24px !important; line-height: 28px !important; }
     .em-kpi-grid td { display: block !important; width: 100% !important; box-sizing: border-box !important; border-right: none !important; border-bottom: 1px solid ${EMAIL_THEME.border} !important; }
     .em-signal-col { display: block !important; width: 100% !important; box-sizing: border-box !important; border-right: none !important; border-bottom: 1px solid ${EMAIL_THEME.border} !important; }
     .em-signal-col:last-child { border-bottom: none !important; }
