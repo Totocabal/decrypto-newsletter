@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, History, Loader2, CloudOff, Cloud, Tag, Undo2, Redo2, X, BookMarked, Check, Mail, Send, ExternalLink, Copy, Trash2 } from "lucide-react";
 import { Toolbar } from "../components/Toolbar.jsx";
 import { EmailSizeAlert } from "../components/EmailSizeAlert.jsx";
+import { useEditorEvent, SAVE_EVENT } from "../utils/editorShortcuts.js";
 import { PreviewPanel } from "../components/PreviewPanel.jsx";
 import { EditorPanel } from "../components/EditorPanel.jsx";
 import { LockBanner } from "../components/LockBanner.jsx";
@@ -189,6 +190,11 @@ export function EditorPage({ newsletterId, onBack }) {
       setTimeout(() => setSavedFlash(false), 2000);
     }
   };
+
+  useEditorEvent(SAVE_EVENT, () => {
+    if (!state || lockedByOther) return;
+    handleSave();
+  });
 
   const handleBack = async () => {
     if (!state || lockedByOther || !dirtySinceVersion) {

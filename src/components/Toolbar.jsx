@@ -19,6 +19,7 @@ import {
   X,
 } from "lucide-react";
 import { Tooltip } from "./Tooltip.jsx";
+import { SAVE_EVENT, shortcutLabel } from "../utils/editorShortcuts.js";
 
 export function Toolbar({
   brandName,
@@ -120,7 +121,7 @@ export function Toolbar({
               className="flex-shrink-0"
               side="bottom"
               align="right"
-              label="Crée une version numérotée automatiquement. Le champ proposé sert uniquement à ajouter un commentaire optionnel."
+              label={`Crée une version numérotée automatiquement (${shortcutLabel(SAVE_EVENT)}). Le champ proposé sert uniquement à ajouter un commentaire optionnel.`}
             >
               <button
                 onClick={onSave}
