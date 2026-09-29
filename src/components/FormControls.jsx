@@ -30,8 +30,12 @@ class HighlightBlot extends InlineBlot {
     node.setAttribute("data-hl", HIGHLIGHTS[value] ? value : DEFAULT_HIGHLIGHT);
     return node;
   }
+  // Ne renvoie une valeur que si l'attribut est déjà posé par ce blot : un <mark>
+  // collé depuis une autre app (Word, Gmail…) ne doit pas hériter d'un surlignage
+  // par défaut — le tag "mark" seul ne suffit pas à identifier notre format.
   static formats(node) {
-    return node.getAttribute("data-hl") || DEFAULT_HIGHLIGHT;
+    const value = node.getAttribute("data-hl");
+    return HIGHLIGHTS[value] ? value : undefined;
   }
 }
 
@@ -45,8 +49,12 @@ class TextColorBlot extends InlineBlot {
     node.setAttribute("data-tc", HIGHLIGHTS[value] ? value : DEFAULT_HIGHLIGHT);
     return node;
   }
+  // Idem : un <span> collé depuis l'extérieur (Word, Google Docs, Gmail…) est
+  // presque toujours un simple conteneur de style — il ne doit pas hériter
+  // d'une couleur de texte par défaut. Le texte collé reste donc noir/défaut.
   static formats(node) {
-    return node.getAttribute("data-tc") || DEFAULT_HIGHLIGHT;
+    const value = node.getAttribute("data-tc");
+    return HIGHLIGHTS[value] ? value : undefined;
   }
 }
 
