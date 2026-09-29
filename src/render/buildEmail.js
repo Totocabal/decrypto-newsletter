@@ -2048,6 +2048,7 @@ function renderBonASavoir(data, isLastSection = false) {
   const dividerColor = isLightTheme ? EMAIL_THEME.border : "rgba(255,255,255,0.10)";
   const title = String(data.title || "").trim();
   const items = (data.items || []).filter((item) => String(item.label || item.value || "").trim());
+  const disclaimer = String(data.disclaimer || "").trim();
 
   if (!items.length && !title) return "";
 
@@ -2067,6 +2068,7 @@ function renderBonASavoir(data, isLastSection = false) {
           ${title ? `<p style="margin:0 0 6px; font-family:${FONTS.heading}; font-weight:700; font-size:17px; line-height:22px; mso-line-height-rule:exactly; letter-spacing:-0.01em; color:${accentHex || EMAIL_THEME.accentPrimary};">${escapeHtmlWithNbsp(title)}</p>` : ""}
           ${rows ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">${rows}</table>` : ""}
         </td></tr></table>
+        ${disclaimer ? `<div style="margin:18px 0 0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-style:italic; font-size:11px; line-height:1.5; color:${EMAIL_THEME.textDim};">${sanitizeRichText(disclaimer)}</div>` : ""}
       </td>
     </tr>`;
 }

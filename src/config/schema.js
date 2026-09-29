@@ -423,6 +423,7 @@ export const SECTION_TYPES = {
         { label: "Délai de mise à disposition des fonds après une demande de rachat", value: "48 h" },
         { label: "Frais", value: "Aucun frais supplémentaire n'est facturé par Coinhouse" },
       ],
+      disclaimer: "",
     }),
   },
   event: {

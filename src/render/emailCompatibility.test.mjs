@@ -314,6 +314,18 @@ test("bon_a_savoir block renders label/value rows with dividers except the last"
   assert.doesNotMatch(emptyHtml, /Bon à savoir/);
 });
 
+test("bon_a_savoir block renders an optional italic disclaimer under the rows", () => {
+  const withDisclaimer = { ...clone(SECTION_TYPES.bon_a_savoir.factory()), disclaimer: "Les conditions sont susceptibles d'évoluer." };
+  const html = buildEmailHtml({ ...clone(INITIAL_STATE), sections: [{ id: "bas-5", type: "bon_a_savoir", data: withDisclaimer }] });
+  assert.match(html, /font-style:italic;[^>]*>Les conditions sont susceptibles d&#39;évoluer\./);
+
+  const withoutDisclaimer = buildEmailHtml({
+    ...clone(INITIAL_STATE),
+    sections: [{ id: "bas-6", type: "bon_a_savoir", data: clone(SECTION_TYPES.bon_a_savoir.factory()) }],
+  });
+  assert.doesNotMatch(withoutDisclaimer, /font-style:italic/);
+});
+
 test("bon_a_savoir block tints its background and title from the chosen accent color", () => {
   const data = { ...clone(SECTION_TYPES.bon_a_savoir.factory()), bg_color: "#FF8B28" };
   const html = buildEmailHtml({ ...clone(INITIAL_STATE), sections: [{ id: "bas-3", type: "bon_a_savoir", data }] });

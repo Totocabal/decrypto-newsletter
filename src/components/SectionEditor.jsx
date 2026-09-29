@@ -1187,6 +1187,14 @@ function BonASavoirEditor({ data, set }) {
           ))}
         </div>
       </Section>
+
+      <Field label="Mention légale" hint="Optionnel, affichée en petit et en italique sous le bloc.">
+        <TextArea
+          rows={3}
+          value={data.disclaimer || ""}
+          onChange={(e) => set({ disclaimer: e.target.value })}
+        />
+      </Field>
     </>
   );
 }
