@@ -1090,7 +1090,7 @@ function FondsEditor({ data, set }) {
         </div>
       </Section>
 
-      <Field label="Mention légale" hint="Optionnel, affichée sous les cartes.">
+      <Field label="Mention légale" hint="Optionnel, affichée en petit et en italique sous les cartes.">
         <TextArea
           rows={3}
           value={data.disclaimer || ""}

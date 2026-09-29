@@ -2030,7 +2030,7 @@ function renderFonds(data, isLastSection = false) {
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
           ${rows}
         </table>
-        ${disclaimer ? `<div style="margin:18px 0 0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:11px; line-height:1.5; color:${EMAIL_THEME.textDim};">${sanitizeRichText(disclaimer)}</div>` : ""}
+        ${disclaimer ? `<div style="margin:18px 0 0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-style:italic; font-size:11px; line-height:1.5; color:${EMAIL_THEME.textDim};">${sanitizeRichText(disclaimer)}</div>` : ""}
       </td>
     </tr>`;
 }
