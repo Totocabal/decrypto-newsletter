@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { buildEmailHtml } from "./buildEmail.js";
+import { buildEmailHtml, sanitizeRichText } from "./buildEmail.js";
 import { INITIAL_STATE, SECTION_TYPES } from "../config/schema.js";
 
 function clone(value) {
@@ -255,4 +255,12 @@ test("kpis block renders bulletproof cards laid out in rows", () => {
   const four = build(4);
   assert.equal((four.match(/class="em-kpi-col"/g) || []).length, 4);
   assert.equal((four.match(/<tr><td class="em-kpi-col"/g) || []).length, 2);
+});
+
+test("rich text highlights become inline email-safe spans", () => {
+  const html = sanitizeRichText('<p>Un <mark data-hl="cyan">mot clé</mark> et <mark data-hl="inconnu">autre</mark></p>');
+
+  assert.doesNotMatch(html, /<mark|&lt;mark/);
+  assert.match(html, /<span style="background-color:#03FFCF; color:#111318;[^"]*">mot clé<\/span>/);
+  assert.match(html, /<span style="background-color:#FFE45C;[^"]*">autre<\/span>/);
 });

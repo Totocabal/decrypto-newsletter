@@ -8,6 +8,7 @@ import Quill from "quill";
 import "quill/dist/quill.snow.css";
 import { supabase } from "../lib/supabase.js";
 import { Tooltip } from "./Tooltip.jsx";
+import { HIGHLIGHTS, DEFAULT_HIGHLIGHT } from "../config/highlights.js";
 
 const EmbedBlot = Quill.import("blots/embed");
 const Delta = Quill.import("delta");
@@ -18,6 +19,33 @@ class SoftBreakBlot extends EmbedBlot {
 }
 
 Quill.register(SoftBreakBlot, true);
+
+const InlineBlot = Quill.import("blots/inline");
+
+class HighlightBlot extends InlineBlot {
+  static blotName = "highlight";
+  static tagName = "mark";
+  static create(value) {
+    const node = super.create();
+    node.setAttribute("data-hl", HIGHLIGHTS[value] ? value : DEFAULT_HIGHLIGHT);
+    return node;
+  }
+  static formats(node) {
+    return node.getAttribute("data-hl") || DEFAULT_HIGHLIGHT;
+  }
+}
+
+Quill.register(HighlightBlot, true);
+
+const HIGHLIGHT_CSS = Object.entries(HIGHLIGHTS)
+  .map(([key, { bg, fg, label }]) => `
+    .ql-wrapper .ql-editor mark[data-hl="${key}"] { background-color: ${bg}; color: ${fg}; border-radius: 3px; padding: 0 2px; }
+    .ql-wrapper .ql-toolbar.ql-snow button.ql-highlight[value="${key}"]::before {
+      content: ""; display: block; width: 14px; height: 14px; border-radius: 4px;
+      background: ${bg}; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.25);
+    }
+    .ql-wrapper .ql-toolbar.ql-snow button.ql-highlight[value="${key}"].ql-active { box-shadow: 0 0 0 2px rgb(var(--d-fg3)); }`)
+  .join("\n");
 
 // ─────────────────────────────────────────────────────────────────────────────
 // CSS dark-theme pour Quill (injecté une seule fois)
@@ -103,6 +131,10 @@ function injectQuillCss() {
     .ql-wrapper .ql-toolbar.ql-snow button.ql-active .ql-stroke { stroke: rgb(var(--d-fg)); }
     .ql-wrapper .ql-toolbar.ql-snow button:hover .ql-fill,
     .ql-wrapper .ql-toolbar.ql-snow button.ql-active .ql-fill  { fill:   rgb(var(--d-fg)); }
+
+    /* Surlignages */
+    ${HIGHLIGHT_CSS}
+    .ql-wrapper .ql-toolbar.ql-snow button.ql-highlight { margin-right: 2px; }
 
     /* Séparateur de groupes */
     .ql-wrapper .ql-toolbar.ql-snow .ql-formats + .ql-formats::before {
@@ -245,6 +277,7 @@ class RichTextErrorBoundary extends React.Component {
 
 const TOOLBAR_OPTIONS = [
   ["bold", "italic", "underline", "strike"],
+  Object.keys(HIGHLIGHTS).map((key) => ({ highlight: key })),
   [{ list: "ordered" }, { list: "bullet" }],
   ["link"],
   ["clean"],
@@ -303,7 +336,7 @@ function RichTextEditor({ showCount, onChange, value = "", rows = 3, placeholder
           },
         },
       },
-      formats: ["bold", "italic", "underline", "strike", "link", "list", "indent", "softbreak"],
+      formats: ["bold", "italic", "underline", "strike", "highlight", "link", "list", "indent", "softbreak"],
       placeholder: placeholder || "",
     });
 

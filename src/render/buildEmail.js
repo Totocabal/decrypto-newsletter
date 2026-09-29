@@ -2,6 +2,7 @@
 // Génération du HTML email Décrypto — modulaire, section par section
 // ─────────────────────────────────────────────────────────────────────────────
 
+import { highlightStyle } from "../config/highlights.js";
 import { THEME, EMAIL_THEMES, BRAND_LOGOS, FONTS } from "../config/theme.js";
 import { computeSectionNumber } from "../config/schema.js";
 import { CALLOUT_PICTOS_MAP, DEFAULT_PICTO_ID, DEFAULT_CALLOUT_COLOR, buildPictoSvgHtml } from "../config/calloutPictos.js";
@@ -203,6 +204,9 @@ export function sanitizeRichText(text = "", options = {}) {
     .replace(/&lt;\/s&gt;/gi, "</s>")
     .replace(/&lt;strike&gt;/gi, "<s>")
     .replace(/&lt;\/strike&gt;/gi, "</s>")
+    .replace(/&lt;mark(?:\s+[^&]*?)?\bdata-hl=&quot;([a-z]+)&quot;[^&]*?&gt;/gi, (_, key) => `<span style="${highlightStyle(key)}">`)
+    .replace(/&lt;mark(?:\s[^&]*)?&gt;/gi, () => `<span style="${highlightStyle()}">`)
+    .replace(/&lt;\/mark&gt;/gi, "</span>")
     .replace(/&lt;sup&gt;/gi, "<sup>")
     .replace(/&lt;\/sup&gt;/gi, "</sup>")
     .replace(/&lt;ul&gt;/gi, `<ul style="${listStyle}">`)
