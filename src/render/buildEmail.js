@@ -1551,6 +1551,10 @@ function renderFocusItem(item, assetMode, isLastItem = false) {
     const ctaText = escapeHtml(item.label) + (item.arrow ? "&nbsp;→" : "");
     const align = item.centered ? "center" : "left";
     const ctaTableAlign = item.centered ? `align="center" style="margin:0 auto;"` : `align="left"`;
+    const hasSubtext = plainTextFromRichText(item.subtext);
+    const subtextHtml = hasSubtext
+      ? `<tr><td align="${align}" style="padding-top:8px; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:12px; line-height:1.5; color:${EMAIL_THEME.textDim};">${sanitizeRichText(item.subtext)}</td></tr>`
+      : "";
 
     // Legacy: items with explicit style="secondary" render as standalone outline button
     if (item.style === "secondary") {
@@ -1565,6 +1569,7 @@ function renderFocusItem(item, assetMode, isLastItem = false) {
             })}
           </td>
         </tr>
+        ${subtextHtml}
       </table>`;
     }
 
@@ -1600,6 +1605,7 @@ function renderFocusItem(item, assetMode, isLastItem = false) {
             </table>
           </td>
         </tr>
+        ${subtextHtml}
       </table>`;
   }
   if (item.type === "spacer") {

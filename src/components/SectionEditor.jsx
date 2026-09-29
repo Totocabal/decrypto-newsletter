@@ -3254,6 +3254,21 @@ function FocusEditor({ data, set }) {
                       </button>
                     )}
                   </div>
+
+                  {/* Sous-texte */}
+                  <div className="border-t border-line pt-3">
+                    <Field
+                      noMargin
+                      label="Sous-texte"
+                      hint={`Optionnel, en petit sous le CTA. Suit l'alignement du bouton (${item.centered ? "centré" : "à gauche"}). Éditeur riche : liens compris.`}
+                    >
+                      <TextArea
+                        rows={2}
+                        value={item.subtext || ""}
+                        onChange={(e) => updateItem(item.id, { subtext: e.target.value })}
+                      />
+                    </Field>
+                  </div>
                 </>
               )}
               {item.type === "spacer" && (

@@ -327,3 +327,21 @@ test("bon_a_savoir block tints its background and title from the chosen accent c
   });
   assert.match(neutralHtml, /background-color:#141418;/);
 });
+
+test("CTA subtext follows the button alignment and keeps links", () => {
+  const focusData = {
+    ...clone(SECTION_TYPES.focus.factory()),
+    items: [
+      { id: "cta-left", type: "cta", label: "Voir l'offre", url: "#", centered: false, subtext: 'Voir <a href="https://example.com">les modalités</a>.' },
+      { id: "cta-center", type: "cta", label: "Découvrir", url: "#", centered: true, subtext: "Offre limitée." },
+    ],
+  };
+  const html = buildEmailHtml({ ...clone(INITIAL_STATE), sections: [{ id: "focus-1", type: "focus", data: focusData }] });
+
+  assert.match(html, /align="left"[^>]*>Voir <a href="https:\/\/example\.com"/);
+  assert.match(html, /align="center"[^>]*>Offre limitée\./);
+
+  const noSubtextData = { ...clone(focusData), items: [{ ...focusData.items[0], subtext: "" }] };
+  const noSubtextHtml = buildEmailHtml({ ...clone(INITIAL_STATE), sections: [{ id: "focus-2", type: "focus", data: noSubtextData }] });
+  assert.doesNotMatch(noSubtextHtml, /Voir <a/);
+});
