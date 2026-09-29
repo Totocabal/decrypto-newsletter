@@ -1964,7 +1964,7 @@ function renderKpis(data, number, anchor = "", isLastSection = false) {
   const perRow = items.length === 4 ? 2 : Math.min(Math.max(items.length, 1), 3);
   const gap = 12;
 
-  const card = (item) => `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${cardBg}" style="background-color:${cardBg}; border:1px solid ${EMAIL_THEME.borderSubtle}; border-radius:14px; border-collapse:separate !important;"><tr><td class="em-kpi-in" style="padding:18px 16px;">
+  const card = (item) => `<table role="presentation" width="100%" height="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${cardBg}" style="background-color:${cardBg}; border:1px solid ${EMAIL_THEME.borderSubtle}; border-radius:14px; height:100%; border-collapse:separate !important;"><tr><td class="em-kpi-in" valign="top" height="100%" style="padding:18px 16px;">
         <p class="em-kpi-l" style="margin:0; font-family:${FONTS.body}; font-size:10px; line-height:14px; letter-spacing:0.16em; text-transform:uppercase; color:${EMAIL_THEME.textDim}; font-weight:500;">${escapeHtmlWithNbsp(item.label || "")}</p>
         <p class="em-kpi-v" style="margin:10px 0 ${item.caption ? "6px" : "0"}; font-family:${FONTS.heading}; font-weight:600; font-size:30px; line-height:32px; mso-line-height-rule:exactly; letter-spacing:-0.03em; color:${kpiToneColor(item.tone)};">${escapeHtmlWithNbsp(item.value || "").replace(/\s+(?=[%€$])/g, "&nbsp;")}</p>
         ${item.caption ? `<p style="margin:0; font-family:${FONTS.body}; font-size:12px; line-height:16px; color:${EMAIL_THEME.textMuted};">${escapeHtmlWithNbsp(item.caption)}</p>` : ""}
@@ -1977,7 +1977,7 @@ function renderKpis(data, number, anchor = "", isLastSection = false) {
       const left = +(i * gap / perRow).toFixed(1);
       const right = +((perRow - 1 - i) * gap / perRow).toFixed(1);
       const pad = `padding:${start > 0 ? gap : 0}px ${right}px 0 ${left}px;`;
-      return `<td class="em-kpi-col" width="${Math.floor(100 / perRow)}%" valign="top" style="${pad}">${chunk[i] ? card(chunk[i]) : "&nbsp;"}</td>`;
+      return `<td class="em-kpi-col" width="${Math.floor(100 / perRow)}%" valign="top" style="${pad} height:1px;">${chunk[i] ? card(chunk[i]) : "&nbsp;"}</td>`;
     }).join("");
     rows.push(`<tr>${cells}</tr>`);
   }
