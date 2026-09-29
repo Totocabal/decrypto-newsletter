@@ -2056,7 +2056,7 @@ function renderBonASavoir(data, isLastSection = false) {
 
   return `
     <tr>
-      <td class="em-px" style="padding:${sectionPadding("44px 36px", "28px 36px")};${sectionBottomBorder(isLastSection)}">
+      <td class="em-px" style="padding:${sectionPadding("28px 36px", "20px 36px")};${sectionBottomBorder(isLastSection)}">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${cardBg}" style="background-color:${cardBg}; border:1px solid ${cardBorder}; border-radius:14px; border-collapse:separate !important;"><tr><td class="em-bas-in" style="padding:24px 22px 10px;">
           ${title ? `<p style="margin:0 0 6px; font-family:${FONTS.heading}; font-weight:700; font-size:17px; line-height:22px; mso-line-height-rule:exactly; letter-spacing:-0.01em; color:${accentHex || EMAIL_THEME.accentPrimary};">${escapeHtmlWithNbsp(title)}</p>` : ""}
           ${rows ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">${rows}</table>` : ""}
