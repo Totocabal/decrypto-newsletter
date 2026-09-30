@@ -2829,7 +2829,7 @@ function ReferralEditor({ data, set }) {
   );
 }
 
-function CommercialOfferEditor({ data, set }) {
+function OfferCardFields({ data, set }) {
   return (
     <>
       <Field label="Version du fond">
@@ -2883,32 +2883,68 @@ function CommercialOfferEditor({ data, set }) {
   );
 }
 
+// Conservé pour l'édition des blocs "commercial_offer" déjà présents dans des
+// newsletters existantes — les nouveaux blocs offre utilisent OfferEditor
+// (style "card") ci-dessous.
+function CommercialOfferEditor({ data, set }) {
+  return <OfferCardFields data={data} set={set} />;
+}
+
 function OfferEditor({ data, set }) {
+  const style = data.style === "card" ? "card" : "banner";
   return (
     <>
-      <Field label="Badge">
-        <Input value={data.badge_label || ""} onChange={(e) => set({ badge_label: e.target.value })} placeholder="Offre transfert" />
+      <Field label="Style">
+        <div className="grid grid-cols-2 gap-1 rounded-xl border border-line bg-d-panel p-1">
+          {[
+            ["banner", "Bandeau (fond dégradé)"],
+            ["card", "Carte (centrée)"],
+          ].map(([value, label]) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => set({ style: value })}
+              className={`rounded-lg px-3 py-2 text-xs font-semibold transition-colors ${
+                style === value
+                  ? "bg-d-fg text-d-bg shadow-sm"
+                  : "text-d-fg3 hover:bg-d-panel2 hover:text-d-fg"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       </Field>
-      <Field label="Phrase d'accroche">
-        <Input value={data.lead || ""} onChange={(e) => set({ lead: e.target.value })} placeholder="Transférez vos cryptos et recevez" />
-      </Field>
-      <Field label="Montant">
-        <Input value={data.amount || ""} onChange={(e) => set({ amount: e.target.value })} placeholder="jusqu'à 10 000 €" />
-      </Field>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <Field label="Texte du bouton">
-          <Input value={data.cta_label || ""} onChange={(e) => set({ cta_label: e.target.value })} placeholder="En profiter" />
-        </Field>
-        <Field label="Lien du bouton">
-          <Input value={data.cta_url || ""} onChange={(e) => set({ cta_url: e.target.value })} />
-        </Field>
-      </div>
-      <Field label="Mention" hint="Optionnel, en petit sous le bouton.">
-        <Input value={data.disclaimer || ""} onChange={(e) => set({ disclaimer: e.target.value })} placeholder="Offre soumise à conditions." />
-      </Field>
-      <Field label="Image de fond" hint="Optionnel. Par défaut, le dégradé violet/orange de la charte.">
-        <Input value={data.bg_image_url || ""} onChange={(e) => set({ bg_image_url: e.target.value })} placeholder="URL d'une image de fond personnalisée" />
-      </Field>
+
+      {style === "card" ? (
+        <OfferCardFields data={data} set={set} />
+      ) : (
+        <>
+          <Field label="Badge">
+            <Input value={data.badge_label || ""} onChange={(e) => set({ badge_label: e.target.value })} placeholder="Offre transfert" />
+          </Field>
+          <Field label="Phrase d'accroche">
+            <Input value={data.lead || ""} onChange={(e) => set({ lead: e.target.value })} placeholder="Transférez vos cryptos et recevez" />
+          </Field>
+          <Field label="Montant">
+            <Input value={data.amount || ""} onChange={(e) => set({ amount: e.target.value })} placeholder="jusqu'à 10 000 €" />
+          </Field>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <Field label="Texte du bouton">
+              <Input value={data.cta_label || ""} onChange={(e) => set({ cta_label: e.target.value })} placeholder="En profiter" />
+            </Field>
+            <Field label="Lien du bouton">
+              <Input value={data.cta_url || ""} onChange={(e) => set({ cta_url: e.target.value })} />
+            </Field>
+          </div>
+          <Field label="Mention" hint="Optionnel, en petit sous le bouton.">
+            <Input value={data.disclaimer || ""} onChange={(e) => set({ disclaimer: e.target.value })} placeholder="Offre soumise à conditions." />
+          </Field>
+          <Field label="Image de fond" hint="Optionnel. Par défaut, le dégradé violet/orange de la charte.">
+            <Input value={data.bg_image_url || ""} onChange={(e) => set({ bg_image_url: e.target.value })} placeholder="URL d'une image de fond personnalisée" />
+          </Field>
+        </>
+      )}
     </>
   );
 }

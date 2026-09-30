@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import { buildEmailHtml, sanitizeRichText } from "./buildEmail.js";
-import { INITIAL_STATE, SECTION_TYPES } from "../config/schema.js";
+import { INITIAL_STATE, SECTION_TYPES, getAddableSectionTypes } from "../config/schema.js";
 
 function clone(value) {
   return JSON.parse(JSON.stringify(value));
@@ -373,4 +373,24 @@ test("offer block uses a bitmap background for its gradient in both render modes
   const withCustomBg = { ...clone(data), bg_image_url: "https://example.com/custom.png" };
   const customHtml = buildEmailHtml({ ...clone(INITIAL_STATE), sections: [{ id: "offer-3", type: "offer", data: withCustomBg }] }, { assetMode: "external" });
   assert.match(customHtml, /background-image:url\('https:\/\/example\.com\/custom\.png'\)/);
+});
+
+test("offer block's card style renders like the legacy commercial_offer block, which stays addable only for existing sections", () => {
+  const addableTypes = getAddableSectionTypes().map(([type]) => type);
+  assert.ok(addableTypes.includes("offer"));
+  assert.ok(!addableTypes.includes("commercial_offer"));
+
+  const legacyData = clone(SECTION_TYPES.commercial_offer.factory());
+  const legacyHtml = buildEmailHtml({ ...clone(INITIAL_STATE), sections: [{ id: "co-1", type: "commercial_offer", data: legacyData }] });
+
+  const cardData = { ...clone(SECTION_TYPES.offer.factory()), style: "card" };
+  const cardHtml = buildEmailHtml({ ...clone(INITIAL_STATE), sections: [{ id: "offer-4", type: "offer", data: cardData }] });
+
+  assert.match(legacyHtml, /linear-gradient\(135deg/);
+  assert.match(cardHtml, /linear-gradient\(135deg/);
+  assert.doesNotMatch(cardHtml, /offer-bg\.png/);
+
+  const bannerHtml = buildEmailHtml({ ...clone(INITIAL_STATE), sections: [{ id: "offer-5", type: "offer", data: clone(SECTION_TYPES.offer.factory()) }] });
+  assert.match(bannerHtml, /offer-bg\.png/);
+  assert.doesNotMatch(bannerHtml, /linear-gradient\(135deg/);
 });

@@ -82,6 +82,7 @@ import {
   saveDefaultRootContent,
   resetDefaultRootContent,
   UNNUMBERED_TYPES,
+  getAddableSectionTypes,
 } from "../config/schema.js";
 
 function generateTemporaryPassword() {
@@ -882,7 +883,7 @@ function SortableActiveItem({ entry, index, total, onMoveUp, onMoveDown, onToggl
 function DefaultSectionsEditor({ currentProfile, active: editorVisible = true }) {
   const confirm = useConfirm();
   const prompt = usePrompt();
-  const allTypes = Object.keys(SECTION_TYPES);
+  const allTypes = getAddableSectionTypes().map(([type]) => type);
   const [blockSearch, setBlockSearch] = useState("");
   const [active, setActive] = useState(() => getDefaultNewsletterTemplate().sections);
   const [includeDefaultContent, setIncludeDefaultContent] = useState(
@@ -1595,7 +1596,7 @@ function DefaultContentEditorModal({ onClose }) {
     { id: "header", label: "Header", icon: FileEdit },
     { id: "footer", label: "Footer", icon: LayoutTemplate },
   ];
-  const sectionTypes = Object.keys(SECTION_TYPES);
+  const sectionTypes = getAddableSectionTypes().map(([type]) => type);
   const allTypes = [...rootTypes.map((item) => item.id), ...sectionTypes];
   const [selectedType, setSelectedType] = useState("header");
   const [overrides, setOverrides] = useState(() => getAllDefaultSectionOverrides());

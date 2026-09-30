@@ -1518,6 +1518,7 @@ function renderCommercialOffer(data, isLastSection = false) {
 }
 
 function renderOffer(data, assetMode, isLastSection = false) {
+  if (data.style === "card") return renderCommercialOffer(data, isLastSection);
   const badgeLabel = String(data.badge_label || "").trim();
   const lead = String(data.lead || "").trim();
   const amount = String(data.amount || "").trim();

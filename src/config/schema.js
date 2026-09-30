@@ -460,9 +460,13 @@ export const SECTION_TYPES = {
       bg_image_path: "",
     }),
   },
+  // Conservé uniquement pour le rendu/édition des blocs déjà existants dans
+  // des newsletters : remplacé par le style "card" du bloc "offer" pour toute
+  // nouvelle création (voir hiddenFromPicker + getAddableSectionTypes).
   commercial_offer: {
     label: "Offre commerciale",
     icon: "Gift",
+    hiddenFromPicker: true,
     factory: () => ({
       bg_variant: "dark",
       kicker: "Bonus de bienvenue",
@@ -476,6 +480,8 @@ export const SECTION_TYPES = {
     label: "Offre",
     icon: "BadgePercent",
     factory: () => ({
+      style: "banner",
+      // Champs du style "Bandeau" (fond dégradé en image)
       badge_label: "Offre transfert",
       lead: "Transférez vos cryptos et recevez",
       amount: "jusqu'à 10 000 €",
@@ -483,6 +489,10 @@ export const SECTION_TYPES = {
       cta_url: "#",
       disclaimer: "Offre soumise à conditions.",
       bg_image_url: "",
+      // Champs du style "Carte" (fond dégradé CSS, centré)
+      bg_variant: "dark",
+      kicker: "Bonus de bienvenue",
+      body: "Transférez vos actifs maintenant et recevez un bonus sur votre dépôt.",
     }),
   },
   text_block: {
@@ -1078,6 +1088,13 @@ export function buildInitialStateFromTypes(types, options = {}) {
 // Numéro affiché d'une section (selon sa position parmi les sections numérotables)
 // Hero, sommaire, graphique et divider ne portent pas de numéro.
 export const UNNUMBERED_TYPES = new Set(["hero", "index", "chart", "macro_bars", "commercial_offer", "offer", "image_block", "cta", "spacer", "divider", "fonds", "bon_a_savoir"]);
+
+// Types proposables lors de l'ajout d'un nouveau bloc — exclut les types remplacés
+// par une variante d'un autre bloc (ex. commercial_offer → style "card" de "offer"),
+// gardés dans SECTION_TYPES uniquement pour les blocs déjà existants.
+export function getAddableSectionTypes() {
+  return Object.entries(SECTION_TYPES).filter(([, def]) => !def.hiddenFromPicker);
+}
 
 export function computeSectionNumber(sections, sectionId) {
   let counter = 0;

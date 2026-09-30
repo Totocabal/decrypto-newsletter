@@ -53,6 +53,7 @@ import {
   UNNUMBERED_TYPES,
   createSection,
   computeSectionNumber,
+  getAddableSectionTypes,
 } from "../config/schema.js";
 import { SectionEditor } from "./SectionEditor.jsx";
 import { useCoinGecko } from "../lib/useCoinGecko.js";
@@ -954,7 +955,7 @@ function AddSectionButton({ onAdd }) {
             </button>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {Object.entries(SECTION_TYPES).map(([type, def]) => {
+            {getAddableSectionTypes().map(([type, def]) => {
               const Icon = SECTION_TYPE_ICONS[def.icon] || Square;
               return (
                 <button
