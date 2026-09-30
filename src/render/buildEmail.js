@@ -1854,10 +1854,13 @@ function renderImageBlock(data, isLastSection = false) {
 
 function renderTextBlock(data, number, anchor = "", isLastSection = false) {
   const numberSlot = numberPlacement(data, number);
-  const padding = isLastSection
-    ? "44px 36px"
-    : sectionPadding("44px 36px", "20px 36px");
   const hasHeadingText = Boolean(String(data.kicker || "").trim() || String(data.title || "").trim());
+  // Sans kicker ni titre, le padding du haut (pensé pour laisser respirer l'en-tête)
+  // n'a plus lieu d'être : on retombe sur le même haut que les blocs sans en-tête.
+  const defaultTopPadding = hasHeadingText ? "44px 36px" : "28px 36px 44px";
+  const padding = isLastSection
+    ? defaultTopPadding
+    : sectionPadding(defaultTopPadding, "20px 36px");
   const headerNumber = hasHeadingText ? numberSlot.headerNumber : null;
   const ctaBtn = data.cta_label
     ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:28px;">
