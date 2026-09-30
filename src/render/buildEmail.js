@@ -1924,7 +1924,7 @@ function renderEditorialList(data, number, anchor = "", isLastSection = false) {
 
   return `
     <tr>
-      <td class="em-px" style="padding:${sectionPadding("44px 36px", "28px 36px")};${sectionBottomBorder(isLastSection)}">
+      <td class="em-px" style="padding:${sectionPadding("36px 36px", "20px 36px")};${sectionBottomBorder(isLastSection)}">
         ${anchor}
         ${sectionHeader(number, "")}
         ${kickerHtml}
