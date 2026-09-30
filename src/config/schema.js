@@ -414,7 +414,7 @@ export const SECTION_TYPES = {
     }),
   },
   bon_a_savoir: {
-    label: "Bon à savoir",
+    label: "Tableau 2 colonnes",
     icon: "Info",
     factory: () => ({
       title: "Bon à savoir",
