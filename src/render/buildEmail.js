@@ -1902,6 +1902,7 @@ function renderEditorialList(data, number, anchor = "", isLastSection = false) {
         </tr>
       </table>`
     : "";
+  const endWithSeparator = data.end_with_separator !== false;
   const rows = (data.items || []).map((item, index, arr) => {
     const isLast = index === arr.length - 1;
     const tagColor = item.tag_color || EMAIL_THEME.accentPrimary;
@@ -1909,7 +1910,7 @@ function renderEditorialList(data, number, anchor = "", isLastSection = false) {
       ? `<span style="font-family:${FONTS.mono}; font-size:10px; color:${escapeAttr(tagColor)}; letter-spacing:0.08em; text-transform:uppercase; font-weight:700; line-height:1.35;">${escapeHtml(item.tag)}</span>`
       : "";
     return `<tr>
-      <td style="padding:18px 0; border-top:1px solid ${rowBorder}; ${isLast ? `border-bottom:1px solid ${rowBorder};` : ""}">
+      <td style="padding:18px 0; border-top:1px solid ${rowBorder}; ${isLast && endWithSeparator ? `border-bottom:1px solid ${rowBorder};` : ""}">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
           <tr>
             <td class="em-editorial-num" valign="top" width="48" style="font-family:${FONTS.heading}; font-weight:700; font-size:24px; color:${numberColor}; letter-spacing:-0.02em; line-height:1;">${String(index + 1).padStart(2, "0")}</td>

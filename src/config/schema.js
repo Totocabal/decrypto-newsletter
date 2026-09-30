@@ -302,6 +302,7 @@ export const SECTION_TYPES = {
     icon: "List",
     factory: () => ({
       kicker: "Cinq raisons d'activer",
+      end_with_separator: true,
       items: [
         {
           title: "Vos achats crypto, sans friction bancaire",

@@ -721,6 +721,15 @@ function EditorialListEditor({ data, set }) {
           placeholder="Cinq raisons d'activer"
         />
       </Field>
+      <label className="flex items-center justify-between gap-3 rounded-xl border border-line bg-d-panel px-3 py-2 text-sm text-d-fg mb-3">
+        <span>Terminer par un séparateur</span>
+        <input
+          type="checkbox"
+          checked={data.end_with_separator !== false}
+          onChange={(e) => set({ end_with_separator: e.target.checked })}
+          className="h-4 w-4 accent-d-pink"
+        />
+      </label>
 
       <div className="space-y-3">
         {items.map((item, i) => {
