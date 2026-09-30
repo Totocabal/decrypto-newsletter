@@ -357,3 +357,20 @@ test("CTA subtext follows the button alignment and keeps links", () => {
   const noSubtextHtml = buildEmailHtml({ ...clone(INITIAL_STATE), sections: [{ id: "focus-2", type: "focus", data: noSubtextData }] });
   assert.doesNotMatch(noSubtextHtml, /Voir <a/);
 });
+
+test("offer block uses a bitmap background for its gradient in both render modes", () => {
+  const data = clone(SECTION_TYPES.offer.factory());
+  const inline = buildEmailHtml({ ...clone(INITIAL_STATE), sections: [{ id: "offer-1", type: "offer", data }] }, { assetMode: "inline" });
+  const external = buildEmailHtml({ ...clone(INITIAL_STATE), sections: [{ id: "offer-2", type: "offer", data }] }, { assetMode: "external" });
+
+  assert.doesNotMatch(inline, /linear-gradient|radial-gradient/);
+  assert.match(inline, /background-image:url\('https:\/\/decrypto-newsletter\.vercel\.app\/offer-bg\.png'\)/);
+  assert.match(external, /background-image:url\('assets\/offer-bg\.png'\)/);
+  assert.match(external, /v:fill type="frame" src="assets\/offer-bg\.png"/);
+  assert.match(external, /Offre transfert/);
+  assert.match(external, /10&nbsp;000&nbsp;€/);
+
+  const withCustomBg = { ...clone(data), bg_image_url: "https://example.com/custom.png" };
+  const customHtml = buildEmailHtml({ ...clone(INITIAL_STATE), sections: [{ id: "offer-3", type: "offer", data: withCustomBg }] }, { assetMode: "external" });
+  assert.match(customHtml, /background-image:url\('https:\/\/example\.com\/custom\.png'\)/);
+});

@@ -21,6 +21,7 @@ import {
   RefreshCw,
   Loader2,
   Activity,
+  BadgePercent,
   BarChart2,
   Calendar,
   Gauge,
@@ -876,6 +877,7 @@ const SECTION_TYPE_DESCRIPTIONS = {
   event: "Annonce d'évènement avec informations et CTA.",
   referral: "Bloc parrainage premium avec code Braze conditionnel.",
   commercial_offer: "Bloc offre commerciale bonus avec variante claire ou sombre.",
+  offer: "Bandeau offre à fond dégradé, badge, montant mis en avant et CTA.",
   text_block: "Bloc texte simple avec bouton optionnel.",
   cta: "Bouton d'action autonome.",
   spacer: "Espace vertical entre deux blocs.",
@@ -886,6 +888,7 @@ const SECTION_TYPE_DESCRIPTIONS = {
 
 const SECTION_TYPE_ICONS = {
   Activity,
+  BadgePercent,
   BarChart2,
   Calendar,
   Gauge,

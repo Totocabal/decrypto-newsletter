@@ -1517,6 +1517,55 @@ function renderCommercialOffer(data, isLastSection = false) {
     </tr>`;
 }
 
+function renderOffer(data, assetMode, isLastSection = false) {
+  const badgeLabel = String(data.badge_label || "").trim();
+  const lead = String(data.lead || "").trim();
+  const amount = String(data.amount || "").trim();
+  const ctaLabel = String(data.cta_label || "").trim();
+  const ctaUrl = String(data.cta_url || "#").trim() || "#";
+  const disclaimer = String(data.disclaimer || "").trim();
+  const bgImg = String(data.bg_image_url || "").trim();
+  // Le fond est un dégradé radial (violet + orange) : Outlook et certains
+  // webmails ne rendent pas ce type de dégradé en CSS, donc on l'exporte en
+  // image bitmap, exactement comme le bloc Évènement.
+  const effectiveBgImg = bgImg || (assetMode === "external"
+    ? "assets/offer-bg.png"
+    : "https://decrypto-newsletter.vercel.app/offer-bg.png");
+
+  return `
+    <tr>
+      <td class="em-px" style="padding:${sectionPadding("44px 36px", "28px 36px")};${sectionBottomBorder(isLastSection)}">
+        <!--[if mso]>
+        <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false" style="width:568px;" arcsize="8%">
+          <v:fill type="frame" src="${escapeAttr(effectiveBgImg)}" color="#1A1A1A" />
+          <v:textbox inset="0,0,0,0"><![endif]-->
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+          class="em-offer-bg"
+          bgcolor="#1A1A1A"
+          background="${escapeAttr(effectiveBgImg)}"
+          style="background-color:#1A1A1A; background-image:url('${escapeAttr(effectiveBgImg)}'); background-size:cover; background-position:center; border-radius:18px; border-collapse:separate !important; border-spacing:0 !important; overflow:hidden;">
+          <tr>
+            <td class="em-offer-in" align="left" style="padding:40px 36px;">
+              ${badgeLabel ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td bgcolor="${EMAIL_THEME.accentPrimary}" style="background-color:${EMAIL_THEME.accentPrimary}; border-radius:999px; padding:6px 12px; font-family:${FONTS.body}; font-size:11px; line-height:14px; letter-spacing:0.16em; text-transform:uppercase; font-weight:700; color:#FFFFFF;">${escapeHtml(badgeLabel)}</td></tr></table>` : ""}
+              ${lead ? `<p class="em-offer-lead" style="margin:${badgeLabel ? "24px" : "0"} 0 4px; font-family:${FONTS.heading}; font-weight:600; font-size:20px; line-height:1.3; letter-spacing:-0.01em; color:#FFFFFF;">${escapeHtmlWithNbsp(lead)}</p>` : ""}
+              ${amount ? `<p class="em-offer-amt" style="margin:0; font-family:${FONTS.heading}; font-weight:700; font-size:56px; line-height:60px; mso-line-height-rule:exactly; letter-spacing:-0.04em; color:#FFFFFF;">${escapeHtmlWithNbsp(amount).replace(/\s+/g, "&nbsp;")}</p>` : ""}
+              ${ctaLabel ? `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:28px;"><tr><td>${renderBulletproofButton({
+                label: escapeHtml(ctaLabel),
+                url: ctaUrl,
+                bgColor: "#FFFFFF",
+                textColor: EMAIL_THEME.accentTertiary,
+                borderColor: "#FFFFFF",
+                align: "left",
+              })}</td></tr></table>` : ""}
+              ${disclaimer ? `<p style="margin:20px 0 0; font-family:${FONTS.body}; font-size:12px; line-height:1.5; color:#FFFFFF;">${escapeHtmlWithNbsp(disclaimer)}</p>` : ""}
+            </td>
+          </tr>
+        </table>
+        <!--[if mso]></v:textbox></v:roundrect><![endif]-->
+      </td>
+    </tr>`;
+}
+
 function renderFocusItem(item, assetMode, isLastItem = false) {
   const itemMarginBottom = isLastItem ? "0" : "26px";
   const ctaMarginBottom = isLastItem ? "0" : "18px";
@@ -2145,6 +2194,7 @@ function renderSection(sec, allSections, assetMode, showSectionNumbers = true, i
     case "event":      return renderEvent(sec.data, anchor, isLastSection);
     case "referral":   return renderReferral(sec.data, anchor, isLastSection, assetMode);
     case "commercial_offer": return renderCommercialOffer(sec.data, isLastSection);
+    case "offer":       return renderOffer(sec.data, assetMode, isLastSection);
     case "focus":      return renderFocus(sec.data, number, assetMode, anchor, isLastSection);
     case "image_block": return renderImageBlock(sec.data, isLastSection);
     case "text_block": return renderTextBlock(sec.data, number, anchor, isLastSection);
@@ -2308,6 +2358,9 @@ ${renderEmailFontFaces()}
     .em-bas-in { padding: 20px 16px 8px !important; }
     .em-bas-l { font-size: 13px !important; line-height: 19px !important; }
     .em-bas-v { font-size: 14px !important; line-height: 19px !important; }
+    .em-offer-in { padding: 32px 24px !important; }
+    .em-offer-amt { font-size: 44px !important; line-height: 48px !important; }
+    .em-offer-lead { font-size: 17px !important; }
     .em-kpi-grid td { display: block !important; width: 100% !important; box-sizing: border-box !important; border-right: none !important; border-bottom: 1px solid ${EMAIL_THEME.border} !important; }
     .em-signal-col { display: block !important; width: 100% !important; box-sizing: border-box !important; border-right: none !important; border-bottom: 1px solid ${EMAIL_THEME.border} !important; }
     .em-signal-col:last-child { border-bottom: none !important; }

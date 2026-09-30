@@ -51,6 +51,7 @@ import {
   X,
   FileEdit,
   Gift,
+  BadgePercent,
 } from "lucide-react";
 import { supabase } from "../lib/supabase.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
@@ -759,6 +760,7 @@ const SECTION_ICON_MAP = {
   bon_a_savoir: Info,
   event: Calendar,
   commercial_offer: Gift,
+  offer: BadgePercent,
   text_block: Type,
   cta: MousePointerClick,
   spacer: ChevronsUpDown,
@@ -785,6 +787,7 @@ const SECTION_TYPE_DESCRIPTIONS = {
   bon_a_savoir: "Encadré pratique avec des lignes libellé / valeur.",
   event: "Annonce d'évènement avec informations et CTA.",
   commercial_offer: "Bloc offre commerciale bonus avec variante claire ou sombre.",
+  offer: "Bandeau offre à fond dégradé, badge, montant mis en avant et CTA.",
   text_block: "Bloc texte simple avec bouton optionnel.",
   cta: "Bouton d'action autonome.",
   spacer: "Espace vertical entre deux blocs.",

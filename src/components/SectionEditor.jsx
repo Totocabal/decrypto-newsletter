@@ -41,6 +41,7 @@ export function SectionEditor({ type, data, onChange, sections = [] }) {
     case "event":      return <EventEditor data={data} set={set} />;
     case "referral":   return <ReferralEditor data={data} set={set} />;
     case "commercial_offer": return <CommercialOfferEditor data={data} set={set} />;
+    case "offer":      return <OfferEditor data={data} set={set} />;
     case "focus":      return <FocusEditor data={data} set={set} />;
     case "image_block": return <ImageBlockEditor data={data} set={set} />;
     case "text_block": return <TextBlockEditor data={data} set={set} />;
@@ -2869,6 +2870,36 @@ function CommercialOfferEditor({ data, set }) {
           <Input value={data.cta_url || ""} onChange={(e) => set({ cta_url: e.target.value })} />
         </Field>
       </div>
+    </>
+  );
+}
+
+function OfferEditor({ data, set }) {
+  return (
+    <>
+      <Field label="Badge">
+        <Input value={data.badge_label || ""} onChange={(e) => set({ badge_label: e.target.value })} placeholder="Offre transfert" />
+      </Field>
+      <Field label="Phrase d'accroche">
+        <Input value={data.lead || ""} onChange={(e) => set({ lead: e.target.value })} placeholder="Transférez vos cryptos et recevez" />
+      </Field>
+      <Field label="Montant">
+        <Input value={data.amount || ""} onChange={(e) => set({ amount: e.target.value })} placeholder="jusqu'à 10 000 €" />
+      </Field>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <Field label="Texte du bouton">
+          <Input value={data.cta_label || ""} onChange={(e) => set({ cta_label: e.target.value })} placeholder="En profiter" />
+        </Field>
+        <Field label="Lien du bouton">
+          <Input value={data.cta_url || ""} onChange={(e) => set({ cta_url: e.target.value })} />
+        </Field>
+      </div>
+      <Field label="Mention" hint="Optionnel, en petit sous le bouton.">
+        <Input value={data.disclaimer || ""} onChange={(e) => set({ disclaimer: e.target.value })} placeholder="Offre soumise à conditions." />
+      </Field>
+      <Field label="Image de fond" hint="Optionnel. Par défaut, le dégradé violet/orange de la charte.">
+        <Input value={data.bg_image_url || ""} onChange={(e) => set({ bg_image_url: e.target.value })} placeholder="URL d'une image de fond personnalisée" />
+      </Field>
     </>
   );
 }

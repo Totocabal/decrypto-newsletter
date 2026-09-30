@@ -30,6 +30,8 @@ const REFERRAL_BG_DARK_FILENAME = "referral-bg-dark.png";
 const REFERRAL_BG_LIGHT_FILENAME = "referral-bg-light.png";
 const MACRO_QUOTE_BG_FILENAME = "macro-quote-bg.png";
 const MACRO_QUOTE_BG_URL = "https://decrypto-newsletter.vercel.app/macro-quote-bg.png";
+const OFFER_BG_FILENAME = "offer-bg.png";
+const OFFER_BG_URL = "https://decrypto-newsletter.vercel.app/offer-bg.png";
 export const GRADIENT_CTA_FILENAME = "gradient-cta.png";
 
 function hexToParts(hex = DEFAULT_CALLOUT_COLOR) {
@@ -428,6 +430,20 @@ async function buildPngAssets(state) {
     } catch (e) {
       // eslint-disable-next-line no-console
       console.warn("[export] macro-quote-bg.png non récupéré :", e);
+    }
+  }
+
+  const needOfferBg = (state.sections || []).some(
+    (sec) => sec.type === "offer" && !String(sec.data?.bg_image_url || "").trim()
+  );
+  if (needOfferBg) {
+    try {
+      const resp = await fetch(OFFER_BG_URL);
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      assets[OFFER_BG_FILENAME] = await resp.blob();
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.warn("[export] offer-bg.png non récupéré :", e);
     }
   }
 

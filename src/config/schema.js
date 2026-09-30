@@ -471,6 +471,19 @@ export const SECTION_TYPES = {
       cta_url: "#",
     }),
   },
+  offer: {
+    label: "Offre",
+    icon: "BadgePercent",
+    factory: () => ({
+      badge_label: "Offre transfert",
+      lead: "Transférez vos cryptos et recevez",
+      amount: "jusqu'à 10 000 €",
+      cta_label: "En profiter",
+      cta_url: "#",
+      disclaimer: "Offre soumise à conditions.",
+      bg_image_url: "",
+    }),
+  },
   text_block: {
     label: "Texte",
     icon: "Type",
@@ -1063,7 +1076,7 @@ export function buildInitialStateFromTypes(types, options = {}) {
 
 // Numéro affiché d'une section (selon sa position parmi les sections numérotables)
 // Hero, sommaire, graphique et divider ne portent pas de numéro.
-export const UNNUMBERED_TYPES = new Set(["hero", "index", "chart", "macro_bars", "commercial_offer", "image_block", "cta", "spacer", "divider", "fonds", "bon_a_savoir"]);
+export const UNNUMBERED_TYPES = new Set(["hero", "index", "chart", "macro_bars", "commercial_offer", "offer", "image_block", "cta", "spacer", "divider", "fonds", "bon_a_savoir"]);
 
 export function computeSectionNumber(sections, sectionId) {
   let counter = 0;
