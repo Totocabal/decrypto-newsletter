@@ -109,7 +109,10 @@ function ctaVisualStyle(style = "gradient") {
   return {
     bgColor: CTA_GRADIENT_BG,
     background: `background-color:${CTA_GRADIENT_BG}; background-image:${CTA_GRADIENT_URL ? `url('${CTA_GRADIENT_URL}'), ` : ""}${CTA_GRADIENT_FALLBACK}; background-size:100% 100%;`,
-    msoFill: CTA_GRADIENT_BG,
+    // Outlook 365 (moteur Word) ne sait pas rendre le dégradé ni l'image de fond du
+    // bouton : il retombe sur cette couleur unie via le fillcolor du v:roundrect.
+    // Le noir se rapproche davantage de l'identité que le bleu du dégradé seul.
+    msoFill: CTA_BLACK_BG,
   };
 }
 
