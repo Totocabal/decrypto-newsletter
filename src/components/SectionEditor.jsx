@@ -10,7 +10,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { Plus, Trash2, ChevronUp, ChevronDown, ChevronsDownUp, CopyPlus, Upload, Loader2, X, RefreshCw, Sparkles, Minus, GripVertical } from "lucide-react";
 import { useCoinGecko, CRYPTO_CONFIG } from "../lib/useCoinGecko.js";
 import { UNNUMBERED_TYPES } from "../config/schema.js";
-import { Field, Input, TextArea, Section } from "./FormControls.jsx";
+import { Field, Input, TextArea, Section, CtaUrlInput } from "./FormControls.jsx";
 import { MAX_IMAGE_FILE_SIZE_LABEL } from "../lib/imageUpload.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import { supabase } from "../lib/supabase.js";
@@ -1483,9 +1483,9 @@ function FeatureGridEditor({ data, set }) {
             />
           </Field>
           <Field noMargin label="Lien">
-            <Input
+            <CtaUrlInput
               value={data.cta_url || ""}
-              onChange={(e) => set({ ...data, cta_url: e.target.value })}
+              onChange={(v) => set({ ...data, cta_url: v })}
             />
           </Field>
         </div>
@@ -2261,9 +2261,9 @@ function CommentedNumberEditor({ data, set }) {
             />
           </Field>
           <Field noMargin label="Lien">
-            <Input
+            <CtaUrlInput
               value={data.cta_url || ""}
-              onChange={(e) => set({ cta_url: e.target.value })}
+              onChange={(v) => set({ cta_url: v })}
               placeholder="https://..."
             />
           </Field>
@@ -2441,9 +2441,9 @@ function ComparisonEditor({ data, set }) {
           />
         </Field>
         <Field label="Lien">
-          <Input
+          <CtaUrlInput
             value={data.cta_url ?? ""}
-            onChange={(e) => set({ cta_url: e.target.value })}
+            onChange={(v) => set({ cta_url: v })}
           />
         </Field>
       </div>
@@ -2603,9 +2603,9 @@ function EventEditor({ data, set }) {
           />
         </Field>
         <Field label="Lien du bouton">
-          <Input
+          <CtaUrlInput
             value={data.cta_url}
-            onChange={(e) => set({ cta_url: e.target.value })}
+            onChange={(v) => set({ cta_url: v })}
           />
         </Field>
       </div>
@@ -2716,7 +2716,7 @@ function ReferralEditor({ data, set }) {
           <Input value={data.cta_label || ""} onChange={(e) => set({ cta_label: e.target.value })} />
         </Field>
         <Field label="Lien du bouton">
-          <Input value={data.cta_url || ""} onChange={(e) => set({ cta_url: e.target.value })} />
+          <CtaUrlInput value={data.cta_url || ""} onChange={(v) => set({ cta_url: v })} />
         </Field>
       </div>
 
@@ -2876,7 +2876,7 @@ function OfferCardFields({ data, set }) {
           <Input value={data.cta_label || ""} onChange={(e) => set({ cta_label: e.target.value })} />
         </Field>
         <Field label="Lien du bouton">
-          <Input value={data.cta_url || ""} onChange={(e) => set({ cta_url: e.target.value })} />
+          <CtaUrlInput value={data.cta_url || ""} onChange={(v) => set({ cta_url: v })} />
         </Field>
       </div>
     </>
@@ -2934,7 +2934,7 @@ function OfferEditor({ data, set }) {
               <Input value={data.cta_label || ""} onChange={(e) => set({ cta_label: e.target.value })} placeholder="En profiter" />
             </Field>
             <Field label="Lien du bouton">
-              <Input value={data.cta_url || ""} onChange={(e) => set({ cta_url: e.target.value })} />
+              <CtaUrlInput value={data.cta_url || ""} onChange={(v) => set({ cta_url: v })} />
             </Field>
           </div>
           <Field label="Mention" hint="Optionnel, en petit sous le bouton.">
@@ -3285,7 +3285,7 @@ function FocusEditor({ data, set }) {
                         <Input value={item.label || ""} onChange={(e) => updateItem(item.id, { label: e.target.value })} />
                       </Field>
                       <Field noMargin label="Lien">
-                        <Input value={item.url || ""} onChange={(e) => updateItem(item.id, { url: e.target.value })} />
+                        <CtaUrlInput value={item.url || ""} onChange={(v) => updateItem(item.id, { url: v })} />
                       </Field>
                     </div>
                   </div>
@@ -3324,7 +3324,7 @@ function FocusEditor({ data, set }) {
                         <Input value={item.secondary_label || ""} onChange={(e) => updateItem(item.id, { secondary_label: e.target.value })} placeholder="Laisser vide pour masquer" />
                       </Field>
                       <Field noMargin label="Lien">
-                        <Input value={item.secondary_url || ""} onChange={(e) => updateItem(item.id, { secondary_url: e.target.value })} />
+                        <CtaUrlInput value={item.secondary_url || ""} onChange={(v) => updateItem(item.id, { secondary_url: v })} />
                       </Field>
                     </div>
                     {item.secondary_label && (
@@ -3768,9 +3768,9 @@ function TextBlockEditor({ data, set }) {
           />
         </Field>
         <Field label="Lien">
-          <Input
+          <CtaUrlInput
             value={data.cta_url ?? ""}
-            onChange={(e) => set({ cta_url: e.target.value })}
+            onChange={(v) => set({ cta_url: v })}
           />
         </Field>
       </div>
@@ -3793,9 +3793,9 @@ function CtaEditor({ data, set }) {
           />
         </Field>
         <Field label="Lien">
-          <Input
+          <CtaUrlInput
             value={data.url ?? ""}
-            onChange={(e) => set({ url: e.target.value })}
+            onChange={(v) => set({ url: v })}
           />
         </Field>
       </div>
@@ -3813,9 +3813,9 @@ function CtaEditor({ data, set }) {
           />
         </Field>
         <Field label="Lien secondaire">
-          <Input
+          <CtaUrlInput
             value={data.secondary_url ?? ""}
-            onChange={(e) => set({ secondary_url: e.target.value })}
+            onChange={(v) => set({ secondary_url: v })}
           />
         </Field>
       </div>
