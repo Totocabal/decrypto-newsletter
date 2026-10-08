@@ -1940,15 +1940,6 @@ function renderEditorialList(data, number, anchor = "", isLastSection = false) {
     </tr>`;
 }
 
-function estimateTimelineConnectorHeight(item = {}) {
-  const titleLength = plainTextFromRichText(item.title || "").length;
-  const bodyLength = plainTextFromRichText(item.body || "").length;
-  const titleLines = Math.max(1, Math.ceil(titleLength / 34));
-  const bodyLines = bodyLength ? Math.max(1, Math.ceil(bodyLength / 56)) : 0;
-  const estimatedTextHeight = (titleLines * 21) + (bodyLines ? 4 + bodyLines * 21 : 0);
-  return Math.max(28, estimatedTextHeight - 18);
-}
-
 function renderTimeline(data, number, anchor = "", isLastSection = false) {
   const isLightTheme = EMAIL_THEME === EMAIL_THEMES.light;
   const accentColor = isLightTheme ? "#C0008A" : EMAIL_THEME.accentPrimary;
@@ -1969,27 +1960,28 @@ function renderTimeline(data, number, anchor = "", isLastSection = false) {
     const markerBg = isLast ? EMAIL_THEME.positive : badgeBg;
     const markerColor = isLast ? "#FFFFFF" : accentColor;
     const markerBorder = isLast ? EMAIL_THEME.positive : badgeBorder;
-    const connectorHeight = estimateTimelineConnectorHeight(item);
-    const connector = isLast
+    const badge = `<table role="presentation" width="34" height="34" cellpadding="0" cellspacing="0" border="0" style="width:34px; height:34px; border-collapse:separate !important;">
+                <tr><td width="34" height="34" align="center" valign="middle" bgcolor="${markerBg}" style="width:34px; height:34px; background-color:${markerBg}; border:1px solid ${markerBorder}; border-radius:10px; color:${markerColor}; font-family:${FONTS.heading}; font-size:${isLast ? "15px" : "14px"}; font-weight:700; line-height:34px;">${escapeHtml(marker)}</td></tr>
+              </table>`;
+    // Le liseré est la bordure d'une cellule de la 2e ligne : sa hauteur suit celle du texte
+    // de l'étape (rowspan), sans hauteur en % ni estimation.
+    const connectorRow = isLast
       ? ""
-      : `<table role="presentation" width="34" height="100%" cellpadding="0" cellspacing="0" border="0" style="height:100%;">
-          <tr><td align="center" height="100%" style="height:100%;"><table role="presentation" height="100%" cellpadding="0" cellspacing="0" border="0" style="height:100%;"><tr><td width="2" height="${connectorHeight}" style="width:2px; height:${connectorHeight}px; line-height:1px; font-size:1px; background-color:${lineColor};">&nbsp;</td></tr></table></td></tr>
-        </table>`;
+      : `<tr>
+            <td width="16" style="width:16px; border-right:2px solid ${lineColor}; font-size:1px; line-height:1px;">&nbsp;</td>
+            <td width="18" style="width:18px; font-size:1px; line-height:1px;">&nbsp;</td>
+          </tr>`;
     return `<tr>
       <td style="${isLast ? "" : "padding-bottom:4px;"}">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
           <tr>
-            <td width="50" valign="top" height="100%" style="width:50px; height:100%; padding-right:16px;">
-              <table role="presentation" width="34" height="34" cellpadding="0" cellspacing="0" border="0" style="width:34px; height:34px; border-collapse:separate !important;">
-                <tr><td width="34" height="34" align="center" valign="middle" bgcolor="${markerBg}" style="width:34px; height:34px; background-color:${markerBg}; border:1px solid ${markerBorder}; border-radius:10px; color:${markerColor}; font-family:${FONTS.heading}; font-size:${isLast ? "15px" : "14px"}; font-weight:700; line-height:34px;">${escapeHtml(marker)}</td></tr>
-              </table>
-              ${connector}
-            </td>
-            <td valign="top" style="${isLast ? "" : "padding-bottom:22px;"}">
+            <td width="34" height="34"${isLast ? "" : ' colspan="2"'} valign="top" style="width:34px; height:34px;">${badge}</td>
+            <td ${isLast ? "" : 'rowspan="2" '}valign="top" style="padding-left:16px;${isLast ? "" : " padding-bottom:22px;"}">
               <p style="margin:0 0 4px; font-family:${FONTS.heading}; font-weight:600; font-size:16px; color:${titleColor}; letter-spacing:-0.01em; line-height:21px; mso-line-height-rule:exactly;">${escapeHtmlWithNbsp(item.title || "")}</p>
               ${item.body ? `<div style="margin:0; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:13.5px; color:${bodyColor}; line-height:1.55;">${sanitizeRichText(item.body)}</div>` : ""}
             </td>
           </tr>
+          ${connectorRow}
         </table>
       </td>
     </tr>`;

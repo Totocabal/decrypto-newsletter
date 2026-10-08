@@ -201,7 +201,7 @@ test("referral block includes Outlook-safe VML background and button fallbacks",
   assert.doesNotMatch(referralHtml, /rgba\(/i);
 });
 
-test("timeline connector height grows with step text length", () => {
+test("timeline connector is a cell border spanning the whole step, whatever the text length", () => {
   const state = {
     ...clone(INITIAL_STATE),
     issue_date: "28.07.2026",
@@ -229,12 +229,11 @@ test("timeline connector height grows with step text length", () => {
     }],
   };
   const html = buildEmailHtml(state);
-  const heights = [...html.matchAll(/<td width="2" height="(\d+)"/g)].map((match) => Number(match[1]));
-
-  assert.equal(heights.length, 2);
-  assert.ok(heights[0] <= 36);
-  assert.ok(heights[1] > heights[0]);
-  assert.ok(heights[1] <= 90);
+  // Un liseré par étape sauf la dernière, porté par la bordure d'une cellule sous le badge
+  // et non par une hauteur estimée : la ligne suit la hauteur réelle du texte (rowspan).
+  assert.equal([...html.matchAll(/border-right:2px solid/g)].length, 2);
+  assert.equal([...html.matchAll(/rowspan="2"/g)].length, 2);
+  assert.doesNotMatch(html, /<td width="2" height=/);
 });
 
 test("timeline renders kicker and title like other blocks and adds no gap without heading", () => {
