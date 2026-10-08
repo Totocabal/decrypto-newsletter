@@ -1,3 +1,4 @@
+// Liste par défaut (repli et source de la migration supabase/crypto-links.sql). La liste éditable vit en base.
 // Liens courts (Branch/OneLink) vers la page d'achat de chaque crypto dans l'app Coinhouse.
 export const CRYPTO_LINKS = [
   { symbol: "AAVE", url: "https://coinhouse.onelink.me/bCWk/i7h1unto" },
@@ -77,5 +78,3 @@ export const CRYPTO_LINKS = [
   { symbol: "XTZ", url: "https://coinhouse.onelink.me/bCWk/xkbvn1bb" },
   { symbol: "YFI", url: "https://coinhouse.onelink.me/bCWk/y6ny723m" },
 ];
-
-export const findCryptoLinkByUrl = (url) => CRYPTO_LINKS.find((c) => c.url === url) || null;

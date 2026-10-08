@@ -8,7 +8,7 @@ import Quill from "quill";
 import "quill/dist/quill.snow.css";
 import { supabase } from "../lib/supabase.js";
 import { Tooltip } from "./Tooltip.jsx";
-import { CRYPTO_LINKS, findCryptoLinkByUrl } from "../config/cryptoLinks.js";
+import { useCryptoLinks } from "../lib/useCryptoLinks.js";
 import { HIGHLIGHTS, DEFAULT_HIGHLIGHT } from "../config/highlights.js";
 
 const EmbedBlot = Quill.import("blots/embed");
@@ -519,7 +519,8 @@ export function Field({ label, children, hint, action, noMargin = false }) {
 
 export function CtaUrlInput({ value, onChange, placeholder = "https://..." }) {
   const current = value || "";
-  const crypto = findCryptoLinkByUrl(current);
+  const { links } = useCryptoLinks();
+  const crypto = links.find((c) => c.url === current) || null;
   const [forceManual, setForceManual] = useState(false);
   const selected = crypto && !forceManual ? crypto.symbol : "";
   return (
@@ -533,12 +534,12 @@ export function CtaUrlInput({ value, onChange, placeholder = "https://..." }) {
             return;
           }
           setForceManual(false);
-          onChange(CRYPTO_LINKS.find((c) => c.symbol === sym).url);
+          onChange(links.find((c) => c.symbol === sym).url);
         }}
         className="w-full rounded-xl border border-line bg-d-panel px-3 py-2 text-sm text-d-fg"
       >
         <option value="">Lien manuel</option>
-        {CRYPTO_LINKS.map((c) => (
+        {links.map((c) => (
           <option key={c.symbol} value={c.symbol}>Achat {c.symbol}</option>
         ))}
       </select>

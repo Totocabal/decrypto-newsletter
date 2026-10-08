@@ -45,6 +45,8 @@ import {
   ShieldCheck,
   ChevronsUpDown,
   Tag,
+  Link2,
+  Trash2,
   Users,
   LayoutTemplate,
   UserPlus,
@@ -56,6 +58,7 @@ import {
 import { supabase } from "../lib/supabase.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import { useToast, useConfirm, usePrompt } from "../components/Dialog.jsx";
+import { useCryptoLinks, saveCryptoLink, deleteCryptoLink, refreshCryptoLinks } from "../lib/useCryptoLinks.js";
 import { useLabels, createLabel, updateLabel, deleteLabel, LABEL_COLORS } from "../lib/useLabels.js";
 import {
   createTemplatePreset,
@@ -276,6 +279,7 @@ export function AdminPage({ onBack }) {
     { id: "locks", label: "Verrous", icon: Lock },
     { id: "template", label: "Template newsletter", icon: LayoutTemplate },
     { id: "labels", label: "Labels", icon: Tag },
+    { id: "crypto_links", label: "Liens crypto", icon: Link2 },
   ];
 
   return (
@@ -624,6 +628,11 @@ export function AdminPage({ onBack }) {
         {/* ── Onglet Labels ── */}
         <div className={tab !== "labels" ? "hidden" : ""}>
           <LabelsEditor />
+        </div>
+
+        {/* ── Onglet Liens crypto ── */}
+        <div className={tab !== "crypto_links" ? "hidden" : ""}>
+          <CryptoLinksEditor />
         </div>
       </main>
     </div>
@@ -1906,6 +1915,151 @@ function DefaultFooterContentEditor({ footer, onChange, links }) {
 // ─────────────────────────────────────────────────────────────────────────────
 // LabelsEditor
 // ─────────────────────────────────────────────────────────────────────────────
+
+function CryptoLinksEditor() {
+  const { profile } = useAuth();
+  const addToast = useToast();
+  const confirm = useConfirm();
+  const { links } = useCryptoLinks();
+  const [form, setForm] = useState({ symbol: "", url: "" });
+  const [saving, setSaving] = useState(false);
+  const [editing, setEditing] = useState(null);
+  const [editUrl, setEditUrl] = useState("");
+  const [query, setQuery] = useState("");
+
+  const save = async (symbol, url) => {
+    if (!symbol.trim() || !url.trim() || !profile?.id) return false;
+    setSaving(true);
+    try {
+      await saveCryptoLink({ symbol, url, userId: profile.id });
+      await refreshCryptoLinks();
+      return true;
+    } catch (err) {
+      addToast("Erreur : " + err.message);
+      return false;
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCreate = async (e) => {
+    e.preventDefault();
+    if (await save(form.symbol, form.url)) setForm({ symbol: "", url: "" });
+  };
+
+  const handleUpdate = async (symbol) => {
+    if (await save(symbol, editUrl)) setEditing(null);
+  };
+
+  const handleDelete = async (symbol) => {
+    if (!await confirm(`Supprimer le lien « ${symbol} » ? Les CTA déjà rédigés gardent leur URL.`, { danger: true, confirmLabel: "Supprimer" })) return;
+    try {
+      await deleteCryptoLink(symbol);
+      await refreshCryptoLinks();
+    } catch (err) {
+      addToast("Erreur : " + err.message);
+    }
+  };
+
+  const filtered = links.filter((l) => l.symbol.toLowerCase().includes(query.trim().toLowerCase()));
+  const inputCls = "w-full px-3 py-2.5 border border-line rounded-xl text-sm focus:outline-none focus:border-line2 bg-d-panel2 text-d-fg placeholder:text-d-fg4 transition-colors";
+
+  return (
+    <section className="space-y-6">
+      <div>
+        <h2 className="text-sm font-semibold text-d-fg mb-1" style={{ fontFamily: "'Sora', sans-serif" }}>
+          Liens crypto
+        </h2>
+        <p className="text-xs text-d-fg4 leading-relaxed">
+          Liens courts proposés dans le sélecteur « Achat XXX » des CTA. Ajouter un symbole déjà présent met son lien à jour.
+        </p>
+      </div>
+
+      <div className="bg-d-panel border border-line rounded-2xl p-4">
+        <div className="text-[10px] uppercase tracking-[0.18em] text-d-fg3 font-medium mb-3">Nouveau lien</div>
+        <form onSubmit={handleCreate} className="flex flex-col gap-3 sm:flex-row sm:items-end">
+          <div className="sm:w-40">
+            <label className="text-[10px] uppercase tracking-[0.18em] text-d-fg3 font-medium block mb-2">Symbole</label>
+            <input
+              type="text"
+              required
+              value={form.symbol}
+              onChange={(e) => setForm((f) => ({ ...f, symbol: e.target.value.toUpperCase() }))}
+              placeholder="BTC"
+              className={inputCls}
+              disabled={saving}
+            />
+          </div>
+          <div className="flex-1">
+            <label className="text-[10px] uppercase tracking-[0.18em] text-d-fg3 font-medium block mb-2">Lien court</label>
+            <input
+              type="url"
+              required
+              value={form.url}
+              onChange={(e) => setForm((f) => ({ ...f, url: e.target.value }))}
+              placeholder="https://coinhouse.onelink.me/…"
+              className={inputCls}
+              disabled={saving}
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={saving || !form.symbol.trim() || !form.url.trim()}
+            className={`flex items-center justify-center gap-2 rounded-full px-6 py-3 text-[11px] font-bold uppercase tracking-[0.22em] transition-all duration-200 ${
+              saving || !form.symbol.trim() || !form.url.trim()
+                ? "bg-d-panel2 text-d-fg4 border border-line cursor-not-allowed opacity-40"
+                : "bg-[#FF00AA] text-white shadow-md shadow-pink-950/10 hover:bg-[#E60098] active:scale-[0.98]"
+            }`}
+          >
+            {saving ? <Loader2 size={12} className="animate-spin" /> : <Plus size={12} />}
+            Ajouter
+          </button>
+        </form>
+      </div>
+
+      <div>
+        <div className="flex items-center gap-2 mb-3">
+          <h3 className="text-[10px] uppercase tracking-[0.18em] text-d-fg3 font-medium">Liens existants</h3>
+          <span className="text-[10px] bg-d-panel2 text-d-fg3 px-2 py-0.5 rounded-full font-medium border border-line">{links.length}</span>
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Filtrer par symbole"
+            className="ml-auto w-48 px-3 py-1.5 border border-line rounded-xl text-xs focus:outline-none focus:border-line2 bg-d-panel2 text-d-fg placeholder:text-d-fg4"
+          />
+        </div>
+        <div className="bg-d-panel border border-line rounded-2xl divide-y" style={{ borderColor: "var(--d-line)" }}>
+          {filtered.map((l) => (
+            <div key={l.symbol} className="flex items-center gap-3 px-4 py-2.5">
+              <span className="w-20 shrink-0 text-sm font-semibold text-d-fg">{l.symbol}</span>
+              {editing === l.symbol ? (
+                <>
+                  <input
+                    type="url"
+                    value={editUrl}
+                    onChange={(e) => setEditUrl(e.target.value)}
+                    className="flex-1 min-w-0 px-3 py-1.5 border border-line rounded-xl text-sm focus:outline-none focus:border-line2 bg-d-panel2 text-d-fg"
+                    disabled={saving}
+                  />
+                  <button type="button" onClick={() => handleUpdate(l.symbol)} disabled={saving || !editUrl.trim()} className="p-1.5 text-d-fg3 hover:text-d-fg" title="Enregistrer"><Check size={14} /></button>
+                  <button type="button" onClick={() => setEditing(null)} className="p-1.5 text-d-fg3 hover:text-d-fg" title="Annuler"><X size={14} /></button>
+                </>
+              ) : (
+                <>
+                  <span className="flex-1 min-w-0 truncate font-mono text-xs text-d-fg3">{l.url}</span>
+                  <button type="button" onClick={() => { setEditing(l.symbol); setEditUrl(l.url); }} className="p-1.5 text-d-fg3 hover:text-d-fg" title="Modifier"><Pencil size={13} /></button>
+                  <button type="button" onClick={() => handleDelete(l.symbol)} className="p-1.5 text-d-fg3 hover:text-red-400" title="Supprimer"><Trash2 size={13} /></button>
+                </>
+              )}
+            </div>
+          ))}
+          {filtered.length === 0 && <div className="p-6 text-center text-xs text-d-fg4">Aucun lien.</div>}
+        </div>
+      </div>
+    </section>
+  );
+}
 
 function LabelsEditor() {
   const { profile } = useAuth();
