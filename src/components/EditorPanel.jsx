@@ -2,12 +2,13 @@
 // EditorPanel — éditeur modulaire (header fixe, sections, footer fixe)
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useEditorShortcuts, useEditorEvent, COLLAPSE_SECTIONS_EVENT, shortcutLabel } from "../utils/editorShortcuts.js";
 import { DndContext, DragOverlay, PointerSensor, TouchSensor, useSensor, useSensors, closestCenter } from "@dnd-kit/core";
 import { SortableContext, useSortable, verticalListSortingStrategy, arrayMove } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { useConfirm } from "./Dialog.jsx";
+import { useConfirm, useToast } from "./Dialog.jsx";
+import { copySectionToClipboard, readSectionClipboard, sectionFromClipboard, subscribeSectionClipboard } from "../utils/sectionClipboard.js";
 import {
   ChevronUp,
   ChevronDown,
@@ -15,6 +16,8 @@ import {
   ChevronsUpDown,
   Trash2,
   CopyPlus,
+  Copy,
+  ClipboardPaste,
   Plus,
   GripVertical,
   ChevronRight,
@@ -247,6 +250,9 @@ export function EditorPanel({ state, setState }) {
       sections.splice(idx + 1, 0, copy);
       return { ...s, sections };
     });
+
+  const pasteSection = (payload) =>
+    setState((s) => ({ ...s, sections: [...s.sections, sectionFromClipboard(payload)] }));
 
   const removeSection = (id) =>
     setState((s) => ({ ...s, sections: s.sections.filter((x) => x.id !== id) }));
@@ -594,7 +600,7 @@ export function EditorPanel({ state, setState }) {
           </DragOverlay>
         </DndContext>
 
-        <AddSectionButton onAdd={(type) => addSection(type)} />
+        <AddSectionButton onAdd={(type) => addSection(type)} onPaste={pasteSection} />
       </div>
 
       {/* ── PIED DE PAGE FIXE ───────────────────────────────────────────── */}
@@ -683,6 +689,7 @@ function SectionCard({
   onSelectMobile,
 }) {
   const confirm = useConfirm();
+  const addToast = useToast();
   const [open, setOpen] = useState(false);
   useEditorEvent(COLLAPSE_SECTIONS_EVENT, () => setOpen(false));
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: section.id });
@@ -792,6 +799,17 @@ function SectionCard({
           >
             <ChevronDown size={14} />
           </button>
+          <Tooltip label="Copier le bloc (pour le coller dans une autre newsletter)">
+            <button
+              onClick={() => {
+                if (copySectionToClipboard(section)) addToast(`Bloc « ${label} » copié. Colle-le depuis une autre newsletter.`);
+                else addToast("Impossible de copier le bloc.");
+              }}
+              className="p-1.5 text-d-fg4 hover:text-d-fg2 hover:bg-d-panel2 rounded-lg transition-colors"
+            >
+              <Copy size={14} />
+            </button>
+          </Tooltip>
           <Tooltip label="Dupliquer">
             <button
               onClick={onDuplicate}
@@ -912,11 +930,24 @@ const SECTION_TYPE_ICONS = {
   ChevronsUpDown,
 };
 
-function AddSectionButton({ onAdd }) {
+function AddSectionButton({ onAdd, onPaste }) {
   const [open, setOpen] = useState(false);
+  const [clip, setClip] = useState(() => readSectionClipboard());
+  useEffect(() => subscribeSectionClipboard(() => setClip(readSectionClipboard())), []);
+  const clipLabel = clip ? SECTION_TYPES[clip.type]?.label || clip.type : "";
 
   return (
     <div className="mt-3">
+      {!open && clip && (
+        <button
+          type="button"
+          onClick={() => onPaste(clip)}
+          className="group mb-2 w-full flex items-center justify-center gap-3 px-4 py-3 border border-d-pink/40 text-d-pink hover:bg-d-pink/10 rounded-2xl text-[10px] uppercase tracking-[0.18em] font-medium transition-colors"
+        >
+          <ClipboardPaste size={15} />
+          Coller le bloc copié — {clipLabel}
+        </button>
+      )}
       {!open ? (
         <button
           type="button"
