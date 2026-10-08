@@ -1946,7 +1946,7 @@ function estimateTimelineConnectorHeight(item = {}) {
   const titleLines = Math.max(1, Math.ceil(titleLength / 34));
   const bodyLines = bodyLength ? Math.max(1, Math.ceil(bodyLength / 56)) : 0;
   const estimatedTextHeight = (titleLines * 21) + (bodyLines ? 4 + bodyLines * 21 : 0);
-  return Math.max(28, Math.min(132, estimatedTextHeight - 18));
+  return Math.max(28, estimatedTextHeight - 18);
 }
 
 function renderTimeline(data, number, anchor = "", isLastSection = false) {
@@ -1972,14 +1972,14 @@ function renderTimeline(data, number, anchor = "", isLastSection = false) {
     const connectorHeight = estimateTimelineConnectorHeight(item);
     const connector = isLast
       ? ""
-      : `<table role="presentation" width="34" cellpadding="0" cellspacing="0" border="0">
-          <tr><td align="center"><table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td width="2" height="${connectorHeight}" style="width:2px; height:${connectorHeight}px; line-height:1px; font-size:1px; background-color:${lineColor};">&nbsp;</td></tr></table></td></tr>
+      : `<table role="presentation" width="34" height="100%" cellpadding="0" cellspacing="0" border="0" style="height:100%;">
+          <tr><td align="center" height="100%" style="height:100%;"><table role="presentation" height="100%" cellpadding="0" cellspacing="0" border="0" style="height:100%;"><tr><td width="2" height="${connectorHeight}" style="width:2px; height:${connectorHeight}px; line-height:1px; font-size:1px; background-color:${lineColor};">&nbsp;</td></tr></table></td></tr>
         </table>`;
     return `<tr>
       <td style="${isLast ? "" : "padding-bottom:4px;"}">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
           <tr>
-            <td width="50" valign="top" style="width:50px; padding-right:16px;">
+            <td width="50" valign="top" height="100%" style="width:50px; height:100%; padding-right:16px;">
               <table role="presentation" width="34" height="34" cellpadding="0" cellspacing="0" border="0" style="width:34px; height:34px; border-collapse:separate !important;">
                 <tr><td width="34" height="34" align="center" valign="middle" bgcolor="${markerBg}" style="width:34px; height:34px; background-color:${markerBg}; border:1px solid ${markerBorder}; border-radius:10px; color:${markerColor}; font-family:${FONTS.heading}; font-size:${isLast ? "15px" : "14px"}; font-weight:700; line-height:34px;">${escapeHtml(marker)}</td></tr>
               </table>
