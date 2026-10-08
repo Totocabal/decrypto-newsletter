@@ -1989,7 +1989,7 @@ function renderTimeline(data, number, anchor = "", isLastSection = false) {
 
   return `
     <tr>
-      <td class="em-px" style="padding:${sectionPadding("44px 36px", "28px 36px")};${sectionBottomBorder(isLastSection)}">
+      <td class="em-px" style="padding:${sectionPadding(hasHeading ? "44px 36px" : "28px 36px 44px", "28px 36px")};${sectionBottomBorder(isLastSection)}">
         ${anchor}
         ${sectionHeader(numberSlot.headerNumber, kicker)}
         ${sectionTitle(data.title, numberSlot.titleNumber)}

@@ -257,6 +257,9 @@ test("timeline renders kicker and title like other blocks and adds no gap withou
   assert.doesNotMatch(bare, /<h2 class="em-h2"[^>]*>\s*Mon titre/);
   assert.match(bare, /margin-top:0;"/);
   assert.doesNotMatch(bare, /margin-top:22px;"/);
+  // Sans en-tête, le haut du bloc est réduit comme pour le bloc texte.
+  assert.match(bare, /class="em-px" style="padding:28px 36px 44px;/);
+  assert.match(full, /class="em-px" style="padding:44px 36px;/);
 });
 
 test("kpis block renders bulletproof cards laid out in rows", () => {
