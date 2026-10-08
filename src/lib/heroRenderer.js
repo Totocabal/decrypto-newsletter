@@ -11,8 +11,10 @@
 export const HERO_WIDTH = 996;
 export const HERO_HEIGHT = 558;
 export const HERO_BG_URL = "/hero-bg.webp";
-// Le fond source a des coins arrondis transparents (~19 px) : on recadre à
-// l'intérieur pour ne jamais dessiner de pixel transparent.
+// Le fond source a des coins arrondis transparents : on recadre à l'intérieur
+// pour ne jamais dessiner de pixel transparent. L'inset est exprimé pour une
+// image de 996 px de large et mis à l'échelle (fond actuel : 1992 × 1116, soit
+// 2× le format du hero, avec un inset minimal sûr de 10 px).
 export const HERO_BG_INSET = 8;
 
 export const HERO_FONT_FAMILY = "Sora";
@@ -237,8 +239,9 @@ export function loadHeroBackground(url = HERO_BG_URL) {
 }
 
 function drawBackgroundCover(ctx, image, width, height) {
-  const maxW = image.naturalWidth - HERO_BG_INSET * 2;
-  const maxH = image.naturalHeight - HERO_BG_INSET * 2;
+  const inset = HERO_BG_INSET * (image.naturalWidth / HERO_WIDTH);
+  const maxW = image.naturalWidth - inset * 2;
+  const maxH = image.naturalHeight - inset * 2;
   const ratio = width / height;
   let sw = maxW;
   let sh = sw / ratio;
