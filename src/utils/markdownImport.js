@@ -48,7 +48,7 @@ const SECTION_FIELDS = {
   focus_divider: ["style"],
   signals: ["kicker", "title", "number_position"],
   editorial_list: ["kicker"],
-  timeline: ["kicker", "body"],
+  timeline: ["kicker", "title", "number_position", "body"],
   feature_grid: ["kicker", "bg_image_url", "cta_label", "cta_url", "cta_style", "cta_arrow", "secondary_count"],
   feature_grid_featured: ["label", "title", "picto", "show_icon", "color"],
   image_block: ["image_url", "image_alt", "link_url"],

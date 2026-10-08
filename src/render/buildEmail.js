@@ -1960,6 +1960,8 @@ function renderTimeline(data, number, anchor = "", isLastSection = false) {
   const items = (data.items || []).filter((item) => String(item.title || item.body || "").trim());
   const kicker = String(data.kicker || "").trim();
   const intro = String(data.body || "").trim();
+  const numberSlot = numberPlacement(data, number);
+  const hasHeading = Boolean(numberSlot.headerNumber || kicker || String(data.title || "").trim());
 
   const rows = items.map((item, index) => {
     const isLast = index === items.length - 1;
@@ -1997,9 +1999,9 @@ function renderTimeline(data, number, anchor = "", isLastSection = false) {
     <tr>
       <td class="em-px" style="padding:${sectionPadding("44px 36px", "28px 36px")};${sectionBottomBorder(isLastSection)}">
         ${anchor}
-        ${sectionHeader(number, "")}
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-          ${kicker ? `<tr><td style="padding:0 0 6px; font-family:${FONTS.body}; font-size:11px; letter-spacing:0.2em; text-transform:uppercase; color:${accentColor}; font-weight:600;">━━ &nbsp; ${escapeHtml(kicker)}</td></tr>` : ""}
+        ${sectionHeader(numberSlot.headerNumber, kicker)}
+        ${sectionTitle(data.title, numberSlot.titleNumber)}
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:${hasHeading ? "22px" : "0"};">
           ${intro ? `<tr><td style="padding:0 0 20px; font-family:${FONTS.body}; font-weight:${RICH_TEXT_WEIGHT}; font-size:14px; line-height:1.6; color:${bodyColor};">${sanitizeRichText(intro)}</td></tr>` : ""}
           ${rows}
         </table>

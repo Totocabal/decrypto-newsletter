@@ -855,9 +855,20 @@ function TimelineEditor({ data, set }) {
         <Input
           value={data.kicker || ""}
           onChange={(e) => set({ kicker: e.target.value })}
+          placeholder="Pas à pas"
+        />
+      </Field>
+      <Field label="Titre">
+        <Input
+          value={data.title || ""}
+          onChange={(e) => set({ title: e.target.value })}
           placeholder="Activer votre DCA en 4 étapes"
         />
       </Field>
+      <NumberPositionControl
+        value={data.number_position}
+        onChange={(number_position) => set({ number_position })}
+      />
       <Field label="Texte d'introduction" hint="Optionnel, affiché au-dessus des étapes.">
         <TextArea
           showCount

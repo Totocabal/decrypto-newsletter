@@ -341,7 +341,9 @@ export const SECTION_TYPES = {
     label: "Timeline",
     icon: "ListOrdered",
     factory: () => ({
-      kicker: "Activer votre DCA en 4 étapes",
+      kicker: "Pas à pas",
+      title: "Activer votre DCA en 4 étapes",
+      number_position: "kicker",
       body: "Quatre étapes suffisent pour mettre en place un investissement programmé, sans y repenser ensuite.",
       items: [
         {

@@ -237,6 +237,29 @@ test("timeline connector height grows with step text length", () => {
   assert.ok(heights[1] <= 90);
 });
 
+test("timeline renders kicker and title like other blocks and adds no gap without heading", () => {
+  const build = (data) => buildEmailHtml({
+    ...clone(INITIAL_STATE),
+    issue_date: "28.07.2026",
+    show_section_numbers: false,
+    sections: [{
+      id: "timeline_heading",
+      type: "timeline",
+      data: { body: "", items: [{ title: "Étape", body: "Texte." }], ...data },
+    }],
+  });
+
+  const full = build({ kicker: "Pas à pas", title: "Mon titre" });
+  assert.match(full, /letter-spacing:0\.2em; text-transform:uppercase; color:[^;]+; font-weight:500;">Pas à pas/);
+  assert.match(full, /<h2 class="em-h2"[^>]*>\s*Mon titre/);
+  assert.match(full, /margin-top:22px;"/);
+
+  const bare = build({});
+  assert.doesNotMatch(bare, /<h2 class="em-h2"[^>]*>\s*Mon titre/);
+  assert.match(bare, /margin-top:0;"/);
+  assert.doesNotMatch(bare, /margin-top:22px;"/);
+});
+
 test("kpis block renders bulletproof cards laid out in rows", () => {
   const build = (count) => {
     const data = clone(SECTION_TYPES.kpis.factory());
