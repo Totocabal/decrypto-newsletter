@@ -10,7 +10,8 @@
     "test:markdown": "node --test src/utils/markdownImport.test.mjs",
     "test:email": "node --test src/render/emailCompatibility.test.mjs",
     "test:minify": "node --test src/utils/minifyEmailHtml.test.mjs",
-    "test:size": "node --test src/utils/emailSize.test.mjs"
+    "test:size": "node --test src/utils/emailSize.test.mjs",
+    "test:hero": "node --test src/lib/heroRenderer.test.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

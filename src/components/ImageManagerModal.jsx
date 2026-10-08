@@ -8,6 +8,7 @@ import {
   List,
   Loader2,
   RefreshCw,
+  Sparkles,
   Square,
   Tag,
   Trash2,
@@ -31,6 +32,7 @@ import {
 } from "../lib/useLabels.js";
 import { Tooltip } from "./Tooltip.jsx";
 import { useConfirm } from "./Dialog.jsx";
+import { HeroEditorModal } from "./HeroEditorModal.jsx";
 
 function formatBytes(bytes = 0) {
   if (!bytes) return "Taille inconnue";
@@ -189,6 +191,7 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, onSelectMany
   const [multiSelect, setMultiSelect] = useState(false);
   const [selectedPaths, setSelectedPaths] = useState([]);
   const [detailImage, setDetailImage] = useState(null);
+  const [heroEditorOpen, setHeroEditorOpen] = useState(false);
   const canSelect = typeof onSelect === "function";
   const canSelectMany = typeof onSelectMany === "function";
   const isGridView = viewMode !== "list";
@@ -677,6 +680,22 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, onSelectMany
             />
           </div>
 
+          <button
+            type="button"
+            onClick={() => setHeroEditorOpen(true)}
+            className="mt-4 flex w-full items-center gap-3 rounded-2xl border border-line bg-d-panel2 p-4 text-left transition-colors hover:border-d-pink/50"
+          >
+            <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border border-line bg-d-panel text-d-pink">
+              <Sparkles size={18} />
+            </span>
+            <span className="min-w-0">
+              <span className="block text-sm font-semibold text-d-fg2">Créer un hero</span>
+              <span className="mt-0.5 block text-xs leading-relaxed text-d-fg4">
+                Visuel 996 × 558 avec titre Sora et mots en dégradé, ajouté à la bibliothèque.
+              </span>
+            </span>
+          </button>
+
           {error && (
             <div className="mt-4 rounded-xl p-3 text-[11px] leading-relaxed text-red-300 border border-red-500/20 bg-red-950/20">
               {error}
@@ -886,6 +905,17 @@ export function ImageManagerModal({ currentPath, onClose, onSelect, onSelectMany
           )}
         </section>
       </main>
+      {heroEditorOpen && (
+        <HeroEditorModal
+          userId={userId}
+          onClose={() => setHeroEditorOpen(false)}
+          onCreated={async (uploaded) => {
+            setHeroEditorOpen(false);
+            await refresh();
+            if (canSelect) onSelect(uploaded);
+          }}
+        />
+      )}
       {detailImage && (
         <ImageDetailsModal
           image={detailImage}
