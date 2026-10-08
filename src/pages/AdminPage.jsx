@@ -1971,7 +1971,7 @@ function CryptoLinksEditor() {
           Liens crypto
         </h2>
         <p className="text-xs text-d-fg4 leading-relaxed">
-          Liens courts proposés dans le sélecteur « Achat XXX » des CTA. Ajouter un symbole déjà présent met son lien à jour.
+          Liens courts proposés dans le sélecteur « XXX (achat) » des CTA. Ajouter un symbole déjà présent met son lien à jour.
         </p>
       </div>
 

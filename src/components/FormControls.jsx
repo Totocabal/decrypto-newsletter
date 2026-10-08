@@ -540,7 +540,7 @@ export function CtaUrlInput({ value, onChange, placeholder = "https://..." }) {
       >
         <option value="">Lien manuel</option>
         {links.map((c) => (
-          <option key={c.symbol} value={c.symbol}>Achat {c.symbol}</option>
+          <option key={c.symbol} value={c.symbol}>{c.symbol} (achat)</option>
         ))}
       </select>
       {selected ? (
