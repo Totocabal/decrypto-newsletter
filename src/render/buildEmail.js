@@ -17,7 +17,10 @@ export function escapeHtml(str = "") {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
+    .replace(/'/g, "&#39;")
+    // Espace insécable saisie dans l'éditeur : on l'écrit en entité pour qu'aucun
+    // minifier ni client mail ne la confonde avec une espace normale.
+    .replace(/\u00a0/g, "&nbsp;");
 }
 
 function escapeHtmlWithNbsp(str = "") {
@@ -32,7 +35,10 @@ function decodeStoredTextEntities(str = "") {
   return String(str)
     .replace(/&#39;|&#x27;|&apos;/gi, "'")
     .replace(/&quot;/gi, '"')
+    // &nbsp; = espace normale (Quill écrit ainsi toutes ses espaces) ; l'espace insécable
+    // volontaire saisie dans l'éditeur est stockée en &#160;.
     .replace(/&nbsp;/gi, " ")
+    .replace(/&#160;|&#xa0;/gi, "\u00a0")
     .replace(/&amp;/gi, "&");
 }
 

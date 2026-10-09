@@ -184,19 +184,23 @@ function injectQuillCss() {
       overflow: visible !important;
     }
     .ql-tooltip {
+      position: fixed !important;
       background: rgb(var(--d-panel)) !important;
       border: 1px solid var(--d-line2) !important;
       border-radius: 8px !important;
       box-shadow: 0 4px 20px rgba(0,0,0,0.6) !important;
       color: rgb(var(--d-fg2)) !important;
-      z-index: 80 !important;
+      z-index: 1000 !important;
       max-width: min(460px, calc(100vw - 40px)) !important;
       white-space: nowrap !important;
+      margin: 0 !important;
+      transform: none !important;
     }
-    .ql-tooltip.ql-editing {
-      margin-top: -10px !important;
-      transform: translateY(-100%) !important;
+    .ql-tooltip.ql-hidden { display: none !important; }
+    .ql-wrapper .ql-toolbar.ql-snow button.ql-nbsp::before {
+      content: "\\2423"; font-size: 15px; line-height: 1; font-weight: 700; color: rgb(var(--d-fg3));
     }
+    .ql-wrapper .ql-toolbar.ql-snow button.ql-nbsp:hover::before { color: rgb(var(--d-fg)); }
     .ql-tooltip input[type=text] {
       background: rgb(var(--d-panel2)) !important;
       border-color: var(--d-line2) !important;
@@ -224,9 +228,33 @@ function injectQuillCss() {
  * Retourne "" si le contenu est vide.
  */
 function getCleanHtml(quill) {
-  const html = quill.getSemanticHTML().trim();
+  // Quill écrit chacune de ses espaces en &nbsp; ; on les ramène à de simples espaces et on
+  // réserve &#160; aux espaces insécables insérées volontairement (voir toEditorHtml).
+  const html = quill.getSemanticHTML().replace(/&nbsp;/g, " ").replace(/\u00a0/g, "&#160;").trim();
   if (!html || html === "<p><br></p>" || html === "<p></p>") return "";
   return html;
+}
+
+// Quill normalise les espaces insécables en espaces au chargement : on les remplace par un
+// repère le temps du collage, puis on les réinjecte telles quelles (voir restoreNbsp).
+const NBSP_MARK = "\uE000";
+
+function toEditorHtml(html = "") {
+  return String(html || "").replace(/&#160;|&#xa0;|\u00a0/gi, NBSP_MARK);
+}
+
+function restoreNbsp(quill) {
+  const text = quill.getText();
+  for (let i = text.length - 1; i >= 0; i -= 1) {
+    if (text[i] !== NBSP_MARK) continue;
+    const formats = quill.getFormat(i, 1);
+    quill.updateContents(new Delta().retain(i).delete(1).insert("\u00A0", formats), "silent");
+  }
+}
+
+function loadHtml(quill, html) {
+  quill.clipboard.dangerouslyPasteHTML(toEditorHtml(html), "silent");
+  restoreNbsp(quill);
 }
 
 function countPlainText(html = "") {
@@ -312,9 +340,44 @@ const TOOLBAR_OPTIONS = [
   Object.keys(HIGHLIGHTS).map((key) => ({ highlight: key })),
   Object.keys(HIGHLIGHTS).map((key) => ({ textcolor: key })),
   [{ list: "ordered" }, { list: "bullet" }],
-  ["link"],
+  ["link", "nbsp"],
   ["clean"],
 ];
+
+const NBSP = "\u00A0";
+
+function insertNbsp(quill) {
+  const range = quill.getSelection(true);
+  if (!range) return;
+  quill.updateContents(
+    new Delta().retain(range.index).delete(range.length || 0).insert(NBSP),
+    "user",
+  );
+  quill.setSelection(range.index + 1, 0, "silent");
+}
+
+// Le champ de lien de Quill est positionné en absolu dans l'éditeur : il était rogné par la
+// carte du bloc (overflow caché) et masqué par la colonne d'aperçu. On le place en `fixed`,
+// calé sur la sélection et borné à la fenêtre, pour qu'il passe toujours au-dessus de tout.
+function placeTooltipOnTop(quill) {
+  const tooltip = quill.theme?.tooltip;
+  if (!tooltip) return;
+  tooltip.position = (reference) => {
+    const root = tooltip.root;
+    const container = quill.container.getBoundingClientRect();
+    const margin = 8;
+    const width = root.offsetWidth;
+    const height = root.offsetHeight;
+    let left = container.left + reference.left + reference.width / 2 - width / 2;
+    left = Math.max(margin, Math.min(left, window.innerWidth - width - margin));
+    const below = container.top + reference.bottom + 10;
+    const above = container.top + reference.top - height - 10;
+    const top = below + height + margin > window.innerHeight && above > margin ? above : below;
+    root.style.left = `${Math.round(left)}px`;
+    root.style.top = `${Math.round(Math.max(margin, top))}px`;
+    return 0;
+  };
+}
 
 function insertSoftBreak(quill, range) {
   if (!range) return false;
@@ -345,9 +408,30 @@ function RichTextEditor({ showCount, onChange, value = "", rows = 3, placeholder
     const quill = new Quill(holderRef.current, {
       theme: "snow",
       modules: {
-        toolbar: TOOLBAR_OPTIONS,
+        toolbar: {
+          container: TOOLBAR_OPTIONS,
+          handlers: { nbsp() { insertNbsp(this.quill); } },
+        },
         keyboard: {
           bindings: {
+            nbsp: {
+              key: " ",
+              shortKey: true,
+              shiftKey: true,
+              handler() {
+                insertNbsp(this.quill);
+                return false;
+              },
+            },
+            nbspCtrl: {
+              key: " ",
+              ctrlKey: true,
+              shiftKey: true,
+              handler() {
+                insertNbsp(this.quill);
+                return false;
+              },
+            },
             shiftEnterInList: {
               key: "Enter",
               shiftKey: true,
@@ -373,10 +457,12 @@ function RichTextEditor({ showCount, onChange, value = "", rows = 3, placeholder
       placeholder: placeholder || "",
     });
 
+    placeTooltipOnTop(quill);
+
     // Charger le HTML initial
     const initialHtml = String(value ?? "");
     if (initialHtml) {
-      quill.clipboard.dangerouslyPasteHTML(initialHtml);
+      loadHtml(quill, initialHtml);
     }
 
     quill.on("text-change", () => {
@@ -406,7 +492,8 @@ function RichTextEditor({ showCount, onChange, value = "", rows = 3, placeholder
     if (v === lastEmittedRef.current) return;
     lastEmittedRef.current = v;
     if (quillRef.current) {
-      quillRef.current.clipboard.dangerouslyPasteHTML(v || "");
+      loadHtml(quillRef.current, v);
+      setPlainTextCount(countPlainText(v));
     }
   }, [value]);
 
@@ -431,7 +518,7 @@ function RichTextEditor({ showCount, onChange, value = "", rows = 3, placeholder
       if (!res.ok) throw new Error(data.error || "Erreur serveur");
 
       const corrected = data.html;
-      quillRef.current.clipboard.dangerouslyPasteHTML(corrected || "");
+      loadHtml(quillRef.current, corrected);
       lastEmittedRef.current = corrected;
       setPlainTextCount(countPlainText(corrected));
       onChangeRef.current?.({ target: { value: corrected } });
@@ -546,15 +633,19 @@ export function CtaUrlInput({ value, onChange, placeholder = "https://..." }) {
       {selected ? (
         <div className="truncate text-[11px] italic text-d-fg4">{current}</div>
       ) : (
-        <Input value={current} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} />
+        <Input nbsp={false} value={current} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} />
       )}
     </div>
   );
 }
 
+const URL_LIKE_VALUE = /^(https?:\/\/|mailto:|tel:|#|\{\{)/i;
+const URL_LIKE_PLACEHOLDER = /^https?:|\burl\b/i;
+
 export function Input({ readOnly, ...props }) {
   const {
     clearable = true,
+    nbsp = true,
     className = "",
     disabled,
     onChange,
@@ -572,6 +663,35 @@ export function Input({ readOnly, ...props }) {
     && String(value) !== ""
     && typeof onChange === "function";
   const inputRef = useRef(null);
+  const [focused, setFocused] = useState(false);
+  // Espace insécable : proposée sur les champs de texte, pas sur les champs de lien.
+  const canNbsp = nbsp !== false
+    && !readOnly
+    && !disabled
+    && (type === "text" || type === "search")
+    && typeof onChange === "function"
+    && !URL_LIKE_VALUE.test(String(value ?? ""))
+    && !URL_LIKE_PLACEHOLDER.test(String(inputProps.placeholder ?? ""));
+  const insertNbspInInput = () => {
+    const el = inputRef.current;
+    if (!el) return;
+    const start = el.selectionStart ?? String(value ?? "").length;
+    const end = el.selectionEnd ?? start;
+    const current = String(value ?? "");
+    const next = `${current.slice(0, start)}\u00A0${current.slice(end)}`;
+    onChange({ target: { value: next, name: inputProps.name, type }, currentTarget: { value: next, name: inputProps.name, type } });
+    requestAnimationFrame(() => {
+      el.focus();
+      el.setSelectionRange(start + 1, start + 1);
+    });
+  };
+  const handleKeyDown = (e) => {
+    if (canNbsp && e.code === "Space" && e.shiftKey && (e.metaKey || e.ctrlKey)) {
+      e.preventDefault();
+      insertNbspInInput();
+    }
+    inputProps.onKeyDown?.(e);
+  };
   const handleClear = () => {
     const event = {
       target: { value: "", name: inputProps.name, type },
@@ -591,13 +711,29 @@ export function Input({ readOnly, ...props }) {
         value={value}
         onChange={onChange}
         {...inputProps}
-        className={`w-full px-3 py-2 ${canClear ? "pr-9" : ""} border rounded-xl text-sm focus:outline-none transition-colors ${
+        onKeyDown={handleKeyDown}
+        onFocus={(e) => { setFocused(true); inputProps.onFocus?.(e); }}
+        onBlur={(e) => { setFocused(false); inputProps.onBlur?.(e); }}
+        className={`w-full px-3 py-2 ${canClear && canNbsp ? "pr-16" : canClear || canNbsp ? "pr-9" : ""} border rounded-xl text-sm focus:outline-none transition-colors ${
           readOnly
             ? "bg-d-panel3 border-line text-d-fg4 cursor-default"
             : "bg-d-panel2 border-line text-d-fg focus:border-line2 hover:border-line2"
         } ${className}`}
         style={{ fontFamily: "'DM Sans', sans-serif", ...inputProps.style }}
       />
+      {canNbsp && focused && (
+        <Tooltip label="Insérer une espace insécable (Ctrl/Cmd + Maj + Espace)">
+          <button
+            type="button"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={insertNbspInInput}
+            className={`absolute ${canClear ? "right-9" : "right-2"} top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full border border-line bg-d-panel text-[13px] font-bold leading-none text-d-fg4 transition-colors hover:border-line2 hover:text-d-fg`}
+            aria-label="Insérer une espace insécable"
+          >
+            ␣
+          </button>
+        </Tooltip>
+      )}
       {canClear && (
         <Tooltip label="Vider le champ">
           <button

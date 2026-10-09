@@ -262,6 +262,13 @@ test("timeline renders kicker and title like other blocks and adds no gap withou
   assert.match(full, /class="em-px" style="padding:44px 36px;/);
 });
 
+test("non-breaking spaces typed in the editor survive as &nbsp; while Quill's own &nbsp; stay plain spaces", () => {
+  // Quill écrit ses espaces normales en &nbsp; ; l'espace insécable volontaire est stockée en &#160;.
+  const out = sanitizeRichText("<p>Un&nbsp;texte 10&#160;000 € et 5\u00a0%</p>");
+  assert.match(out, /Un texte 10&nbsp;000 € et 5&nbsp;%/);
+  assert.doesNotMatch(out, /Un&nbsp;texte/);
+});
+
 test("kpis block renders bulletproof cards laid out in rows", () => {
   const build = (count) => {
     const data = clone(SECTION_TYPES.kpis.factory());
@@ -330,7 +337,7 @@ test("bon_a_savoir block renders label/value rows with dividers except the last"
   assert.equal((html.match(/class="em-bas-l"/g) || []).length, 3);
   assert.match(html, /Bon à savoir/);
   assert.match(html, /Montant minimum de souscription/);
-  assert.match(html, /1 €/);
+  assert.match(html, /1(?:&nbsp;| )€/);
   assert.equal((html.match(/class="em-bas-l"[^>]*border-bottom:1px solid/g) || []).length, 2);
 
   const empty = { ...clone(data), items: [], title: "" };
