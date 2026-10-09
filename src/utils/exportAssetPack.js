@@ -99,8 +99,9 @@ function gradientCtaPngBlob(isB2b = false) {
     if (isB2b) {
       // Dégradé du bouton Coinhouse Entreprises (même dégradé que B2B_CTA_GRADIENT_FALLBACK dans buildEmail.js)
       grad.addColorStop(0, "#4141FF");
-      grad.addColorStop(0.3, "#7DFFFF");
-      grad.addColorStop(0.6, "#7FFFD4");
+      grad.addColorStop(0.22, "#5FA0FF");
+      grad.addColorStop(0.45, "#7DFFFF");
+      grad.addColorStop(0.7, "#7FFFD4");
       grad.addColorStop(1, "#55B896");
     } else {
       grad.addColorStop(0, "#4141FF");

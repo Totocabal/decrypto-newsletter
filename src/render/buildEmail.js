@@ -97,7 +97,7 @@ const CTA_GRADIENT_FALLBACK = "linear-gradient(90deg, #4141FF 0%, #FF00AA 60%, #
 const CTA_GRADIENT_BG = "#4141FF";
 const CTA_BLACK_BG = "#050505";
 // Bouton B2B : dégradé bleu → cyan → menthe → vert du site Coinhouse Entreprises, texte noir.
-const B2B_CTA_GRADIENT_FALLBACK = "linear-gradient(90deg, #4141FF 0%, #7DFFFF 30%, #7FFFD4 60%, #55B896 100%)";
+const B2B_CTA_GRADIENT_FALLBACK = "linear-gradient(90deg, #4141FF 0%, #5FA0FF 22%, #7DFFFF 45%, #7FFFD4 70%, #55B896 100%)";
 const B2B_CTA_SOLID_BG = "#7FFFD4";
 const PREHEADER_SPACER = Array.from({ length: 220 }, () => "&nbsp;&zwnj;&#847;&shy;").join("");
 

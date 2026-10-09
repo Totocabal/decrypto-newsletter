@@ -456,11 +456,11 @@ test("b2b template renders every block with the Coinhouse Entreprises palette an
 
 test("b2b buttons use the site's blue-cyan-mint gradient with black text", () => {
   const html = buildEmailHtml(buildCompatState("dark", "b2b"));
-  assert.match(html, /linear-gradient\(90deg, #4141FF 0%, #7DFFFF 30%, #7FFFD4 60%, #55B896 100%\)/i);
+  assert.match(html, /linear-gradient\(90deg, #4141FF 0%, #5FA0FF 22%, #7DFFFF 45%, #7FFFD4 70%, #55B896 100%\)/i);
   assert.match(html, /class="em-cta-link"[^>]*color:#000000/i);
   assert.match(html, /<v:roundrect[^>]*fillcolor="#7FFFD4"/i);
   const b2c = buildEmailHtml(buildCompatState("dark", "b2c"));
-  assert.doesNotMatch(b2c, /#7DFFFF 30%/i);
+  assert.doesNotMatch(b2c, /#7DFFFF 45%/i);
   assert.match(b2c, /class="em-cta-link"[^>]*color:#ffffff/i);
 });
 
