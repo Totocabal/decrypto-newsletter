@@ -250,7 +250,7 @@ Le bouton **Sync blocs** (🔄) régénère automatiquement les entrées depuis 
 
 ---
 
-### 📰 Texte + cartes chiffres
+### 📰 Texte & chiffres
 
 Bloc éditorial avec grille de chiffres clés.
 
@@ -346,7 +346,7 @@ Bouton **Ajouter une barre** en bas.
 
 ---
 
-### 🔢 Gros chiffre + texte
+### 🔢 Gros chiffre & texte
 
 Mise en avant d'un grand chiffre clé avec contexte éditorial.
 

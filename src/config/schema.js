@@ -29,7 +29,7 @@ import { BRAND } from "./theme.js";
 
 export const SECTION_TYPES = {
   hero: {
-    label: "Grand titre + puces",
+    label: "Grand titre & puces",
     icon: "Megaphone",
     factory: () => ({
       kicker: "━━ \u00A0 DÉCRYPTO · L'HEBDO COINHOUSE",
@@ -61,7 +61,7 @@ export const SECTION_TYPES = {
     }),
   },
   edito: {
-    label: "Texte + cartes chiffres",
+    label: "Texte & chiffres",
     icon: "Newspaper",
     factory: () => ({
       kicker: "ÉDITO",
@@ -112,7 +112,7 @@ export const SECTION_TYPES = {
     }),
   },
   fear_greed: {
-    label: "Jauge + légende",
+    label: "Jauge & légende",
     icon: "Gauge",
     factory: () => ({
       kicker: "INDICATEUR",
@@ -125,7 +125,7 @@ export const SECTION_TYPES = {
     }),
   },
   signals: {
-    label: "Grille 2 colonnes à flèches",
+    label: "Grille de flèches",
     icon: "Activity",
     factory: () => ({
       kicker: "ANALYSE",
@@ -156,7 +156,7 @@ export const SECTION_TYPES = {
     }),
   },
   macro: {
-    label: "Texte + encadré citation",
+    label: "Texte & citation",
     icon: "Quote",
     factory: () => ({
       kicker: "MACRO",
@@ -183,7 +183,7 @@ export const SECTION_TYPES = {
     }),
   },
   commented_number: {
-    label: "Gros chiffre + texte",
+    label: "Gros chiffre & texte",
     icon: "Hash",
     factory: () => ({
       index_label: "Le chiffre de la semaine",
@@ -366,7 +366,7 @@ export const SECTION_TYPES = {
     }),
   },
   kpis: {
-    label: "Cartes chiffres",
+    label: "Grille de chiffres",
     icon: "LayoutGrid",
     factory: () => ({
       kicker: "EN CHIFFRES",
@@ -383,7 +383,7 @@ export const SECTION_TYPES = {
     }),
   },
   fonds: {
-    label: "Cartes avec taux",
+    label: "Liste de cartes",
     icon: "Landmark",
     factory: () => ({
       items: [
@@ -430,7 +430,7 @@ export const SECTION_TYPES = {
     }),
   },
   event: {
-    label: "Carte date + texte",
+    label: "Date & texte",
     icon: "Calendar",
     factory: () => ({
       day: "14",
@@ -445,7 +445,7 @@ export const SECTION_TYPES = {
     }),
   },
   referral: {
-    label: "Carte code + bouton",
+    label: "Code & bouton",
     icon: "Gift",
     factory: () => ({
       kicker: "Programme de parrainage",
@@ -466,7 +466,7 @@ export const SECTION_TYPES = {
   // des newsletters : remplacé par le style "card" du bloc "offer" pour toute
   // nouvelle création (voir hiddenFromPicker + getAddableSectionTypes).
   commercial_offer: {
-    label: "Bandeau offre (ancien)",
+    label: "Montant & bouton (ancien)",
     icon: "Gift",
     hiddenFromPicker: true,
     factory: () => ({
@@ -479,7 +479,7 @@ export const SECTION_TYPES = {
     }),
   },
   offer: {
-    label: "Bandeau montant + bouton",
+    label: "Montant & bouton",
     icon: "BadgePercent",
     factory: () => ({
       style: "banner",
@@ -498,7 +498,7 @@ export const SECTION_TYPES = {
     }),
   },
   text_block: {
-    label: "Texte + bouton",
+    label: "Texte & bouton",
     icon: "Type",
     factory: () => ({
       kicker: "État du marché",

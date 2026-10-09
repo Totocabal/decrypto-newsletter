@@ -219,7 +219,7 @@ Les chips `btc` et `eth` se synchronisent automatiquement depuis CoinGecko. Les 
 
 Le bouton "Sync blocs" recrée automatiquement les entrées depuis tous les blocs numérotés de l'édition. Dans le rendu, chaque entrée pointe vers l'ancre de sa section.
 
-### 3. `edito` — Texte + cartes chiffres
+### 3. `edito` — Texte & chiffres
 
 | Champ | Type | Description |
 |---|---|---|
@@ -275,7 +275,7 @@ Zones de classification : `EXTREME FEAR` (0–24), `FEAR` (25–44), `NEUTRAL` (
 
 Rendu en grille 2×2. Idéal pour 4 signaux.
 
-### 7. `macro` — Texte + encadré citation
+### 7. `macro` — Texte & citation
 
 À utiliser pour un contexte macroéconomique, mais aussi pour une citation corporate ou dirigeant explicitement fournie dans un brief. Exemple : `Citation de Nicolas Louvet, CEO : "..."` doit être converti en bloc `macro` avec `quote` et `quote_author`.
 
@@ -299,7 +299,7 @@ Rendu avec fallback VML pour Outlook.
 
 Bloc non numéroté.
 
-### 9. `commented_number` — Gros chiffre + texte
+### 9. `commented_number` — Gros chiffre & texte
 
 | Champ | Type | Description |
 |---|---|---|

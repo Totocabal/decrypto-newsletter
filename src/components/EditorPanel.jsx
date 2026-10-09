@@ -1041,11 +1041,6 @@ function AddSectionButton({ onAdd, onPaste }) {
                       <span className="mt-1 block text-[11px] leading-relaxed text-d-fg4">
                         {SECTION_TYPE_DESCRIPTIONS[type] || "Ajouter ce bloc à la newsletter."}
                       </span>
-                      {usage[type] && (
-                        <span className="mt-1.5 block text-[10px] font-medium uppercase tracking-[0.12em] text-d-fg5">
-                          Utilisé dans {usage[type].newsletters} newsletter{usage[type].newsletters > 1 ? "s" : ""}
-                        </span>
-                      )}
                     </span>
                     <ChevronRight
                       size={15}
