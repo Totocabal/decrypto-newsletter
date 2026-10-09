@@ -8,6 +8,8 @@ import { DndContext, DragOverlay, PointerSensor, TouchSensor, useSensor, useSens
 import { SortableContext, useSortable, verticalListSortingStrategy, arrayMove } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useConfirm, useToast } from "./Dialog.jsx";
+import { useBlockUsage } from "../lib/useBlockUsage.js";
+import { sortByUsage } from "../utils/sortByUsage.js";
 import { copySectionToClipboard, readSectionClipboard, sectionFromClipboard, subscribeSectionClipboard } from "../utils/sectionClipboard.js";
 import {
   ChevronUp,
@@ -960,6 +962,7 @@ function AddSectionButton({ onAdd, onPaste }) {
   const [open, setOpen] = useState(false);
   const [clip, setClip] = useState(() => readSectionClipboard());
   useEffect(() => subscribeSectionClipboard(() => setClip(readSectionClipboard())), []);
+  const usage = useBlockUsage();
   const clipLabel = clip ? SECTION_TYPES[clip.type]?.label || clip.type : "";
 
   return (
@@ -1012,7 +1015,7 @@ function AddSectionButton({ onAdd, onPaste }) {
             </button>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {getAddableSectionTypes().map(([type, def]) => {
+            {sortByUsage(getAddableSectionTypes(), usage).map(([type, def]) => {
               const Icon = SECTION_TYPE_ICONS[def.icon] || Square;
               return (
                 <button
@@ -1038,6 +1041,11 @@ function AddSectionButton({ onAdd, onPaste }) {
                       <span className="mt-1 block text-[11px] leading-relaxed text-d-fg4">
                         {SECTION_TYPE_DESCRIPTIONS[type] || "Ajouter ce bloc à la newsletter."}
                       </span>
+                      {usage[type] && (
+                        <span className="mt-1.5 block text-[10px] font-medium uppercase tracking-[0.12em] text-d-fg5">
+                          Utilisé dans {usage[type].newsletters} newsletter{usage[type].newsletters > 1 ? "s" : ""}
+                        </span>
+                      )}
                     </span>
                     <ChevronRight
                       size={15}
