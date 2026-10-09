@@ -58,6 +58,8 @@ import {
 import { supabase } from "../lib/supabase.js";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import { useToast, useConfirm, usePrompt } from "../components/Dialog.jsx";
+import { useHeroBackgrounds, addHeroBackground, updateHeroBackground, deleteHeroBackground } from "../lib/useHeroBackgrounds.js";
+import { MAX_IMAGE_FILE_SIZE_LABEL, MAX_IMAGE_FILE_SIZE_BYTES } from "../lib/imageUpload.js";
 import { useCryptoLinks, saveCryptoLink, deleteCryptoLink, refreshCryptoLinks } from "../lib/useCryptoLinks.js";
 import { useLabels, createLabel, updateLabel, deleteLabel, LABEL_COLORS } from "../lib/useLabels.js";
 import {
@@ -280,6 +282,7 @@ export function AdminPage({ onBack }) {
     { id: "template", label: "Template newsletter", icon: LayoutTemplate },
     { id: "labels", label: "Labels", icon: Tag },
     { id: "crypto_links", label: "Liens crypto", icon: Link2 },
+    { id: "hero_backgrounds", label: "Fonds de hero", icon: ImageIcon },
   ];
 
   return (
@@ -628,6 +631,11 @@ export function AdminPage({ onBack }) {
         {/* ── Onglet Labels ── */}
         <div className={tab !== "labels" ? "hidden" : ""}>
           <LabelsEditor />
+        </div>
+
+        {/* ── Onglet Fonds de hero ── */}
+        <div className={tab !== "hero_backgrounds" ? "hidden" : ""}>
+          <HeroBackgroundsEditor />
         </div>
 
         {/* ── Onglet Liens crypto ── */}
@@ -1915,6 +1923,209 @@ function DefaultFooterContentEditor({ footer, onChange, links }) {
 // ─────────────────────────────────────────────────────────────────────────────
 // LabelsEditor
 // ─────────────────────────────────────────────────────────────────────────────
+
+function HeroBackgroundsEditor() {
+  const { profile } = useAuth();
+  const addToast = useToast();
+  const confirm = useConfirm();
+  const { builtIn, custom } = useHeroBackgrounds();
+  const [file, setFile] = useState(null);
+  const [preview, setPreview] = useState(null);
+  const [label, setLabel] = useState("");
+  const [textColor, setTextColor] = useState("light");
+  const [saving, setSaving] = useState(false);
+  const [editing, setEditing] = useState(null);
+  const [editForm, setEditForm] = useState({ label: "", textColor: "dark" });
+  const [ratioWarning, setRatioWarning] = useState(false);
+
+  useEffect(() => {
+    if (!file) { setPreview(null); setRatioWarning(false); return undefined; }
+    const url = URL.createObjectURL(file);
+    setPreview(url);
+    const probe = new Image();
+    probe.onload = () => setRatioWarning(Math.abs(probe.naturalWidth / probe.naturalHeight - 16 / 9) > 0.05);
+    probe.src = url;
+    return () => URL.revokeObjectURL(url);
+  }, [file]);
+
+  const pickFile = (event) => {
+    const next = event.target.files?.[0] || null;
+    if (next && !next.type.startsWith("image/")) { addToast("Le fichier doit être une image (PNG, JPG, WebP)."); return; }
+    if (next && next.size > MAX_IMAGE_FILE_SIZE_BYTES) { addToast(`Image trop lourde (${(next.size / 1024 / 1024).toFixed(1)} Mo). Max ${MAX_IMAGE_FILE_SIZE_LABEL}.`); return; }
+    setFile(next);
+    if (next && !label.trim()) setLabel(next.name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ").trim());
+  };
+
+  const handleAdd = async (event) => {
+    event.preventDefault();
+    if (!file || !label.trim() || !profile?.id) return;
+    setSaving(true);
+    try {
+      await addHeroBackground({ file, label, textColor, userId: profile.id });
+      setFile(null);
+      setLabel("");
+      addToast("Fond ajouté au créateur de hero.");
+    } catch (err) {
+      addToast("Erreur : " + err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleUpdate = async (background) => {
+    if (!editForm.label.trim()) return;
+    setSaving(true);
+    try {
+      await updateHeroBackground(background, editForm);
+      setEditing(null);
+    } catch (err) {
+      addToast("Erreur : " + err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async (background) => {
+    if (!await confirm(`Supprimer le fond « ${background.label} » ? Les heros déjà créés ne sont pas modifiés.`, { danger: true, confirmLabel: "Supprimer" })) return;
+    try {
+      await deleteHeroBackground(background);
+    } catch (err) {
+      addToast("Erreur : " + err.message);
+    }
+  };
+
+  const colorToggle = (value, onChange) => (
+    <div className="grid grid-cols-2 gap-1 rounded-xl border border-line bg-d-panel2 p-1">
+      {[["light", "Texte clair"], ["dark", "Texte sombre"]].map(([id, text]) => (
+        <button
+          key={id}
+          type="button"
+          onClick={() => onChange(id)}
+          className={`rounded-lg px-3 py-1.5 text-[11px] font-semibold transition-colors ${value === id ? "bg-d-fg text-d-bg" : "text-d-fg3 hover:text-d-fg"}`}
+        >
+          {text}
+        </button>
+      ))}
+    </div>
+  );
+
+  return (
+    <section className="space-y-6">
+      <div>
+        <h2 className="text-sm font-semibold text-d-fg mb-1" style={{ fontFamily: "'Sora', sans-serif" }}>
+          Fonds de hero
+        </h2>
+        <p className="text-xs text-d-fg4 leading-relaxed">
+          Images proposées dans « Créer un hero » du gestionnaire d'images. Format conseillé : 1920 × 1080 (16:9, comme le hero), {MAX_IMAGE_FILE_SIZE_LABEL} maximum.
+          La couleur de texte est celle appliquée par défaut quand le fond est choisi.
+        </p>
+      </div>
+
+      <div className="bg-d-panel border border-line rounded-2xl p-4">
+        <div className="text-[10px] uppercase tracking-[0.18em] text-d-fg3 font-medium mb-3">Nouveau fond</div>
+        <form onSubmit={handleAdd} className="grid gap-4 sm:grid-cols-[200px_1fr]">
+          <label className="flex aspect-video cursor-pointer items-center justify-center overflow-hidden rounded-xl border border-dashed border-line bg-d-panel2 text-center text-[11px] text-d-fg4 transition-colors hover:border-line2">
+            {preview ? <img src={preview} alt="" className="h-full w-full object-cover" /> : <span className="px-3">Choisir une image</span>}
+            <input type="file" accept="image/*" onChange={pickFile} className="sr-only" disabled={saving} />
+          </label>
+          <div className="space-y-3">
+            <div>
+              <label className="text-[10px] uppercase tracking-[0.18em] text-d-fg3 font-medium block mb-2">Nom</label>
+              <input
+                type="text"
+                value={label}
+                onChange={(e) => setLabel(e.target.value)}
+                placeholder="Ex. : Bleu nuit · pièces"
+                className="w-full px-3 py-2.5 border border-line rounded-xl text-sm focus:outline-none focus:border-line2 bg-d-panel2 text-d-fg placeholder:text-d-fg4 transition-colors"
+                disabled={saving}
+              />
+            </div>
+            <div>
+              <label className="text-[10px] uppercase tracking-[0.18em] text-d-fg3 font-medium block mb-2">Couleur de texte conseillée</label>
+              {colorToggle(textColor, setTextColor)}
+            </div>
+            {ratioWarning && (
+              <p className="text-[11px] text-amber-300">Cette image n'est pas en 16:9 : elle sera recadrée au centre dans le hero.</p>
+            )}
+            <button
+              type="submit"
+              disabled={saving || !file || !label.trim()}
+              className={`flex items-center justify-center gap-2 rounded-full px-6 py-3 text-[11px] font-bold uppercase tracking-[0.22em] transition-all duration-200 ${
+                saving || !file || !label.trim()
+                  ? "bg-d-panel2 text-d-fg4 border border-line cursor-not-allowed opacity-40"
+                  : "bg-[#FF00AA] text-white shadow-md shadow-pink-950/10 hover:bg-[#E60098] active:scale-[0.98]"
+              }`}
+            >
+              {saving ? <Loader2 size={12} className="animate-spin" /> : <Plus size={12} />}
+              Ajouter le fond
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div>
+        <div className="flex items-center gap-2 mb-3">
+          <h3 className="text-[10px] uppercase tracking-[0.18em] text-d-fg3 font-medium">Fonds ajoutés</h3>
+          <span className="text-[10px] bg-d-panel2 text-d-fg3 px-2 py-0.5 rounded-full font-medium border border-line">{custom.length}</span>
+        </div>
+        {custom.length === 0 ? (
+          <div className="border border-dashed border-line rounded-2xl p-8 text-center text-xs text-d-fg4">
+            Aucun fond ajouté pour le moment.
+          </div>
+        ) : (
+          <div className="bg-d-panel border border-line rounded-2xl divide-y" style={{ borderColor: "var(--d-line)" }}>
+            {custom.map((background) => (
+              <div key={background.id} className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center">
+                <img src={background.url} alt="" className="aspect-video w-32 shrink-0 rounded-lg border border-line object-cover" />
+                {editing === background.id ? (
+                  <>
+                    <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center">
+                      <input
+                        type="text"
+                        value={editForm.label}
+                        onChange={(e) => setEditForm((f) => ({ ...f, label: e.target.value }))}
+                        className="flex-1 px-3 py-2 border border-line rounded-xl text-sm focus:outline-none focus:border-line2 bg-d-panel2 text-d-fg"
+                        disabled={saving}
+                      />
+                      <div className="sm:w-56">{colorToggle(editForm.textColor, (v) => setEditForm((f) => ({ ...f, textColor: v })))}</div>
+                    </div>
+                    <div className="flex gap-1">
+                      <button type="button" onClick={() => handleUpdate(background)} disabled={saving || !editForm.label.trim()} className="p-1.5 text-d-fg3 hover:text-d-fg" title="Enregistrer"><Check size={14} /></button>
+                      <button type="button" onClick={() => setEditing(null)} className="p-1.5 text-d-fg3 hover:text-d-fg" title="Annuler"><X size={14} /></button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex-1 min-w-0">
+                      <div className="truncate text-sm font-semibold text-d-fg">{background.label}</div>
+                      <div className="text-[11px] text-d-fg4">Texte {background.textColor === "light" ? "clair" : "sombre"} par défaut</div>
+                    </div>
+                    <div className="flex gap-1">
+                      <button type="button" onClick={() => { setEditing(background.id); setEditForm({ label: background.label, textColor: background.textColor }); }} className="p-1.5 text-d-fg3 hover:text-d-fg" title="Modifier"><Pencil size={13} /></button>
+                      <button type="button" onClick={() => handleDelete(background)} className="p-1.5 text-d-fg3 hover:text-red-400" title="Supprimer"><Trash2 size={13} /></button>
+                    </div>
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div>
+        <h3 className="text-[10px] uppercase tracking-[0.18em] text-d-fg3 font-medium mb-3">Fonds intégrés</h3>
+        <div className="grid grid-cols-3 gap-2 sm:grid-cols-5 lg:grid-cols-9">
+          {builtIn.map((background) => (
+            <div key={background.id} className="overflow-hidden rounded-lg border border-line">
+              <img src={background.url} alt={background.label} loading="lazy" className="block aspect-video w-full object-cover" />
+              <div className="truncate bg-d-panel2 px-1.5 py-1 text-[9px] font-semibold uppercase tracking-[0.1em] text-d-fg3">{background.label}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
 
 function CryptoLinksEditor() {
   const { profile } = useAuth();

@@ -33,8 +33,9 @@ export const HERO_BACKGROUNDS = [
 ];
 export const DEFAULT_HERO_BACKGROUND_ID = HERO_BACKGROUNDS[0].id;
 
-export function getHeroBackground(id) {
-  return HERO_BACKGROUNDS.find((background) => background.id === id) || HERO_BACKGROUNDS[0];
+// `backgrounds` : liste complète (fonds intégrés + fonds ajoutés depuis l'admin)
+export function getHeroBackground(id, backgrounds = HERO_BACKGROUNDS) {
+  return backgrounds.find((background) => background.id === id) || HERO_BACKGROUNDS[0];
 }
 
 export const HERO_FONT_FAMILY = "Sora";
@@ -271,6 +272,8 @@ export async function ensureHeroFonts() {
 export function loadHeroBackground(url = HERO_BG_URL) {
   return new Promise((resolve, reject) => {
     const image = new Image();
+    // Fonds hébergés sur Supabase : sans CORS le canvas serait « tainted » et l'export PNG échouerait.
+    image.crossOrigin = "anonymous";
     image.onload = () => resolve(image);
     image.onerror = () => reject(new Error("Fond du hero introuvable."));
     image.src = url;

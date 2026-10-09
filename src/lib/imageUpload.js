@@ -8,6 +8,8 @@
 import { supabase } from "./supabase.js";
 
 const BUCKET = "newsletter-images";
+// Dossier des fonds du créateur de hero (gérés depuis l'admin, absents du gestionnaire d'images)
+export const HERO_BACKGROUNDS_FOLDER = "hero-backgrounds";
 export const MAX_IMAGE_FILE_SIZE_BYTES = 5 * 1024 * 1024;
 export const MAX_IMAGE_FILE_SIZE_LABEL = "5 Mo";
 export const MAX_IMAGE_STORAGE_BYTES = 1024 * 1024 * 1024;
@@ -17,9 +19,10 @@ export const MAX_IMAGE_STORAGE_LABEL = "1 Go";
  * Upload une image vers Supabase Storage.
  * @param {File} file
  * @param {string} userId — pour préfixer le chemin (organisation)
+ * @param {{ folder?: string }} [options] — dossier à la place du userId (ex. fonds de hero)
  * @returns {Promise<{ url: string, path: string }>}
  */
-export async function uploadImage(file, userId) {
+export async function uploadImage(file, userId, { folder } = {}) {
   if (!file) throw new Error("Aucun fichier fourni");
 
   if (!file.type.startsWith("image/")) {
@@ -37,7 +40,7 @@ export async function uploadImage(file, userId) {
     .toLowerCase()
     .replace(/[^a-z0-9-]+/g, "-")
     .slice(0, 40);
-  const path = `${userId}/${Date.now()}-${safeBase}.${ext}`;
+  const path = `${folder || userId}/${Date.now()}-${safeBase}.${ext}`;
 
   const { error } = await supabase.storage
     .from(BUCKET)
@@ -77,7 +80,7 @@ export async function listImages(userId, isAdmin = false) {
   const folders = [];
 
   for (const item of rootItems || []) {
-    if (!item?.name || item.name === ".emptyFolderPlaceholder" || item.name === "braze-export") continue;
+    if (!item?.name || item.name === ".emptyFolderPlaceholder" || item.name === "braze-export" || item.name === HERO_BACKGROUNDS_FOLDER) continue;
     if (item.metadata) {
       const { data: publicData } = supabase.storage.from(BUCKET).getPublicUrl(item.name);
       images.push({

@@ -4,7 +4,6 @@ import { uploadImage, MAX_IMAGE_FILE_SIZE_BYTES, MAX_IMAGE_FILE_SIZE_LABEL } fro
 import {
   DEFAULT_HERO_BACKGROUND_ID,
   DEFAULT_HERO_OPTIONS,
-  HERO_BACKGROUNDS,
   HERO_GRADIENTS,
   HERO_HEIGHT,
   HERO_POSITIONS,
@@ -15,6 +14,7 @@ import {
   renderHero,
   stripHeroMarkup,
 } from "../lib/heroRenderer.js";
+import { useHeroBackgrounds } from "../lib/useHeroBackgrounds.js";
 import { Tooltip } from "./Tooltip.jsx";
 
 const POSITION_LABELS = {
@@ -67,7 +67,8 @@ export function HeroEditorModal({ userId, onClose, onCreated }) {
 
   const set = (patch) => setOptions((current) => ({ ...current, ...patch }));
 
-  const background = getHeroBackground(backgroundId);
+  const { backgrounds } = useHeroBackgrounds();
+  const background = getHeroBackground(backgroundId, backgrounds);
 
   useEffect(() => {
     let cancelled = false;
@@ -90,7 +91,7 @@ export function HeroEditorModal({ userId, onClose, onCreated }) {
     if (id === backgroundId) return;
     // La couleur de texte suit le fond (clair sur fond sombre et inversement) ; on la
     // laisse ensuite modifiable.
-    set({ textColor: getHeroBackground(id).textColor });
+    set({ textColor: getHeroBackground(id, backgrounds).textColor });
     setBackgroundId(id);
   };
 
@@ -191,7 +192,7 @@ export function HeroEditorModal({ userId, onClose, onCreated }) {
           <div>
             <div className={LABEL_CLASS}>Fond</div>
             <div className="grid grid-cols-3 gap-2">
-              {HERO_BACKGROUNDS.map((item) => {
+              {backgrounds.map((item) => {
                 const active = item.id === backgroundId;
                 return (
                   <button
