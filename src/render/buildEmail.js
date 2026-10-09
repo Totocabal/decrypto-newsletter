@@ -2303,9 +2303,10 @@ function renderHeader(state, assetMode) {
   const gradientHeaderUrl = assetMode === "external"
     ? "assets/gradient-header.png"
     : "https://decrypto-newsletter.vercel.app/gradient-header.png";
-  // B2B : liseré uni aux couleurs de la charte, sans image à héberger.
+  // B2B : liseré au dégradé des boutons, en CSS (sans image à héberger) ; les clients qui
+  // ne gèrent pas le dégradé (Outlook) retombent sur le bleu de la charte.
   const topStrip = IS_B2B
-    ? `<td bgcolor="${EMAIL_THEME.accentPrimary}" style="height:4px; line-height:4px; font-size:1px; padding:0; border:0; background-color:${EMAIL_THEME.accentPrimary};">&nbsp;</td>`
+    ? `<td bgcolor="${EMAIL_THEME.accentPrimary}" style="height:4px; line-height:4px; font-size:1px; padding:0; border:0; background-color:${EMAIL_THEME.accentPrimary}; background-image:${B2B_CTA_GRADIENT_FALLBACK};">&nbsp;</td>`
     : `<td style="height:4px; line-height:4px; font-size:1px; padding:0; border:0;"><img src="${gradientHeaderUrl}" width="640" height="4" alt="" style="display:block; width:100%; height:4px; border:0; line-height:4px;" /></td>`;
   return `
     <tr>
