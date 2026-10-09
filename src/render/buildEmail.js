@@ -241,7 +241,7 @@ function renderBulletproofButton({
   const resolvedBorderColor = borderColor || (isSecondary ? EMAIL_THEME.borderStrong : visual.msoFill);
   const fillColor = bgColor || (isSecondary ? EMAIL_THEME.bgEmail : visual.msoFill);
   const resolvedTextColor = textColor || (isSecondary ? EMAIL_THEME.textSecondary : visual.textColor || "#ffffff");
-  const radius = IS_B2B ? 6 : 99;
+  const radius = 99;
   const fontWeight = isSecondary ? 500 : 600;
   const tdStyle = isSecondary
     ? `background-color:${fillColor}; border:1px solid ${resolvedBorderColor}; border-radius:${radius}px;`
@@ -251,7 +251,7 @@ function renderBulletproofButton({
   const safeMsoLabel = text.replace(/&nbsp;/gi, " ");
 
   return `<!--[if mso]>
-<v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${href}" style="height:${height}px; v-text-anchor:middle; width:${buttonWidth}px;" arcsize="${IS_B2B ? 12 : 50}%" stroke="${stroke}" strokecolor="${resolvedBorderColor}" fillcolor="${fillColor}">
+<v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${href}" style="height:${height}px; v-text-anchor:middle; width:${buttonWidth}px;" arcsize="50%" stroke="${stroke}" strokecolor="${resolvedBorderColor}" fillcolor="${fillColor}">
   <w:anchorlock/>
   <center style="color:${resolvedTextColor}; font-family:Calibri, 'Trebuchet MS', Arial, sans-serif; font-size:13px; font-weight:${fontWeight === 600 ? "bold" : "normal"};">${safeMsoLabel}</center>
 </v:roundrect>
