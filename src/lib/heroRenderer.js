@@ -11,11 +11,31 @@
 export const HERO_WIDTH = 996;
 export const HERO_HEIGHT = 558;
 export const HERO_BG_URL = "/hero-bg.webp";
-// Le fond source a des coins arrondis transparents : on recadre à l'intérieur
+// Le fond d'origine a des coins arrondis transparents : on recadre à l'intérieur
 // pour ne jamais dessiner de pixel transparent. L'inset est exprimé pour une
 // image de 996 px de large et mis à l'échelle (fond actuel : 1992 × 1116, soit
 // 2× le format du hero, avec un inset minimal sûr de 10 px).
 export const HERO_BG_INSET = 8;
+
+// Fonds proposés dans le créateur de hero. `textColor` est la couleur de texte la plus
+// lisible sur le fond : elle est appliquée au choix du fond (modifiable ensuite).
+// Les fonds ajoutés sont en 1920 × 1080 (16:9, comme le hero) sans coins transparents.
+export const HERO_BACKGROUNDS = [
+  { id: "original", label: "Original", url: HERO_BG_URL, inset: HERO_BG_INSET, textColor: "dark" },
+  { id: "color-coin", label: "Dégradé · pièce", url: "/hero-backgrounds/color-coin.webp", inset: 0, textColor: "light" },
+  { id: "color", label: "Dégradé", url: "/hero-backgrounds/color.webp", inset: 0, textColor: "light" },
+  { id: "light-coins", label: "Clair · pièces", url: "/hero-backgrounds/light-coins.webp", inset: 0, textColor: "dark" },
+  { id: "light", label: "Clair", url: "/hero-backgrounds/light.webp", inset: 0, textColor: "dark" },
+  { id: "grey-coins", label: "Gris · pièces", url: "/hero-backgrounds/grey-coins.webp", inset: 0, textColor: "dark" },
+  { id: "grey", label: "Gris", url: "/hero-backgrounds/grey.webp", inset: 0, textColor: "dark" },
+  { id: "dark-coins", label: "Noir · pièces", url: "/hero-backgrounds/dark-coins.webp", inset: 0, textColor: "light" },
+  { id: "dark", label: "Noir", url: "/hero-backgrounds/dark.webp", inset: 0, textColor: "light" },
+];
+export const DEFAULT_HERO_BACKGROUND_ID = HERO_BACKGROUNDS[0].id;
+
+export function getHeroBackground(id) {
+  return HERO_BACKGROUNDS.find((background) => background.id === id) || HERO_BACKGROUNDS[0];
+}
 
 export const HERO_FONT_FAMILY = "Sora";
 export const HERO_BASE_WEIGHT = 500;
@@ -238,8 +258,8 @@ export function loadHeroBackground(url = HERO_BG_URL) {
   });
 }
 
-function drawBackgroundCover(ctx, image, width, height) {
-  const inset = HERO_BG_INSET * (image.naturalWidth / HERO_WIDTH);
+function drawBackgroundCover(ctx, image, width, height, insetAt996 = HERO_BG_INSET) {
+  const inset = insetAt996 * (image.naturalWidth / HERO_WIDTH);
   const maxW = image.naturalWidth - inset * 2;
   const maxH = image.naturalHeight - inset * 2;
   const ratio = width / height;
@@ -256,11 +276,11 @@ function drawBackgroundCover(ctx, image, width, height) {
   ctx.drawImage(image, sx, sy, sw, sh, 0, 0, width, height);
 }
 
-export function renderHero(ctx, { bgImage, options, width = HERO_WIDTH, height = HERO_HEIGHT }) {
+export function renderHero(ctx, { bgImage, bgInset = HERO_BG_INSET, options, width = HERO_WIDTH, height = HERO_HEIGHT }) {
   const opts = normalizeHeroOptions(options);
   ctx.clearRect(0, 0, width, height);
   if (bgImage) {
-    drawBackgroundCover(ctx, bgImage, width, height);
+    drawBackgroundCover(ctx, bgImage, width, height, bgInset);
   } else {
     ctx.fillStyle = "#E4E5EA";
     ctx.fillRect(0, 0, width, height);

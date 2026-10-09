@@ -2,11 +2,14 @@ import { useEffect, useRef, useState } from "react";
 import { Loader2, Sparkles, X } from "lucide-react";
 import { uploadImage, MAX_IMAGE_FILE_SIZE_BYTES, MAX_IMAGE_FILE_SIZE_LABEL } from "../lib/imageUpload.js";
 import {
+  DEFAULT_HERO_BACKGROUND_ID,
   DEFAULT_HERO_OPTIONS,
+  HERO_BACKGROUNDS,
   HERO_HEIGHT,
   HERO_POSITIONS,
   HERO_WIDTH,
   ensureHeroFonts,
+  getHeroBackground,
   loadHeroBackground,
   renderHero,
   stripHeroMarkup,
@@ -51,6 +54,7 @@ export function HeroEditorModal({ userId, onClose, onCreated }) {
   const canvasRef = useRef(null);
   const textareaRef = useRef(null);
   const [options, setOptions] = useState(DEFAULT_HERO_OPTIONS);
+  const [backgroundId, setBackgroundId] = useState(DEFAULT_HERO_BACKGROUND_ID);
   const [bgImage, setBgImage] = useState(null);
   const [ready, setReady] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -59,9 +63,12 @@ export function HeroEditorModal({ userId, onClose, onCreated }) {
 
   const set = (patch) => setOptions((current) => ({ ...current, ...patch }));
 
+  const background = getHeroBackground(backgroundId);
+
   useEffect(() => {
     let cancelled = false;
-    Promise.all([ensureHeroFonts(), loadHeroBackground()])
+    setError(null);
+    Promise.all([ensureHeroFonts(), loadHeroBackground(background.url)])
       .then(([, image]) => {
         if (cancelled) return;
         setBgImage(image);
@@ -73,13 +80,21 @@ export function HeroEditorModal({ userId, onClose, onCreated }) {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [background.url]);
+
+  const chooseBackground = (id) => {
+    if (id === backgroundId) return;
+    // La couleur de texte suit le fond (clair sur fond sombre et inversement) ; on la
+    // laisse ensuite modifiable.
+    set({ textColor: getHeroBackground(id).textColor });
+    setBackgroundId(id);
+  };
 
   useEffect(() => {
     if (!ready || !canvasRef.current) return;
-    const layout = renderHero(canvasRef.current.getContext("2d"), { bgImage, options });
+    const layout = renderHero(canvasRef.current.getContext("2d"), { bgImage, bgInset: background.inset, options });
     setOverflow(layout.blockHeight > HERO_HEIGHT - layout.options.margin * 2 + 1);
-  }, [ready, bgImage, options]);
+  }, [ready, bgImage, background.inset, options]);
 
   const toggleHighlight = () => {
     const textarea = textareaRef.current;
@@ -169,6 +184,32 @@ export function HeroEditorModal({ userId, onClose, onCreated }) {
 
       <main className="grid flex-1 grid-cols-1 overflow-y-auto lg:grid-cols-[minmax(300px,380px)_1fr] lg:overflow-hidden">
         <aside className="space-y-5 border-b border-line bg-d-panel p-4 sm:p-5 lg:overflow-y-auto lg:border-b-0 lg:border-r">
+          <div>
+            <div className={LABEL_CLASS}>Fond</div>
+            <div className="grid grid-cols-3 gap-2">
+              {HERO_BACKGROUNDS.map((item) => {
+                const active = item.id === backgroundId;
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => chooseBackground(item.id)}
+                    aria-pressed={active}
+                    title={item.label}
+                    className={`group overflow-hidden rounded-lg border text-left transition-colors ${
+                      active ? "border-d-pink ring-2 ring-d-pink/40" : "border-line hover:border-line2"
+                    }`}
+                  >
+                    <img src={item.url} alt={item.label} loading="lazy" className="block aspect-video w-full object-cover" />
+                    <span className="block truncate bg-d-panel2 px-1.5 py-1 text-[9px] font-semibold uppercase tracking-[0.1em] text-d-fg3">
+                      {item.label}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           <div>
             <div className={LABEL_CLASS}>Texte</div>
             <textarea

@@ -2,6 +2,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import {
+  HERO_BACKGROUNDS,
+  getHeroBackground,
   DEFAULT_HERO_OPTIONS,
   HERO_HEIGHT,
   HERO_WIDTH,
@@ -109,4 +111,16 @@ test("normalizeHeroOptions clamps values and falls back on unknown input", () =>
   assert.equal(normalized.margin, 0);
   assert.equal(normalized.position, DEFAULT_HERO_OPTIONS.position);
   assert.equal(normalized.textColor, "dark");
+});
+
+test("hero backgrounds are unique, resolvable and default to the original", () => {
+  const ids = HERO_BACKGROUNDS.map((background) => background.id);
+  assert.equal(new Set(ids).size, ids.length);
+  assert.equal(HERO_BACKGROUNDS.length, 9);
+  assert.equal(getHeroBackground("unknown").id, "original");
+  assert.equal(getHeroBackground("dark").textColor, "light");
+  assert.equal(getHeroBackground("light").textColor, "dark");
+  for (const background of HERO_BACKGROUNDS) {
+    assert.ok(background.url.startsWith("/"), background.id);
+  }
 });
