@@ -435,7 +435,6 @@ test("b2b template renders every block with the Coinhouse Entreprises palette an
     /#FAF7F1/i, /#FBF8F2/i, /#E5E1D8/i, /#D7C4F5/i, /#E7D8EE/i, /#101018/i, /#141418/i,
     /rgba\(\s*255,\s*0,\s*170/i, /rgba\(\s*135,\s*1,\s*255/i, /rgba\(\s*255,\s*75,\s*40/i,
     /gradient-header\.png/, /offer-bg\.png/, /event-bg\.png/, /macro-quote-bg\.png/, /referral-bg-(dark|light)\.png/,
-    /linear-gradient\(90deg, #4141FF 0%/i, // dégradé magenta/orange des boutons
   ];
   for (const theme of ["dark", "light"]) {
     for (const assetMode of ["inline", "external"]) {
@@ -453,6 +452,16 @@ test("b2b template renders every block with the Coinhouse Entreprises palette an
   const b2c = buildEmailHtml(buildCompatState("dark", "b2c"));
   assert.match(b2c, /#FF00AA/i);
   assert.match(b2c, /gradient-header\.png/);
+});
+
+test("b2b buttons use the site's blue-cyan-mint gradient with black text", () => {
+  const html = buildEmailHtml(buildCompatState("dark", "b2b"));
+  assert.match(html, /linear-gradient\(90deg, #4141FF 0%, #7DFFFF 30%, #7FFFD4 60%, #55B896 100%\)/i);
+  assert.match(html, /class="em-cta-link"[^>]*color:#000000/i);
+  assert.match(html, /<v:roundrect[^>]*fillcolor="#7FFFD4"/i);
+  const b2c = buildEmailHtml(buildCompatState("dark", "b2c"));
+  assert.doesNotMatch(b2c, /#7DFFFF 30%/i);
+  assert.match(b2c, /class="em-cta-link"[^>]*color:#ffffff/i);
 });
 
 test("b2b template swaps palette tokens while keeping the same structure", () => {

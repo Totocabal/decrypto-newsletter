@@ -96,6 +96,9 @@ let CURRENT_SECTION_SUPPRESS_BOTTOM_SEPARATOR = false;
 const CTA_GRADIENT_FALLBACK = "linear-gradient(90deg, #4141FF 0%, #FF00AA 60%, #FF4B28 100%)";
 const CTA_GRADIENT_BG = "#4141FF";
 const CTA_BLACK_BG = "#050505";
+// Bouton B2B : dégradé bleu → cyan → menthe → vert du site Coinhouse Entreprises, texte noir.
+const B2B_CTA_GRADIENT_FALLBACK = "linear-gradient(90deg, #4141FF 0%, #7DFFFF 30%, #7FFFD4 60%, #55B896 100%)";
+const B2B_CTA_SOLID_BG = "#7FFFD4";
 const PREHEADER_SPACER = Array.from({ length: 220 }, () => "&nbsp;&zwnj;&#847;&shy;").join("");
 
 // Image de fond par défaut d'un bloc (dégradés violet/magenta de la charte B2C).
@@ -189,11 +192,12 @@ function ctaVisualStyle(style = "gradient") {
     };
   }
   if (IS_B2B) {
-    // Charte B2B : bouton plein bleu électrique, pas de dégradé.
     return {
-      bgColor: CTA_GRADIENT_BG,
-      background: `background-color:${CTA_GRADIENT_BG};`,
-      msoFill: CTA_GRADIENT_BG,
+      bgColor: B2B_CTA_SOLID_BG,
+      background: `background-color:${B2B_CTA_SOLID_BG}; background-image:${CTA_GRADIENT_URL ? `url('${CTA_GRADIENT_URL}'), ` : ""}${B2B_CTA_GRADIENT_FALLBACK}; background-size:100% 100%;`,
+      // Outlook ne rend pas le dégradé : couleur unie lisible avec le texte noir.
+      msoFill: B2B_CTA_SOLID_BG,
+      textColor: "#000000",
     };
   }
   return {
@@ -236,17 +240,18 @@ function renderBulletproofButton({
   const height = isSecondary ? 44 : 46;
   const resolvedBorderColor = borderColor || (isSecondary ? EMAIL_THEME.borderStrong : visual.msoFill);
   const fillColor = bgColor || (isSecondary ? EMAIL_THEME.bgEmail : visual.msoFill);
-  const resolvedTextColor = textColor || (isSecondary ? EMAIL_THEME.textSecondary : "#ffffff");
+  const resolvedTextColor = textColor || (isSecondary ? EMAIL_THEME.textSecondary : visual.textColor || "#ffffff");
+  const radius = IS_B2B ? 6 : 99;
   const fontWeight = isSecondary ? 500 : 600;
   const tdStyle = isSecondary
-    ? `background-color:${fillColor}; border:1px solid ${resolvedBorderColor}; border-radius:99px;`
-    : `border-radius:99px; ${bgColor ? `background-color:${bgColor};` : visual.background}`;
+    ? `background-color:${fillColor}; border:1px solid ${resolvedBorderColor}; border-radius:${radius}px;`
+    : `border-radius:${radius}px; ${bgColor ? `background-color:${bgColor};` : visual.background}`;
   const tableAlign = align === "center" ? `align="center" style="margin:0 auto;"` : `align="${align}"`;
   const stroke = isSecondary ? "t" : "f";
   const safeMsoLabel = text.replace(/&nbsp;/gi, " ");
 
   return `<!--[if mso]>
-<v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${href}" style="height:${height}px; v-text-anchor:middle; width:${buttonWidth}px;" arcsize="50%" stroke="${stroke}" strokecolor="${resolvedBorderColor}" fillcolor="${fillColor}">
+<v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${href}" style="height:${height}px; v-text-anchor:middle; width:${buttonWidth}px;" arcsize="${IS_B2B ? 12 : 50}%" stroke="${stroke}" strokecolor="${resolvedBorderColor}" fillcolor="${fillColor}">
   <w:anchorlock/>
   <center style="color:${resolvedTextColor}; font-family:Calibri, 'Trebuchet MS', Arial, sans-serif; font-size:13px; font-weight:${fontWeight === 600 ? "bold" : "normal"};">${safeMsoLabel}</center>
 </v:roundrect>
@@ -255,7 +260,7 @@ function renderBulletproofButton({
 <table role="presentation" class="${className}" cellpadding="0" cellspacing="0" border="0" ${tableAlign}>
   <tr>
     <td bgcolor="${fillColor}" style="${tdStyle}">
-      <a class="em-cta-link" href="${href}" style="display:inline-block; padding:${isSecondary ? "12px 20px" : "13px 22px"}; font-family:${FONTS.heading}; font-weight:${fontWeight}; font-size:13px; line-height:1.25; color:${resolvedTextColor}; text-decoration:none; border-radius:99px; letter-spacing:0.01em; text-align:center;">${text}</a>
+      <a class="em-cta-link" href="${href}" style="display:inline-block; padding:${isSecondary ? "12px 20px" : "13px 22px"}; font-family:${FONTS.heading}; font-weight:${fontWeight}; font-size:13px; line-height:1.25; color:${resolvedTextColor}; text-decoration:none; border-radius:${radius}px; letter-spacing:0.01em; text-align:center;">${text}</a>
     </td>
   </tr>
 </table>

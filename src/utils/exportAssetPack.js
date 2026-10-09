@@ -87,7 +87,7 @@ function svgToPngBlob(svgString, width, height) {
  * Ce PNG est utilisé comme background-image sur les boutons CTA pour
  * conserver le dégradé dans Gmail app (qui ignore les CSS linear-gradient).
  */
-function gradientCtaPngBlob() {
+function gradientCtaPngBlob(isB2b = false) {
   return new Promise((resolve, reject) => {
     const W = 600;
     const H = 46;
@@ -96,9 +96,17 @@ function gradientCtaPngBlob() {
     canvas.height = H * PIXEL_RATIO;
     const ctx = canvas.getContext("2d");
     const grad = ctx.createLinearGradient(0, 0, W * PIXEL_RATIO, 0);
-    grad.addColorStop(0, "#4141FF");
-    grad.addColorStop(0.6, "#FF00AA");
-    grad.addColorStop(1, "#FF4B28");
+    if (isB2b) {
+      // Dégradé du bouton Coinhouse Entreprises (même dégradé que B2B_CTA_GRADIENT_FALLBACK dans buildEmail.js)
+      grad.addColorStop(0, "#4141FF");
+      grad.addColorStop(0.3, "#7DFFFF");
+      grad.addColorStop(0.6, "#7FFFD4");
+      grad.addColorStop(1, "#55B896");
+    } else {
+      grad.addColorStop(0, "#4141FF");
+      grad.addColorStop(0.6, "#FF00AA");
+      grad.addColorStop(1, "#FF4B28");
+    }
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, W * PIXEL_RATIO, H * PIXEL_RATIO);
     canvas.toBlob(
@@ -376,9 +384,9 @@ async function buildPngAssets(state) {
     assets[item.filename] = await svgToPngBlob(svg, 32, 32);
   }
 
-  if (needCtaGradient && !isB2b) {
+  if (needCtaGradient) {
     try {
-      assets[GRADIENT_CTA_FILENAME] = await gradientCtaPngBlob();
+      assets[GRADIENT_CTA_FILENAME] = await gradientCtaPngBlob(isB2b);
     } catch (e) {
       // eslint-disable-next-line no-console
       console.warn("[export] gradient-cta.png non généré :", e);
