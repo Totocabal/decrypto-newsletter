@@ -62,12 +62,13 @@ function compatSection(type, index) {
   };
 }
 
-function buildCompatState(themeVariant = "dark") {
+function buildCompatState(themeVariant = "dark", audience = "b2c") {
   return {
     ...clone(INITIAL_STATE),
     issue_date: "23.07.2026",
     preview_text: "Audit compatibilite email",
     theme_variant: themeVariant,
+    audience,
     sections: Object.keys(SECTION_TYPES).map(compatSection),
   };
 }
@@ -426,3 +427,39 @@ test("offer block's card style renders like the legacy commercial_offer block, w
   assert.match(bannerHtml, /offer-bg\.png/);
   assert.doesNotMatch(bannerHtml, /linear-gradient\(135deg/);
 });
+
+test("b2b template renders every block with the Coinhouse Entreprises palette and no B2C leftovers", () => {
+  // Couleurs / images propres à la charte B2C (magenta, violet sombre, crème, dégradés bitmap).
+  const b2cOnly = [
+    /#FF00AA/i, /#C0008A/i, /#1a0c2e/i, /#12081F/i, /#2D243A/i, /#2D203B/i, /#5F526D/i, /#5A2363/i,
+    /#FAF7F1/i, /#FBF8F2/i, /#E5E1D8/i, /#D7C4F5/i, /#E7D8EE/i, /#101018/i, /#141418/i,
+    /rgba\(\s*255,\s*0,\s*170/i, /rgba\(\s*135,\s*1,\s*255/i, /rgba\(\s*255,\s*75,\s*40/i,
+    /gradient-header\.png/, /offer-bg\.png/, /event-bg\.png/, /macro-quote-bg\.png/, /referral-bg-(dark|light)\.png/,
+    /linear-gradient\(90deg, #4141FF 0%/i, // dégradé magenta/orange des boutons
+  ];
+  for (const theme of ["dark", "light"]) {
+    for (const assetMode of ["inline", "external"]) {
+      const html = buildEmailHtml(buildCompatState(theme, "b2b"), { assetMode });
+      for (const pattern of b2cOnly) {
+        assert.doesNotMatch(html, pattern, `${theme}/${assetMode}: ${pattern}`);
+      }
+      assert.doesNotMatch(html, /background=""/);
+      assert.doesNotMatch(html, /url\(''\)/);
+      assert.match(html, /#4141FF/i);
+    }
+  }
+
+  // Le même état repasse en B2C sans rien perdre : le switch est purement visuel.
+  const b2c = buildEmailHtml(buildCompatState("dark", "b2c"));
+  assert.match(b2c, /#FF00AA/i);
+  assert.match(b2c, /gradient-header\.png/);
+});
+
+test("b2b template swaps palette tokens while keeping the same structure", () => {
+  const dark = buildEmailHtml(buildCompatState("dark", "b2b"));
+  assert.match(dark, /background-color:#000000/i);
+  const light = buildEmailHtml(buildCompatState("light", "b2b"));
+  assert.match(light, /background-color:#E9EEF2/i);
+  assert.match(light, /color:#000000/i);
+});
+

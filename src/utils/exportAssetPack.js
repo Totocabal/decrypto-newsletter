@@ -338,10 +338,14 @@ async function buildPngAssets(state) {
     }
   }
 
+  // Template B2B : aucun fond dégradé ni liseré image, les blocs sont en couleurs unies.
+  const isB2b = state.audience === "b2b";
+
   if (needChart) {
     const chartSvg = getChartSvgFull(chartPoints, {
       ...chartYAxisLabels,
       themeVariant: state.theme_variant,
+      audience: state.audience,
     }).replace(
       /width="[^"]*"/,
       'width="1120"'
@@ -350,7 +354,7 @@ async function buildPngAssets(state) {
   }
 
   if (needGauge) {
-    const gaugeSvg = getGaugeSvgFull(gaugeValue, { themeVariant: state.theme_variant });
+    const gaugeSvg = getGaugeSvgFull(gaugeValue, { themeVariant: state.theme_variant, audience: state.audience });
     assets["gauge.png"] = await svgToPngBlob(gaugeSvg, 200, 120);
   }
 
@@ -372,7 +376,7 @@ async function buildPngAssets(state) {
     assets[item.filename] = await svgToPngBlob(svg, 32, 32);
   }
 
-  if (needCtaGradient) {
+  if (needCtaGradient && !isB2b) {
     try {
       assets[GRADIENT_CTA_FILENAME] = await gradientCtaPngBlob();
     } catch (e) {
@@ -381,16 +385,18 @@ async function buildPngAssets(state) {
     }
   }
 
-  try {
-    const resp = await fetch(GRADIENT_HEADER_URL);
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    assets[GRADIENT_HEADER_FILENAME] = await resp.blob();
-  } catch (e) {
-    // eslint-disable-next-line no-console
-    console.warn("[export] gradient-header.png non récupéré :", e);
+  if (!isB2b) {
+    try {
+      const resp = await fetch(GRADIENT_HEADER_URL);
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      assets[GRADIENT_HEADER_FILENAME] = await resp.blob();
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.warn("[export] gradient-header.png non récupéré :", e);
+    }
   }
 
-  const needEventBg = (state.sections || []).some(
+  const needEventBg = !isB2b && (state.sections || []).some(
     (sec) => sec.type === "event" && !String(sec.data?.bg_image_url || "").trim()
   );
   if (needEventBg) {
@@ -405,7 +411,7 @@ async function buildPngAssets(state) {
   }
 
   const neededReferralBgVariants = new Set(
-    (state.sections || [])
+    (isB2b ? [] : state.sections || [])
       .filter((sec) => sec.type === "referral" && !String(sec.data?.bg_image_url || "").trim())
       .map((sec) => getReferralBgVariant(sec.data, state.theme_variant))
   );
@@ -419,7 +425,7 @@ async function buildPngAssets(state) {
     }
   }
 
-  const needMacroQuoteBg = (state.sections || []).some(
+  const needMacroQuoteBg = !isB2b && (state.sections || []).some(
     (sec) => ["macro", "feature_grid"].includes(sec.type) && !String(sec.data?.bg_image_url || "").trim()
   );
   if (needMacroQuoteBg) {
@@ -433,7 +439,7 @@ async function buildPngAssets(state) {
     }
   }
 
-  const needOfferBg = (state.sections || []).some(
+  const needOfferBg = !isB2b && (state.sections || []).some(
     (sec) => sec.type === "offer" && !String(sec.data?.bg_image_url || "").trim()
   );
   if (needOfferBg) {

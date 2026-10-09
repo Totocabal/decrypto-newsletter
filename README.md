@@ -154,6 +154,7 @@ EditorPage
   preview_text: "",
   show_section_numbers: true,
   theme_variant: "dark",                  // "dark" | "light"
+  audience: "b2c",                        // "b2c" | "b2b" (charte Coinhouse Entreprises)
   sections: [                             // liste ordonnée de blocs
     { id: "<uuid>", type: "<type>", data: { ... } }
   ],

@@ -4,6 +4,8 @@
 
 // Palette dark mode utilisée dans le HTML email et l'UI de l'éditeur
 export const THEME = {
+  variant: "dark",
+
   // Couleurs d'accentuation (dégradé principal Coinhouse)
   accentPrimary: "#FF00AA",   // Magenta — accent principal
   accentSecondary: "#4141FF", // Bleu électrique
@@ -41,6 +43,7 @@ export const THEME = {
 
 export const LIGHT_THEME = {
   ...THEME,
+  variant: "light",
 
   // Couleurs de fond (light theme)
   bgPage: "#F3F4F6",
@@ -67,9 +70,58 @@ export const LIGHT_THEME = {
   gaugeNeedle: "#15151A",
 };
 
+// ── Template B2B ────────────────────────────────────────────────────────────
+// Charte de https://www.coinhouse.com/fr/entreprises : noir / blanc / gris, un seul accent
+// bleu électrique (#4141FF, variable --blue du site), menthe et cyan en touches sémantiques.
+export const B2B_ACCENT = "#4141FF";
+
+export const B2B_THEME = {
+  ...THEME,
+  accentPrimary: B2B_ACCENT,
+  accentSecondary: "#00FFFF",
+  accentTertiary: B2B_ACCENT,
+
+  positive: "#01FFCF",
+  positiveSoft: "#01FFCF",
+  positiveBg: "rgba(1,255,207,0.12)",
+
+  bgPage: "#000000",
+  bgEmail: "#000000",
+  bgSection: "#171717",
+  bgFooter: "#000000",
+  bgEventCard: "#171717",
+
+  textSecondary: "#E9EEF2",
+  textMuted: "#B3BAC2",
+};
+
+export const B2B_LIGHT_THEME = {
+  ...LIGHT_THEME,
+  accentPrimary: B2B_ACCENT,
+  accentSecondary: "#00FFFF",
+  accentTertiary: B2B_ACCENT,
+
+  bgPage: "#E9EEF2",
+  bgEmail: "#FFFFFF",
+  bgSection: "#F3F4F6",
+  bgFooter: "#F3F4F6",
+  bgEventCard: "#171717",
+
+  textPrimary: "#000000",
+  textSecondary: "#171717",
+  textMuted: "#4B5563",
+
+  border: "rgba(23,23,23,0.10)",
+  borderStrong: "rgba(23,23,23,0.22)",
+  borderSubtle: "rgba(23,23,23,0.12)",
+  barTrack: "#E5E7EB",
+};
+
 export const EMAIL_THEMES = {
   dark: THEME,
   light: LIGHT_THEME,
+  b2b_dark: B2B_THEME,
+  b2b_light: B2B_LIGHT_THEME,
 };
 
 export const BRAND_LOGOS = {

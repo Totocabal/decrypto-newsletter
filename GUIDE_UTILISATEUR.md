@@ -118,7 +118,7 @@ Avant création, une fenêtre de validation affiche :
 
 Cliquer sur **Créer la newsletter** seulement après cette vérification.
 
-Le fichier doit commencer par un front matter contenant au minimum `title`. Il peut aussi définir `theme_variant`, `show_section_numbers` et `show_block_separators`, qui restent modifiables dans la validation d'import. Le corps peut ensuite contenir du Markdown simple et des directives structurées pour les blocs avancés. Le fichier d'exemple `examples/newsletter-markdown-import-complet.md` couvre le format complet, et `MARKDOWN_IMPORT_SPEC.md` décrit la syntaxe de référence.
+Le fichier doit commencer par un front matter contenant au minimum `title`. Il peut aussi définir `theme_variant`, `audience` (`b2c` ou `b2b`), `show_section_numbers` et `show_block_separators`, qui restent modifiables dans la validation d'import. Le corps peut ensuite contenir du Markdown simple et des directives structurées pour les blocs avancés. Le fichier d'exemple `examples/newsletter-markdown-import-complet.md` couvre le format complet, et `MARKDOWN_IMPORT_SPEC.md` décrit la syntaxe de référence.
 
 Après import, utiliser **Synchroniser** si un avertissement signale un graphique CoinGecko à rafraîchir.
 
@@ -159,7 +159,8 @@ Sous la barre principale, collée en haut de l'écran.
 
 ### 4.3 Paramètres généraux (en haut du panneau gauche)
 
-Deux toggles côte à côte :
+Un sélecteur **Template** (B2C / B2B) puis des toggles côte à côte :
+- **Template B2C / B2B** : bascule la charte graphique de l'email. B2C = charte Décrypto actuelle (magenta, dégradés). B2B = charte de coinhouse.com/fr/entreprises (noir, blanc, gris, bleu électrique, boutons et fonds unis). Le contenu ne change pas, on peut basculer à tout moment ; le fond clair/sombre reste disponible dans les deux templates.
 - **Fond blanc / Fond sombre** : bascule entre le thème clair et le thème sombre de l'email
 - **Numérotation** : affiche ou masque les numéros de section (01, 02, 03…)
 

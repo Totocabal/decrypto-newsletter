@@ -627,6 +627,8 @@ export const INITIAL_STATE = {
   show_section_numbers: true,
   show_block_separators: true,
   theme_variant: "dark",
+  // Template : "b2c" (charte Décrypto actuelle) ou "b2b" (charte Coinhouse Entreprises)
+  audience: "b2c",
 
   // ── Sections modulaires ───────────────────────────────────────────────
   sections: [
@@ -668,6 +670,7 @@ export function migrateLegacyState(oldState) {
       show_section_numbers: oldState.show_section_numbers !== false,
       show_block_separators: oldState.show_block_separators !== false,
       theme_variant: oldState.theme_variant === "light" ? "light" : "dark",
+      audience: oldState.audience === "b2b" ? "b2b" : "b2c",
     };
   }
   if (!oldState) return INITIAL_STATE;
@@ -806,6 +809,7 @@ export function migrateLegacyState(oldState) {
     show_section_numbers: o.show_section_numbers !== false,
     show_block_separators: o.show_block_separators !== false,
     theme_variant: o.theme_variant === "light" ? "light" : "dark",
+    audience: o.audience === "b2b" ? "b2b" : "b2c",
     sections,
     footer: {
       links: o.footer_links ?? [],

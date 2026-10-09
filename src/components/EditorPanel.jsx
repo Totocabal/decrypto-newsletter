@@ -383,6 +383,32 @@ export function EditorPanel({ state, setState }) {
 
   return (
     <>
+      <div className="mb-3 px-1">
+        <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-d-fg4">Template</div>
+        <div className="grid grid-cols-2 gap-1 rounded-xl border border-line bg-d-panel p-1" role="radiogroup" aria-label="Template">
+          {[
+            { id: "b2c", label: "B2C", hint: "Particuliers" },
+            { id: "b2b", label: "B2B", hint: "Entreprises" },
+          ].map((option) => {
+            const active = (state.audience === "b2b" ? "b2b" : "b2c") === option.id;
+            return (
+              <button
+                key={option.id}
+                type="button"
+                role="radio"
+                aria-checked={active}
+                onClick={() => update({ audience: option.id })}
+                className={`rounded-lg px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] transition-colors ${
+                  active ? "bg-d-fg text-d-bg" : "text-d-fg3 hover:bg-d-panel2 hover:text-d-fg"
+                }`}
+              >
+                {option.label}
+                <span className="ml-1.5 hidden font-normal normal-case tracking-normal opacity-70 sm:inline">{option.hint}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
       <div className="mb-6 grid grid-cols-1 gap-2 px-1 sm:grid-cols-3">
         <label className="grid min-w-0 cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-xl border border-line bg-d-panel px-3 py-2.5">
           <span className="flex min-w-0 items-center gap-2 text-[11px] font-semibold text-d-fg lg:text-xs">

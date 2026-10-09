@@ -103,6 +103,7 @@ const FRONT_MATTER_FIELDS = new Set([
   "issue_date",
   "preview_text",
   "theme_variant",
+  "audience",
   "show_section_numbers",
   "show_block_separators",
 ]);
@@ -868,6 +869,9 @@ function validateGlobalMeta(meta, warnings) {
   if (meta.theme_variant && !["dark", "light"].includes(meta.theme_variant)) {
     throw new MarkdownImportError('Front matter: "theme_variant" doit valoir dark ou light.');
   }
+  if (meta.audience && !["b2c", "b2b"].includes(meta.audience)) {
+    throw new MarkdownImportError('Front matter: "audience" doit valoir b2c ou b2b.');
+  }
   if (!meta.preview_text) warnings.push("Front matter: preview_text absent.");
 }
 
@@ -896,6 +900,7 @@ export function importNewsletterMarkdown(markdown) {
       issue_date: meta.issue_date === undefined ? "" : String(meta.issue_date),
       preview_text: meta.preview_text === undefined ? "" : String(meta.preview_text),
       theme_variant: meta.theme_variant || "dark",
+      audience: meta.audience || "b2c",
       show_section_numbers: meta.show_section_numbers !== false,
       show_block_separators: meta.show_block_separators !== false,
       sections,

@@ -85,6 +85,8 @@ function escapedAnchorOpeningToHtml(match = "") {
 const RICH_TEXT_WEIGHT = 400;
 const RICH_TEXT_BOLD_WEIGHT = 700;
 let EMAIL_THEME = THEME;
+// Template B2B : même contenu, charte Coinhouse Entreprises (voir config/theme.js)
+let IS_B2B = false;
 // URL du PNG de dégradé CTA — null en mode inline (prévisualisation), renseigné en mode export
 let CTA_GRADIENT_URL = null;
 let SHOW_BLOCK_SEPARATORS = true;
@@ -96,12 +98,86 @@ const CTA_GRADIENT_BG = "#4141FF";
 const CTA_BLACK_BG = "#050505";
 const PREHEADER_SPACER = Array.from({ length: 220 }, () => "&nbsp;&zwnj;&#847;&shy;").join("");
 
+// Image de fond par défaut d'un bloc (dégradés violet/magenta de la charte B2C).
+// En B2B on n'en met pas : le bloc retombe sur sa couleur de fond unie.
+function defaultBgImage(filename, assetMode) {
+  if (IS_B2B) return "";
+  return assetMode === "external"
+    ? `assets/${filename}`
+    : `https://decrypto-newsletter.vercel.app/${filename}`;
+}
+
+// Retire les attributs d'image vides laissés par defaultBgImage() en B2B
+// (un background="" ferait charger la page elle-même dans certains clients).
+function stripEmptyBackgroundImages(html) {
+  return html
+    .replace(/ background=""/g, "")
+    .replace(/background-image:url\(''\);?\s*/g, "")
+    .replace(/<v:fill type="frame" src="" color="([^"]*)" \/>/g, '<v:fill type="solid" color="$1" />');
+}
+
+// Couleurs de la charte B2C écrites en dur dans les blocs → équivalent charte B2B
+// (noir / blanc / gris + bleu #4141FF). Appliqué sur le HTML final, voir toB2bPalette().
+// Les couleurs sémantiques (hausse/baisse, peur/avidité…) ne sont pas touchées.
+const B2B_COLOR_MAP = {
+  // Accent magenta → bleu électrique
+  "#FF00AA": "#4141FF",
+  "#C0008A": "#4141FF",
+  "#FF6FCB": "#8A8AFF",
+  "#D6008F": "#3535E0",
+  "#FFF0F8": "#EEF0FF",
+  "#FFE5F5": "#E0E3FF",
+  // Cartes sombres violacées → gris très foncé du site
+  "#1A0C2E": "#171717",
+  "#12081F": "#0B0B0B",
+  "#2D243A": "#2A2A2A",
+  "#2D203B": "#2A2A2A",
+  "#5F526D": "#4B5563",
+  "#5A2363": "#171717",
+  "#101018": "#171717",
+  "#141418": "#171717",
+  "#24242C": "#2A2A2A",
+  "#222229": "#2A2A2A",
+  "#242832": "#2A2A2A",
+  "#343A46": "#3A3A3A",
+  // Cartes claires crème / lilas → gris clairs du site
+  "#FAF7F1": "#F3F4F6",
+  "#FBF8F2": "#F3F4F6",
+  "#EEF2EC": "#EEF0F3",
+  "#E5E1D8": "#E5E7EB",
+  "#E6E0D4": "#E5E7EB",
+  "#EBE7DE": "#E5E7EB",
+  "#E0DCD3": "#E5E7EB",
+  "#D8D2C4": "#C2CAD2",
+  "#E4E7EE": "#E5E7EB",
+  "#E2E5EA": "#E5E7EB",
+  "#D7C4F5": "#C2CAD2",
+  "#E7D8EE": "#C2CAD2",
+  "#BEB8C4": "#C2CAD2",
+};
+const B2B_COLOR_PATTERN = new RegExp(Object.keys(B2B_COLOR_MAP).join("|"), "gi");
+
+function toB2bPalette(html) {
+  return html
+    .replace(B2B_COLOR_PATTERN, (match) => B2B_COLOR_MAP[match.toUpperCase()])
+    // Halos dégradés (violet / magenta / orange) → bleu et cyan de la charte
+    .replace(/rgba\(\s*135,\s*1,\s*255,/g, "rgba(65,65,255,")
+    .replace(/rgba\(\s*255,\s*0,\s*170,/g, "rgba(65,65,255,")
+    .replace(/rgba\(\s*255,\s*75,\s*40,/g, "rgba(0,255,255,");
+}
+
 function getEmailThemeVariant(state = {}) {
   return state.theme_variant === "light" ? "light" : "dark";
 }
 
+function getEmailAudience(state = {}) {
+  return state.audience === "b2b" ? "b2b" : "b2c";
+}
+
 function setRenderTheme(state = {}) {
-  EMAIL_THEME = EMAIL_THEMES[getEmailThemeVariant(state)] || THEME;
+  const variant = getEmailThemeVariant(state);
+  IS_B2B = getEmailAudience(state) === "b2b";
+  EMAIL_THEME = EMAIL_THEMES[IS_B2B ? `b2b_${variant}` : variant] || THEME;
 }
 
 function ctaVisualStyle(style = "gradient") {
@@ -110,6 +186,14 @@ function ctaVisualStyle(style = "gradient") {
       bgColor: CTA_BLACK_BG,
       background: `background-color:${CTA_BLACK_BG};`,
       msoFill: CTA_BLACK_BG,
+    };
+  }
+  if (IS_B2B) {
+    // Charte B2B : bouton plein bleu électrique, pas de dégradé.
+    return {
+      bgColor: CTA_GRADIENT_BG,
+      background: `background-color:${CTA_GRADIENT_BG};`,
+      msoFill: CTA_GRADIENT_BG,
     };
   }
   return {
@@ -217,7 +301,7 @@ export function sanitizeRichText(text = "", options = {}) {
     .replace(/&lt;mark(?:\s[^&]*)?&gt;/gi, () => `<span style="${highlightStyle()}">`)
     .replace(/&lt;\/mark&gt;/gi, "</span>")
     .replace(/&lt;span(?:\s+[^&]*?)?\bdata-tc=&quot;([a-z]+)&quot;[^&]*?&gt;/gi,
-      (_, key) => `<span style="${textColorStyle(key, EMAIL_THEME === EMAIL_THEMES.light)}">`)
+      (_, key) => `<span style="${textColorStyle(key, EMAIL_THEME.variant === "light")}">`)
     .replace(/&lt;\/span&gt;/gi, "</span>")
     .replace(/&lt;sup&gt;/gi, "<sup>")
     .replace(/&lt;\/sup&gt;/gi, "</sup>")
@@ -547,7 +631,7 @@ function sectionBottomBorder(isLastSection) {
 }
 
 function separatorColor(strength = "strong") {
-  const isLightTheme = EMAIL_THEME === EMAIL_THEMES.light;
+  const isLightTheme = EMAIL_THEME.variant === "light";
   if (strength === "subtle") return isLightTheme ? "#E5E1D8" : "#242832";
   return isLightTheme ? "#D8D2C4" : "#343A46";
 }
@@ -603,7 +687,10 @@ function initialsFromName(name = "") {
 }
 
 function hexToParts(hex = DEFAULT_CALLOUT_COLOR) {
-  const match = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  // En B2B, les couleurs de marque B2C (magenta des données, fonds violacés) sont remplacées
+  // avant tout calcul de teinte, pour que les pastilles et encarts dérivés suivent la charte.
+  const source = IS_B2B ? B2B_COLOR_MAP[String(hex).toUpperCase()] || hex : hex;
+  const match = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(source);
   return match
     ? [parseInt(match[1], 16), parseInt(match[2], 16), parseInt(match[3], 16)]
     : [0, 255, 255];
@@ -871,7 +958,7 @@ function renderSignals(data, number, anchor = "", isLastSection = false, assetMo
     const cellOf = (s, position) => {
       if (!s) return `<td class="em-signal-col" width="50%"></td>`;
       const arrowUp = s.direction === "up";
-      const isLightTheme = EMAIL_THEME.bgEmail === "#FFFFFF" || EMAIL_THEME.bgEmail === "#ffffff";
+      const isLightTheme = EMAIL_THEME.variant === "light";
       const bg = arrowUp
         ? (isLightTheme ? "#DDF7F1" : "#003D33")
         : (isLightTheme ? "#FFE8D7" : "#3A1F12");
@@ -963,7 +1050,7 @@ function renderCommentedNumber(data, anchor = "", isLastSection = false) {
   const numberFontSize = shouldKeepSingleCharUnitInline ? "46px" : "56px";
   const numberWrapStyle = shouldKeepSingleCharUnitInline ? " white-space:nowrap;" : "";
   const valueUnitGap = shouldKeepSingleCharUnitInline ? "&nbsp;" : " ";
-  const isLightTheme = EMAIL_THEME === EMAIL_THEMES.light;
+  const isLightTheme = EMAIL_THEME.variant === "light";
   const cardBg = isLightTheme ? "#FBF8F2" : "#101018";
   const cardBorder = isLightTheme ? "#E6E0D4" : EMAIL_THEME.borderSubtle;
   const numberPanelBg = isLightTheme ? "#EEF2EC" : EMAIL_THEME.positiveBg;
@@ -1017,10 +1104,10 @@ function renderCommentedNumber(data, anchor = "", isLastSection = false) {
 function renderPictoBadge(pictoId, color, size, assetMode) {
   const picto = CALLOUT_PICTOS_MAP[pictoId || DEFAULT_PICTO_ID] || CALLOUT_PICTOS_MAP[DEFAULT_PICTO_ID];
   const accent = color || DEFAULT_CALLOUT_COLOR;
-  const iconBg = EMAIL_THEME === EMAIL_THEMES.light
+  const iconBg = EMAIL_THEME.variant === "light"
     ? mixHex("#FFFFFF", accent, 0.18)
     : mixHex(EMAIL_THEME.bgEmail || "#0B0B0D", accent, 0.22);
-  const iconBorder = EMAIL_THEME === EMAIL_THEMES.light
+  const iconBorder = EMAIL_THEME.variant === "light"
     ? mixHex("#FFFFFF", accent, 0.42)
     : mixHex(EMAIL_THEME.bgEmail || "#0B0B0D", accent, 0.48);
   const icon = assetMode === "external"
@@ -1034,15 +1121,13 @@ function renderFeatureGrid(data, number, assetMode, anchor = "", isLastSection =
   const featured = data.featured || {};
   const secondaryCount = Number(data.secondary_count) === 2 ? 2 : 4;
   const items = (data.items || []).slice(0, secondaryCount);
-  const isLightTheme = EMAIL_THEME === EMAIL_THEMES.light;
+  const isLightTheme = EMAIL_THEME.variant === "light";
   const cardBg = isLightTheme ? "#FFFFFF" : "#101018";
   const cardBorder = isLightTheme ? "#E4E7EE" : "#24242C";
   const cardText = isLightTheme ? "#15151A" : EMAIL_THEME.textPrimary;
   const cardMuted = isLightTheme ? "#596273" : EMAIL_THEME.textMuted;
   const bgImg = String(data.bg_image_url || "").trim();
-  const effectiveBgImg = bgImg || (assetMode === "external"
-    ? "assets/macro-quote-bg.png"
-    : "https://decrypto-newsletter.vercel.app/macro-quote-bg.png");
+  const effectiveBgImg = bgImg || defaultBgImage("macro-quote-bg.png", assetMode);
   const featuredBorder = "rgba(255,255,255,0.08)";
   const featuredMsoBorder = "#2D243A";
   const hasFeaturedCard = Boolean(
@@ -1055,7 +1140,7 @@ function renderFeatureGrid(data, number, assetMode, anchor = "", isLastSection =
     ? ""
     : `<td class="em-feature-icon" valign="top" width="58" style="padding-right:14px;">${renderPictoBadge(featured.picto, featuredColor, 18, assetMode)}</td>`;
   const featuredLabel = featured.label
-    ? `<span style="display:inline-block; padding:4px 10px; border-radius:99px; background-color:${mixHex("#1a0c2e", featuredColor, 0.22)}; color:#FFE5F5; font-family:${FONTS.mono}; font-size:10px; letter-spacing:0.08em; font-weight:700; text-transform:uppercase; margin-bottom:8px;">${escapeHtml(featured.label)}</span>`
+    ? `<span style="display:inline-block; padding:4px 10px; border-radius:99px; background-color:${mixHex(IS_B2B ? "#171717" : "#1a0c2e", featuredColor, 0.22)}; color:#FFE5F5; font-family:${FONTS.mono}; font-size:10px; letter-spacing:0.08em; font-weight:700; text-transform:uppercase; margin-bottom:8px;">${escapeHtml(featured.label)}</span>`
     : "";
   const featuredCard = `
     <!--[if mso]>
@@ -1152,7 +1237,7 @@ function renderFeatureGrid(data, number, assetMode, anchor = "", isLastSection =
 function renderComparison(data, number, anchor = "", isLastSection = false) {
   const numberSlot = numberPlacement(data, number);
   const rows = Array.isArray(data.rows) ? data.rows : [];
-  const isLightTheme = EMAIL_THEME === EMAIL_THEMES.light;
+  const isLightTheme = EMAIL_THEME.variant === "light";
   const cardBg = isLightTheme ? "#FAF7F1" : "#101018";
   const cardBorder = isLightTheme ? "#E5E1D8" : "rgba(255,255,255,0.08)";
   const headerBorder = isLightTheme ? "#E5E1D8" : "rgba(255,255,255,0.10)";
@@ -1231,9 +1316,7 @@ function renderMacro(data, number, assetMode, anchor = "", isLastSection = false
   const authorName = authorParts.shift() || "";
   const authorDetails = authorParts.join(" · ");
   const bgImg = String(data.bg_image_url || "").trim();
-  const effectiveBgImg = bgImg || (assetMode === "external"
-    ? "assets/macro-quote-bg.png"
-    : "https://decrypto-newsletter.vercel.app/macro-quote-bg.png");
+  const effectiveBgImg = bgImg || defaultBgImage("macro-quote-bg.png", assetMode);
   const quoteBorder = "border:0;";
   const quoteAvatarBg = "#5A2363";
   const quoteAvatarFg = "#FFFFFF";
@@ -1314,7 +1397,7 @@ function renderEvent(data, anchor = "", isLastSection = false) {
               </tr>
             </table>`;
 
-  const effectiveBgImg = bgImg || "https://decrypto-newsletter.vercel.app/event-bg.png";
+  const effectiveBgImg = bgImg || defaultBgImage("event-bg.png", "inline");
   const cardTable = `<!--[if mso]>
       <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="true" strokecolor="${eventMsoBorder}" style="width:568px;" arcsize="8%">
         <v:fill type="frame" src="${escapeAttr(effectiveBgImg)}" color="${EMAIL_THEME.bgEventCard}" />
@@ -1353,12 +1436,10 @@ function renderReferral(data, anchor = "", isLastSection = false, assetMode = "i
     ? "Invitez vos proches et recevez jusqu'a <strong>500€</strong> en bitcoin"
     : data.title;
   const referralDescription = data.description === legacyReferralDescription ? "" : data.description;
-  const isLightTheme = EMAIL_THEME === EMAIL_THEMES.light;
+  const isLightTheme = EMAIL_THEME.variant === "light";
   const bgVariant = ["light", "dark"].includes(data.bg_variant) ? data.bg_variant : (isLightTheme ? "light" : "dark");
   const isLightReferral = bgVariant === "light";
-  const defaultBg = assetMode === "external"
-    ? `assets/${isLightReferral ? "referral-bg-light.png" : "referral-bg-dark.png"}`
-    : `https://decrypto-newsletter.vercel.app/${isLightReferral ? "referral-bg-light.png" : "referral-bg-dark.png"}`;
+  const defaultBg = defaultBgImage(isLightReferral ? "referral-bg-light.png" : "referral-bg-dark.png", assetMode);
   const bgImg = String(data.bg_image_url || "").trim();
   const effectiveBgImg = bgImg || defaultBg;
   const cardBg = isLightReferral ? "#FAF7F1" : "#1a0c2e";
@@ -1535,9 +1616,7 @@ function renderOffer(data, assetMode, isLastSection = false) {
   // Le fond est un dégradé radial (violet + orange) : Outlook et certains
   // webmails ne rendent pas ce type de dégradé en CSS, donc on l'exporte en
   // image bitmap, exactement comme le bloc Évènement.
-  const effectiveBgImg = bgImg || (assetMode === "external"
-    ? "assets/offer-bg.png"
-    : "https://decrypto-newsletter.vercel.app/offer-bg.png");
+  const effectiveBgImg = bgImg || defaultBgImage("offer-bg.png", assetMode);
 
   return `
     <tr>
@@ -1691,7 +1770,7 @@ function renderFocusItem(item, assetMode, isLastItem = false) {
   if (item.type === "callout") {
     const hasBody = plainTextFromRichText(item.body);
     if (!hasBody) return "";
-    const isLightTheme = EMAIL_THEME.bgEmail === "#FFFFFF" || EMAIL_THEME.bgEmail === "#ffffff";
+    const isLightTheme = EMAIL_THEME.variant === "light";
     const picto = CALLOUT_PICTOS_MAP[item.picto || DEFAULT_PICTO_ID] || CALLOUT_PICTOS_MAP[DEFAULT_PICTO_ID];
     const accentHex = item.callout_color || DEFAULT_CALLOUT_COLOR;
     const baseBg = isLightTheme ? "#FFFFFF" : EMAIL_THEME.bgEmail || "#0B0B0D";
@@ -1892,7 +1971,7 @@ function renderTextBlock(data, number, anchor = "", isLastSection = false) {
 }
 
 function renderEditorialList(data, number, anchor = "", isLastSection = false) {
-  const isLightTheme = EMAIL_THEME === EMAIL_THEMES.light;
+  const isLightTheme = EMAIL_THEME.variant === "light";
   const rowBorder = isLightTheme ? "#E2E5EA" : "#24242C";
   const numberColor = EMAIL_THEME.accentPrimary;
   const kickerColor = EMAIL_THEME.accentPrimary;
@@ -1947,7 +2026,7 @@ function renderEditorialList(data, number, anchor = "", isLastSection = false) {
 }
 
 function renderTimeline(data, number, anchor = "", isLastSection = false) {
-  const isLightTheme = EMAIL_THEME === EMAIL_THEMES.light;
+  const isLightTheme = EMAIL_THEME.variant === "light";
   const accentColor = isLightTheme ? "#C0008A" : EMAIL_THEME.accentPrimary;
   const badgeBg = isLightTheme ? "#FFF0F8" : mixHex(EMAIL_THEME.bgEmail || "#0B0B0D", accentColor, 0.18);
   const badgeBorder = isLightTheme ? "rgba(255,0,170,0.4)" : mixHex(EMAIL_THEME.bgEmail || "#0B0B0D", accentColor, 0.46);
@@ -2013,7 +2092,7 @@ function kpiToneColor(tone) {
 
 function renderKpis(data, number, anchor = "", isLastSection = false) {
   const numberSlot = numberPlacement(data, number);
-  const isLightTheme = EMAIL_THEME === EMAIL_THEMES.light;
+  const isLightTheme = EMAIL_THEME.variant === "light";
   const cardBg = isLightTheme ? EMAIL_THEME.bgSection : "#141418";
   const items = (data.items || []).filter((item) => String(item.label || item.value || "").trim());
   const subtitle = String(data.subtitle || "").trim();
@@ -2053,7 +2132,7 @@ function renderKpis(data, number, anchor = "", isLastSection = false) {
 }
 
 function renderFonds(data, isLastSection = false) {
-  const isLightTheme = EMAIL_THEME === EMAIL_THEMES.light;
+  const isLightTheme = EMAIL_THEME.variant === "light";
   const cardBg = isLightTheme ? EMAIL_THEME.bgSection : "#141418";
   const items = (data.items || []).filter((item) => String(item.name || "").trim());
   const disclaimer = String(data.disclaimer || "").trim();
@@ -2093,7 +2172,7 @@ function renderFonds(data, isLastSection = false) {
 }
 
 function renderBonASavoir(data, isLastSection = false) {
-  const isLightTheme = EMAIL_THEME === EMAIL_THEMES.light;
+  const isLightTheme = EMAIL_THEME.variant === "light";
   const accentHex = data.bg_color || "";
   const baseBg = isLightTheme ? "#FFFFFF" : EMAIL_THEME.bgEmail || "#0B0B0D";
   const cardBg = accentHex
@@ -2219,9 +2298,13 @@ function renderHeader(state, assetMode) {
   const gradientHeaderUrl = assetMode === "external"
     ? "assets/gradient-header.png"
     : "https://decrypto-newsletter.vercel.app/gradient-header.png";
+  // B2B : liseré uni aux couleurs de la charte, sans image à héberger.
+  const topStrip = IS_B2B
+    ? `<td bgcolor="${EMAIL_THEME.accentPrimary}" style="height:4px; line-height:4px; font-size:1px; padding:0; border:0; background-color:${EMAIL_THEME.accentPrimary};">&nbsp;</td>`
+    : `<td style="height:4px; line-height:4px; font-size:1px; padding:0; border:0;"><img src="${gradientHeaderUrl}" width="640" height="4" alt="" style="display:block; width:100%; height:4px; border:0; line-height:4px;" /></td>`;
   return `
     <tr>
-      <td style="height:4px; line-height:4px; font-size:1px; padding:0; border:0;"><img src="${gradientHeaderUrl}" width="640" height="4" alt="" style="display:block; width:100%; height:4px; border:0; line-height:4px;" /></td>
+      ${topStrip}
     </tr>
     <tr>
       <td class="em-px" bgcolor="${EMAIL_THEME.bgEmail}" style="background-color:${EMAIL_THEME.bgEmail}; padding:22px 36px; border-bottom:1px solid ${EMAIL_THEME.border};">
@@ -2238,7 +2321,7 @@ function renderHeader(state, assetMode) {
 }
 
 function renderFooter(footer, assetMode) {
-  const isLightTheme = EMAIL_THEME === EMAIL_THEMES.light;
+  const isLightTheme = EMAIL_THEME.variant === "light";
   const logoUrl = BRAND_LOGOS[isLightTheme ? "light" : "dark"] || BRAND_LOGOS.dark;
   const footerTopBorder = isLightTheme ? "" : ` border-top:1px solid ${EMAIL_THEME.borderSubtle};`;
   const links = (footer.links || []).filter(l => l.label && l.url).map(l => {
@@ -2317,7 +2400,7 @@ export function buildEmailHtml(state, options = {}) {
     )
     .join("");
 
-  return `<!doctype html>
+  const html = `<!doctype html>
 <html lang="fr" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
 <meta charset="utf-8" />
@@ -2402,7 +2485,7 @@ ${renderEmailFontFaces()}
     .em-chart-value { font-size: 20px !important; }
     .em-px { padding-left: 8px !important; padding-right: 8px !important; }
   }
-  .em-event-bg { background-image: url('https://decrypto-newsletter.vercel.app/event-bg.png') !important; background-size: cover !important; background-position: center !important; }
+  ${IS_B2B ? "" : ".em-event-bg { background-image: url('https://decrypto-newsletter.vercel.app/event-bg.png') !important; background-size: cover !important; background-position: center !important; }"}
 </style>
 </head>
 <body style="margin:0; padding:0; background-color:${EMAIL_THEME.bgPage}; font-family:${FONTS.body};">
@@ -2420,6 +2503,7 @@ ${renderHiddenPreheader(state.preview_text)}
 </table>
 </body>
 </html>`;
+  return IS_B2B ? toB2bPalette(stripEmptyBackgroundImages(html)) : html;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -2433,11 +2517,11 @@ export function getLogoSvg(size = 64, color = "#ffffff") {
 }
 
 export function getChartSvgFull(points, opts = {}) {
-  if (opts.themeVariant) setRenderTheme({ theme_variant: opts.themeVariant });
+  if (opts.themeVariant) setRenderTheme({ theme_variant: opts.themeVariant, audience: opts.audience });
   return buildChartSvg(points, "inline", opts);
 }
 
 export function getGaugeSvgFull(value, opts = {}) {
-  if (opts.themeVariant) setRenderTheme({ theme_variant: opts.themeVariant });
+  if (opts.themeVariant) setRenderTheme({ theme_variant: opts.themeVariant, audience: opts.audience });
   return buildFgGauge(value, "inline");
 }
