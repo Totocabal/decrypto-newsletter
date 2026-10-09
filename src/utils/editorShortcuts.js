@@ -18,7 +18,7 @@ export function shortcutLabel(event) {
 }
 
 // Raccourcis : Alt+Maj+C replie tous les blocs, Alt+Maj+T replie les éléments
-// des blocs « Texte & Media » ouverts, Alt+Maj+S sauvegarde une version. On
+// des blocs « Texte & media » ouverts, Alt+Maj+S sauvegarde une version. On
 // utilise event.code car Alt modifie le caractère saisi sur macOS.
 export function useEditorShortcuts() {
   useEffect(() => {
