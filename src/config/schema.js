@@ -73,7 +73,7 @@ export const SECTION_TYPES = {
     }),
   },
   focus: {
-    label: "Texte, image & boutons",
+    label: "Texte & Media",
     icon: "ImageIcon",
     factory: () => ({
       kicker: "FOCUS",

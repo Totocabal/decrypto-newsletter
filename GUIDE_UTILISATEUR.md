@@ -377,7 +377,7 @@ Carte d'évènement avec date et bouton d'action.
 
 ---
 
-### 🖼️ Texte, image & boutons
+### 🖼️ Texte & Media
 
 Le bloc le plus flexible. Il contient une liste libre d'**items** de 5 types différents, combinables et réordonnables.
 
