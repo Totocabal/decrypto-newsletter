@@ -171,7 +171,7 @@ centered: false
   },
   {
     id: "feature-grid",
-    label: "Grille bénéfices",
+    label: "Grille de cartes",
     description: "Pour 3 ou 4 fonctionnalités comparables.",
     markdown: `---
 title: "Pourquoi activer votre compte euro"

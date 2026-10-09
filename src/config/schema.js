@@ -29,7 +29,7 @@ import { BRAND } from "./theme.js";
 
 export const SECTION_TYPES = {
   hero: {
-    label: "Hero",
+    label: "Grand titre + puces",
     icon: "Megaphone",
     factory: () => ({
       kicker: "━━ \u00A0 DÉCRYPTO · L'HEBDO COINHOUSE",
@@ -48,7 +48,7 @@ export const SECTION_TYPES = {
     }),
   },
   index: {
-    label: "Sommaire",
+    label: "Liste de liens",
     icon: "List",
     factory: () => ({
       label: "Au sommaire",
@@ -61,7 +61,7 @@ export const SECTION_TYPES = {
     }),
   },
   edito: {
-    label: "Édito + KPI",
+    label: "Texte + cartes chiffres",
     icon: "Newspaper",
     factory: () => ({
       kicker: "ÉDITO",
@@ -73,7 +73,7 @@ export const SECTION_TYPES = {
     }),
   },
   focus: {
-    label: "Texte & Media",
+    label: "Texte, image & boutons",
     icon: "ImageIcon",
     factory: () => ({
       kicker: "FOCUS",
@@ -89,7 +89,7 @@ export const SECTION_TYPES = {
     }),
   },
   chart: {
-    label: "Graphique",
+    label: "Courbe",
     icon: "TrendingUp",
     factory: () => ({
       chart_mode: "auto",
@@ -112,7 +112,7 @@ export const SECTION_TYPES = {
     }),
   },
   fear_greed: {
-    label: "Fear & Greed",
+    label: "Jauge + légende",
     icon: "Gauge",
     factory: () => ({
       kicker: "INDICATEUR",
@@ -125,7 +125,7 @@ export const SECTION_TYPES = {
     }),
   },
   signals: {
-    label: "Signaux",
+    label: "Grille 2 colonnes à flèches",
     icon: "Activity",
     factory: () => ({
       kicker: "ANALYSE",
@@ -156,7 +156,7 @@ export const SECTION_TYPES = {
     }),
   },
   macro: {
-    label: "Macro / Citation",
+    label: "Texte + encadré citation",
     icon: "Quote",
     factory: () => ({
       kicker: "MACRO",
@@ -172,7 +172,7 @@ export const SECTION_TYPES = {
     }),
   },
   macro_bars: {
-    label: "Barres Macro",
+    label: "Barres horizontales",
     icon: "BarChart2",
     factory: () => ({
       bars: [
@@ -183,7 +183,7 @@ export const SECTION_TYPES = {
     }),
   },
   commented_number: {
-    label: "Chiffre commenté",
+    label: "Gros chiffre + texte",
     icon: "Hash",
     factory: () => ({
       index_label: "Le chiffre de la semaine",
@@ -202,7 +202,7 @@ export const SECTION_TYPES = {
     }),
   },
   feature_grid: {
-    label: "Grille bénéfices",
+    label: "Grille de cartes",
     icon: "Grid2X2",
     factory: () => ({
       kicker: "Bloc visuel · Hiérarchisé",
@@ -250,7 +250,7 @@ export const SECTION_TYPES = {
     }),
   },
   comparison: {
-    label: "Comparatif",
+    label: "Tableau 3 colonnes",
     icon: "Grid2X2",
     factory: () => ({
       section_kicker: "",
@@ -298,7 +298,7 @@ export const SECTION_TYPES = {
     }),
   },
   editorial_list: {
-    label: "Liste éditoriale",
+    label: "Liste numérotée",
     icon: "List",
     factory: () => ({
       kicker: "Cinq raisons d'activer",
@@ -338,7 +338,7 @@ export const SECTION_TYPES = {
     }),
   },
   timeline: {
-    label: "Timeline",
+    label: "Frise verticale",
     icon: "ListOrdered",
     factory: () => ({
       kicker: "Pas à pas",
@@ -366,7 +366,7 @@ export const SECTION_TYPES = {
     }),
   },
   kpis: {
-    label: "KPIs",
+    label: "Cartes chiffres",
     icon: "LayoutGrid",
     factory: () => ({
       kicker: "EN CHIFFRES",
@@ -383,7 +383,7 @@ export const SECTION_TYPES = {
     }),
   },
   fonds: {
-    label: "Fonds",
+    label: "Cartes avec taux",
     icon: "Landmark",
     factory: () => ({
       items: [
@@ -430,7 +430,7 @@ export const SECTION_TYPES = {
     }),
   },
   event: {
-    label: "Évènement",
+    label: "Carte date + texte",
     icon: "Calendar",
     factory: () => ({
       day: "14",
@@ -445,7 +445,7 @@ export const SECTION_TYPES = {
     }),
   },
   referral: {
-    label: "Parrainage",
+    label: "Carte code + bouton",
     icon: "Gift",
     factory: () => ({
       kicker: "Programme de parrainage",
@@ -466,7 +466,7 @@ export const SECTION_TYPES = {
   // des newsletters : remplacé par le style "card" du bloc "offer" pour toute
   // nouvelle création (voir hiddenFromPicker + getAddableSectionTypes).
   commercial_offer: {
-    label: "Offre commerciale",
+    label: "Bandeau offre (ancien)",
     icon: "Gift",
     hiddenFromPicker: true,
     factory: () => ({
@@ -479,7 +479,7 @@ export const SECTION_TYPES = {
     }),
   },
   offer: {
-    label: "Offre",
+    label: "Bandeau montant + bouton",
     icon: "BadgePercent",
     factory: () => ({
       style: "banner",
@@ -498,7 +498,7 @@ export const SECTION_TYPES = {
     }),
   },
   text_block: {
-    label: "Texte",
+    label: "Texte + bouton",
     icon: "Type",
     factory: () => ({
       kicker: "État du marché",
@@ -512,7 +512,7 @@ export const SECTION_TYPES = {
     }),
   },
   cta: {
-    label: "CTA",
+    label: "Bouton",
     icon: "MousePointerClick",
     factory: () => ({
       label: "Découvrir",
@@ -527,7 +527,7 @@ export const SECTION_TYPES = {
     }),
   },
   spacer: {
-    label: "Spacer",
+    label: "Espace",
     icon: "ChevronsUpDown",
     factory: () => ({
       height: 32,
@@ -545,7 +545,7 @@ export const SECTION_TYPES = {
     }),
   },
   divider: {
-    label: "Séparateur",
+    label: "Filet",
     icon: "Minus",
     factory: () => ({
       style: "thin", // thin | thick | gradient

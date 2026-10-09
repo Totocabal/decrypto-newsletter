@@ -250,7 +250,7 @@ Le bouton **Sync blocs** (🔄) régénère automatiquement les entrées depuis 
 
 ---
 
-### 📰 Édito + KPI
+### 📰 Texte + cartes chiffres
 
 Bloc éditorial avec grille de chiffres clés.
 
@@ -346,7 +346,7 @@ Bouton **Ajouter une barre** en bas.
 
 ---
 
-### 🔢 Chiffre commenté
+### 🔢 Gros chiffre + texte
 
 Mise en avant d'un grand chiffre clé avec contexte éditorial.
 
@@ -377,7 +377,7 @@ Carte d'évènement avec date et bouton d'action.
 
 ---
 
-### 🖼️ Texte & Media
+### 🖼️ Texte, image & boutons
 
 Le bloc le plus flexible. Il contient une liste libre d'**items** de 5 types différents, combinables et réordonnables.
 
