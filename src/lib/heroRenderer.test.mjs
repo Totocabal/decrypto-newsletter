@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 import {
   HERO_BACKGROUNDS,
+  HERO_GRADIENTS,
   getHeroBackground,
   DEFAULT_HERO_OPTIONS,
   HERO_HEIGHT,
@@ -122,5 +123,15 @@ test("hero backgrounds are unique, resolvable and default to the original", () =
   assert.equal(getHeroBackground("light").textColor, "dark");
   for (const background of HERO_BACKGROUNDS) {
     assert.ok(background.url.startsWith("/"), background.id);
+  }
+});
+
+test("hero gradient option falls back to B2C and accepts B2B", () => {
+  assert.equal(normalizeHeroOptions({}).gradient, "b2c");
+  assert.equal(normalizeHeroOptions({ gradient: "b2b" }).gradient, "b2b");
+  assert.equal(normalizeHeroOptions({ gradient: "nope" }).gradient, "b2c");
+  for (const gradient of Object.values(HERO_GRADIENTS)) {
+    assert.equal(gradient.stops[0][0], 0);
+    assert.equal(gradient.stops[gradient.stops.length - 1][0], 1);
   }
 });

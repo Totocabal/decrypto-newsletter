@@ -5,6 +5,7 @@ import {
   DEFAULT_HERO_BACKGROUND_ID,
   DEFAULT_HERO_OPTIONS,
   HERO_BACKGROUNDS,
+  HERO_GRADIENTS,
   HERO_HEIGHT,
   HERO_POSITIONS,
   HERO_WIDTH,
@@ -27,6 +28,9 @@ const POSITION_LABELS = {
   "bottom-center": "Bas centre",
   "bottom-right": "Bas droite",
 };
+
+const gradientCss = (id) =>
+  `linear-gradient(90deg, ${HERO_GRADIENTS[id].stops.map(([offset, color]) => `${color} ${Math.round(offset * 100)}%`).join(", ")})`;
 
 const LABEL_CLASS = "mb-2 text-[10px] font-semibold uppercase tracking-[0.15em] text-d-fg4";
 
@@ -229,13 +233,35 @@ export function HeroEditorModal({ userId, onClose, onCreated }) {
               >
                 <span
                   className="h-3 w-3 rounded-full"
-                  style={{ background: "linear-gradient(90deg, #8701FF, #FF00AA, #FF4B28)" }}
+                  style={{ background: gradientCss(options.gradient) }}
                 />
                 Dégradé
               </button>
               <p className="text-[11px] leading-relaxed text-d-fg4">
                 Sélectionne des mots puis clique sur « Dégradé » (ou entoure-les de [[ ]]). Un retour à la ligne force une nouvelle ligne.
               </p>
+            </div>
+          </div>
+
+          <div>
+            <div className={LABEL_CLASS}>Style du dégradé</div>
+            <div className="grid grid-cols-2 gap-1 rounded-xl border border-line bg-d-panel p-1">
+              {Object.entries(HERO_GRADIENTS).map(([id, gradient]) => (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => set({ gradient: id })}
+                  aria-pressed={options.gradient === id}
+                  className={`flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold transition-colors ${
+                    options.gradient === id
+                      ? "bg-d-fg text-d-bg shadow-sm"
+                      : "text-d-fg3 hover:bg-d-panel2 hover:text-d-fg"
+                  }`}
+                >
+                  <span className="h-3 w-6 rounded-full" style={{ background: gradientCss(id) }} />
+                  {gradient.label}
+                </button>
+              ))}
             </div>
           </div>
 

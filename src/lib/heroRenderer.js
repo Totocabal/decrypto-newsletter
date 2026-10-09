@@ -40,11 +40,28 @@ export function getHeroBackground(id) {
 export const HERO_FONT_FAMILY = "Sora";
 export const HERO_BASE_WEIGHT = 500;
 export const HERO_HIGHLIGHT_WEIGHT = 600;
-export const HERO_GRADIENT_STOPS = [
-  [0, "#8701FF"],
-  [0.55, "#FF00AA"],
-  [1, "#FF4B28"],
-];
+// Dégradés disponibles pour les mots surlignés : B2C (violet → magenta → orange) et B2B
+// (bleu → cyan → menthe → vert, comme les boutons du template B2B).
+export const HERO_GRADIENTS = {
+  b2c: {
+    label: "B2C",
+    stops: [
+      [0, "#8701FF"],
+      [0.55, "#FF00AA"],
+      [1, "#FF4B28"],
+    ],
+  },
+  b2b: {
+    label: "B2B",
+    stops: [
+      [0, "#4141FF"],
+      [0.22, "#5FA0FF"],
+      [0.45, "#7DFFFF"],
+      [0.7, "#7FFFD4"],
+      [1, "#55B896"],
+    ],
+  },
+};
 export const HERO_TEXT_COLORS = { dark: "#111318", light: "#FFFFFF" };
 
 export const HERO_POSITIONS = [
@@ -63,6 +80,7 @@ export const DEFAULT_HERO_OPTIONS = {
   margin: 80,
   position: "top-left",
   textColor: "dark",
+  gradient: "b2c",
 };
 
 const clamp = (value, min, max) => Math.min(max, Math.max(min, Number.isFinite(Number(value)) ? Number(value) : min));
@@ -77,6 +95,7 @@ export function normalizeHeroOptions(options = {}) {
     margin: clamp(merged.margin, 0, 240),
     position: HERO_POSITIONS.includes(merged.position) ? merged.position : DEFAULT_HERO_OPTIONS.position,
     textColor: merged.textColor === "light" ? "light" : "dark",
+    gradient: merged.gradient === "b2b" ? "b2b" : "b2c",
   };
 }
 
@@ -301,7 +320,7 @@ export function renderHero(ctx, { bgImage, bgInset = HERO_BG_INSET, options, wid
       ctx.font = heroFontString(run.hl, opts.fontSize);
       if (run.hl) {
         const gradient = ctx.createLinearGradient(run.x, 0, run.x + run.width, 0);
-        HERO_GRADIENT_STOPS.forEach(([offset, color]) => gradient.addColorStop(offset, color));
+        HERO_GRADIENTS[opts.gradient].stops.forEach(([offset, color]) => gradient.addColorStop(offset, color));
         ctx.fillStyle = gradient;
       } else {
         ctx.fillStyle = HERO_TEXT_COLORS[opts.textColor];
